@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070606" />
+    <title>KD's Exotics Admin</title>
+    <link rel="icon" href="/assets/kds-logo-wide.png" type="image/png" />
+    <link rel="stylesheet" href="/src/styles.css?v=admin-save-drafts-20260622" />
+  </head>
+  <body class="admin-page">
+    <main class="admin-shell">
+      <section class="admin-login" data-login-view>
+        <a class="brand admin-brand" href="/" aria-label="KD's Exotics home">
+          <img class="brand-logo brand-logo-wide" src="/assets/kds-logo-wide.png" alt="KD's Exotics" width="1348" height="610" />
+        </a>
+        <div class="admin-panel admin-login-panel">
+          <p class="eyebrow">Secure access</p>
+          <h1>Admin login</h1>
+          <p>Sign in to continue.</p>
+          <form class="admin-form" data-login-form>
+            <label>
+              Email
+              <input type="email" name="email" autocomplete="email" required />
+            </label>
+            <label>
+              Password
+              <input type="password" name="password" autocomplete="current-password" required />
+            </label>
+            <button class="primary-button full" type="submit">Sign in</button>
+          </form>
+          <p class="admin-status" role="status" data-login-status></p>
+          <a class="back-link" href="/">Back to website</a>
+        </div>
+      </section>
+
+      <section class="admin-dashboard" data-admin-view hidden>
+        <header class="admin-topbar">
+          <a class="brand admin-brand" href="/" aria-label="KD's Exotics home">
+            <img class="brand-logo brand-logo-wide" src="/assets/kds-logo-wide.png" alt="KD's Exotics" width="1348" height="610" />
+          </a>
+          <div>
+            <p class="eyebrow">KD's Exotics</p>
+            <h1>Fleet admin</h1>
+          </div>
+          <button class="ghost-button" type="button" data-sign-out>Sign out</button>
+        </header>
+
+        <div class="admin-config-warning" data-config-warning hidden>
+          Add your Supabase Project URL in <strong>src/supabase-config.js</strong> to connect this admin panel.
+        </div>
+
+        <div class="admin-actions">
+          <button class="primary-button" type="button" data-new-car>Add new car</button>
+          <button class="secondary-button" type="button" data-seed-fleet>Sync current fleet</button>
+          <p class="admin-status" role="status" data-admin-status></p>
+        </div>
+
+        <div class="admin-layout">
+          <aside class="admin-panel admin-list-panel">
+            <div class="admin-panel-head">
+              <p class="eyebrow">Cars</p>
+              <strong data-car-count>0 cars</strong>
+            </div>
+            <div class="admin-car-list" data-car-list></div>
+          </aside>
+
+          <section class="admin-panel admin-editor-panel">
+            <form class="admin-editor" data-car-form>
+              <input type="hidden" name="id" />
+              <div class="admin-editor-hero">
+                <img data-editor-preview src="/assets/kds-hero.png" alt="" width="900" height="500" />
+                <div class="admin-editor-scrim" aria-hidden="true"></div>
+                <div class="admin-editor-title">
+                  <p class="eyebrow">Edit vehicle</p>
+                  <h2 data-editor-title>Select a car</h2>
+                  <div class="admin-editor-chips">
+                    <span data-editor-price>$0/day</span>
+                    <span data-editor-meta>Choose a vehicle</span>
+                  </div>
+                </div>
+                <button class="primary-button compact" type="submit">Save car</button>
+              </div>
+
+              <section class="admin-simple-section">
+                <div class="admin-simple-title">
+                  <span>1</span>
+                  <div>
+                    <h3>Basics</h3>
+                    <p>Name, price, seats, and short description.</p>
+                  </div>
+                </div>
+                <div class="admin-form-grid simple">
+                  <label>
+                    Car name
+                    <input name="name" required />
+                  </label>
+                  <label>
+                    Price / day
+                    <input name="price" type="number" min="0" step="1" required />
+                  </label>
+                  <label>
+                    Make
+                    <input name="make" required />
+                  </label>
+                  <label>
+                    Model
+                    <input name="model" required />
+                  </label>
+                  <label>
+                    Seats
+                    <input name="seats" type="number" min="1" max="8" required />
+                  </label>
+                  <label>
+                    Mileage
+                    <input name="mileage" placeholder="100 miles/day" required />
+                  </label>
+                </div>
+                <label>
+                  Color / feature line
+                  <input name="color" required />
+                </label>
+                <label>
+                  Short description
+                  <textarea name="summary" rows="3" required></textarea>
+                </label>
+              </section>
+
+              <details class="admin-advanced">
+                <summary>Advanced details</summary>
+                <div class="admin-form-grid">
+                  <label>
+                    Slug
+                    <input name="slug" required />
+                  </label>
+                  <label>
+                    Category
+                    <input name="category" placeholder="supercar, suv luxury, sports luxury" required />
+                  </label>
+                  <label>
+                    Category label
+                    <input name="category_label" placeholder="Supercar" required />
+                  </label>
+                </div>
+                <div class="admin-form-grid">
+                  <label>
+                    Tags, one per line
+                    <textarea name="tags" rows="5"></textarea>
+                  </label>
+                  <label>
+                    Details, one per line
+                    <textarea name="details" rows="5"></textarea>
+                  </label>
+                </div>
+              </details>
+
+              <section class="admin-subpanel admin-simple-section">
+                <div class="admin-panel-head">
+                  <div>
+                    <div class="admin-simple-title">
+                      <span>2</span>
+                      <div>
+                        <h3>Photos</h3>
+                        <p>Photo 1 is the main picture.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <button class="secondary-button compact" type="button" data-add-photo>Add photo</button>
+                </div>
+                <div class="photo-editor-list" data-photo-list></div>
+              </section>
+
+              <section class="admin-subpanel admin-simple-section">
+                <div class="admin-panel-head">
+                  <div>
+                    <div class="admin-simple-title">
+                      <span>3</span>
+                      <div>
+                        <h3>Availability</h3>
+                        <p>Add days this car can be booked.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <label class="admin-date-add">
+                    <span>Add date</span>
+                    <input type="date" data-availability-date />
+                  </label>
+                </div>
+                <div class="availability-list" data-availability-list></div>
+              </section>
+            </form>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/admin.js?v=admin-save-drafts-20260622"></script>
+  </body>
+</html>

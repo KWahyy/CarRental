@@ -9,9 +9,10 @@
     />
     <meta name="theme-color" content="#070606" />
     <title>KD's Exotics | VIP Exotic Car Rentals LA & OC</title>
+    <link rel="icon" href="/assets/kds-logo-wide.png" type="image/png" />
     <link rel="preconnect" href="https://images.unsplash.com" />
-    <link rel="preload" href="/src/styles.css" as="style" />
-    <link rel="stylesheet" href="/src/styles.css" />
+    <link rel="preload" href="/src/styles.css?v=final-cta-section-20260622" as="style" />
+    <link rel="stylesheet" href="/src/styles.css?v=final-cta-section-20260622" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -23,15 +24,14 @@
 
       <nav class="desktop-nav" aria-label="Primary navigation">
         <a href="#fleet">Fleet</a>
-        <a href="#service">Service</a>
-        <a href="#events">Events</a>
-        <a href="#booking">Book</a>
+        <a href="#quote">Quote</a>
         <a href="#faq">FAQ</a>
+        <a href="/admin/">Admin</a>
       </nav>
 
       <div class="header-actions">
         <a class="ghost-button" href="tel:+13105550123" aria-label="Call KD's Exotics">Call</a>
-        <a class="primary-button compact" href="#booking">Reserve</a>
+        <a class="primary-button compact" href="#quote">Reserve</a>
       </div>
 
       <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-toggle>
@@ -42,10 +42,9 @@
 
     <div class="mobile-menu" data-mobile-menu>
       <a href="#fleet">Fleet</a>
-      <a href="#service">Service</a>
-      <a href="#events">Events</a>
-      <a href="#booking">Book</a>
+      <a href="#quote">Quote</a>
       <a href="#faq">FAQ</a>
+      <a href="/admin/">Admin</a>
       <a href="sms:+13105550123">Text concierge</a>
     </div>
 
@@ -67,10 +66,10 @@
         <img class="hero-poster" src="/assets/kds-hero.png" alt="" width="1536" height="864" fetchpriority="high" />
         <div class="hero-scrim" aria-hidden="true"></div>
         <div class="hero-content">
-          <h1 class="reveal">Not Your Average Rental:<br />KD's Exotics</h1>
+          <h1 class="reveal">NOT YOUR AVERAGE RENTAL:<br />KD&apos;S EXOTICS</h1>
           <p class="hero-copy reveal">Serving Los Angeles, Orange County, and VIP destinations across Southern California.</p>
           <div class="hero-cta reveal">
-            <a class="primary-button hero-booking-button" href="#booking">
+            <a class="primary-button hero-booking-button" href="#fleet">
               <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3M4 11h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" /></svg>
               Book Your Luxury Experience
             </a>
@@ -108,229 +107,337 @@
       </section>
 
       <section id="fleet" class="section fleet-section">
-        <div class="section-heading reveal">
-          <p class="eyebrow">Featured fleet</p>
-          <h2>Your OC fleet, styled for VIP booking.</h2>
+        <section class="arrival-statement reveal" aria-labelledby="arrival-statement-title">
+          <h2 id="arrival-statement-title">
+            <span>VIP cars.</span>
+            <span class="dia-text" data-dia-words="Night moves,Fast arrivals,Camera ready">Night moves</span>
+            <span>LA & OC.</span>
+          </h2>
+        </section>
+
+        <figure class="performance-strip reveal" aria-label="Track-ready exotic car in motion">
+          <img src="/assets/kds-porsche-gt3rs-wide.jpg" alt="" loading="lazy" />
+        </figure>
+
+        <div class="fan-showcase rental-fan-showcase reveal" data-fan-carousel>
+          <div class="fan-stage" data-fan-stage aria-label="Featured exotic car carousel"></div>
+          <div class="fan-controls">
+            <button class="slider-arrow" type="button" aria-label="Previous featured car" data-fan-prev>
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6" /></svg>
+            </button>
+            <div class="fan-dots" data-fan-dots aria-hidden="true"></div>
+            <button class="slider-arrow" type="button" aria-label="Next featured car" data-fan-next>
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="shop-browse reveal">
+          <section class="shop-panel" aria-labelledby="shop-brand-title">
+            <div class="shop-panel-head">
+              <h3 id="shop-brand-title">Our car brands</h3>
+              <p>Exotic | Luxury | Performance</p>
+            </div>
+            <div class="shop-rail" data-brand-grid></div>
+            <div class="brand-dots" data-brand-dots aria-hidden="true"></div>
+          </section>
+
+          <section class="type-browser-panel" aria-labelledby="shop-type-title">
+            <div class="type-browser-head">
+              <h3 id="shop-type-title">Browse by Type</h3>
+              <button class="type-see-all" type="button" data-shop-filter="all">
+                See all options
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
+              </button>
+            </div>
+            <div class="type-browser-shell">
+              <button class="type-nav type-nav-prev" type="button" aria-label="Previous car types" data-type-prev>
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6" /></svg>
+              </button>
+              <div class="type-browser-viewport">
+                <div class="type-card-rail" data-type-grid></div>
+              </div>
+              <button class="type-nav type-nav-next" type="button" aria-label="Next car types" data-type-next>
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
+              </button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="monthly-specials reveal" id="specials" aria-labelledby="monthly-specials-title">
+        <div class="monthly-specials-copy">
+          <p class="section-kicker">Monthly special deal</p>
+          <h2 id="monthly-specials-title">June rental specials</h2>
           <p>
-            Updated from your fleet sheet with daily rates, multi-day pricing notes, and vehicle photos where provided.
+            Select VIP cars are priced for weekday arrivals, airport delivery, and last-minute summer plans across LA & OC.
           </p>
+          <a class="specials-cta" href="sms:+13105550123">Ask for this month&apos;s rate</a>
         </div>
 
-        <div class="filter-bar reveal" role="list" aria-label="Fleet filters">
-          <button class="filter-chip active" type="button" data-filter="all">All</button>
-          <button class="filter-chip" type="button" data-filter="supercar">Supercars</button>
-          <button class="filter-chip" type="button" data-filter="luxury">Luxury</button>
-          <button class="filter-chip" type="button" data-filter="suv">SUVs</button>
-          <button class="filter-chip" type="button" data-filter="sports">Sports</button>
-        </div>
-
-        <div class="fleet-grid" data-fleet-grid></div>
-      </section>
-
-      <section id="service" class="section split-section">
-        <div class="split-media reveal">
-          <img
-            src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=78"
-            alt="Luxury sports car driving through Southern California"
-            loading="lazy"
-            width="1200"
-            height="800"
-          />
-        </div>
-        <div class="split-content reveal">
-          <p class="eyebrow">Concierge service</p>
-          <h2>Delivered like a VIP experience, not a counter pickup.</h2>
-          <p>
-            KD's Exotics is designed around convenience: choose the car, pick your time, and let the concierge handle
-            delivery, documents, and return logistics.
-          </p>
-          <div class="service-list">
-            <article>
-              <span>01</span>
-              <h3>Door-to-door delivery</h3>
-              <p>Hotels, homes, studios, event venues, LAX, SNA, and private aviation terminals.</p>
-            </article>
-            <article>
-              <span>02</span>
-              <h3>Simple rental terms</h3>
-              <p>Clear day rates, mileage expectations, deposit guidance, and optional chauffeur service.</p>
-            </article>
-            <article>
-              <span>03</span>
-              <h3>Fast quote flow</h3>
-              <p>Call, text, request a quote, reserve dates, or prepare for an online deposit when payments go live.</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section id="events" class="section events-section">
-        <div class="section-heading reveal">
-          <p class="eyebrow">Built for moments</p>
-          <h2>Cars for nightlife, weddings, shoots, birthdays, and coastal weekends.</h2>
-        </div>
-        <div class="event-grid">
-          <article class="event-panel reveal">
-            <h3>Nightlife arrivals</h3>
-            <p>Beverly Hills dinners, Hollywood clubs, DTLA rooftops, and private parties.</p>
-          </article>
-          <article class="event-panel reveal">
-            <h3>Content & music videos</h3>
-            <p>Half-day and full-day bookings for productions, creators, stylists, and brand shoots.</p>
-          </article>
-          <article class="event-panel reveal">
-            <h3>Weddings & milestones</h3>
-            <p>Rolls-Royce, G-Wagon, convertible, and chauffeur-ready experiences for the big entrance.</p>
-          </article>
-          <article class="event-panel reveal">
-            <h3>Weekend escapes</h3>
-            <p>Malibu, Laguna, Newport, Palm Springs, and scenic Southern California drives.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="section process-section">
-        <div class="section-heading reveal">
-          <p class="eyebrow">How it works</p>
-          <h2>A premium booking flow without friction.</h2>
-        </div>
-        <div class="process-grid">
-          <article class="process-card reveal">
-            <span>1</span>
-            <h3>Choose your car</h3>
-            <p>Browse current OC inventory with transparent starting rates and multi-day pricing notes.</p>
-          </article>
-          <article class="process-card reveal">
-            <span>2</span>
-            <h3>Send dates</h3>
-            <p>Share pickup, return, delivery city, age, insurance status, and special occasion details.</p>
-          </article>
-          <article class="process-card reveal">
-            <span>3</span>
-            <h3>Confirm & arrive</h3>
-            <p>Finalize terms, deposit, verification, and delivery so the car is staged on time.</p>
-          </article>
-        </div>
-      </section>
-
-      <section id="booking" class="section booking-section">
-        <div class="booking-copy reveal">
-          <p class="eyebrow">Reserve the moment</p>
-          <h2>Call, text, request a quote, or start an online booking.</h2>
-          <p>
-            Contact details are placeholders until you provide the real number, email, Instagram, and payment setup.
-            The form is ready to connect to a backend, CRM, or booking tool.
-          </p>
-          <div class="contact-stack">
-            <a href="tel:+13105550123">Call: (310) 555-0123</a>
-            <a href="sms:+13105550123">Text concierge</a>
-            <a href="mailto:reservations@kdsexotics.com">reservations@kdsexotics.com</a>
-          </div>
-        </div>
-
-        <form class="booking-form reveal" aria-label="Rental request form">
-          <div class="form-row">
-            <label for="name">Full name</label>
-            <input id="name" name="name" type="text" autocomplete="name" required />
-          </div>
-          <div class="form-row two">
-            <div>
-              <label for="phone">Phone</label>
-              <input id="phone" name="phone" type="tel" autocomplete="tel" required />
-            </div>
-            <div>
-              <label for="email">Email</label>
-              <input id="email" name="email" type="email" autocomplete="email" />
-            </div>
-          </div>
-          <div class="form-row two">
-            <div>
-              <label for="date">Start date</label>
-              <input id="date" name="date" type="date" required />
-            </div>
-            <div>
-              <label for="city">Delivery city</label>
-              <select id="city" name="city">
-                <option>Beverly Hills</option>
-                <option>Los Angeles</option>
-                <option>Orange County</option>
-                <option>Newport Beach</option>
-                <option>Malibu</option>
-                <option>Irvine</option>
-                <option>Anaheim</option>
-                <option>Hollywood</option>
-                <option>LAX</option>
-                <option>SNA</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <label for="vehicle">Preferred vehicle</label>
-            <select id="vehicle" name="vehicle" data-vehicle-select></select>
-          </div>
-          <fieldset class="intent-group">
-            <legend>Booking option</legend>
-            <label><input type="radio" name="intent" value="quote" checked /> Request quote</label>
-            <label><input type="radio" name="intent" value="reserve" /> Reserve dates</label>
-            <label><input type="radio" name="intent" value="deposit" /> Prepare deposit link</label>
-          </fieldset>
-          <div class="form-row">
-            <label for="notes">Occasion / notes</label>
-            <textarea id="notes" name="notes" rows="4" placeholder="Birthday, wedding, music video, LAX delivery, chauffeur request..."></textarea>
-          </div>
-          <button class="primary-button full" type="submit">
-            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4 20-7Z" /><path d="M22 2 11 13" /></svg>
-            Send request
+        <div class="specials-slider" aria-label="Monthly special vehicles">
+          <button class="specials-nav specials-nav-prev" type="button" aria-label="Previous specials" data-special-prev>
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6" /></svg>
           </button>
-          <p class="form-note" role="status" data-form-status>
-            Typical requirements: valid license, insurance verification, security deposit, and minimum age by vehicle.
+
+          <div class="specials-viewport" data-specials-viewport>
+            <div class="specials-rail">
+              <article class="special-card">
+                <img src="/assets/fleet/2022-lamborghini-huracan.jpg" alt="Blue Lamborghini Huracan rental special" width="1536" height="1024" loading="lazy" />
+                <div class="special-card-copy">
+                  <span>June feature</span>
+                  <h3>2022 Lamborghini Huracan</h3>
+                  <p>Malibu, Newport Beach, Beverly Hills</p>
+                  <a href="/cars/2022-lamborghini-huracan.html">View special</a>
+                </div>
+              </article>
+
+              <article class="special-card">
+                <img src="/assets/fleet/2016-ferrari-488-gtb.jpg" alt="Ferrari 488 GTB rental special" width="1536" height="1024" loading="lazy" />
+                <div class="special-card-copy">
+                  <span>Limited dates</span>
+                  <h3>Ferrari 488 GTB</h3>
+                  <p>Hollywood, LA, private events</p>
+                  <a href="/cars/2016-ferrari-488-gtb.html">View special</a>
+                </div>
+              </article>
+
+              <article class="special-card">
+                <img src="/assets/fleet/2022-mercedes-gle53-amg.jpg?v=sharp-20260620" alt="Mercedes SUV rental special" width="1536" height="1024" loading="lazy" />
+                <div class="special-card-copy">
+                  <span>VIP delivery</span>
+                  <h3>Mercedes GLE53 AMG</h3>
+                  <p>LAX, SNA, Irvine, Anaheim</p>
+                  <a href="/cars/2022-mercedes-gle53-amg.html">View special</a>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <button class="specials-nav specials-nav-next" type="button" aria-label="Next specials" data-special-next>
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
+          </button>
+        </div>
+      </section>
+
+      <section class="content-experience-promo reveal" aria-labelledby="content-experience-title">
+        <div class="content-experience-bg" aria-hidden="true"></div>
+        <div class="content-experience-overlay" aria-hidden="true"></div>
+        <div class="content-experience-inner">
+          <div class="content-experience-copy">
+            <h2 id="content-experience-title">
+              <span>More Than</span>
+              <span>A Rental</span>
+            </h2>
+            <span class="content-experience-line" aria-hidden="true"></span>
+            <p>Book the car, add a shooter, and leave with content that feels campaign-ready.</p>
+            <div class="content-experience-chips" aria-label="Content experience includes">
+              <span><b>01</b> Edited photos</span>
+              <span><b>02</b> Short-form clips</span>
+              <span><b>03</b> Route planning</span>
+            </div>
+            <a href="sms:+13105550123">Build Content Package <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+      </section>
+
+      <section class="requirements-section reveal" aria-labelledby="requirements-title">
+        <div class="requirements-inner">
+          <div class="requirements-head">
+            <p class="requirements-kicker">Before You Book</p>
+            <h2 id="requirements-title">Rental Requirements</h2>
+          </div>
+
+          <div class="requirements-grid" aria-label="Rental requirements">
+            <article class="requirement-item">
+              <svg aria-hidden="true" viewBox="0 0 64 64">
+                <path d="M32 6 12 14v16c0 13 8.6 23.8 20 28 11.4-4.2 20-15 20-28V14L32 6Z" />
+                <path d="m22 32 7 7 14-16" />
+              </svg>
+              <h3>Valid Insurance</h3>
+            </article>
+
+            <article class="requirement-item">
+              <svg aria-hidden="true" viewBox="0 0 64 64">
+                <path d="M14 24h36a6 6 0 0 1 6 6v16a6 6 0 0 1-6 6H14a6 6 0 0 1-6-6V30a6 6 0 0 1 6-6Z" />
+                <path d="M18 24v-4a8 8 0 0 1 8-8h18" />
+                <path d="M44 38h8" />
+                <path d="M25 35c0-3 3-5 7-5s7 2 7 5-3 5-7 5-7 2-7 5h14" />
+              </svg>
+              <h3>Vehicle Deposit</h3>
+            </article>
+
+            <article class="requirement-item">
+              <svg aria-hidden="true" viewBox="0 0 64 64">
+                <path d="M10 16h44a4 4 0 0 1 4 4v28a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4V20a4 4 0 0 1 4-4Z" />
+                <path d="M38 27h12" />
+                <path d="M38 37h9" />
+                <circle cx="22" cy="29" r="6" />
+                <path d="M12 46c2.2-6 17.8-6 20 0" />
+              </svg>
+              <h3>Valid License</h3>
+            </article>
+          </div>
+
+          <div class="requirements-dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="video-banner reveal" aria-label="Cinematic exotic car rental experience video">
+        <video
+          class="video-banner-media"
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="metadata"
+          poster="/images/content-experience-banner.jpg"
+          aria-label="Cinematic exotic car rental experience video"
+        >
+          <source src="/assets/kds-cinematic-banner.mp4" type="video/mp4" />
+        </video>
+        <div class="video-banner-overlay" aria-hidden="true"></div>
+      </section>
+
+      <section class="quote-section reveal" id="quote" aria-labelledby="quote-title">
+        <div class="quote-copy">
+          <p class="quote-kicker">Private Quote</p>
+          <h2 id="quote-title">Tell us what you want to drive.</h2>
+          <p>
+            Send the date, car, and experience you want. KD&apos;s Exotics will follow up with availability, approval steps,
+            and the final rate.
           </p>
+          <div class="quote-proof" aria-label="Quote benefits">
+            <span>Fast response</span>
+            <span>Concierge booking</span>
+            <span>Car + photographer options</span>
+          </div>
+        </div>
+
+        <form class="quote-form" data-quote-form aria-label="Request a rental quote">
+          <div class="quote-form-grid">
+            <label>
+              <span>Name</span>
+              <input name="name" type="text" autocomplete="name" required />
+            </label>
+            <label>
+              <span>Phone</span>
+              <input name="phone" type="tel" autocomplete="tel" required />
+            </label>
+            <label>
+              <span>Rental Date</span>
+              <input name="date" type="date" required />
+            </label>
+            <label>
+              <span>Vehicle</span>
+              <select name="vehicle" data-vehicle-select></select>
+            </label>
+          </div>
+
+          <fieldset class="quote-addons">
+            <legend>Add-ons</legend>
+            <label><input type="checkbox" name="photographer" /> Photographer</label>
+            <label><input type="checkbox" name="delivery" /> Delivery</label>
+            <label><input type="checkbox" name="chauffeur" /> Chauffeur</label>
+          </fieldset>
+
+          <label>
+            <span>Message</span>
+            <textarea name="message" rows="4" placeholder="Tell us the car, date, timing, and experience you want."></textarea>
+          </label>
+
+          <button class="quote-submit" type="submit">Request Quote</button>
+          <p class="quote-status" data-quote-status role="status">Valid license, insurance, and deposit may be required before approval.</p>
         </form>
       </section>
 
-      <section id="faq" class="section faq-section">
-        <div class="section-heading reveal">
-          <p class="eyebrow">Details clients ask before booking</p>
-          <h2>Clear terms help premium renters move faster.</h2>
+      <section class="faq-home reveal" id="faq" aria-labelledby="faq-title">
+        <div class="faq-home-head">
+          <p class="quote-kicker">Good To Know</p>
+          <h2 id="faq-title">FAQ</h2>
         </div>
-        <div class="faq-list reveal">
+        <div class="faq-home-list">
           <details open>
-            <summary>Do you deliver to LAX and SNA?</summary>
-            <p>Yes. The site is positioned for LAX, SNA, hotel, home, studio, and event venue delivery.</p>
+            <summary>What do I need to rent?</summary>
+            <p>You will need a valid driver&apos;s license, proof of insurance, and an approved deposit before pickup or delivery.</p>
           </details>
           <details>
-            <summary>Are prices final?</summary>
-            <p>Daily prices are starting rates. Final quotes can vary by vehicle, dates, mileage, delivery, deposit, and chauffeur needs.</p>
+            <summary>Can I add a photographer?</summary>
+            <p>Yes. Choose the photographer add-on in the quote form and we will confirm timing, package, and availability.</p>
           </details>
           <details>
-            <summary>Can customers book online?</summary>
-            <p>The front-end flow supports online booking and deposit intent. A payment provider can be connected when the business setup is ready.</p>
+            <summary>How fast can I get a quote?</summary>
+            <p>Send your request with the date and vehicle you want. The team can respond with availability and next steps.</p>
           </details>
           <details>
-            <summary>Can the fleet be updated later?</summary>
-            <p>Yes. The cars are stored in one clean fleet file so new vehicles, prices, and photos can be added without redesigning the page.</p>
+            <summary>Are prices final online?</summary>
+            <p>Listed prices are starting rates. Final pricing can vary by vehicle, date, delivery, mileage, and add-ons.</p>
           </details>
         </div>
       </section>
+
+      <section class="final-cta reveal" aria-labelledby="final-cta-title">
+        <div class="final-cta-inner">
+          <div>
+            <p class="quote-kicker">Ready When You Are</p>
+            <h2 id="final-cta-title">Reserve the car. Build the moment.</h2>
+          </div>
+          <div class="final-cta-actions">
+            <a class="final-cta-primary" href="#quote">Request Quote</a>
+            <a class="final-cta-secondary" href="sms:+13105550123">Text Concierge</a>
+          </div>
+        </div>
+      </section>
+
     </main>
 
     <footer class="site-footer">
-      <div>
+      <div class="footer-main">
         <a class="brand footer-brand" href="#top" aria-label="KD's Exotics home">
-          <img class="brand-logo" src="/assets/kds-logo.png" alt="" width="1254" height="1254" loading="lazy" />
-          <span>
-            <strong>KD's Exotics</strong>
-            <small>VIP rentals for Los Angeles & Orange County</small>
-          </span>
+          <img class="brand-logo-wide" src="/assets/kds-logo-wide.png" alt="KD's Exotics" width="1536" height="864" loading="lazy" />
         </a>
+        <p>Exotic car rentals, VIP add-ons, and concierge booking for clients who want the full experience.</p>
+        <div class="footer-contact">
+          <a href="tel:+13105550123">Call (310) 555-0123</a>
+          <a href="sms:+13105550123">Text concierge</a>
+        </div>
       </div>
-      <div class="footer-links">
-        <a href="#fleet">Fleet</a>
-        <a href="#booking">Book</a>
-        <a href="https://www.instagram.com/" target="_blank" rel="noreferrer">Instagram</a>
+
+      <div class="footer-columns">
+        <nav class="footer-links" aria-label="Footer fleet links">
+          <h3>Explore</h3>
+          <a href="#fleet">Fleet</a>
+          <a href="#specials">Specials</a>
+          <a href="#quote">Request Quote</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+
+        <nav class="footer-links" aria-label="Footer service links">
+          <h3>Services</h3>
+          <a href="sms:+13105550123">Delivery</a>
+          <a href="sms:+13105550123">Photography Add-On</a>
+          <a href="sms:+13105550123">Chauffeur</a>
+          <a href="sms:+13105550123">Private Events</a>
+        </nav>
+
+        <nav class="footer-links" aria-label="Footer business links">
+          <h3>Company</h3>
+          <a href="/admin/">Admin Login</a>
+          <a href="https://www.instagram.com/" target="_blank" rel="noreferrer">Instagram</a>
+          <a href="mailto:reservations@kdsexotics.com">Email</a>
+        </nav>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© 2026 KD&apos;s Exotics. All rights reserved.</span>
+        <span>Rental approval required. Rates subject to availability.</span>
       </div>
     </footer>
 
-    <script type="module" src="/src/main.js?v=fleet-20260620-sharp"></script>
+    <script type="module" src="/src/main.js?v=final-cta-section-20260622"></script>
   </body>
 </html>
