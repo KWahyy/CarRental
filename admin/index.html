@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#070606" />
     <title>KD's Exotics Admin</title>
-    <link rel="icon" href="/assets/kds-logo-wide.png" type="image/png" />
-    <link rel="stylesheet" href="/src/styles.css?v=admin-save-drafts-20260622" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=kds-favicon-20260624" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png?v=kds-favicon-20260624" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=kds-favicon-20260624" />
+    <link rel="stylesheet" href="/src/styles.css?v=cloud-save-20260624" />
   </head>
   <body class="admin-page">
     <main class="admin-shell">
@@ -39,9 +41,10 @@
           <a class="brand admin-brand" href="/" aria-label="KD's Exotics home">
             <img class="brand-logo brand-logo-wide" src="/assets/kds-logo-wide.png" alt="KD's Exotics" width="1348" height="610" />
           </a>
-          <div>
-            <p class="eyebrow">KD's Exotics</p>
-            <h1>Fleet admin</h1>
+          <div class="admin-title-block">
+            <p class="eyebrow">Private fleet CRM</p>
+            <h1>KD's Exotics Command Center</h1>
+            <span>Fleet, quotes, bookings, and client follow-up.</span>
           </div>
           <button class="ghost-button" type="button" data-sign-out>Sign out</button>
         </header>
@@ -50,150 +53,445 @@
           Add your Supabase Project URL in <strong>src/supabase-config.js</strong> to connect this admin panel.
         </div>
 
-        <div class="admin-actions">
-          <button class="primary-button" type="button" data-new-car>Add new car</button>
-          <button class="secondary-button" type="button" data-seed-fleet>Sync current fleet</button>
-          <p class="admin-status" role="status" data-admin-status></p>
-        </div>
-
-        <div class="admin-layout">
-          <aside class="admin-panel admin-list-panel">
-            <div class="admin-panel-head">
-              <p class="eyebrow">Cars</p>
-              <strong data-car-count>0 cars</strong>
+        <div class="admin-crm-shell">
+          <aside class="admin-crm-sidebar" aria-label="Admin sections">
+            <div class="admin-crm-profile">
+              <span>KD</span>
+              <div>
+                <strong>KD's Exotics</strong>
+                <small>Owner workspace</small>
+              </div>
             </div>
-            <div class="admin-car-list" data-car-list></div>
+            <nav class="admin-crm-nav">
+              <button class="active" type="button" data-crm-section="overview">Dashboard</button>
+              <button type="button" data-crm-section="vehicles">Fleet</button>
+              <button type="button" data-crm-section="requests">Quotes</button>
+              <button type="button" data-crm-section="calendar">Bookings</button>
+            </nav>
+            <div class="admin-crm-sidebar-card">
+              <small>Today's fleet check</small>
+              <span data-admin-fleet-check>No live data loaded yet.</span>
+              <button class="secondary-button compact" type="button" data-jump-section="requests">Open action queue</button>
+              <strong data-car-count hidden>0 cars</strong>
+            </div>
           </aside>
 
-          <section class="admin-panel admin-editor-panel">
-            <form class="admin-editor" data-car-form>
-              <input type="hidden" name="id" />
-              <div class="admin-editor-hero">
-                <img data-editor-preview src="/assets/kds-hero.png" alt="" width="900" height="500" />
-                <div class="admin-editor-scrim" aria-hidden="true"></div>
-                <div class="admin-editor-title">
-                  <p class="eyebrow">Edit vehicle</p>
-                  <h2 data-editor-title>Select a car</h2>
-                  <div class="admin-editor-chips">
-                    <span data-editor-price>$0/day</span>
-                    <span data-editor-meta>Choose a vehicle</span>
-                  </div>
-                </div>
-                <button class="primary-button compact" type="submit">Save car</button>
+          <div class="admin-workspace">
+            <section class="admin-section active" data-section-panel="overview">
+              <div class="command-topbar">
+                <span>Dashboard</span>
+                <span>/</span>
+                <strong>Fleet overview</strong>
               </div>
 
-              <section class="admin-simple-section">
-                <div class="admin-simple-title">
-                  <span>1</span>
+              <div class="fleet-command-layout">
+                <aside class="fleet-control-rail">
                   <div>
-                    <h3>Basics</h3>
-                    <p>Name, price, seats, and short description.</p>
+                    <h2>Fleet control</h2>
+                    <p>Saved views and queues used to manage cars, quotes, bookings, and rental risks.</p>
                   </div>
-                </div>
-                <div class="admin-form-grid simple">
-                  <label>
-                    Car name
-                    <input name="name" required />
-                  </label>
-                  <label>
-                    Price / day
-                    <input name="price" type="number" min="0" step="1" required />
-                  </label>
-                  <label>
-                    Make
-                    <input name="make" required />
-                  </label>
-                  <label>
-                    Model
-                    <input name="model" required />
-                  </label>
-                  <label>
-                    Seats
-                    <input name="seats" type="number" min="1" max="8" required />
-                  </label>
-                  <label>
-                    Mileage
-                    <input name="mileage" placeholder="100 miles/day" required />
-                  </label>
-                </div>
-                <label>
-                  Color / feature line
-                  <input name="color" required />
-                </label>
-                <label>
-                  Short description
-                  <textarea name="summary" rows="3" required></textarea>
-                </label>
-              </section>
+                  <div class="rail-group">
+                    <h3>Views</h3>
+                    <button type="button">Fleet overview</button>
+                    <button type="button">Available cars</button>
+                    <button type="button">Booked cars</button>
+                    <button type="button">Cars needing attention</button>
+                  </div>
+                  <div class="rail-group">
+                    <h3>Car lenses</h3>
+                    <button type="button">Exotic cars <span>7 active</span></button>
+                    <button type="button">Luxury SUVs <span>4 active</span></button>
+                    <button type="button">High demand <span>5 cars</span></button>
+                    <button type="button">Maintenance watch <span>2 cars</span></button>
+                  </div>
+                  <div class="rail-group">
+                    <h3>Queues</h3>
+                    <button type="button">New quotes <span>12</span></button>
+                    <button type="button">Deposit pending <span>4</span></button>
+                    <button type="button">Missing photos <span>6</span></button>
+                    <button type="button">Maintenance due <span>2</span></button>
+                  </div>
+                </aside>
 
-              <details class="admin-advanced">
-                <summary>Advanced details</summary>
-                <div class="admin-form-grid">
-                  <label>
-                    Slug
-                    <input name="slug" required />
-                  </label>
-                  <label>
-                    Category
-                    <input name="category" placeholder="supercar, suv luxury, sports luxury" required />
-                  </label>
-                  <label>
-                    Category label
-                    <input name="category_label" placeholder="Supercar" required />
-                  </label>
-                </div>
-                <div class="admin-form-grid">
-                  <label>
-                    Tags, one per line
-                    <textarea name="tags" rows="5"></textarea>
-                  </label>
-                  <label>
-                    Details, one per line
-                    <textarea name="details" rows="5"></textarea>
-                  </label>
-                </div>
-              </details>
+                <div class="fleet-command-main">
+                  <div class="command-pills">
+                    <span>Overview</span>
+                    <span>Fleet</span>
+                    <span>Quotes</span>
+                    <span>Bookings</span>
+                  </div>
 
-              <section class="admin-subpanel admin-simple-section">
-                <div class="admin-panel-head">
-                  <div>
-                    <div class="admin-simple-title">
-                      <span>2</span>
+                  <div class="command-header">
+                    <div>
+                    <h2>Command center</h2>
+                    <p>See what needs attention today: fleet readiness, quote follow-up, deposits, and photo gaps.</p>
+                    </div>
+                    <button class="primary-button compact" type="button" data-jump-section="vehicles">Add car</button>
+                  </div>
+
+                  <div class="command-kpis" data-overview-stats>
+                    <article><span>Ready to rent</span><strong>0 cars</strong><small>Loaded from website fleet</small></article>
+                    <article><span>New leads</span><strong>0</strong><small>Waiting for first response</small></article>
+                    <article><span>Follow-up queue</span><strong>0</strong><small>Deposit, insurance, or approval</small></article>
+                    <article><span>Content gaps</span><strong>0</strong><small>Cars missing stronger galleries</small></article>
+                  </div>
+
+                  <div class="command-analytics">
+                    <section class="command-card availability-card">
+                      <div class="command-card-head">
+                        <div>
+                          <h3>Fleet readiness</h3>
+                          <p>Which vehicle groups are ready, booked, or blocked before the next request.</p>
+                        </div>
+                        <button class="text-button" type="button" data-jump-section="vehicles">Manage fleet</button>
+                      </div>
+                      <div class="availability-chart" aria-label="Fleet availability chart" data-fleet-readiness>
+                        <div class="chart-row">
+                          <span>Lamborghini</span>
+                          <div><b style="width: 62%"></b><i style="width: 24%"></i><em style="width: 14%"></em></div>
+                          <small>2 cars</small>
+                        </div>
+                        <div class="chart-row">
+                          <span>Mercedes</span>
+                          <div><b style="width: 58%"></b><i style="width: 30%"></i><em style="width: 12%"></em></div>
+                          <small>2 SUVs</small>
+                        </div>
+                        <div class="chart-row">
+                          <span>Porsche</span>
+                          <div><b style="width: 54%"></b><i style="width: 34%"></i><em style="width: 12%"></em></div>
+                          <small>1 car</small>
+                        </div>
+                        <div class="chart-row">
+                          <span>Audi</span>
+                          <div><b style="width: 50%"></b><i style="width: 32%"></i><em style="width: 18%"></em></div>
+                          <small>1 car</small>
+                        </div>
+                        <div class="chart-row">
+                          <span>BMW</span>
+                          <div><b style="width: 68%"></b><i style="width: 22%"></i><em style="width: 10%"></em></div>
+                          <small>2 cars</small>
+                        </div>
+                        <div class="chart-legend">
+                          <span><b></b> Available</span>
+                          <span><i></i> Booked</span>
+                          <span><em></em> Maintenance</span>
+                        </div>
+                      </div>
+
+                      <div class="fleet-summary-blocks" data-fleet-highlights>
+                        <article>
+                          <strong>2022 Lamborghini Huracan</strong>
+                          <span>Available · $800/day</span>
+                          <p>Main image is set, gallery needs more photos</p>
+                          <div><button type="button">Edit car</button><button type="button">Manage photos</button></div>
+                        </article>
+                        <article>
+                          <strong>2022 Porsche 911 Carrera</strong>
+                          <span>Weekend favorite · $400/day</span>
+                          <p>Strong fit for repeat quote follow-up</p>
+                          <div><button type="button">Edit car</button><button type="button">Manage photos</button></div>
+                        </article>
+                        <article>
+                          <strong>2016 Ferrari 488 GTB</strong>
+                          <span>Quote-heavy · $750/day</span>
+                          <p>Use for nightlife and content add-on leads</p>
+                          <div><button type="button">Edit car</button><button type="button">Manage photos</button></div>
+                        </article>
+                        <article>
+                          <strong>2019 Mercedes G63 AMG</strong>
+                          <span>SUV demand · $400/day</span>
+                          <p>Needs exact G63 photo set added</p>
+                          <div><button type="button">Edit car</button><button type="button">Manage photos</button></div>
+                        </article>
+                      </div>
+
+                      <div class="interpretation-grid" data-fleet-insights>
+                        <div>
+                          <h4>Fleet read</h4>
+                          <ul>
+                            <li>Weekend demand is strongest for Huracan, Ferrari, and SUV bookings.</li>
+                            <li>Fast quote follow-up is the biggest revenue lever.</li>
+                            <li>Gallery depth is affecting booking confidence.</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <h4>Pressure points</h4>
+                          <ul>
+                            <li>4 deposits pending</li>
+                            <li>6 cars missing updated photos</li>
+                            <li>2 cars need inspection</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </section>
+
+                    <aside class="command-card quote-confidence">
+                      <div class="command-card-head">
+                        <div>
+                          <h3>Lead quality</h3>
+                          <p>The fastest way to turn a quote into a confirmed rental.</p>
+                        </div>
+                      </div>
+                      <div class="mini-card-grid" data-lead-kpis>
+                        <article><span>Hot quotes</span><strong>9</strong><small>Ready for follow-up</small></article>
+                        <article><span>Expected bookings</span><strong>$18,600</strong><small>If deposits close</small></article>
+                      </div>
+                      <div class="quality-list" data-lead-quality>
+                        <h4>Call quality</h4>
+                        <p><span>Quotes with phone number</span><strong>82%</strong></p>
+                        <p><span>Quotes with date selected</span><strong>74%</strong></p>
+                        <p><span>Quotes with deposit link sent</span><strong>58%</strong></p>
+                      </div>
+                      <div class="blocker-list" data-blocker-list>
+                        <h4>Blockers this week</h4>
+                        <p><span>No follow-up after quote</span><strong>7</strong></p>
+                        <p><span>Deposit not paid</span><strong>4</strong></p>
+                        <p><span>Insurance not verified</span><strong>3</strong></p>
+                      </div>
+                      <div class="revenue-list" data-revenue-list>
+                        <h4>What changes revenue</h4>
+                        <article><strong>Huracan weekend rental · +$1,600</strong><span>Deposit link would lock the booking.</span></article>
+                        <article><strong>G63 airport delivery · +$1,200</strong><span>Insurance verification needed.</span></article>
+                        <article><strong>Ferrari 488 birthday rental · +$750</strong><span>Customer needs final call today.</span></article>
+                      </div>
+                    </aside>
+                  </div>
+
+                  <section class="command-card rental-risks">
+                    <div class="command-card-head">
                       <div>
-                        <h3>Photos</h3>
-                        <p>Photo 1 is the main picture.</p>
+                        <h3>Action queue</h3>
+                        <p>Requests, bookings, and vehicles that need a clear next step.</p>
                       </div>
                     </div>
-                  </div>
-                  <button class="secondary-button compact" type="button" data-add-photo>Add photo</button>
-                </div>
-                <div class="photo-editor-list" data-photo-list></div>
-              </section>
+                    <div class="risk-table-wrap">
+                      <table class="risk-table">
+                        <thead>
+                          <tr>
+                            <th>Customer / request</th>
+                            <th>Car</th>
+                            <th>Dates</th>
+                            <th>Value</th>
+                            <th>Status</th>
+                            <th>Issue</th>
+                            <th>Next step</th>
+                            <th>Risk</th>
+                          </tr>
+                        </thead>
+                        <tbody data-action-queue>
+                          <tr>
+                            <td>Ahmed R. · Weekend rental</td>
+                            <td>2022 Lamborghini Huracan</td>
+                            <td>Jun 28–30</td>
+                            <td>$1,600</td>
+                            <td><span class="quote-badge contacted">Quote sent</span></td>
+                            <td>No deposit</td>
+                            <td>Send deposit link</td>
+                            <td><span class="risk-badge high">High</span></td>
+                          </tr>
+                          <tr>
+                            <td>Jason M. · Airport delivery</td>
+                            <td>2019 Mercedes G63 AMG</td>
+                            <td>Jul 3–5</td>
+                            <td>$1,200</td>
+                            <td><span class="quote-badge new">Pending</span></td>
+                            <td>Insurance missing</td>
+                            <td>Verify insurance</td>
+                            <td><span class="risk-badge medium">Medium</span></td>
+                          </tr>
+                          <tr>
+                            <td>Sarah K. · Birthday rental</td>
+                            <td>2016 Ferrari 488 GTB</td>
+                            <td>Jul 6</td>
+                            <td>$750</td>
+                            <td><span class="quote-badge deposit">Hot lead</span></td>
+                            <td>Needs final call</td>
+                            <td>Call today</td>
+                            <td><span class="risk-badge high">High</span></td>
+                          </tr>
+                          <tr>
+                            <td>Omar A. · SUV rental</td>
+                            <td>2022 Mercedes GLE53 AMG</td>
+                            <td>Jul 10–12</td>
+                            <td>$2,100</td>
+                            <td><span class="quote-badge booked">Hold</span></td>
+                            <td>Car inspection due</td>
+                            <td>Confirm availability</td>
+                            <td><span class="risk-badge medium">Medium</span></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
 
-              <section class="admin-subpanel admin-simple-section">
-                <div class="admin-panel-head">
-                  <div>
-                    <div class="admin-simple-title">
-                      <span>3</span>
+                  <section class="command-card fleet-management-snapshot">
+                    <div class="command-card-head">
                       <div>
-                        <h3>Availability</h3>
-                        <p>Add days this car can be booked.</p>
+                        <h3>Vehicle health</h3>
+                        <p>Snapshot of the fleet records, booking status, and content readiness.</p>
+                      </div>
+                      <button class="primary-button compact" type="button" data-jump-section="vehicles">Add car</button>
+                    </div>
+                    <div class="fleet-field-grid" data-vehicle-health>
+                      <article><strong>2022 Lamborghini Huracan</strong><span>Make Lamborghini · Model Huracan · $800/day</span><small>Photos 1 · <b class="status-badge photos">Needs gallery</b> · Main image ready · Add more angles</small></article>
+                      <article><strong>2022 Porsche 911 Carrera</strong><span>Make Porsche · Model 911 Carrera · $400/day</span><small>Photos 5 · <b class="status-badge available">Available</b> · Great weekend option</small></article>
+                      <article><strong>2019 Mercedes G63 AMG</strong><span>Make Mercedes · Model G63 AMG · $400/day</span><small>Photos 1 · <b class="status-badge photos">Needs exact photos</b> · SUV requests should be verified</small></article>
+                      <article><strong>2016 Ferrari 488 GTB</strong><span>Make Ferrari · Model 488 GTB · $750/day</span><small>Photos 5 · <b class="status-badge available">Available</b> · Strong content add-on fit</small></article>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </section>
+
+            <section class="admin-section" data-section-panel="requests" hidden>
+              <div class="admin-section-head">
+                <div>
+                  <p class="eyebrow">Pipeline</p>
+                  <h2>Quote Requests</h2>
+                </div>
+                <button class="primary-button compact" type="button" data-add-demo-request>Add manual lead</button>
+              </div>
+              <div class="crm-pipeline" data-request-pipeline></div>
+            </section>
+
+            <section class="admin-section" data-section-panel="vehicles" hidden>
+              <div class="admin-actions">
+                <div class="admin-actions-copy">
+                  <p class="eyebrow">Inventory</p>
+                  <strong>Manage website vehicles</strong>
+                </div>
+                <button class="primary-button" type="button" data-new-car>Add vehicle</button>
+                <button class="secondary-button" type="button" data-seed-fleet>Sync website fleet</button>
+                <p class="admin-status" role="status" data-admin-status></p>
+              </div>
+
+              <div class="admin-layout">
+                <aside class="admin-panel admin-list-panel">
+                  <div class="admin-panel-head">
+                    <div>
+                      <p class="eyebrow">Inventory</p>
+                      <h2>Vehicles</h2>
+                    </div>
+                    <strong data-car-count-display>0 cars</strong>
+                  </div>
+                  <div class="admin-car-list" data-car-list></div>
+                </aside>
+
+                <section class="admin-panel admin-editor-panel">
+                  <form class="admin-editor" data-car-form>
+                    <input type="hidden" name="id" />
+                    <div class="admin-editor-hero">
+                      <img data-editor-preview src="/assets/kds-hero.png" alt="" width="900" height="500" />
+                      <div class="admin-editor-scrim" aria-hidden="true"></div>
+                      <div class="admin-editor-title">
+                        <p class="eyebrow">Edit vehicle</p>
+                        <h2 data-editor-title>Select a car</h2>
+                        <div class="admin-editor-chips">
+                          <span data-editor-price>$0/day</span>
+                          <span data-editor-meta>Choose a vehicle</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <label class="admin-date-add">
-                    <span>Add date</span>
-                    <input type="date" data-availability-date />
-                  </label>
+
+                    <div class="admin-editor-actions">
+                      <div>
+                        <strong>Vehicle record</strong>
+                        <span>Update details, gallery order, and available dates.</span>
+                      </div>
+                      <div class="admin-editor-action-buttons">
+                        <button class="danger-button" type="button" data-delete-car>Delete vehicle</button>
+                        <button class="primary-button compact" type="submit">Save changes</button>
+                      </div>
+                    </div>
+
+                    <section class="admin-simple-section">
+                      <div class="admin-simple-title">
+                        <span>1</span>
+                        <div>
+                          <h3>Basics</h3>
+                          <p>The details customers see on the website.</p>
+                        </div>
+                      </div>
+                      <div class="admin-form-grid simple">
+                        <label>
+                          Car name
+                          <input name="name" required />
+                        </label>
+                        <label>
+                          Price / day
+                          <input name="price" type="number" min="0" step="1" required />
+                        </label>
+                        <label>
+                          Make
+                          <input name="make" required />
+                        </label>
+                        <label>
+                          Model
+                          <input name="model" required />
+                        </label>
+                        <label>
+                          Seats
+                          <input name="seats" type="number" min="1" max="8" required />
+                        </label>
+                        <label>
+                          Mileage
+                          <input name="mileage" placeholder="100 miles/day" required />
+                        </label>
+                      </div>
+                      <label>
+                        Color / feature line
+                        <input name="color" required />
+                      </label>
+                      <label>
+                        Short description
+                        <textarea name="summary" rows="3" required></textarea>
+                      </label>
+                    </section>
+
+                    <div hidden>
+                      <input name="slug" />
+                      <input name="category" />
+                      <input name="category_label" />
+                      <input name="tags" />
+                      <input name="details" />
+                    </div>
+
+                    <section class="admin-subpanel admin-simple-section">
+                      <div class="admin-panel-head">
+                        <div>
+                          <div class="admin-simple-title">
+                            <span>2</span>
+                            <div>
+                              <h3>Photos</h3>
+                              <p>Drag photos to reorder. Photo 1 becomes the main image.</p>
+                            </div>
+                          </div>
+                        </div>
+                        <button class="secondary-button compact" type="button" data-add-photo>Add photo</button>
+                      </div>
+                      <div class="photo-editor-list" data-photo-list></div>
+                    </section>
+
+                  </form>
+                </section>
+              </div>
+            </section>
+
+            <section class="admin-section" data-section-panel="calendar" hidden>
+              <div class="admin-section-head">
+                <div>
+                  <p class="eyebrow">Availability</p>
+                  <h2>Bookings</h2>
                 </div>
-                <div class="availability-list" data-availability-list></div>
-              </section>
-            </form>
-          </section>
+                <button class="primary-button compact" type="button" data-jump-section="vehicles">Edit vehicle dates</button>
+              </div>
+              <div class="crm-calendar-grid" data-calendar-grid></div>
+            </section>
+          </div>
         </div>
       </section>
     </main>
 
-    <script type="module" src="/src/admin.js?v=admin-save-drafts-20260622"></script>
+    <script type="module" src="/src/admin.js?v=cloud-save-20260624"></script>
   </body>
 </html>

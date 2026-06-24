@@ -1,5 +1,5 @@
-import { mergeCarDrafts } from "./admin-store.js";
-import { loadFleetFromSupabase } from "./supabase-fleet.js";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=cloud-save-20260624";
+import { loadFleetFromSupabase } from "./supabase-fleet.js?v=cloud-save-20260624";
 
 let fleet = [
   {
@@ -151,38 +151,47 @@ const form = document.querySelector(".booking-form");
 const formStatus = document.querySelector("[data-form-status]");
 const quoteForm = document.querySelector("[data-quote-form]");
 const quoteStatus = document.querySelector("[data-quote-status]");
+const CRM_REQUESTS_KEY = "kds-crm-requests";
 const diaText = document.querySelector("[data-dia-words]");
 
 let fanCards = [
   {
+    slug: "2022-lamborghini-huracan",
     name: "2022 Lamborghini Huracan",
     image: "/assets/fleet/2022-lamborghini-huracan.jpg",
   },
   {
+    slug: "2016-ferrari-488-gtb",
     name: "2016 Ferrari 488 GTB",
     image: "/assets/fleet/2016-ferrari-488-gtb.jpg",
   },
   {
+    slug: "2017-audi-r8",
     name: "2017 Audi R8",
     image: "/assets/fleet/2017-audi-r8.jpg?v=sharp-20260620",
   },
   {
+    slug: "2015-lamborghini-huracan-lp-610-4",
     name: "2015 Lamborghini Huracan LP-610-4",
     image: "/assets/fleet/2015-lamborghini-huracan-lp-610-4.jpg",
   },
   {
+    slug: "2018-mclaren-570s-spider",
     name: "2018 McLaren 570s Spider",
     image: "/assets/fleet/2018-mclaren-570s-spider.jpg?v=sharp-20260620",
   },
   {
+    slug: "2022-porsche-911-carrera",
     name: "2022 Porsche 911 Carrera",
     image: "/assets/fleet/2022-porsche-911-carrera.jpg",
   },
   {
+    slug: "2024-bmw-m4-comp",
     name: "2024 BMW M4-Comp",
     image: "/assets/fleet/2024-bmw-m4-comp.jpg",
   },
   {
+    slug: "2021-bmw-m3-comp",
     name: "2021 BMW M3 Comp",
     image: "/assets/fleet/2021-bmw-m3-comp.jpg?v=sharp-20260620",
   },
@@ -344,6 +353,14 @@ function slugify(value) {
     .replace(/(^-|-$)/g, "");
 }
 
+function vehicleSlug(car) {
+  return car.slug || slugify(car.name);
+}
+
+function vehicleLabel(car) {
+  return car.name.replace(/^\d{4}\s+/, "");
+}
+
 function fanMultiplier() {
   const width = window.innerWidth;
   if (width < 480) return 0.34;
@@ -396,9 +413,9 @@ function renderFanCarousel() {
   fanStage.innerHTML = fanCards
     .map(
       (car) => `
-        <a class="fan-card" href="/cars/${slugify(car.name)}.html" aria-label="View ${car.name}">
+        <a class="fan-card" href="/cars/${vehicleSlug(car)}.html" aria-label="View ${car.name}">
           <img src="${car.image}" alt="${car.name}" loading="lazy" width="500" height="760" onerror="this.onerror=null;this.src='/assets/kds-hero.png';" />
-          <span>${car.name}</span>
+          <span>${vehicleLabel(car)}</span>
         </a>
       `,
     )
@@ -474,7 +491,7 @@ function renderRateGrid(car) {
 
 function renderFleet(filter = "all") {
   const visibleCars = fleet.filter(fleetFilter(filter));
-  fanCards = visibleCars.map((car) => ({ name: car.name, image: car.image }));
+  fanCards = visibleCars.map((car) => ({ slug: car.slug, name: car.name, image: car.image }));
   fanCenterIndex = Math.floor(fanCards.length / 2);
   renderFanCarousel();
 }
@@ -568,13 +585,24 @@ function hydrateDiaText() {
 
 async function hydrateSupabaseFleet() {
   const remoteFleet = await loadFleetFromSupabase();
-  if (!remoteFleet?.length) return;
+  if (!remoteFleet) return;
 
-  fleet = mergeCarDrafts(remoteFleet);
-  fanCards = fleet.slice(0, 8).map((car) => ({ name: car.name, image: car.image }));
+  refreshFleetFromBase(remoteFleet);
+}
+
+function activeFleetFilter() {
+  return document.querySelector("[data-shop-filter].active")?.dataset.shopFilter || "all";
+}
+
+function refreshFleetFromBase(nextBaseFleet = baseFleet) {
+  const filter = activeFleetFilter();
+  baseFleet = nextBaseFleet;
+  fleet = baseFleet.slice();
+  fanCards = fleet.slice(0, 8).map((car) => ({ slug: car.slug, name: car.name, image: car.image }));
   fanCenterIndex = Math.floor(fanCards.length / 2);
   renderShopBrowsers();
-  renderFleet();
+  setActiveShopFilter(filter);
+  renderFleet(filter);
   hydrateVehicleSelect();
 }
 
@@ -618,6 +646,10 @@ typeNext?.addEventListener("click", () => scrollTypeBrowser(1));
 specialPrev?.addEventListener("click", () => scrollSpecials(-1));
 specialNext?.addEventListener("click", () => scrollSpecials(1));
 window.addEventListener("resize", updateFanCarousel);
+window.addEventListener("storage", (event) => {
+  if (event.key !== ADMIN_FLEET_REFRESH_KEY) return;
+  hydrateSupabaseFleet();
+});
 
 menuToggle.addEventListener("click", () => {
   const isOpen = menuToggle.getAttribute("aria-expanded") === "true";
@@ -662,25 +694,44 @@ if (quoteForm) {
   quoteForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const submitButton = quoteForm.querySelector("button[type='submit']");
+    const formData = new FormData(quoteForm);
+    const addons = ["photographer", "delivery", "chauffeur"]
+      .filter((addon) => formData.get(addon))
+      .map((addon) => addon.charAt(0).toUpperCase() + addon.slice(1));
+
+    try {
+      const storedRequests = JSON.parse(localStorage.getItem(CRM_REQUESTS_KEY)) || [];
+      storedRequests.unshift({
+        id: `quote-${Date.now()}`,
+        name: formData.get("name") || "Website lead",
+        phone: formData.get("phone") || "",
+        vehicle: formData.get("vehicle") || "Vehicle TBD",
+        date: formData.get("date") || "",
+        addons,
+        message: formData.get("message") || "",
+        status: "new",
+        createdAt: new Date().toISOString(),
+      });
+      localStorage.setItem(CRM_REQUESTS_KEY, JSON.stringify(storedRequests));
+    } catch {
+      // Local CRM storage is best-effort until quote requests are moved to Supabase.
+    }
+
     submitButton.disabled = true;
     submitButton.textContent = "Preparing quote...";
 
     window.setTimeout(() => {
       submitButton.disabled = false;
       submitButton.textContent = "Request Quote";
-      if (quoteStatus) quoteStatus.textContent = "Quote request is ready. Connect this form to email, CRM, or Supabase when you are ready.";
+      if (quoteStatus) quoteStatus.textContent = "Quote request saved. The admin CRM can review it under Requests.";
       quoteForm.reset();
       hydrateVehicleSelect();
     }, 700);
   });
 }
 
-fleet = mergeCarDrafts(fleet);
-fanCards = fleet.slice(0, 8).map((car) => ({ name: car.name, image: car.image }));
-fanCenterIndex = Math.floor(fanCards.length / 2);
-renderShopBrowsers();
-renderFleet();
-hydrateVehicleSelect();
+let baseFleet = fleet.slice();
+refreshFleetFromBase();
 hydrateDiaText();
 observeReveals();
 hydrateSupabaseFleet();

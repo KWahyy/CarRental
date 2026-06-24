@@ -1,4 +1,10 @@
 const DRAFT_KEY = "kds_exotics_admin_car_drafts";
+const DELETED_KEY = "kds_exotics_admin_deleted_car_slugs";
+const REFRESH_KEY = "kds_exotics_fleet_refresh";
+
+export const ADMIN_CAR_DRAFTS_KEY = DRAFT_KEY;
+export const ADMIN_DELETED_CARS_KEY = DELETED_KEY;
+export const ADMIN_FLEET_REFRESH_KEY = REFRESH_KEY;
 
 export function slugifyVehicle(value) {
   return String(value || "")
@@ -15,6 +21,18 @@ export function readCarDrafts() {
   }
 }
 
+function readDeletedCarSlugs() {
+  try {
+    return JSON.parse(window.localStorage.getItem(DELETED_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function writeDeletedCarSlugs(slugs) {
+  window.localStorage.setItem(DELETED_KEY, JSON.stringify([...new Set(slugs.filter(Boolean))]));
+}
+
 export function writeCarDraft(draft) {
   const drafts = readCarDrafts();
   const slug = draft.slug || slugifyVehicle(draft.name);
@@ -28,7 +46,17 @@ export function writeCarDraft(draft) {
   }
 
   window.localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts));
+  writeDeletedCarSlugs(readDeletedCarSlugs().filter((item) => item !== slug));
   return nextDraft;
+}
+
+export function deleteCarDraft(slugValue) {
+  const slug = slugifyVehicle(slugValue);
+  if (!slug) return;
+
+  const drafts = readCarDrafts().filter((item) => slugifyVehicle(item.slug || item.name) !== slug);
+  window.localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts));
+  writeDeletedCarSlugs([...readDeletedCarSlugs(), slug]);
 }
 
 export function toPublicCar(car) {
@@ -48,19 +76,26 @@ export function toPublicCar(car) {
 
 export function mergeCarDrafts(baseFleet) {
   const drafts = readCarDrafts().map(toPublicCar);
+  const deletedSlugs = new Set(readDeletedCarSlugs());
   const draftBySlug = new Map(drafts.map((draft) => [draft.slug, draft]));
   const used = new Set();
-  const merged = baseFleet.map((car) => {
-    const slug = car.slug || slugifyVehicle(car.name);
-    const draft = draftBySlug.get(slug);
-    if (!draft) return toPublicCar(car);
-    used.add(slug);
-    return toPublicCar({ ...car, ...draft });
-  });
+  const merged = baseFleet
+    .filter((car) => !deletedSlugs.has(car.slug || slugifyVehicle(car.name)))
+    .map((car) => {
+      const slug = car.slug || slugifyVehicle(car.name);
+      const draft = draftBySlug.get(slug);
+      if (!draft) return toPublicCar(car);
+      used.add(slug);
+      return toPublicCar({ ...car, ...draft });
+    });
 
   drafts.forEach((draft) => {
-    if (!used.has(draft.slug)) merged.push(toPublicCar(draft));
+    if (!used.has(draft.slug) && !deletedSlugs.has(draft.slug)) merged.push(toPublicCar(draft));
   });
 
   return merged;
+}
+
+export function signalFleetRefresh() {
+  window.localStorage.setItem(REFRESH_KEY, new Date().toISOString());
 }

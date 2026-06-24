@@ -13,4 +13,4 @@ The admin uses:
 - `car_available_dates` for dates the car is available to book.
 - Supabase Storage bucket `fleet` for uploaded photos.
 
-The public site keeps the current local fleet as fallback. When Supabase is configured and seeded, the homepage and car pages load the Supabase fleet automatically.
+The public site keeps the static website fleet as fallback. Once Supabase is configured and seeded, the homepage, fleet page, and car pages load vehicle details and photos from Supabase so changes work from any device.

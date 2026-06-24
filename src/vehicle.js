@@ -1,9 +1,10 @@
-import { mergeCarDrafts } from "./admin-store.js";
-import { fleet, formatPrice, getVehicle } from "./fleet-data.js";
-import { loadVehicleFromSupabase } from "./supabase-fleet.js";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=cloud-save-20260624";
+import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=cloud-save-20260624";
+import { loadVehicleFromSupabase } from "./supabase-fleet.js?v=cloud-save-20260624";
 
 const slug = document.body.dataset.vehicleSlug;
-let vehicleFleet = mergeCarDrafts(fleet);
+let baseVehicleFleet = fleet;
+let vehicleFleet = baseVehicleFleet.slice();
 let car = vehicleFleet.find((item) => item.slug === slug) || getVehicle(slug);
 const header = document.querySelector("[data-header]");
 const menuToggle = document.querySelector("[data-menu-toggle]");
@@ -200,15 +201,30 @@ window.addEventListener(
   { passive: true },
 );
 
-async function initVehicle() {
-  renderVehicle();
-
-  const remoteCar = await loadVehicleFromSupabase(slug);
-  if (!remoteCar) return;
-
-  vehicleFleet = mergeCarDrafts(vehicleFleet.map((item) => (item.slug === remoteCar.slug ? remoteCar : item)));
-  car = vehicleFleet.find((item) => item.slug === slug) || remoteCar;
+function refreshVehicleFromBase() {
+  vehicleFleet = baseVehicleFleet.slice();
+  car = vehicleFleet.find((item) => item.slug === slug) || getVehicle(slug);
   renderVehicle();
 }
 
+async function hydrateRemoteVehicle() {
+  const remoteCar = await loadVehicleFromSupabase(slug);
+  if (!remoteCar) return;
+
+  baseVehicleFleet = baseVehicleFleet.some((item) => item.slug === remoteCar.slug)
+    ? baseVehicleFleet.map((item) => (item.slug === remoteCar.slug ? remoteCar : item))
+    : [...baseVehicleFleet, remoteCar];
+  refreshVehicleFromBase();
+}
+
+async function initVehicle() {
+  refreshVehicleFromBase();
+  await hydrateRemoteVehicle();
+}
+
 initVehicle();
+
+window.addEventListener("storage", (event) => {
+  if (event.key !== ADMIN_FLEET_REFRESH_KEY) return;
+  hydrateRemoteVehicle();
+});

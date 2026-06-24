@@ -9,6 +9,8 @@ mkdirSync(outDir, { recursive: true });
 
 const pathsToCopy = [
   "index.html",
+  "fleet.html",
+  "partner.html",
   "admin",
   "assets",
   "cars",
