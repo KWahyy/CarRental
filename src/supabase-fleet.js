@@ -4,6 +4,8 @@ import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./supabase-config.js";
 const configured = Boolean(SUPABASE_URL && SUPABASE_URL.startsWith("https://"));
 const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
 
+export const isSupabaseFleetConfigured = configured;
+
 function mapCar(row) {
   const photos = [...(row.car_photos || [])].sort((a, b) => Number(a.position) - Number(b.position));
   const gallery = photos.map((photo) => photo.url).filter(Boolean);

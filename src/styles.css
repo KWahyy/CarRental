@@ -726,6 +726,15 @@ h3 {
   transform: scale(1.04);
 }
 
+.fan-card-loading {
+  pointer-events: none;
+  background:
+    linear-gradient(110deg, rgba(248, 245, 239, 0.04) 0%, rgba(215, 180, 106, 0.14) 42%, rgba(248, 245, 239, 0.04) 78%),
+    #12100e;
+  background-size: 220% 100%;
+  animation: fleetImageLoading 1.2s ease-in-out infinite;
+}
+
 .fan-card span {
   position: absolute;
   inset: auto 12px 12px;
@@ -2503,6 +2512,19 @@ svg.brand-logo-mark {
   box-shadow: 0 28px 88px rgba(0, 0, 0, 0.46);
 }
 
+.vehicle-hero-media::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(110deg, transparent 22%, rgba(215, 180, 106, 0.12) 48%, transparent 74%),
+    linear-gradient(135deg, rgba(248, 245, 239, 0.08), rgba(215, 180, 106, 0.07));
+  transform: translateX(-100%);
+  transition: opacity 180ms ease;
+}
+
 .vehicle-hero-media::after {
   content: "";
   position: absolute;
@@ -2517,6 +2539,33 @@ svg.brand-logo-mark {
   min-height: 500px;
   aspect-ratio: 16 / 11;
   object-fit: cover;
+  opacity: 1;
+  transition: opacity 180ms ease;
+}
+
+.vehicle-page.is-loading-vehicle .vehicle-hero-media::before {
+  opacity: 1;
+  animation: vehicleImageLoading 1.15s ease-in-out infinite;
+}
+
+.vehicle-page.is-loading-vehicle .vehicle-hero-media img {
+  opacity: 0;
+}
+
+@keyframes vehicleImageLoading {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fleetImageLoading {
+  0% {
+    background-position: 160% 0;
+  }
+
+  100% {
+    background-position: -60% 0;
+  }
 }
 
 .vehicle-media-badge {
@@ -2811,6 +2860,422 @@ svg.brand-logo-mark {
 
 .related-car small {
   color: var(--muted);
+}
+
+.vehicle-product {
+  width: min(100% - 48px, 1360px);
+  margin: 0 auto;
+  padding: 124px 0 88px;
+}
+
+.vehicle-product-back {
+  min-height: 42px;
+  margin-bottom: 24px;
+  border-radius: 4px;
+  background: var(--gold);
+  padding: 0 18px;
+  color: #0b0907;
+  font-size: 0.78rem;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.vehicle-product-back:hover {
+  color: #0b0907;
+  background: var(--gold-strong);
+}
+
+.vehicle-product-layout {
+  display: grid;
+  grid-template-areas:
+    "gallery thumbs"
+    "copy booking"
+    "spec booking";
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.34fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.vehicle-product-main,
+.vehicle-product-side {
+  min-width: 0;
+  display: contents;
+}
+
+.vehicle-gallery-stage {
+  grid-area: gallery;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(248, 245, 239, 0.1);
+  border-radius: 3px;
+  background:
+    linear-gradient(135deg, rgba(215, 180, 106, 0.08), rgba(248, 245, 239, 0.03)),
+    #0d0c0b;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+}
+
+.vehicle-gallery-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    linear-gradient(110deg, transparent 22%, rgba(215, 180, 106, 0.12) 48%, transparent 74%),
+    linear-gradient(135deg, rgba(248, 245, 239, 0.08), rgba(215, 180, 106, 0.07));
+  transform: translateX(-100%);
+  transition: opacity 180ms ease;
+}
+
+.vehicle-gallery-stage img {
+  width: 100%;
+  height: clamp(420px, 46vw, 660px);
+  object-fit: cover;
+  opacity: 1;
+  transition:
+    opacity 180ms ease,
+    transform 420ms ease;
+}
+
+.vehicle-gallery-stage:hover img {
+  transform: scale(1.015);
+}
+
+.vehicle-page.is-loading-vehicle .vehicle-gallery-stage::before {
+  opacity: 1;
+  animation: vehicleImageLoading 1.15s ease-in-out infinite;
+}
+
+.vehicle-page.is-loading-vehicle .vehicle-gallery-stage img {
+  opacity: 0;
+}
+
+.vehicle-gallery-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(215, 180, 106, 0.45);
+  border-radius: 4px;
+  background: rgba(7, 6, 6, 0.84);
+  color: var(--gold-strong);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.vehicle-gallery-nav:hover {
+  border-color: var(--gold-strong);
+  background: rgba(17, 16, 15, 0.96);
+  transform: translateY(-50%) scale(1.04);
+}
+
+.vehicle-gallery-nav svg,
+.vehicle-spec-icon {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.vehicle-gallery-nav-prev {
+  left: 22px;
+}
+
+.vehicle-gallery-nav-next {
+  right: 22px;
+}
+
+.vehicle-product-copy {
+  grid-area: copy;
+  max-width: 940px;
+  display: grid;
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.vehicle-product-copy h1 {
+  max-width: none;
+  margin: 0;
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(2.25rem, 5.4vw, 5.1rem);
+  font-weight: 950;
+  line-height: 0.98;
+  text-transform: uppercase;
+}
+
+.vehicle-product-price {
+  color: var(--gold-strong);
+  font-size: clamp(1.65rem, 3vw, 2.35rem);
+  font-weight: 950;
+  line-height: 1;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.vehicle-product-copy > p:not(.eyebrow),
+.vehicle-product-note,
+.vehicle-booking-card p {
+  max-width: 820px;
+  margin: 0;
+  color: var(--muted);
+  font-size: clamp(1rem, 1.28vw, 1.14rem);
+  line-height: 1.7;
+}
+
+.vehicle-product-note {
+  padding-top: 8px;
+  color: var(--ink);
+}
+
+.vehicle-side-thumbs {
+  grid-area: thumbs;
+  display: grid;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  height: clamp(420px, 46vw, 660px);
+}
+
+.vehicle-side-thumb {
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(248, 245, 239, 0.1);
+  border-radius: 3px;
+  background: #0d0c0b;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.72;
+  transition:
+    opacity 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.vehicle-side-thumb:hover,
+.vehicle-side-thumb.active {
+  border-color: rgba(215, 180, 106, 0.65);
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.vehicle-side-thumb img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.vehicle-booking-card {
+  grid-area: booking;
+  min-height: 0;
+  height: 100%;
+  align-self: stretch;
+  display: grid;
+  align-content: stretch;
+  gap: 16px;
+  border: 1px solid rgba(248, 245, 239, 0.12);
+  border-radius: 3px;
+  background:
+    linear-gradient(180deg, rgba(248, 245, 239, 0.045), transparent),
+    #090807;
+  padding: clamp(22px, 2.4vw, 30px);
+}
+
+.vehicle-deposit {
+  color: var(--gold-strong);
+  font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.vehicle-booking-card h2 {
+  margin: 0 0 -6px;
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 1rem;
+  font-weight: 950;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.vehicle-requirements {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 14px 0;
+  border-top: 1px solid rgba(248, 245, 239, 0.12);
+  border-bottom: 1px solid rgba(248, 245, 239, 0.12);
+  list-style: none;
+}
+
+.vehicle-requirements li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.96rem;
+  font-weight: 760;
+}
+
+.vehicle-requirements li::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  border-radius: 4px;
+  background:
+    linear-gradient(135deg, rgba(215, 180, 106, 0.98), rgba(240, 206, 131, 0.82));
+  box-shadow: inset 0 0 0 5px rgba(7, 6, 6, 0.24);
+}
+
+.vehicle-booking-card .primary-button,
+.vehicle-booking-card .secondary-button {
+  width: 100%;
+  min-height: 54px;
+  justify-content: center;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+.vehicle-spec-grid {
+  grid-area: spec;
+  height: 100%;
+  align-self: stretch;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.vehicle-spec-card {
+  min-height: 142px;
+  height: 100%;
+  display: grid;
+  align-content: end;
+  gap: 8px;
+  border: 1px solid rgba(248, 245, 239, 0.09);
+  border-radius: 3px;
+  background:
+    linear-gradient(180deg, rgba(215, 180, 106, 0.08), rgba(248, 245, 239, 0.018)),
+    #090807;
+  padding: 22px;
+}
+
+.vehicle-spec-icon {
+  margin-bottom: 12px;
+  color: var(--gold-strong);
+}
+
+.vehicle-spec-card span {
+  color: var(--ink);
+  font-size: 0.84rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.vehicle-spec-card strong {
+  color: var(--dim);
+  font-size: 1.04rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.vehicle-product-related {
+  margin-top: clamp(56px, 7vw, 96px);
+}
+
+@media (max-width: 1080px) {
+  .vehicle-product-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "gallery"
+      "thumbs"
+      "copy"
+      "spec"
+      "booking";
+  }
+
+  .vehicle-product-side {
+    display: contents;
+  }
+
+  .vehicle-side-thumbs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: none;
+    height: auto;
+  }
+
+  .vehicle-booking-card {
+    height: auto;
+    min-height: auto;
+  }
+
+  .vehicle-spec-grid {
+    height: auto;
+    align-self: start;
+  }
+
+  .vehicle-spec-card {
+    height: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .vehicle-product {
+    width: min(100% - 32px, 1360px);
+    padding-top: 112px;
+  }
+
+  .vehicle-product-back {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .vehicle-gallery-stage img {
+    height: clamp(280px, 74vw, 420px);
+  }
+
+  .vehicle-gallery-nav {
+    width: 44px;
+    height: 44px;
+  }
+
+  .vehicle-gallery-nav-prev {
+    left: 12px;
+  }
+
+  .vehicle-gallery-nav-next {
+    right: 12px;
+  }
+
+  .vehicle-product-copy h1 {
+    font-size: clamp(2rem, 11vw, 3.15rem);
+  }
+
+  .vehicle-product-side,
+  .vehicle-spec-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vehicle-side-thumbs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .vehicle-side-thumb {
+    min-height: 120px;
+  }
 }
 
 .vehicle-empty {
@@ -11045,6 +11510,55 @@ details p {
   transform: scale(1.035);
 }
 
+.showroom-card-loading {
+  pointer-events: none;
+}
+
+.showroom-card-loading:hover {
+  transform: none;
+  border-color: rgba(248, 245, 239, 0.12);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.3);
+}
+
+.showroom-card-skeleton-media,
+.showroom-card-skeleton-line,
+.showroom-card-skeleton-pill {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 999px;
+  background:
+    linear-gradient(110deg, rgba(248, 245, 239, 0.045) 0%, rgba(215, 180, 106, 0.16) 42%, rgba(248, 245, 239, 0.045) 78%),
+    rgba(248, 245, 239, 0.055);
+  background-size: 220% 100%;
+  animation: fleetImageLoading 1.2s ease-in-out infinite;
+}
+
+.showroom-card-skeleton-media {
+  aspect-ratio: 1.46 / 1;
+  border-radius: 0;
+}
+
+.showroom-card-skeleton-brand {
+  width: 92px;
+  height: 12px;
+}
+
+.showroom-card-skeleton-title {
+  width: min(78%, 250px);
+  height: 30px;
+  margin: 10px 0 0;
+}
+
+.showroom-card-skeleton-price {
+  width: 90px;
+  height: 30px;
+}
+
+.showroom-card-skeleton-pill {
+  min-height: 46px;
+}
+
 .showroom-card-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -11205,11 +11719,25 @@ details p {
 
 .partner-hero {
   position: relative;
-  min-height: 100dvh;
+  min-height: clamp(650px, 88dvh, 820px);
   display: grid;
-  align-items: end;
+  align-items: center;
   overflow: hidden;
   border-bottom: 1px solid rgba(248, 245, 239, 0.12);
+}
+
+.partner-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(105deg, transparent 0%, transparent 42%, rgba(248, 245, 239, 0.1) 48%, transparent 54%, transparent 100%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  transform: translateX(-24%);
+  animation: partnerLightSweep 5.6s ease-in-out 1.2s infinite;
 }
 
 .partner-hero-media,
@@ -11222,67 +11750,182 @@ details p {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
-  transform: scale(1.04);
-  animation: partnerImageDrift 18s ease-in-out infinite alternate;
+  object-position: 62% center;
+  transform: scale(1.03);
+  animation: partnerImageDrift 20s ease-in-out infinite alternate;
 }
 
 .partner-hero-overlay {
   background:
-    linear-gradient(90deg, rgba(7, 6, 6, 0.96) 0%, rgba(7, 6, 6, 0.78) 38%, rgba(7, 6, 6, 0.24) 72%, rgba(7, 6, 6, 0.7) 100%),
-    linear-gradient(0deg, rgba(7, 6, 6, 0.9) 0%, rgba(7, 6, 6, 0.08) 54%, rgba(7, 6, 6, 0.42) 100%);
+    radial-gradient(circle at 66% 46%, rgba(215, 180, 106, 0.1), transparent 32%),
+    linear-gradient(90deg, rgba(7, 6, 6, 0.96) 0%, rgba(7, 6, 6, 0.7) 36%, rgba(7, 6, 6, 0.18) 68%, rgba(7, 6, 6, 0.42) 100%),
+    linear-gradient(0deg, rgba(7, 6, 6, 0.82) 0%, rgba(7, 6, 6, 0.04) 56%, rgba(7, 6, 6, 0.36) 100%);
 }
 
 .partner-hero-inner {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: min(var(--max), calc(100% - 48px));
-  display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(320px, 0.45fr);
-  align-items: end;
-  gap: clamp(28px, 5vw, 76px);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   margin: 0 auto;
-  padding: clamp(132px, 14vw, 180px) 0 clamp(58px, 8vw, 92px);
+  padding: clamp(112px, 11vw, 142px) 0 clamp(42px, 6vw, 66px);
 }
 
 .partner-hero-copy {
-  max-width: 760px;
+  max-width: 900px;
 }
 
 .partner-hero-copy h1 {
-  max-width: 10ch;
+  max-width: 920px;
   margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(4rem, 11vw, 9.2rem);
-  line-height: 0.88;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(3rem, 5vw, 4.85rem);
+  font-weight: 950;
+  line-height: 0.96;
   letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.partner-hero-copy h1 span {
+  display: block;
+  white-space: nowrap;
+  clip-path: inset(0 0 100% 0);
+  transform: translateY(16px);
+  transition:
+    clip-path 720ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 720ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.partner-hero-copy h1 span:nth-child(2) {
+  transition-delay: 90ms;
+}
+
+.partner-hero-copy h1.revealed span {
+  clip-path: inset(0 0 0 0);
+  transform: translateY(0);
+}
+
+.partner-hero-copy h1::after {
+  content: "";
+  display: block;
+  width: min(150px, 38vw);
+  height: 2px;
+  margin-top: clamp(20px, 3vw, 30px);
+  background: linear-gradient(90deg, var(--gold-strong), rgba(215, 180, 106, 0));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 760ms cubic-bezier(0.22, 1, 0.36, 1) 220ms;
+}
+
+.partner-hero-copy h1.revealed::after {
+  transform: scaleX(1);
 }
 
 .partner-hero-copy > p:not(.eyebrow) {
-  max-width: 620px;
-  margin: 26px 0 0;
-  color: rgba(248, 245, 239, 0.82);
-  font-size: clamp(1.02rem, 1.6vw, 1.28rem);
-  line-height: 1.65;
+  max-width: 520px;
+  margin: clamp(20px, 2.6vw, 28px) 0 0;
+  color: rgba(248, 245, 239, 0.84);
+  font-size: clamp(1rem, 1.2vw, 1.12rem);
+  line-height: 1.68;
+}
+
+.partner-hero-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: clamp(22px, 3vw, 30px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.partner-hero-points li {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(215, 180, 106, 0.26);
+  border-radius: 999px;
+  background: rgba(7, 6, 6, 0.38);
+  color: rgba(248, 245, 239, 0.86);
+  padding: 0 16px;
+  font-size: 0.9rem;
+  font-weight: 850;
+  backdrop-filter: blur(12px);
+  transform: translateY(12px);
+  opacity: 0;
+  transition:
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 520ms ease;
+}
+
+.partner-hero-points li:nth-child(2) {
+  transition-delay: 80ms;
+}
+
+.partner-hero-points li:nth-child(3) {
+  transition-delay: 160ms;
+}
+
+.partner-hero-points.revealed li {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .partner-hero-actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 12px;
-  margin-top: 32px;
+  margin-top: clamp(24px, 3vw, 34px);
+}
+
+.partner-hero-actions .primary-button {
+  min-width: 190px;
+}
+
+.partner-text-link {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(248, 245, 239, 0.9);
+  font-weight: 900;
+  text-decoration: none;
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.partner-text-link::after {
+  content: "";
+  width: 34px;
+  height: 1px;
+  margin-left: 12px;
+  background: rgba(215, 180, 106, 0.72);
+  transform-origin: left center;
+  transition: transform 180ms ease;
+}
+
+.partner-text-link:hover {
+  color: var(--gold-strong);
+  transform: translateX(2px);
+}
+
+.partner-text-link:hover::after {
+  transform: scaleX(1.28);
 }
 
 .partner-hero-card {
   display: grid;
-  gap: 20px;
+  gap: 22px;
   border: 1px solid rgba(248, 245, 239, 0.16);
-  border-radius: 26px;
+  border-radius: 18px;
   background:
-    linear-gradient(145deg, rgba(248, 245, 239, 0.11), rgba(248, 245, 239, 0.035)),
-    rgba(8, 8, 8, 0.58);
-  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.42);
-  padding: 24px;
+    linear-gradient(145deg, rgba(248, 245, 239, 0.12), rgba(248, 245, 239, 0.035)),
+    rgba(11, 10, 9, 0.72);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.46);
+  padding: clamp(22px, 3vw, 30px);
   backdrop-filter: blur(18px);
 }
 
@@ -11296,21 +11939,27 @@ details p {
 }
 
 .partner-hero-card strong {
-  max-width: 14ch;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2rem, 4vw, 3.3rem);
-  line-height: 0.96;
+  max-width: 18ch;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(1.8rem, 2.8vw, 2.55rem);
+  font-weight: 920;
+  line-height: 1.04;
+  letter-spacing: 0;
 }
 
 .partner-hero-card dl {
   display: grid;
-  gap: 12px;
+  gap: 0;
   margin: 0;
 }
 
 .partner-hero-card dl div {
   border-top: 1px solid rgba(248, 245, 239, 0.12);
-  padding-top: 12px;
+  padding: 16px 0;
+}
+
+.partner-hero-card dl div:last-child {
+  padding-bottom: 0;
 }
 
 .partner-hero-card dt {
@@ -11329,29 +11978,29 @@ details p {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
-  margin: clamp(42px, 7vw, 86px) auto;
+  margin: clamp(48px, 7vw, 90px) auto;
   overflow: hidden;
   border: 1px solid rgba(248, 245, 239, 0.12);
-  border-radius: 26px;
+  border-radius: 18px;
   background: rgba(248, 245, 239, 0.1);
 }
 
 .partner-strip div {
   display: grid;
   align-content: start;
-  gap: 10px;
-  min-height: 220px;
+  gap: 12px;
+  min-height: 190px;
   background:
     radial-gradient(circle at 18% 0%, rgba(215, 180, 106, 0.15), transparent 34%),
     rgba(20, 18, 15, 0.96);
-  padding: clamp(22px, 3vw, 34px);
+  padding: clamp(22px, 3vw, 32px);
 }
 
 .partner-strip strong,
 .partner-steps h3,
 .partner-qualify-grid h3 {
   color: var(--ink);
-  font-size: clamp(1.1rem, 1.8vw, 1.35rem);
+  font-size: clamp(1.05rem, 1.7vw, 1.28rem);
   line-height: 1.15;
 }
 
@@ -11368,28 +12017,31 @@ details p {
 .partner-program,
 .partner-qualify,
 .partner-application {
-  margin: clamp(54px, 8vw, 108px) auto;
+  margin: clamp(58px, 8vw, 112px) auto;
 }
 
 .partner-program {
   display: grid;
-  grid-template-columns: minmax(260px, 0.5fr) minmax(0, 1fr);
+  grid-template-columns: minmax(260px, 0.42fr) minmax(0, 1fr);
   align-items: start;
-  gap: clamp(30px, 6vw, 90px);
+  gap: clamp(32px, 6vw, 84px);
 }
 
 .partner-program-copy h2,
 .partner-qualify h2,
 .partner-application-copy h2 {
-  max-width: 10ch;
+  max-width: 12ch;
   margin: 0 0 18px;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(3rem, 6vw, 6.5rem);
-  line-height: 0.94;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(2.45rem, 4.6vw, 4.9rem);
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: uppercase;
 }
 
 .partner-program-copy p {
-  max-width: 440px;
+  max-width: 460px;
 }
 
 .partner-steps {
@@ -11402,7 +12054,7 @@ details p {
   grid-template-columns: 54px minmax(0, 1fr);
   gap: 4px 18px;
   border: 1px solid rgba(248, 245, 239, 0.12);
-  border-radius: 24px;
+  border-radius: 18px;
   background: linear-gradient(135deg, rgba(248, 245, 239, 0.07), rgba(248, 245, 239, 0.025));
   padding: 22px;
 }
@@ -11442,12 +12094,12 @@ details p {
 }
 
 .partner-qualify-grid article {
-  min-height: 240px;
+  min-height: 224px;
   display: grid;
   align-content: space-between;
   gap: 28px;
   border: 1px solid rgba(248, 245, 239, 0.12);
-  border-radius: 24px;
+  border-radius: 18px;
   background:
     linear-gradient(180deg, rgba(248, 245, 239, 0.075), rgba(248, 245, 239, 0.02)),
     rgba(18, 16, 14, 0.94);
@@ -11458,9 +12110,9 @@ details p {
   display: grid;
   grid-template-columns: minmax(260px, 0.42fr) minmax(0, 0.78fr);
   align-items: start;
-  gap: clamp(30px, 6vw, 78px);
+  gap: clamp(32px, 6vw, 76px);
   border: 1px solid rgba(215, 180, 106, 0.22);
-  border-radius: 32px;
+  border-radius: 22px;
   background:
     radial-gradient(circle at 16% 0%, rgba(215, 180, 106, 0.16), transparent 32%),
     linear-gradient(135deg, rgba(30, 25, 18, 0.96), rgba(12, 11, 10, 0.98));
@@ -11490,7 +12142,7 @@ details p {
   display: grid;
   gap: 18px;
   border: 1px solid rgba(248, 245, 239, 0.12);
-  border-radius: 26px;
+  border-radius: 18px;
   background: rgba(7, 6, 6, 0.56);
   padding: clamp(18px, 3vw, 28px);
 }
@@ -11551,23 +12203,36 @@ details p {
 
 @keyframes partnerImageDrift {
   from {
-    transform: scale(1.04) translate3d(0, 0, 0);
+    transform: scale(1.03) translate3d(0, 0, 0);
   }
 
   to {
-    transform: scale(1.09) translate3d(-1.5%, 0, 0);
+    transform: scale(1.075) translate3d(-1.1%, 0, 0);
+  }
+}
+
+@keyframes partnerLightSweep {
+  0%,
+  58% {
+    opacity: 0;
+    transform: translateX(-32%);
+  }
+
+  68% {
+    opacity: 0.38;
+  }
+
+  84%,
+  100% {
+    opacity: 0;
+    transform: translateX(32%);
   }
 }
 
 @media (max-width: 1080px) {
-  .partner-hero-inner,
   .partner-program,
   .partner-application {
     grid-template-columns: 1fr;
-  }
-
-  .partner-hero-card {
-    max-width: 560px;
   }
 
   .partner-strip,
@@ -11577,29 +12242,55 @@ details p {
 }
 
 @media (max-width: 680px) {
+  .partner-hero {
+    min-height: auto;
+  }
+
   .partner-hero-inner {
     width: min(100% - 32px, var(--max));
-    padding: 118px 0 44px;
+    padding: 122px 0 48px;
+    gap: 30px;
   }
 
   .partner-hero-overlay {
     background:
-      linear-gradient(90deg, rgba(7, 6, 6, 0.94), rgba(7, 6, 6, 0.56)),
-      linear-gradient(0deg, rgba(7, 6, 6, 0.9), rgba(7, 6, 6, 0.18));
+      linear-gradient(90deg, rgba(7, 6, 6, 0.95), rgba(7, 6, 6, 0.6)),
+      linear-gradient(0deg, rgba(7, 6, 6, 0.92), rgba(7, 6, 6, 0.2));
   }
 
   .partner-hero-copy h1,
   .partner-program-copy h2,
   .partner-qualify h2,
   .partner-application-copy h2 {
-    max-width: 9ch;
+    max-width: 12ch;
+  }
+
+  .partner-hero-copy h1 {
+    font-size: clamp(2.45rem, 13vw, 3.8rem);
+    line-height: 1;
+  }
+
+  .partner-hero-copy h1 span {
+    white-space: normal;
+  }
+
+  .partner-hero-copy > p:not(.eyebrow) {
+    max-width: 34rem;
+    font-size: 1rem;
   }
 
   .partner-hero-actions,
-  .partner-hero-actions a,
   .partner-form-actions,
   .partner-form-actions .primary-button {
     width: 100%;
+  }
+
+  .partner-hero-actions a {
+    width: 100%;
+  }
+
+  .partner-text-link::after {
+    width: 42px;
   }
 
   .partner-strip {
@@ -11634,5 +12325,22 @@ details p {
 @media (prefers-reduced-motion: reduce) {
   .partner-hero-media {
     animation: none;
+  }
+
+  .partner-hero::after,
+  .partner-hero-copy h1 span,
+  .partner-hero-points li {
+    animation: none;
+    transition: none;
+  }
+
+  .partner-hero-copy h1 span {
+    clip-path: inset(0);
+    transform: none;
+  }
+
+  .partner-hero-points li {
+    opacity: 1;
+    transform: none;
   }
 }

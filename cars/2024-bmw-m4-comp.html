@@ -8,9 +8,9 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=kds-favicon-20260624" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png?v=kds-favicon-20260624" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=kds-favicon-20260624" />
-    <link rel="stylesheet" href="/src/styles.css?v=cloud-save-20260624" />
+    <link rel="stylesheet" href="/src/styles.css?v=vehicle-no-flash-20260626" />
   </head>
-  <body class="vehicle-page" data-vehicle-slug="2024-bmw-m4-comp">
+  <body class="vehicle-page is-loading-vehicle" data-vehicle-slug="2024-bmw-m4-comp">
     <a class="skip-link" href="#vehicle-main">Skip to vehicle details</a>
 
     <header class="site-header vehicle-header" data-header>
@@ -43,65 +43,72 @@
     </div>
 
     <main id="vehicle-main" data-vehicle-page>
-      <section class="vehicle-hero-detail">
-        <div class="vehicle-hero-copy reveal revealed">
-          <a class="back-link" href="/fleet.html">Back to fleet</a>
-          <p class="eyebrow" data-vehicle-category>Sports luxury</p>
-          <h1 data-vehicle-title>2024 BMW M4-Comp</h1>
-          <p data-vehicle-summary>A Skyscraper Gray M4 Comp with ivory white interior, RVNG exhaust, lowering springs, and spacers.</p>
-          <div class="vehicle-hero-actions">
-            <a class="primary-button" href="/#booking" data-booking-link>Request this car</a>
-            <a class="secondary-button" href="sms:+13105550123">Text concierge</a>
-          </div>
+      <section class="vehicle-product">
+        <a class="back-link vehicle-product-back" href="/fleet.html">&lt; Back to fleet</a>
+
+        <div class="vehicle-product-layout">
+          <article class="vehicle-product-main">
+            <div class="vehicle-gallery-stage reveal revealed">
+              <button class="vehicle-gallery-nav vehicle-gallery-nav-prev" type="button" aria-label="Previous photo" data-gallery-prev>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+              </button>
+              <img data-gallery-main alt="2024 BMW M4-Comp" width="1400" height="920" />
+              <button class="vehicle-gallery-nav vehicle-gallery-nav-next" type="button" aria-label="Next photo" data-gallery-next>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+              </button>
+            </div>
+
+            <div class="vehicle-product-copy reveal revealed">
+              <p class="eyebrow" data-vehicle-category>Sports luxury</p>
+              <h1 data-vehicle-title>2024 BMW M4-Comp</h1>
+              <strong class="vehicle-product-price" data-vehicle-price></strong>
+              <p data-vehicle-summary>A Skyscraper Gray M4 Comp with ivory white interior, RVNG exhaust, lowering springs, and spacers.</p>
+              <p class="vehicle-product-note"><span data-vehicle-mileage></span><br />Additional mileage, delivery, and add-ons are confirmed before approval.</p>
+            </div>
+
+            <div class="vehicle-spec-grid" aria-label="Vehicle specs">
+              <article class="vehicle-spec-card">
+                <svg class="vehicle-spec-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h3l2-3h6l2 3h3v7h-2l-1.5 2h-9L6 17H4v-7Z" /><path d="M8 10v7M16 10v7" /></svg>
+                <span>Engine</span>
+                <strong data-vehicle-engine></strong>
+              </article>
+              <article class="vehicle-spec-card">
+                <svg class="vehicle-spec-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h7a3 3 0 0 1 3 3v10H7V4Z" /><path d="M6 20h12M9 17v3M15 17v3" /></svg>
+                <span>Seats</span>
+                <strong data-vehicle-seats></strong>
+              </article>
+              <article class="vehicle-spec-card">
+                <svg class="vehicle-spec-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14a8 8 0 0 1 16 0" /><path d="M12 14l5-5" /><path d="M5 19h14" /></svg>
+                <span>0-60 mph</span>
+                <strong data-vehicle-acceleration></strong>
+              </article>
+              <article class="vehicle-spec-card">
+                <svg class="vehicle-spec-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15h2l2-4h10l2 4h2" /><path d="M6 15h12" /><path d="M7 18h1M16 18h1" /></svg>
+                <span>Type</span>
+                <strong data-vehicle-type></strong>
+              </article>
+            </div>
+          </article>
+
+          <aside class="vehicle-product-side">
+            <div class="vehicle-side-thumbs" data-gallery-thumbs aria-label="2024 BMW M4-Comp thumbnails"></div>
+
+            <div class="vehicle-booking-card">
+              <strong class="vehicle-deposit">Deposit required</strong>
+              <p>Final approval depends on date, license, insurance, deposit, and requested delivery details.</p>
+              <h2>Requirements</h2>
+              <ul class="vehicle-requirements">
+                <li>Valid driver's license</li>
+                <li>Proof of insurance</li>
+                <li>Approved security deposit</li>
+              </ul>
+              <a class="primary-button" href="/#booking" data-booking-link>Contact us</a>
+              <a class="secondary-button" href="tel:+13105550123">Call us</a>
+            </div>
+          </aside>
         </div>
-        <div class="vehicle-hero-media reveal revealed">
-          <img data-gallery-main src="/assets/fleet-galleries/2024-bmw-m4-comp/01.jpg" alt="2024 BMW M4-Comp" width="1400" height="1050" />
-        </div>
-      </section>
 
-      <section class="vehicle-shell">
-        <aside class="vehicle-stats" aria-label="Vehicle rate and quick facts">
-          <div>
-            <span>Starting at</span>
-            <strong data-vehicle-price></strong>
-          </div>
-          <div>
-            <span>Mileage</span>
-            <strong data-vehicle-mileage></strong>
-          </div>
-          <div>
-            <span>Color</span>
-            <strong data-vehicle-color></strong>
-          </div>
-          <div>
-            <span>Make / Model</span>
-            <strong><span data-vehicle-make></span> <span data-vehicle-model></span></strong>
-          </div>
-        </aside>
-
-        <section class="vehicle-gallery-section" aria-label="2024 BMW M4-Comp photo gallery">
-          <div class="section-heading compact-heading">
-            <p class="eyebrow">Gallery</p>
-            <h2>More looks before you book.</h2>
-          </div>
-          <div class="gallery-thumbs" data-gallery-thumbs></div>
-        </section>
-
-        <section class="vehicle-detail-grid">
-          <div class="vehicle-detail-panel">
-            <p class="eyebrow">Details</p>
-            <h2>What stands out</h2>
-            <ul data-vehicle-details></ul>
-          </div>
-          <div class="vehicle-detail-panel">
-            <p class="eyebrow">Pricing notes</p>
-            <h2>Multi-day rates</h2>
-            <div class="tag-row vehicle-tags" data-vehicle-tags></div>
-            <p>Final quote can vary by delivery city, dates, mileage, insurance, age, deposit, and special requests.</p>
-          </div>
-        </section>
-
-        <section class="related-section" aria-label="Related vehicles">
+        <section class="related-section vehicle-product-related" aria-label="Related vehicles">
           <div class="section-heading compact-heading">
             <p class="eyebrow">Keep browsing</p>
             <h2>Similar vehicles</h2>
@@ -154,6 +161,6 @@
       </div>
     </footer>
 
-    <script type="module" src="/src/vehicle.js?v=cloud-save-20260624"></script>
+    <script type="module" src="/src/vehicle.js?v=vehicle-no-flash-20260626"></script>
   </body>
 </html>

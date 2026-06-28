@@ -1,6 +1,6 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=cloud-save-20260624";
-import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=cloud-save-20260624";
-import { loadFleetFromSupabase } from "./supabase-fleet.js?v=cloud-save-20260624";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=cloud-no-flash-20260626";
+import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=cloud-no-flash-20260626";
+import { isSupabaseFleetConfigured, loadFleetFromSupabase } from "./supabase-fleet.js?v=cloud-no-flash-20260626";
 
 const grid = document.querySelector("[data-fleet-grid]");
 const countLabel = document.querySelector("[data-fleet-count]");
@@ -132,6 +132,33 @@ function renderFleet() {
   renderCards();
 }
 
+function renderFleetLoading() {
+  activeFilter = "all";
+  countLabel.textContent = "Loading fleet";
+  filterNote.textContent = "Cloud fleet";
+  activeFilterLabel.textContent = "Loading";
+  typeFilters.innerHTML = "";
+  brandFilters.innerHTML = "";
+  grid.innerHTML = Array.from({ length: 6 }, () => {
+    return `
+      <article class="showroom-card showroom-card-loading" aria-hidden="true">
+        <div class="showroom-card-skeleton-media"></div>
+        <div class="showroom-card-body">
+          <div>
+            <span class="showroom-card-skeleton-line showroom-card-skeleton-brand"></span>
+            <h2 class="showroom-card-skeleton-line showroom-card-skeleton-title"></h2>
+          </div>
+          <strong class="showroom-card-skeleton-line showroom-card-skeleton-price"></strong>
+        </div>
+        <div class="showroom-card-actions">
+          <span class="showroom-card-skeleton-pill"></span>
+          <span class="showroom-card-skeleton-pill"></span>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
 function closeFilters() {
   filterPanel.hidden = true;
   filterToggle.setAttribute("aria-expanded", "false");
@@ -190,13 +217,28 @@ window.addEventListener("storage", (event) => {
   hydrateSupabaseFleet();
 });
 
-renderFleet();
-
 async function hydrateSupabaseFleet() {
   const remoteFleet = await loadFleetFromSupabase();
-  if (!remoteFleet) return;
+  if (!remoteFleet) return false;
   baseFleet = remoteFleet;
   renderFleet();
+  return true;
 }
 
-hydrateSupabaseFleet();
+async function initFleetPage() {
+  if (!isSupabaseFleetConfigured) {
+    renderFleet();
+    return;
+  }
+
+  renderFleetLoading();
+  try {
+    const hydrated = await hydrateSupabaseFleet();
+    if (!hydrated) renderFleet();
+  } catch (error) {
+    console.warn("Could not initialize cloud fleet:", error);
+    renderFleet();
+  }
+}
+
+initFleetPage();

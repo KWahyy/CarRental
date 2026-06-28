@@ -1,5 +1,5 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=cloud-save-20260624";
-import { loadFleetFromSupabase } from "./supabase-fleet.js?v=cloud-save-20260624";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=cloud-no-flash-20260626";
+import { isSupabaseFleetConfigured, loadFleetFromSupabase } from "./supabase-fleet.js?v=cloud-no-flash-20260626";
 
 let fleet = [
   {
@@ -425,6 +425,28 @@ function renderFanCarousel() {
   updateFanCarousel();
 }
 
+function renderFleetLoading() {
+  fanCards = Array.from({ length: 7 }, (_, index) => ({
+    slug: "",
+    name: `Loading vehicle ${index + 1}`,
+    image: "",
+  }));
+  fanCenterIndex = Math.floor(fanCards.length / 2);
+  fanStage.innerHTML = fanCards
+    .map(
+      () => `
+        <div class="fan-card fan-card-loading" aria-hidden="true">
+          <span></span>
+        </div>
+      `,
+    )
+    .join("");
+  fanDots.innerHTML = fanCards.map((_, index) => `<span class="${index === fanCenterIndex ? "active" : ""}"></span>`).join("");
+  updateFanCarousel();
+  if (brandGrid) brandGrid.innerHTML = "";
+  if (typeGrid) typeGrid.innerHTML = "";
+}
+
 function fleetFilter(filter) {
   if (filter === "all") return () => true;
   if (filter.startsWith("brand:")) {
@@ -585,9 +607,10 @@ function hydrateDiaText() {
 
 async function hydrateSupabaseFleet() {
   const remoteFleet = await loadFleetFromSupabase();
-  if (!remoteFleet) return;
+  if (!remoteFleet) return false;
 
   refreshFleetFromBase(remoteFleet);
+  return true;
 }
 
 function activeFleetFilter() {
@@ -731,7 +754,23 @@ if (quoteForm) {
 }
 
 let baseFleet = fleet.slice();
-refreshFleetFromBase();
 hydrateDiaText();
 observeReveals();
-hydrateSupabaseFleet();
+
+async function initFleetSections() {
+  if (!isSupabaseFleetConfigured) {
+    refreshFleetFromBase();
+    return;
+  }
+
+  renderFleetLoading();
+  try {
+    const hydrated = await hydrateSupabaseFleet();
+    if (!hydrated) refreshFleetFromBase();
+  } catch (error) {
+    console.warn("Could not initialize cloud fleet:", error);
+    refreshFleetFromBase();
+  }
+}
+
+initFleetSections();
