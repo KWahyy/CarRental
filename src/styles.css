@@ -783,8 +783,8 @@ h3 {
 }
 
 .rental-fan-showcase {
-  width: min(100vw, 1520px);
-  margin: clamp(58px, 8vw, 116px) calc(50% - 50vw) clamp(48px, 7vw, 92px);
+  width: min(100%, 1520px);
+  margin: clamp(58px, 8vw, 116px) auto clamp(48px, 7vw, 92px);
   padding-bottom: clamp(18px, 3vw, 30px);
   contain: paint;
 }
@@ -1384,8 +1384,8 @@ svg.brand-logo-mark {
   width: 100vw;
   margin: 0 calc(50% - 50vw) 34px;
   display: grid;
-  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.45fr);
-  gap: clamp(36px, 5vw, 72px);
+  grid-template-columns: minmax(300px, 560px) minmax(0, 1fr);
+  gap: clamp(72px, 8vw, 138px);
   align-items: center;
   background:
     radial-gradient(circle at 20% 50%, rgba(215, 180, 106, 0.11), transparent 34%),
@@ -1451,6 +1451,7 @@ svg.brand-logo-mark {
 .specials-slider {
   position: relative;
   min-width: 0;
+  padding-inline: 18px 0;
 }
 
 .specials-viewport {
@@ -1611,11 +1612,11 @@ svg.brand-logo-mark {
 }
 
 .specials-nav-prev {
-  left: -28px;
+  left: 0;
 }
 
 .specials-nav-next {
-  right: -28px;
+  right: 12px;
 }
 
 .content-experience-promo {
