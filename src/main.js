@@ -1,5 +1,6 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=cloud-no-flash-20260626";
-import { isSupabaseFleetConfigured, loadFleetFromSupabase } from "./supabase-fleet.js?v=cloud-no-flash-20260626";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=shared-fleet-20260710";
+import { fleet as websiteFleet } from "./fleet-data.js?v=shared-fleet-20260710";
+import { isSupabaseFleetConfigured, loadFleetFromSupabase } from "./supabase-fleet.js?v=shared-fleet-20260710";
 
 let fleet = [
   {
@@ -153,49 +154,43 @@ const quoteForm = document.querySelector("[data-quote-form]");
 const quoteStatus = document.querySelector("[data-quote-status]");
 const CRM_REQUESTS_KEY = "kds-crm-requests";
 const diaText = document.querySelector("[data-dia-words]");
-
-let fanCards = [
-  {
-    slug: "2022-lamborghini-huracan",
-    name: "2022 Lamborghini Huracan",
-    image: "/assets/fleet/2022-lamborghini-huracan.jpg",
-  },
-  {
-    slug: "2016-ferrari-488-gtb",
-    name: "2016 Ferrari 488 GTB",
-    image: "/assets/fleet/2016-ferrari-488-gtb.jpg",
-  },
-  {
-    slug: "2017-audi-r8",
-    name: "2017 Audi R8",
-    image: "/assets/fleet/2017-audi-r8.jpg?v=sharp-20260620",
-  },
-  {
-    slug: "2015-lamborghini-huracan-lp-610-4",
-    name: "2015 Lamborghini Huracan LP-610-4",
-    image: "/assets/fleet/2015-lamborghini-huracan-lp-610-4.jpg",
-  },
-  {
-    slug: "2018-mclaren-570s-spider",
-    name: "2018 McLaren 570s Spider",
-    image: "/assets/fleet/2018-mclaren-570s-spider.jpg?v=sharp-20260620",
-  },
-  {
-    slug: "2022-porsche-911-carrera",
-    name: "2022 Porsche 911 Carrera",
-    image: "/assets/fleet/2022-porsche-911-carrera.jpg",
-  },
-  {
-    slug: "2024-bmw-m4-comp",
-    name: "2024 BMW M4-Comp",
-    image: "/assets/fleet/2024-bmw-m4-comp.jpg",
-  },
-  {
-    slug: "2021-bmw-m3-comp",
-    name: "2021 BMW M3 Comp",
-    image: "/assets/fleet/2021-bmw-m3-comp.jpg?v=sharp-20260620",
-  },
+const CLOUD_FLEET_TIMEOUT_MS = 3500;
+const BEST_FAN_LIMIT = 9;
+const BEST_FAN_SLUGS = [
+  "2022-lamborghini-huracan",
+  "lamborghini-huracan-blue",
+  "lamborghini-huracan-evo",
+  "2015-lamborghini-huracan-lp-610-4",
+  "ferrari-f8",
+  "ferrari-488-spider-grey",
+  "ferrari-portofino",
+  "2016-ferrari-488-gtb",
+  "mclaren-570s",
+  "2018-mclaren-570s-spider",
+  "mclaren-720s-turquoise",
+  "2017-audi-r8",
+  "audi-r8-black",
+  "porsche-911-carrera-gts",
+  "rolls-royce-dawn-convertible-white",
+  "rolls-royce-cullinan-white",
+  "lamborghini-widebody-urus-black",
 ];
+
+fleet = websiteFleet.slice();
+
+function withTimeout(promise, ms, fallback = null) {
+  let timeoutId;
+  const timeout = new Promise((resolve) => {
+    timeoutId = window.setTimeout(() => resolve(fallback), ms);
+  });
+
+  return Promise.race([
+    promise.finally(() => window.clearTimeout(timeoutId)),
+    timeout,
+  ]);
+}
+
+let fanCards = getFeaturedFanCards(fleet);
 
 const fanPositions = [
   { x: -34, y: 0.8, rot: -8, scale: 0.8, z: 1 },
@@ -361,6 +356,52 @@ function vehicleLabel(car) {
   return car.name.replace(/^\d{4}\s+/, "");
 }
 
+function primaryImageFor(car) {
+  return car.image || car.gallery?.[0] || "/assets/kds-hero.png";
+}
+
+function isUsableFanCar(car) {
+  const image = primaryImageFor(car);
+  return car?.name && vehicleSlug(car) && image && !image.includes("kds-hero");
+}
+
+function isPremiumFanCandidate(car) {
+  const text = `${car.name} ${car.make || ""} ${car.model || ""} ${car.category || ""}`.toLowerCase();
+  return /lamborghini|ferrari|mclaren|rolls|r8|porsche/.test(text);
+}
+
+function addUniqueFanCar(list, car) {
+  if (!isUsableFanCar(car)) return;
+  const slug = vehicleSlug(car);
+  if (list.some((item) => vehicleSlug(item) === slug)) return;
+  list.push(car);
+}
+
+function getFeaturedFanCards(sourceFleet = fleet) {
+  const bySlug = new Map(sourceFleet.map((car) => [vehicleSlug(car), car]));
+  const selected = [];
+
+  BEST_FAN_SLUGS.forEach((slug) => addUniqueFanCar(selected, bySlug.get(slug)));
+
+  if (selected.length < BEST_FAN_LIMIT) {
+    sourceFleet
+      .filter((car) => isUsableFanCar(car) && isPremiumFanCandidate(car))
+      .sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0))
+      .forEach((car) => addUniqueFanCar(selected, car));
+  }
+
+  return selected.slice(0, BEST_FAN_LIMIT).map((car) => ({
+    slug: vehicleSlug(car),
+    name: car.name,
+    image: primaryImageFor(car),
+  }));
+}
+
+function setFeaturedFanCards(sourceFleet = fleet) {
+  fanCards = getFeaturedFanCards(sourceFleet);
+  fanCenterIndex = Math.floor(fanCards.length / 2);
+}
+
 function fanMultiplier() {
   const width = window.innerWidth;
   if (width < 480) return 0.34;
@@ -512,9 +553,7 @@ function renderRateGrid(car) {
 }
 
 function renderFleet(filter = "all") {
-  const visibleCars = fleet.filter(fleetFilter(filter));
-  fanCards = visibleCars.map((car) => ({ slug: car.slug, name: car.name, image: car.image }));
-  fanCenterIndex = Math.floor(fanCards.length / 2);
+  setFeaturedFanCards(fleet.filter(fleetFilter(filter)));
   renderFanCarousel();
 }
 
@@ -606,9 +645,11 @@ function hydrateDiaText() {
 }
 
 async function hydrateSupabaseFleet() {
-  const remoteFleet = await loadFleetFromSupabase();
-  if (!remoteFleet) return false;
+  const remoteFleet = await withTimeout(loadFleetFromSupabase(), CLOUD_FLEET_TIMEOUT_MS, null);
+  if (!Array.isArray(remoteFleet) || !remoteFleet.length) return false;
 
+  // Supabase is shared by every visitor and must remain authoritative. The
+  // bundled fleet is retained only for a temporary network/database failure.
   refreshFleetFromBase(remoteFleet);
   return true;
 }
@@ -621,8 +662,6 @@ function refreshFleetFromBase(nextBaseFleet = baseFleet) {
   const filter = activeFleetFilter();
   baseFleet = nextBaseFleet;
   fleet = baseFleet.slice();
-  fanCards = fleet.slice(0, 8).map((car) => ({ slug: car.slug, name: car.name, image: car.image }));
-  fanCenterIndex = Math.floor(fanCards.length / 2);
   renderShopBrowsers();
   setActiveShopFilter(filter);
   renderFleet(filter);
@@ -714,7 +753,7 @@ if (form) {
 }
 
 if (quoteForm) {
-  quoteForm.addEventListener("submit", (event) => {
+  quoteForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const submitButton = quoteForm.querySelector("button[type='submit']");
     const formData = new FormData(quoteForm);
@@ -722,34 +761,68 @@ if (quoteForm) {
       .filter((addon) => formData.get(addon))
       .map((addon) => addon.charAt(0).toUpperCase() + addon.slice(1));
 
-    try {
-      const storedRequests = JSON.parse(localStorage.getItem(CRM_REQUESTS_KEY)) || [];
-      storedRequests.unshift({
-        id: `quote-${Date.now()}`,
-        name: formData.get("name") || "Website lead",
-        phone: formData.get("phone") || "",
-        vehicle: formData.get("vehicle") || "Vehicle TBD",
-        date: formData.get("date") || "",
-        addons,
-        message: formData.get("message") || "",
-        status: "new",
-        createdAt: new Date().toISOString(),
-      });
-      localStorage.setItem(CRM_REQUESTS_KEY, JSON.stringify(storedRequests));
-    } catch {
-      // Local CRM storage is best-effort until quote requests are moved to Supabase.
+    submitButton.disabled = true;
+    submitButton.textContent = "Sending request...";
+    if (quoteStatus) {
+      quoteStatus.dataset.tone = "";
+      quoteStatus.textContent = "Saving your quote request...";
     }
 
-    submitButton.disabled = true;
-    submitButton.textContent = "Preparing quote...";
+    const payload = {
+      name: formData.get("name") || "",
+      phone: formData.get("phone") || "",
+      email: formData.get("email") || "",
+      date: formData.get("date") || "",
+      vehicle: formData.get("vehicle") || "Vehicle TBD",
+      addons,
+      message: formData.get("message") || "",
+      company: formData.get("company") || "",
+      pageUrl: window.location.href,
+    };
 
-    window.setTimeout(() => {
-      submitButton.disabled = false;
-      submitButton.textContent = "Request Quote";
-      if (quoteStatus) quoteStatus.textContent = "Quote request saved. The admin CRM can review it under Requests.";
+    try {
+      const response = await fetch("/api/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.ok) throw new Error(result.message || "Quote request failed.");
+
+      try {
+        const storedRequests = JSON.parse(localStorage.getItem(CRM_REQUESTS_KEY)) || [];
+        storedRequests.unshift({
+          id: result.id || `quote-${Date.now()}`,
+          name: payload.name || "Website lead",
+          phone: payload.phone || "",
+          email: payload.email || "",
+          vehicle: payload.vehicle || "Vehicle TBD",
+          date: payload.date || "",
+          addons,
+          message: payload.message || "",
+          status: "new",
+          createdAt: new Date().toISOString(),
+        });
+        localStorage.setItem(CRM_REQUESTS_KEY, JSON.stringify(storedRequests));
+      } catch {
+        // Local mirror is best-effort only; Supabase is the source of truth.
+      }
+
+      if (quoteStatus) {
+        quoteStatus.dataset.tone = "success";
+        quoteStatus.textContent = "Quote request received. KD's Exotics will follow up shortly.";
+      }
       quoteForm.reset();
       hydrateVehicleSelect();
-    }, 700);
+    } catch (error) {
+      if (quoteStatus) {
+        quoteStatus.dataset.tone = "error";
+        quoteStatus.textContent = error.message || "We could not save this request. Please call or text us directly.";
+      }
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = "Request Quote";
+    }
   });
 }
 

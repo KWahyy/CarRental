@@ -1,6 +1,6 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=cloud-no-flash-20260626";
-import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=cloud-no-flash-20260626";
-import { isSupabaseFleetConfigured, loadVehicleFromSupabase } from "./supabase-fleet.js?v=cloud-no-flash-20260626";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=shared-fleet-20260710";
+import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=shared-fleet-20260710";
+import { isSupabaseFleetConfigured, loadVehicleFromSupabase } from "./supabase-fleet.js?v=shared-fleet-20260710";
 
 const slug = document.body.dataset.vehicleSlug;
 let baseVehicleFleet = fleet;
@@ -9,6 +9,20 @@ let car = vehicleFleet.find((item) => item.slug === slug) || getVehicle(slug);
 const header = document.querySelector("[data-header]");
 const menuToggle = document.querySelector("[data-menu-toggle]");
 const mobileMenu = document.querySelector("[data-mobile-menu]");
+const CLOUD_VEHICLE_TIMEOUT_MS = 3500;
+const MAX_LISTING_PHOTOS = 3;
+
+function withTimeout(promise, ms, fallback = null) {
+  let timeoutId;
+  const timeout = new Promise((resolve) => {
+    timeoutId = window.setTimeout(() => resolve(fallback), ms);
+  });
+
+  return Promise.race([
+    promise.finally(() => window.clearTimeout(timeoutId)),
+    timeout,
+  ]);
+}
 
 function setText(selector, value) {
   const node = document.querySelector(selector);
@@ -30,9 +44,10 @@ function rateFromTag(tag) {
 }
 
 function seatsForVehicle(vehicle) {
-  if (vehicle.category.includes("suv")) return "5 seats";
-  if (vehicle.name.includes("M3")) return "5 seats";
-  if (vehicle.name.includes("M4")) return "4 seats";
+  const joined = `${vehicle.name} ${vehicle.category} ${vehicle.categoryLabel}`.toLowerCase();
+  if (joined.includes("suv") || joined.includes("g-wagon") || joined.includes("g wagon") || joined.includes("gls") || joined.includes("gle") || joined.includes("g63") || joined.includes("escalade") || joined.includes("urus") || joined.includes("defender") || joined.includes("range rover") || joined.includes("cullinan") || joined.includes("macan") || joined.includes("cybertruck")) return "5 seats";
+  if (joined.includes("panamera") || joined.includes("model s") || joined.includes("m3") || joined.includes("m5") || joined.includes("c63") || joined.includes("s63")) return "5 seats";
+  if (joined.includes("m4")) return "4 seats";
   return "2 seats";
 }
 
@@ -40,8 +55,12 @@ function engineForVehicle(vehicle) {
   const name = vehicle.name.toLowerCase();
   const make = vehicle.make.toLowerCase();
   if (name.includes("huracan") || name.includes("r8")) return "V10";
-  if (name.includes("urus") || name.includes("g63") || name.includes("gle") || name.includes("escalade")) return "V8 / SUV";
+  if (name.includes("cybertruck") || name.includes("tesla")) return "Electric";
+  if (name.includes("corvette")) return "V8";
+  if (name.includes("urus") || name.includes("g63") || name.includes("g-wagon") || name.includes("g wagon") || name.includes("gls") || name.includes("gle") || name.includes("escalade") || name.includes("cullinan") || name.includes("defender") || name.includes("range rover")) return "V8 / SUV";
+  if (make.includes("rolls") || make.includes("bentley")) return "Twin-turbo V8";
   if (make.includes("ferrari") || make.includes("mclaren")) return "Twin-turbo V8";
+  if (make.includes("lotus")) return "Supercharged V6";
   if (make.includes("bmw")) return "Twin-turbo I6";
   if (make.includes("porsche")) return "Turbo flat-six";
   if (make.includes("ford")) return "Twin-turbo V6";
@@ -52,20 +71,26 @@ function accelerationForVehicle(vehicle) {
   const name = vehicle.name.toLowerCase();
   const make = vehicle.make.toLowerCase();
   if (name.includes("huracan")) return "2.9 sec";
-  if (make.includes("ferrari") || make.includes("mclaren") || name.includes("r8")) return "3.1 sec";
+  if (make.includes("ferrari") || make.includes("mclaren") || name.includes("r8") || name.includes("corvette")) return "3.1 sec";
   if (name.includes("urus")) return "3.6 sec";
+  if (name.includes("tesla") || name.includes("plaid")) return "2.1 sec";
   if (make.includes("bmw")) return "3.8 sec";
-  if (name.includes("g63") || name.includes("gle") || name.includes("escalade")) return "4.5 sec";
+  if (name.includes("g63") || name.includes("g-wagon") || name.includes("g wagon") || name.includes("gle") || name.includes("gls") || name.includes("escalade") || name.includes("range rover") || name.includes("defender")) return "4.5 sec";
   return "Fast";
 }
 
 function typeForVehicle(vehicle) {
   const label = vehicle.categoryLabel || vehicle.category;
   const joined = `${vehicle.name} ${vehicle.category} ${vehicle.summary}`.toLowerCase();
-  if (joined.includes("suv") || joined.includes("g63") || joined.includes("gle") || joined.includes("escalade") || joined.includes("urus")) return "SUV";
-  if (joined.includes("convertible") || joined.includes("spider") || joined.includes("open-air")) return "Convertible";
-  if (joined.includes("sedan") || joined.includes("m3")) return "Sedan";
+  if (joined.includes("convertible") || joined.includes("spyder") || joined.includes("spider") || joined.includes("gtc") || joined.includes("dawn") || joined.includes("portofino") || joined.includes("open-air")) return "Convertible";
+  if (joined.includes("cybertruck") || joined.includes("f150")) return "Truck";
+  if (joined.includes("suv") || joined.includes("g63") || joined.includes("g-wagon") || joined.includes("g wagon") || joined.includes("gle") || joined.includes("gls") || joined.includes("escalade") || joined.includes("urus") || joined.includes("defender") || joined.includes("range rover") || joined.includes("cullinan") || joined.includes("macan")) return "SUV";
+  if (joined.includes("sedan") || joined.includes("m3") || joined.includes("m5") || joined.includes("c63") || joined.includes("s63") || joined.includes("panamera") || joined.includes("model s")) return "Sedan";
   return label;
+}
+
+function listingGallery(vehicle) {
+  return [...new Set([vehicle.image, ...(vehicle.gallery || [])].filter(Boolean))].slice(0, MAX_LISTING_PHOTOS);
 }
 
 function renderGallery(gallery) {
@@ -92,7 +117,6 @@ function renderGallery(gallery) {
 
   if (galleryThumbs) {
     galleryThumbs.innerHTML = gallery
-      .slice(0, 3)
       .map(
         (image, index) => `
           <button class="vehicle-side-thumb ${index === 0 ? "active" : ""}" type="button" data-gallery-image="${image}" data-gallery-index="${index}" aria-label="Show photo ${index + 1} of ${car.name}">
@@ -143,7 +167,7 @@ function renderVehicle() {
   setText("[data-vehicle-type]", typeForVehicle(car));
   setAttr("[data-booking-link]", "href", `/?vehicle=${encodeURIComponent(car.name)}#booking`);
 
-  const gallery = [...new Set([...(car.gallery || []), car.image].filter(Boolean))];
+  const gallery = listingGallery(car);
   renderGallery(gallery);
 
   const rates = car.tags.map(rateFromTag).filter(Boolean);
@@ -234,7 +258,7 @@ function refreshVehicleFromBase({ allowStaticFallback = true } = {}) {
 }
 
 async function hydrateRemoteVehicle() {
-  const remoteCar = await loadVehicleFromSupabase(slug);
+  const remoteCar = await withTimeout(loadVehicleFromSupabase(slug), CLOUD_VEHICLE_TIMEOUT_MS, null);
   if (!remoteCar) return false;
 
   baseVehicleFleet = baseVehicleFleet.some((item) => item.slug === remoteCar.slug)
@@ -255,12 +279,7 @@ async function initVehicle() {
   }
 
   if (!hydrated) {
-    if (isSupabaseFleetConfigured) {
-      car = null;
-      renderVehicle();
-    } else {
-      refreshVehicleFromBase({ allowStaticFallback: true });
-    }
+    refreshVehicleFromBase({ allowStaticFallback: true });
   }
   document.body.classList.remove("is-loading-vehicle");
 }
@@ -272,13 +291,12 @@ window.addEventListener("storage", (event) => {
   document.body.classList.add("is-loading-vehicle");
   hydrateRemoteVehicle()
     .then((hydrated) => {
-      if (hydrated || !isSupabaseFleetConfigured) return;
-      car = null;
-      renderVehicle();
+      if (hydrated) return;
+      refreshVehicleFromBase({ allowStaticFallback: true });
     })
     .catch((error) => {
       console.warn("Could not refresh cloud vehicle:", error);
-      if (!isSupabaseFleetConfigured) refreshVehicleFromBase({ allowStaticFallback: true });
+      refreshVehicleFromBase({ allowStaticFallback: true });
     })
     .finally(() => {
       document.body.classList.remove("is-loading-vehicle");
