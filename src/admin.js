@@ -1,7 +1,7 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-import { signalFleetRefresh, slugifyVehicle } from "./admin-store.js?v=cloud-save-20260624";
-import { fleet } from "./fleet-data.js?v=cloud-save-20260624";
-import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_STORAGE_BUCKET, SUPABASE_URL } from "./supabase-config.js?v=cloud-save-20260624";
+import { signalFleetRefresh, slugifyVehicle } from "./admin-store.js?v=shared-fleet-20260710";
+import { fleet } from "./fleet-data.js?v=shared-fleet-20260710";
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_STORAGE_BUCKET, SUPABASE_URL } from "./supabase-config.js?v=shared-fleet-20260710";
 
 const unsafeParams = new URLSearchParams(window.location.search);
 if (unsafeParams.has("email") || unsafeParams.has("password")) {
@@ -69,6 +69,7 @@ const defaultRequests = [];
 
 const configured = Boolean(SUPABASE_URL && SUPABASE_URL.startsWith("https://"));
 const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
+const MAX_LISTING_PHOTOS = 3;
 
 let cars = [];
 let selectedCarId = null;
@@ -331,37 +332,8 @@ function readFileAsDataUrl(file) {
   });
 }
 
-function loadImageFromUrl(url) {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.addEventListener("load", () => resolve(image));
-    image.addEventListener("error", reject);
-    image.src = url;
-  });
-}
-
-async function fileToStoredImage(file) {
-  const dataUrl = await readFileAsDataUrl(file);
-  if (!file.type.startsWith("image/") || file.type === "image/svg+xml") return dataUrl;
-
-  try {
-    const image = await loadImageFromUrl(dataUrl);
-    const maxSize = 1800;
-    const scale = Math.min(1, maxSize / Math.max(image.naturalWidth, image.naturalHeight));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
-    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
-    const context = canvas.getContext("2d");
-    if (!context) return dataUrl;
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL("image/jpeg", 0.86);
-  } catch {
-    return dataUrl;
-  }
-}
-
 function normalizePhotoOrder() {
-  photos = photos.map((photo, index) => ({ ...photo, position: index + 1 }));
+  photos = photos.slice(0, MAX_LISTING_PHOTOS).map((photo, index) => ({ ...photo, position: index + 1 }));
 }
 
 function updatePhotoPreview() {
@@ -765,6 +737,7 @@ function renderCarList() {
 
 function renderPhotos() {
   normalizePhotoOrder();
+  if (addPhotoButton) addPhotoButton.disabled = photos.length >= MAX_LISTING_PHOTOS;
   photoList.innerHTML = photos
     .map(
       (photo, index) => `
@@ -848,7 +821,7 @@ async function selectCar(carId) {
   }
 
   if (isLocalCarId(car.id) || !requireConfig()) {
-    const gallery = car.gallery?.length ? car.gallery : [car.image_url].filter(Boolean);
+    const gallery = (car.gallery?.length ? car.gallery : [car.image_url || car.image].filter(Boolean)).slice(0, MAX_LISTING_PHOTOS);
     photos = gallery.map((url, index) => ({ position: index + 1, url }));
     availableDates = [];
     renderPhotos();
@@ -862,7 +835,9 @@ async function selectCar(carId) {
     runQuery(supabase.from("car_available_dates").select("date").eq("car_id", car.id).order("date")),
   ]);
 
-  photos = photoRows.length ? photoRows.map((row) => ({ id: row.id, position: row.position, url: row.url })) : [{ position: 1, url: car.image_url || "" }];
+  photos = photoRows.length
+    ? photoRows.slice(0, MAX_LISTING_PHOTOS).map((row) => ({ id: row.id, position: row.position, url: row.url }))
+    : [{ position: 1, url: car.image_url || "" }];
   availableDates = dateRows.map((row) => row.date);
   renderPhotos();
   renderAvailability();
@@ -907,7 +882,7 @@ async function savePhotos(carId, slug) {
   const nextPhotos = [];
 
   normalizePhotoOrder();
-  for (const [index, photo] of photos.entries()) {
+  for (const [index, photo] of photos.slice(0, MAX_LISTING_PHOTOS).entries()) {
     const position = index + 1;
     const url = photo.file ? await uploadPhoto(photo.file, slug, position) : photo.url?.trim();
     if (url) {
@@ -923,7 +898,10 @@ async function savePhotos(carId, slug) {
 
 function currentPhotoUrls() {
   normalizePhotoOrder();
-  return photos.map((photo) => photo.url || photo.previewUrl).filter(Boolean);
+  return photos
+    .slice(0, MAX_LISTING_PHOTOS)
+    .map((photo) => photo.url || photo.previewUrl)
+    .filter(Boolean);
 }
 
 function buildCarPayloadFromForm() {
@@ -1035,7 +1013,7 @@ async function seedFleet() {
     for (const localCar of fleet) {
       const { gallery, id, source, ...carPayload } = normalizeLocalCar(localCar);
       const saved = await runQuery(supabase.from("cars").upsert(carPayload, { onConflict: "slug" }).select().single());
-      const photoRows = localCar.gallery.map((url, index) => ({ car_id: saved.id, position: index + 1, url }));
+      const photoRows = localCar.gallery.slice(0, MAX_LISTING_PHOTOS).map((url, index) => ({ car_id: saved.id, position: index + 1, url }));
       await runQuery(supabase.from("car_photos").delete().eq("car_id", saved.id));
       if (photoRows.length) await runQuery(supabase.from("car_photos").insert(photoRows));
       if (photoRows[0]?.url) await runQuery(supabase.from("cars").update({ image_url: photoRows[0].url }).eq("id", saved.id));
@@ -1171,6 +1149,7 @@ carForm.elements.name.addEventListener("input", () => {
 });
 
 addPhotoButton.addEventListener("click", () => {
+  if (photos.length >= MAX_LISTING_PHOTOS) return;
   photos.push({ position: photos.length + 1, url: "" });
   renderPhotos();
 });
@@ -1206,8 +1185,7 @@ photoList.addEventListener("change", async (event) => {
   if (!file) return;
 
   photos[index].file = file;
-  photos[index].previewUrl = await fileToStoredImage(file);
-  photos[index].url = photos[index].previewUrl;
+  photos[index].previewUrl = await readFileAsDataUrl(file);
   renderPhotos();
 });
 

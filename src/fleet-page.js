@@ -1,6 +1,6 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=cloud-no-flash-20260626";
-import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=cloud-no-flash-20260626";
-import { isSupabaseFleetConfigured, loadFleetFromSupabase } from "./supabase-fleet.js?v=cloud-no-flash-20260626";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=shared-fleet-20260710";
+import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=shared-fleet-20260710";
+import { isSupabaseFleetConfigured, loadFleetFromSupabase } from "./supabase-fleet.js?v=shared-fleet-20260710";
 
 const grid = document.querySelector("[data-fleet-grid]");
 const countLabel = document.querySelector("[data-fleet-count]");
@@ -18,6 +18,19 @@ const header = document.querySelector("[data-header]");
 let baseFleet = websiteFleet.slice();
 let cars = baseFleet.slice();
 let activeFilter = "all";
+const CLOUD_FLEET_TIMEOUT_MS = 3500;
+
+function withTimeout(promise, ms, fallback = null) {
+  let timeoutId;
+  const timeout = new Promise((resolve) => {
+    timeoutId = window.setTimeout(() => resolve(fallback), ms);
+  });
+
+  return Promise.race([
+    promise.finally(() => window.clearTimeout(timeoutId)),
+    timeout,
+  ]);
+}
 
 function slugify(value) {
   return String(value || "")
@@ -33,11 +46,12 @@ function brandFor(car) {
 function bodyTypeFor(car) {
   const name = car.name.toLowerCase();
   const feature = [car.color, car.category, car.categoryLabel, car.summary].join(" ").toLowerCase();
+  const joined = `${name} ${feature}`;
 
-  if (feature.includes("convertible") || name.includes("spider")) return "Convertible";
-  if (name.includes("gle") || name.includes("g63") || name.includes("escalade") || name.includes("urus")) return "SUV";
-  if (name.includes("f150")) return "Truck";
-  if (name.includes("m3")) return "Sedan";
+  if (joined.includes("convertible") || joined.includes("spyder") || joined.includes("spider") || joined.includes("gtc") || joined.includes("dawn") || joined.includes("portofino") || joined.includes("open-air")) return "Convertible";
+  if (joined.includes("cybertruck") || joined.includes("f150")) return "Truck";
+  if (joined.includes("suv") || joined.includes("g-wagon") || joined.includes("g wagon") || joined.includes("gls") || joined.includes("gle") || joined.includes("g63") || joined.includes("escalade") || joined.includes("urus") || joined.includes("defender") || joined.includes("range rover") || joined.includes("land rover") || joined.includes("cullinan") || joined.includes("macan")) return "SUV";
+  if (joined.includes("sedan") || joined.includes("m3") || joined.includes("m5") || joined.includes("c63") || joined.includes("s63") || joined.includes("panamera") || joined.includes("model s")) return "Sedan";
   return "Coupe";
 }
 
@@ -64,6 +78,10 @@ function matchesFilter(car) {
 
 function carImage(car) {
   return car.image || car.image_url || car.gallery?.[0] || "/assets/kds-hero.png";
+}
+
+function mediaBackgroundStyle(car) {
+  return `--media-image: url('${carImage(car).replace(/'/g, "%27")}')`;
 }
 
 function renderFilterButtons() {
@@ -105,7 +123,7 @@ function renderCards() {
 
       return `
         <article class="showroom-card">
-          <a class="showroom-card-media" href="/cars/${slug}.html" aria-label="View ${car.name}">
+          <a class="showroom-card-media" href="/cars/${slug}.html" aria-label="View ${car.name}" style="${mediaBackgroundStyle(car)}">
             <img src="${carImage(car)}" alt="${car.name}" width="760" height="520" loading="lazy" onerror="this.onerror=null;this.src='/assets/kds-hero.png';" />
           </a>
           <div class="showroom-card-body">
@@ -218,8 +236,11 @@ window.addEventListener("storage", (event) => {
 });
 
 async function hydrateSupabaseFleet() {
-  const remoteFleet = await loadFleetFromSupabase();
-  if (!remoteFleet) return false;
+  const remoteFleet = await withTimeout(loadFleetFromSupabase(), CLOUD_FLEET_TIMEOUT_MS, null);
+  if (!Array.isArray(remoteFleet) || !remoteFleet.length) return false;
+  // The shared database is the source of truth. The bundled fleet is only an
+  // offline fallback; merging it here makes deleted or unsynced local cars
+  // reappear on some devices.
   baseFleet = remoteFleet;
   renderFleet();
   return true;
