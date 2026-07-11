@@ -1,6 +1,6 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=shared-fleet-20260710";
-import { fleet as websiteFleet } from "./fleet-data.js?v=shared-fleet-20260710";
-import { isSupabaseFleetConfigured, loadFleetFromSupabase } from "./supabase-fleet.js?v=shared-fleet-20260710";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=gallery-hq-20260710";
+import { fleet as websiteFleet } from "./fleet-data.js?v=gallery-hq-20260710";
+import { isSupabaseFleetConfigured, loadFleetFromSupabase } from "./supabase-fleet.js?v=gallery-hq-20260710";
 
 let fleet = [
   {
@@ -650,7 +650,13 @@ async function hydrateSupabaseFleet() {
 
   // Supabase is shared by every visitor and must remain authoritative. The
   // bundled fleet is retained only for a temporary network/database failure.
-  refreshFleetFromBase(remoteFleet);
+  const bundledBySlug = new Map(websiteFleet.map((car) => [car.slug || slugify(car.name), car]));
+  const fleetWithBundledMedia = remoteFleet.map((car) => {
+    const bundled = bundledBySlug.get(car.slug || slugify(car.name));
+    if (!bundled?.gallery?.length) return car;
+    return { ...car, image: bundled.image, gallery: bundled.gallery };
+  });
+  refreshFleetFromBase(fleetWithBundledMedia);
   return true;
 }
 

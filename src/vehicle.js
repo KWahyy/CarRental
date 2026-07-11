@@ -1,6 +1,6 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=shared-fleet-20260710";
-import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=shared-fleet-20260710";
-import { isSupabaseFleetConfigured, loadVehicleFromSupabase } from "./supabase-fleet.js?v=shared-fleet-20260710";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=gallery-hq-20260710";
+import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=gallery-hq-20260710";
+import { isSupabaseFleetConfigured, loadVehicleFromSupabase } from "./supabase-fleet.js?v=gallery-hq-20260710";
 
 const slug = document.body.dataset.vehicleSlug;
 let baseVehicleFleet = fleet;
@@ -90,7 +90,7 @@ function typeForVehicle(vehicle) {
 }
 
 function listingGallery(vehicle) {
-  return [...new Set([vehicle.image, ...(vehicle.gallery || [])].filter(Boolean))].slice(0, MAX_LISTING_PHOTOS);
+  return [...new Set([...(vehicle.gallery || []), vehicle.image].filter(Boolean))].slice(0, MAX_LISTING_PHOTOS);
 }
 
 function renderGallery(gallery) {
@@ -261,9 +261,14 @@ async function hydrateRemoteVehicle() {
   const remoteCar = await withTimeout(loadVehicleFromSupabase(slug), CLOUD_VEHICLE_TIMEOUT_MS, null);
   if (!remoteCar) return false;
 
-  baseVehicleFleet = baseVehicleFleet.some((item) => item.slug === remoteCar.slug)
-    ? baseVehicleFleet.map((item) => (item.slug === remoteCar.slug ? remoteCar : item))
-    : [...baseVehicleFleet, remoteCar];
+  const bundledCar = baseVehicleFleet.find((item) => item.slug === remoteCar.slug);
+  const publicCar = bundledCar?.gallery?.length
+    ? { ...remoteCar, image: bundledCar.image, gallery: bundledCar.gallery }
+    : remoteCar;
+
+  baseVehicleFleet = baseVehicleFleet.some((item) => item.slug === publicCar.slug)
+    ? baseVehicleFleet.map((item) => (item.slug === publicCar.slug ? publicCar : item))
+    : [...baseVehicleFleet, publicCar];
   refreshVehicleFromBase({ allowStaticFallback: false });
   return true;
 }

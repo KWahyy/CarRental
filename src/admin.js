@@ -1,7 +1,7 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-import { signalFleetRefresh, slugifyVehicle } from "./admin-store.js?v=shared-fleet-20260710";
-import { fleet } from "./fleet-data.js?v=shared-fleet-20260710";
-import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_STORAGE_BUCKET, SUPABASE_URL } from "./supabase-config.js?v=shared-fleet-20260710";
+import { signalFleetRefresh, slugifyVehicle } from "./admin-store.js?v=gallery-hq-20260710";
+import { fleet } from "./fleet-data.js?v=gallery-hq-20260710";
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_STORAGE_BUCKET, SUPABASE_URL } from "./supabase-config.js?v=gallery-hq-20260710";
 
 const unsafeParams = new URLSearchParams(window.location.search);
 if (unsafeParams.has("email") || unsafeParams.has("password")) {

@@ -1,6 +1,6 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=shared-fleet-20260710";
-import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=shared-fleet-20260710";
-import { isSupabaseFleetConfigured, loadFleetFromSupabase } from "./supabase-fleet.js?v=shared-fleet-20260710";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=gallery-hq-20260710";
+import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=gallery-hq-20260710";
+import { isSupabaseFleetConfigured, loadFleetFromSupabase } from "./supabase-fleet.js?v=gallery-hq-20260710";
 
 const grid = document.querySelector("[data-fleet-grid]");
 const countLabel = document.querySelector("[data-fleet-count]");
@@ -241,7 +241,12 @@ async function hydrateSupabaseFleet() {
   // The shared database is the source of truth. The bundled fleet is only an
   // offline fallback; merging it here makes deleted or unsynced local cars
   // reappear on some devices.
-  baseFleet = remoteFleet;
+  const bundledBySlug = new Map(websiteFleet.map((car) => [car.slug || slugify(car.name), car]));
+  baseFleet = remoteFleet.map((car) => {
+    const bundled = bundledBySlug.get(car.slug || slugify(car.name));
+    if (!bundled?.gallery?.length) return car;
+    return { ...car, image: bundled.image, gallery: bundled.gallery };
+  });
   renderFleet();
   return true;
 }
