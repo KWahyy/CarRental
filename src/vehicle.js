@@ -284,7 +284,7 @@ async function initVehicle() {
   }
 
   if (!hydrated) {
-    refreshVehicleFromBase({ allowStaticFallback: true });
+    refreshVehicleFromBase({ allowStaticFallback: !isSupabaseFleetConfigured });
   }
   document.body.classList.remove("is-loading-vehicle");
 }
@@ -297,11 +297,11 @@ window.addEventListener("storage", (event) => {
   hydrateRemoteVehicle()
     .then((hydrated) => {
       if (hydrated) return;
-      refreshVehicleFromBase({ allowStaticFallback: true });
+      refreshVehicleFromBase({ allowStaticFallback: !isSupabaseFleetConfigured });
     })
     .catch((error) => {
       console.warn("Could not refresh cloud vehicle:", error);
-      refreshVehicleFromBase({ allowStaticFallback: true });
+      refreshVehicleFromBase({ allowStaticFallback: !isSupabaseFleetConfigured });
     })
     .finally(() => {
       document.body.classList.remove("is-loading-vehicle");

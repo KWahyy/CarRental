@@ -221,24 +221,50 @@ function formatCategory(category) {
 }
 
 function brandFor(car) {
-  const brands = ["Lamborghini", "Mercedes", "McLaren", "Cadillac", "Porsche", "Ferrari", "Chevy", "Ford", "Audi", "BMW"];
-  return brands.find((brand) => car.name.includes(brand)) || car.name.split(" ")[1] || "Other";
+  const source = `${car.make || ""} ${car.name || ""}`.toLowerCase();
+  const brands = [
+    ["Rolls-Royce", /rolls[ -]?royce|cullinan|\bdawn\b/],
+    ["Mercedes-Benz", /mercedes|maybach|\bamg\b|g[ -]?wagon/],
+    ["Land Rover", /land rover|range rover|defender/],
+    ["Chevrolet", /chevrolet|chevy|corvette|\bc8\b/],
+    ["Lamborghini", /lamborghini/],
+    ["McLaren", /mclaren/],
+    ["Cadillac", /cadillac|escalade/],
+    ["Porsche", /porsche/],
+    ["Ferrari", /ferrari/],
+    ["Bentley", /bentley|continental/],
+    ["Tesla", /tesla/],
+    ["Lotus", /lotus|emira/],
+    ["Ford", /\bford\b|f-?150|raptor/],
+    ["Audi", /\baudi\b/],
+    ["BMW", /\bbmw\b/],
+  ];
+
+  return brands.find(([, pattern]) => pattern.test(source))?.[0] || "Other";
 }
 
 function brandMark(brand) {
   const logos = {
-    Audi: "https://cdn.simpleicons.org/audi/ffffff",
-    BMW: "https://cdn.simpleicons.org/bmw/ffffff",
-    Cadillac: "https://cdn.simpleicons.org/cadillac/ffffff",
-    Chevy: "https://cdn.simpleicons.org/chevrolet/ffffff",
-    Ferrari: "https://cdn.simpleicons.org/ferrari/ffffff",
-    Ford: "https://cdn.simpleicons.org/ford/ffffff",
-    Lamborghini: "https://cdn.simpleicons.org/lamborghini/ffffff",
-    McLaren: "https://cdn.simpleicons.org/mclaren/ffffff",
-    Porsche: "https://cdn.simpleicons.org/porsche/ffffff",
+    Audi: "/assets/brand-logos/audi.svg",
+    BMW: "/assets/brand-logos/bmw.svg",
+    Bentley: "/assets/brand-logos/bentley.svg",
+    Cadillac: "/assets/brand-logos/cadillac.svg",
+    Chevrolet: "/assets/brand-logos/chevrolet.svg",
+    Ferrari: "/assets/brand-logos/ferrari.svg",
+    Ford: "/assets/brand-logos/ford.svg",
+    Lamborghini: "/assets/brand-logos/lamborghini.svg",
+    McLaren: "/assets/brand-logos/mclaren.svg",
+    Porsche: "/assets/brand-logos/porsche.svg",
+    "Rolls-Royce": "/assets/brand-logos/rolls-royce.svg",
+    Tesla: "/assets/brand-logos/tesla.svg",
   };
 
-  if (brand === "Mercedes") {
+  const monochromeLogos = {
+    "Land Rover": "/assets/brand-logos/land-rover.svg",
+    Lotus: "/assets/brand-logos/lotus.svg",
+  };
+
+  if (brand === "Mercedes-Benz") {
     return `
       <svg class="brand-logo-mark" aria-hidden="true" viewBox="0 0 64 64">
         <circle cx="32" cy="32" r="27" />
@@ -247,9 +273,13 @@ function brandMark(brand) {
     `;
   }
 
+  if (monochromeLogos[brand]) {
+    return `<img class="brand-logo-mark brand-logo-monochrome" src="${monochromeLogos[brand]}" alt="" width="160" height="96" />`;
+  }
+
   if (!logos[brand]) return `<span class="brand-logo-text">${brand}</span>`;
 
-  return `<img class="brand-logo-mark" src="${logos[brand]}" alt="" loading="lazy" width="104" height="104" />`;
+  return `<img class="brand-logo-mark" src="${logos[brand]}" alt="" width="104" height="104" />`;
 }
 
 function bodyTypeFor(car) {
@@ -404,6 +434,7 @@ function setFeaturedFanCards(sourceFleet = fleet) {
 
 function fanMultiplier() {
   const width = window.innerWidth;
+  if (width >= 2200) return 1.35;
   if (width < 480) return 0.34;
   if (width < 640) return 0.46;
   if (width < 768) return 0.58;
@@ -646,10 +677,10 @@ function hydrateDiaText() {
 
 async function hydrateSupabaseFleet() {
   const remoteFleet = await withTimeout(loadFleetFromSupabase(), CLOUD_FLEET_TIMEOUT_MS, null);
-  if (!Array.isArray(remoteFleet) || !remoteFleet.length) return false;
+  if (!Array.isArray(remoteFleet)) return false;
 
-  // Supabase is shared by every visitor and must remain authoritative. The
-  // bundled fleet is retained only for a temporary network/database failure.
+  // Supabase is the inventory source of truth. Bundled data only supplies
+  // media for matching inventory records; it never adds extra vehicles.
   const bundledBySlug = new Map(websiteFleet.map((car) => [car.slug || slugify(car.name), car]));
   const fleetWithBundledMedia = remoteFleet.map((car) => {
     const bundled = bundledBySlug.get(car.slug || slugify(car.name));
@@ -845,10 +876,10 @@ async function initFleetSections() {
   renderFleetLoading();
   try {
     const hydrated = await hydrateSupabaseFleet();
-    if (!hydrated) refreshFleetFromBase();
+    if (!hydrated) refreshFleetFromBase([]);
   } catch (error) {
     console.warn("Could not initialize cloud fleet:", error);
-    refreshFleetFromBase();
+    refreshFleetFromBase([]);
   }
 }
 

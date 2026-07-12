@@ -11,6 +11,9 @@ const filterPanel = document.querySelector("[data-filter-panel]");
 const activeFilterLabel = document.querySelector("[data-active-filter]");
 const typeFilters = document.querySelector("[data-type-filters]");
 const brandFilters = document.querySelector("[data-brand-filters]");
+const searchInput = document.querySelector("[data-fleet-search]");
+const clearSearchButton = document.querySelector("[data-clear-search]");
+const sortSelect = document.querySelector("[data-fleet-sort]");
 const menuToggle = document.querySelector("[data-menu-toggle]");
 const mobileMenu = document.querySelector("[data-mobile-menu]");
 const header = document.querySelector("[data-header]");
@@ -18,6 +21,8 @@ const header = document.querySelector("[data-header]");
 let baseFleet = websiteFleet.slice();
 let cars = baseFleet.slice();
 let activeFilter = "all";
+let searchQuery = "";
+let sortMode = "featured";
 const CLOUD_FLEET_TIMEOUT_MS = 3500;
 
 function withTimeout(promise, ms, fallback = null) {
@@ -76,6 +81,27 @@ function matchesFilter(car) {
   return true;
 }
 
+function searchableText(car) {
+  return [car.name, car.make, car.model, car.color, car.category, car.categoryLabel, bodyTypeFor(car)]
+    .filter(Boolean)
+    .join(" ")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function matchesSearch(car) {
+  return !searchQuery || searchableText(car).includes(searchQuery);
+}
+
+function sortedCars(source) {
+  const next = source.slice();
+  if (sortMode === "price-low") return next.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+  if (sortMode === "price-high") return next.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+  if (sortMode === "name") return next.sort((a, b) => a.name.localeCompare(b.name));
+  return next;
+}
+
 function carImage(car) {
   return car.image || car.image_url || car.gallery?.[0] || "/assets/kds-hero.png";
 }
@@ -109,14 +135,18 @@ function renderFilterButtons() {
 }
 
 function renderCards() {
-  const visibleCars = cars.filter(matchesFilter);
+  const visibleCars = sortedCars(cars.filter(matchesFilter).filter(matchesSearch));
   const label = filterLabel(activeFilter);
+  const resultContext = [label !== "All cars" ? label : "", searchInput.value.trim() ? `Search: “${searchInput.value.trim()}”` : ""]
+    .filter(Boolean)
+    .join(" · ");
 
   countLabel.textContent = `${visibleCars.length} ${visibleCars.length === 1 ? "vehicle" : "vehicles"}`;
-  filterNote.textContent = label;
+  filterNote.textContent = resultContext || "All cars";
   activeFilterLabel.textContent = label;
+  clearSearchButton.hidden = !searchInput.value;
 
-  grid.innerHTML = visibleCars
+  grid.innerHTML = visibleCars.length ? visibleCars
     .map((car) => {
       const slug = car.slug || slugify(car.name);
       const { brand, model } = vehicleDisplay(car);
@@ -140,7 +170,13 @@ function renderCards() {
         </article>
       `;
     })
-    .join("");
+    .join("") : `
+      <div class="fleet-empty-state">
+        <strong>No vehicles found</strong>
+        <p>Try a different make, model, color, or filter.</p>
+        <button type="button" data-reset-fleet>Show all vehicles</button>
+      </div>
+    `;
 }
 
 function renderFleet() {
@@ -200,6 +236,40 @@ filterPanel.addEventListener("click", (event) => {
   closeFilters();
 });
 
+function syncFleetSearch() {
+  searchQuery = searchInput.value
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+  renderCards();
+}
+
+searchInput.addEventListener("input", syncFleetSearch);
+searchInput.addEventListener("search", syncFleetSearch);
+
+clearSearchButton.addEventListener("click", () => {
+  searchInput.value = "";
+  searchQuery = "";
+  searchInput.focus();
+  renderCards();
+});
+
+sortSelect.addEventListener("change", () => {
+  sortMode = sortSelect.value;
+  renderCards();
+});
+
+grid.addEventListener("click", (event) => {
+  if (!event.target.closest("[data-reset-fleet]")) return;
+  activeFilter = "all";
+  searchInput.value = "";
+  searchQuery = "";
+  sortSelect.value = "featured";
+  sortMode = "featured";
+  renderFleet();
+});
+
 document.addEventListener("click", (event) => {
   if (filterPanel.hidden || filterControl.contains(event.target)) return;
   closeFilters();
@@ -237,10 +307,9 @@ window.addEventListener("storage", (event) => {
 
 async function hydrateSupabaseFleet() {
   const remoteFleet = await withTimeout(loadFleetFromSupabase(), CLOUD_FLEET_TIMEOUT_MS, null);
-  if (!Array.isArray(remoteFleet) || !remoteFleet.length) return false;
-  // The shared database is the source of truth. The bundled fleet is only an
-  // offline fallback; merging it here makes deleted or unsynced local cars
-  // reappear on some devices.
+  if (!Array.isArray(remoteFleet)) return false;
+  // Supabase is the inventory source of truth. Bundled data only supplies
+  // media for matching inventory records; it never adds extra vehicles.
   const bundledBySlug = new Map(websiteFleet.map((car) => [car.slug || slugify(car.name), car]));
   baseFleet = remoteFleet.map((car) => {
     const bundled = bundledBySlug.get(car.slug || slugify(car.name));
@@ -260,9 +329,13 @@ async function initFleetPage() {
   renderFleetLoading();
   try {
     const hydrated = await hydrateSupabaseFleet();
-    if (!hydrated) renderFleet();
+    if (!hydrated) {
+      baseFleet = [];
+      renderFleet();
+    }
   } catch (error) {
     console.warn("Could not initialize cloud fleet:", error);
+    baseFleet = [];
     renderFleet();
   }
 }

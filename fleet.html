@@ -12,8 +12,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=kds-favicon-20260624" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png?v=kds-favicon-20260624" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=kds-favicon-20260624" />
-    <link rel="preload" href="/src/styles.css?v=card-cover-20260710" as="style" />
-    <link rel="stylesheet" href="/src/styles.css?v=card-cover-20260710" />
+    <link rel="preload" href="/src/styles.css?v=fleet-discovery-20260710" as="style" />
+    <link rel="stylesheet" href="/src/styles.css?v=fleet-discovery-20260710" />
   </head>
   <body class="fleet-page">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -56,7 +56,26 @@
         <h1 id="fleet-title" class="sr-only">KD's Exotics fleet</h1>
 
         <div class="fleet-showroom-toolbar fleet-showroom-toolbar-minimal">
-          <span class="sr-only" data-fleet-count>Loading fleet</span>
+          <label class="fleet-search-control">
+            <span class="sr-only">Search the fleet</span>
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m16 16 4 4" />
+            </svg>
+            <input type="search" placeholder="Search make, model, or color" autocomplete="off" data-fleet-search />
+            <button type="button" aria-label="Clear fleet search" hidden data-clear-search>&times;</button>
+          </label>
+
+          <label class="fleet-sort-control">
+            <span>Sort</span>
+            <select data-fleet-sort>
+              <option value="featured">Featured</option>
+              <option value="price-low">Price: low to high</option>
+              <option value="price-high">Price: high to low</option>
+              <option value="name">Name: A to Z</option>
+            </select>
+          </label>
+
           <div class="fleet-filter-control" data-filter-control>
             <button class="fleet-filter-button" type="button" aria-expanded="false" aria-controls="fleet-filter-panel" data-filter-toggle>
               <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -79,7 +98,10 @@
           </div>
         </div>
 
-        <span class="sr-only" data-fleet-filter-note aria-live="polite">All cars</span>
+        <div class="fleet-result-line" aria-live="polite">
+          <span data-fleet-count>Loading fleet</span>
+          <span data-fleet-filter-note>All cars</span>
+        </div>
 
         <div class="fleet-showroom-grid" data-fleet-grid></div>
       </section>
@@ -128,6 +150,6 @@
       </div>
     </footer>
 
-    <script type="module" src="/src/fleet-page.js?v=gallery-hq-20260710"></script>
+    <script type="module" src="/src/fleet-page.js?v=inventory-strict-20260711"></script>
   </body>
 </html>
