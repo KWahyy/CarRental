@@ -12,6 +12,16 @@ const mobileMenu = document.querySelector("[data-mobile-menu]");
 const CLOUD_VEHICLE_TIMEOUT_MS = 3500;
 const MAX_LISTING_PHOTOS = 3;
 
+function setVehicleIndexing(isActive) {
+  let robots = document.querySelector("meta[name='robots']");
+  if (!robots) {
+    robots = document.createElement("meta");
+    robots.name = "robots";
+    document.head.append(robots);
+  }
+  robots.content = isActive ? "index, follow" : "noindex, follow";
+}
+
 function withTimeout(promise, ms, fallback = null) {
   let timeoutId;
   const timeout = new Promise((resolve) => {
@@ -259,7 +269,10 @@ function refreshVehicleFromBase({ allowStaticFallback = true } = {}) {
 
 async function hydrateRemoteVehicle() {
   const remoteCar = await withTimeout(loadVehicleFromSupabase(slug), CLOUD_VEHICLE_TIMEOUT_MS, null);
-  if (!remoteCar) return false;
+  if (!remoteCar) {
+    setVehicleIndexing(false);
+    return false;
+  }
 
   const bundledCar = baseVehicleFleet.find((item) => item.slug === remoteCar.slug);
   const publicCar = bundledCar?.gallery?.length
@@ -270,10 +283,12 @@ async function hydrateRemoteVehicle() {
     ? baseVehicleFleet.map((item) => (item.slug === publicCar.slug ? publicCar : item))
     : [...baseVehicleFleet, publicCar];
   refreshVehicleFromBase({ allowStaticFallback: false });
+  setVehicleIndexing(true);
   return true;
 }
 
 async function initVehicle() {
+  setVehicleIndexing(!isSupabaseFleetConfigured);
   let hydrated = false;
   if (isSupabaseFleetConfigured) {
     try {
