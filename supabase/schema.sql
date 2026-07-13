@@ -39,6 +39,14 @@ create table if not exists public.car_available_dates (
   unique (car_id, date)
 );
 
+create table if not exists public.monthly_specials (
+  month text primary key check (month ~ '^\\d{4}-\\d{2}$'),
+  headline text not null default '',
+  description text not null default '',
+  car_slugs jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
@@ -58,6 +66,7 @@ execute function public.set_updated_at();
 alter table public.cars enable row level security;
 alter table public.car_photos enable row level security;
 alter table public.car_available_dates enable row level security;
+alter table public.monthly_specials enable row level security;
 
 drop policy if exists "Public can read active cars" on public.cars;
 create policy "Public can read active cars"
@@ -91,6 +100,18 @@ using (true);
 drop policy if exists "Authenticated admin can manage available dates" on public.car_available_dates;
 create policy "Authenticated admin can manage available dates"
 on public.car_available_dates for all
+to authenticated
+using (true)
+with check (true);
+
+drop policy if exists "Public can read monthly specials" on public.monthly_specials;
+create policy "Public can read monthly specials"
+on public.monthly_specials for select
+using (true);
+
+drop policy if exists "Authenticated admin can manage monthly specials" on public.monthly_specials;
+create policy "Authenticated admin can manage monthly specials"
+on public.monthly_specials for all
 to authenticated
 using (true)
 with check (true);

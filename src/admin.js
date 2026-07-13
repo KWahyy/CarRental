@@ -53,6 +53,11 @@ const contentForm = document.querySelector("[data-content-form]");
 const settingsForm = document.querySelector("[data-settings-form]");
 const saveContentButton = document.querySelector("[data-save-content]");
 const saveSettingsButton = document.querySelector("[data-save-settings]");
+const monthlySpecialForm = document.querySelector("[data-monthly-special-form]");
+const specialMonthInput = document.querySelector("[data-special-month]");
+const specialCarGrid = document.querySelector("[data-special-car-grid]");
+const specialSelectionCount = document.querySelector("[data-special-selection-count]");
+const specialsStatus = document.querySelector("[data-specials-status]");
 
 const REQUESTS_KEY = "kds-crm-requests";
 const CONTENT_KEY = "kds-crm-content";
@@ -92,6 +97,12 @@ let businessSettings = readJson(SETTINGS_KEY, {
   responseTarget: "Under 15 minutes",
   bookingNotes: "",
 });
+let selectedSpecialSlugs = [];
+
+function currentMonthValue() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
 
 function readJson(key, fallback) {
   try {
@@ -225,6 +236,9 @@ function setStatus(node, message, tone = "") {
 
 function friendlyError(error) {
   const message = error?.message || String(error);
+  if (message.includes("monthly_specials")) {
+    return "Monthly specials setup is required. Run supabase/monthly-specials.sql once in the Supabase SQL Editor, then reload this page.";
+  }
   if (message.includes("schema cache") || message.includes("public.cars") || message.includes("relation")) {
     return "Cloud database setup needed. Run supabase/schema.sql in Supabase SQL Editor, then click Sync website fleet.";
   }
@@ -648,6 +662,7 @@ function renderRequests() {
                           </div>
                           <p>${escapeHtml(request.vehicle || "Vehicle TBD")}</p>
                           <span>${escapeHtml(request.phone || "No phone")}</span>
+                          ${request.insuranceProvider ? `<span>Insurance: ${escapeHtml(request.insuranceProvider)}</span>` : ""}
                           ${
                             request.addons?.length
                               ? `<div class="crm-request-tags">${request.addons.map((addon) => `<em>${escapeHtml(addon)}</em>`).join("")}</div>`
@@ -733,6 +748,74 @@ function renderCarList() {
     )
     .join("");
   renderCrm();
+}
+
+function renderMonthlySpecialPicker() {
+  if (!specialCarGrid) return;
+  const activeCars = cars.filter((car) => car.is_active !== false);
+  const activeSlugs = new Set(activeCars.map((car) => car.slug));
+  selectedSpecialSlugs = selectedSpecialSlugs.filter((slug) => activeSlugs.has(slug)).slice(0, 3);
+  specialSelectionCount.textContent = `${selectedSpecialSlugs.length} of 3 selected`;
+
+  specialCarGrid.innerHTML = activeCars.length
+    ? activeCars
+        .map((car) => {
+          const selected = selectedSpecialSlugs.includes(car.slug);
+          return `
+            <label class="monthly-special-car ${selected ? "selected" : ""}">
+              <input type="checkbox" value="${escapeHtml(car.slug)}" ${selected ? "checked" : ""} />
+              <img src="${escapeHtml(carImage(car))}" alt="" width="180" height="120" loading="lazy" />
+              <span><strong>${escapeHtml(car.name)}</strong><small>$${Number(car.price || 0).toLocaleString()}/day</small></span>
+            </label>
+          `;
+        })
+        .join("")
+    : `<p class="admin-empty">Add active inventory cars before choosing a monthly special.</p>`;
+}
+
+async function loadMonthlySpecialAdmin() {
+  if (!monthlySpecialForm || !requireConfig()) return;
+  const month = specialMonthInput.value || currentMonthValue();
+  specialMonthInput.value = month;
+  setStatus(specialsStatus, "Loading monthly selection...");
+
+  try {
+    const record = await runQuery(
+      supabase.from("monthly_specials").select("month, headline, description, car_slugs").eq("month", month).maybeSingle(),
+    );
+    monthlySpecialForm.elements.headline.value = record?.headline || "";
+    monthlySpecialForm.elements.description.value = record?.description || "";
+    selectedSpecialSlugs = Array.isArray(record?.car_slugs) ? record.car_slugs.slice(0, 3) : [];
+    renderMonthlySpecialPicker();
+    setStatus(specialsStatus, record ? "Saved selection loaded." : "No saved selection. The website will rotate active cars automatically.");
+  } catch (error) {
+    selectedSpecialSlugs = [];
+    renderMonthlySpecialPicker();
+    setStatus(specialsStatus, friendlyError(error), "error");
+  }
+}
+
+async function saveMonthlySpecial(event) {
+  event.preventDefault();
+  if (!requireConfig()) return;
+
+  const formData = new FormData(monthlySpecialForm);
+  const payload = {
+    month: formData.get("month"),
+    headline: String(formData.get("headline") || "").trim(),
+    description: String(formData.get("description") || "").trim(),
+    car_slugs: selectedSpecialSlugs.slice(0, 3),
+    updated_at: new Date().toISOString(),
+  };
+
+  try {
+    setStatus(specialsStatus, "Publishing monthly special...");
+    await runQuery(supabase.from("monthly_specials").upsert(payload, { onConflict: "month" }));
+    signalFleetRefresh();
+    setStatus(specialsStatus, "Monthly special published to the website.", "success");
+  } catch (error) {
+    setStatus(specialsStatus, friendlyError(error), "error");
+  }
 }
 
 function renderPhotos() {
@@ -1040,7 +1123,11 @@ async function init() {
 
   const { data } = await supabase.auth.getSession();
   showAdmin(Boolean(data.session));
-  if (data.session) await loadCars();
+  if (data.session) {
+    await loadCars();
+    specialMonthInput.value = currentMonthValue();
+    await loadMonthlySpecialAdmin();
+  }
   renderCrm();
 }
 
@@ -1066,7 +1153,27 @@ loginForm.addEventListener("submit", async (event) => {
   setStatus(loginStatus, "");
   showAdmin(true);
   await loadCars();
+  specialMonthInput.value = currentMonthValue();
+  await loadMonthlySpecialAdmin();
 });
+
+specialMonthInput?.addEventListener("change", loadMonthlySpecialAdmin);
+
+specialCarGrid?.addEventListener("change", (event) => {
+  const checkbox = event.target.closest("input[type='checkbox']");
+  if (!checkbox) return;
+  if (checkbox.checked && selectedSpecialSlugs.length >= 3) {
+    checkbox.checked = false;
+    setStatus(specialsStatus, "Choose up to three cars for each month.", "error");
+    return;
+  }
+  selectedSpecialSlugs = checkbox.checked
+    ? [...selectedSpecialSlugs, checkbox.value]
+    : selectedSpecialSlugs.filter((slug) => slug !== checkbox.value);
+  renderMonthlySpecialPicker();
+});
+
+monthlySpecialForm?.addEventListener("submit", saveMonthlySpecial);
 
 signOutButton.addEventListener("click", async () => {
   await supabase?.auth.signOut();

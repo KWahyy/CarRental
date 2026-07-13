@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=kds-favicon-20260624" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png?v=kds-favicon-20260624" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=kds-favicon-20260624" />
-    <link rel="stylesheet" href="/src/styles.css?v=gallery-hq-20260710" />
+    <link rel="stylesheet" href="/src/styles.css?v=monthly-specials-20260712" />
   </head>
   <body class="admin-page">
     <main class="admin-shell">
@@ -66,6 +66,7 @@
             <nav class="admin-crm-nav">
               <button class="active" type="button" data-crm-section="overview">Dashboard</button>
               <button type="button" data-crm-section="vehicles">Fleet</button>
+              <button type="button" data-crm-section="specials">Monthly Special</button>
               <button type="button" data-crm-section="requests">Quotes</button>
               <button type="button" data-crm-section="calendar">Bookings</button>
             </nav>
@@ -488,11 +489,49 @@
               </div>
               <div class="crm-calendar-grid" data-calendar-grid></div>
             </section>
+
+            <section class="admin-section" data-section-panel="specials" hidden>
+              <div class="admin-section-head">
+                <div>
+                  <p class="eyebrow">Homepage promotion</p>
+                  <h2>Monthly Special</h2>
+                  <p>Choose up to three active fleet cars for a specific month. If you do not save a selection, the website rotates active inventory automatically.</p>
+                </div>
+              </div>
+
+              <form class="admin-panel monthly-special-admin" data-monthly-special-form>
+                <div class="admin-form-grid simple">
+                  <label>
+                    Special month
+                    <input name="month" type="month" required data-special-month />
+                  </label>
+                  <label>
+                    Headline
+                    <input name="headline" maxlength="80" placeholder="July rental specials" />
+                  </label>
+                </div>
+                <label>
+                  Description
+                  <textarea name="description" rows="3" maxlength="240" placeholder="Describe this month's offer and delivery availability."></textarea>
+                </label>
+
+                <fieldset class="monthly-special-picker">
+                  <legend>Featured cars <span data-special-selection-count>0 of 3 selected</span></legend>
+                  <p>Only active cars from the admin inventory can be selected.</p>
+                  <div class="monthly-special-car-grid" data-special-car-grid></div>
+                </fieldset>
+
+                <div class="monthly-special-actions">
+                  <p class="admin-status" role="status" data-specials-status></p>
+                  <button class="primary-button" type="submit" data-save-monthly-special>Save monthly special</button>
+                </div>
+              </form>
+            </section>
           </div>
         </div>
       </section>
     </main>
 
-    <script type="module" src="/src/admin.js?v=gallery-hq-20260710"></script>
+    <script type="module" src="/src/admin.js?v=monthly-specials-20260712"></script>
   </body>
 </html>
