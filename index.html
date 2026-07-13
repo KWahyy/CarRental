@@ -44,12 +44,68 @@
         "sameAs": ["https://www.instagram.com/kdsexotics/"]
       }
     </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What do I need to rent an exotic car?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "You will need a valid driver's license, proof of active auto insurance, and an approved security deposit. Vehicle-specific eligibility requirements are reviewed before the reservation is confirmed."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does vehicle delivery work?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "KD's Exotics is a delivery-only service with no customer-facing storefront. The team confirms an eligible Southern California delivery location, arrival window, and any delivery charge with you before booking."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do I need my own auto insurance?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Proof of active auto insurance is required for approval. Provide your insurance company in the quote form, and the team will confirm whether your coverage meets the requirements for the vehicle you requested."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How quickly will I receive a quote?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "After you submit the vehicle, rental date, and contact information, the team checks current availability and follows up with pricing and approval steps. Response time can vary with demand and vehicle availability."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Are the prices shown online the final rental price?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Online prices are starting daily rates. Your final quote may change based on the vehicle, date, rental length, mileage allowance, delivery location, deposit, and selected add-ons."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I add a photographer to my rental?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Select Photographer under Add-ons when requesting a quote. The team will confirm photographer availability, timing, package details, and pricing before the reservation is finalized."
+            }
+          }
+        ]
+      }
+    </script>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=kds-favicon-20260624" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png?v=kds-favicon-20260624" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=kds-favicon-20260624" />
     <link rel="preconnect" href="https://images.unsplash.com" />
-    <link rel="preload" href="/src/styles.css?v=marquee-loop-20260712" as="style" />
-    <link rel="stylesheet" href="/src/styles.css?v=marquee-loop-20260712" />
+    <link rel="preload" href="/src/styles.css?v=faq-spacing-fix-20260713" as="style" />
+    <link rel="stylesheet" href="/src/styles.css?v=faq-spacing-fix-20260713" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -213,10 +269,8 @@
       <section class="monthly-specials reveal" id="specials" aria-labelledby="monthly-specials-title">
         <div class="monthly-specials-copy">
           <p class="section-kicker">Monthly special deal</p>
-          <h2 id="monthly-specials-title">June rental specials</h2>
-          <p>
-            Select VIP cars are priced for weekday arrivals, airport delivery, and last-minute summer plans across LA & OC.
-          </p>
+          <h2 id="monthly-specials-title" data-specials-title>Monthly rental specials</h2>
+          <p data-specials-description>Select active fleet cars are featured each month for delivery across Los Angeles and Orange County.</p>
           <a class="specials-cta" href="sms:+12132642967">Ask for this month&apos;s rate</a>
         </div>
 
@@ -226,37 +280,7 @@
           </button>
 
           <div class="specials-viewport" data-specials-viewport>
-            <div class="specials-rail">
-              <article class="special-card">
-                <img src="/assets/fleet/2022-lamborghini-huracan.jpg" alt="Blue Lamborghini Huracan rental special" width="1536" height="1024" loading="lazy" />
-                <div class="special-card-copy">
-                  <span>June feature</span>
-                  <h3>2022 Lamborghini Huracan</h3>
-                  <p>Malibu, Newport Beach, Beverly Hills</p>
-                  <a href="/cars/2022-lamborghini-huracan.html">View special</a>
-                </div>
-              </article>
-
-              <article class="special-card">
-                <img src="/assets/fleet/2016-ferrari-488-gtb.jpg" alt="Ferrari 488 GTB rental special" width="1536" height="1024" loading="lazy" />
-                <div class="special-card-copy">
-                  <span>Limited dates</span>
-                  <h3>Ferrari 488 GTB</h3>
-                  <p>Hollywood, LA, private events</p>
-                  <a href="/cars/2016-ferrari-488-gtb.html">View special</a>
-                </div>
-              </article>
-
-              <article class="special-card">
-                <img src="/assets/fleet/2022-mercedes-gle53-amg.jpg?v=sharp-20260620" alt="Mercedes SUV rental special" width="1536" height="1024" loading="lazy" />
-                <div class="special-card-copy">
-                  <span>VIP delivery</span>
-                  <h3>Mercedes GLE53 AMG</h3>
-                  <p>LAX, SNA, Irvine, Anaheim</p>
-                  <a href="/cars/2022-mercedes-gle53-amg.html">View special</a>
-                </div>
-              </article>
-            </div>
+            <div class="specials-rail" data-specials-rail aria-live="polite"></div>
           </div>
 
           <button class="specials-nav specials-nav-next" type="button" aria-label="Next specials" data-special-next>
@@ -385,7 +409,30 @@
               <span>Vehicle</span>
               <select name="vehicle" data-vehicle-select></select>
             </label>
+            <label class="quote-field-wide">
+              <span>Insurance Provider</span>
+              <input
+                name="insuranceProvider"
+                type="text"
+                list="insurance-provider-options"
+                autocomplete="organization"
+                placeholder="Example: State Farm"
+                required
+              />
+              <small>Enter the company providing your current auto insurance.</small>
+            </label>
           </div>
+          <datalist id="insurance-provider-options">
+            <option value="State Farm"></option>
+            <option value="GEICO"></option>
+            <option value="Progressive"></option>
+            <option value="Allstate"></option>
+            <option value="Farmers"></option>
+            <option value="USAA"></option>
+            <option value="AAA"></option>
+            <option value="Mercury"></option>
+            <option value="Other"></option>
+          </datalist>
 
           <fieldset class="quote-addons">
             <legend>Add-ons</legend>
@@ -408,6 +455,58 @@
         </form>
       </section>
 
+      <section class="customer-satisfaction reveal" aria-labelledby="customer-satisfaction-title">
+        <div class="customer-satisfaction-head">
+          <div>
+            <p class="quote-kicker">The KD&apos;s Experience</p>
+            <h2 id="customer-satisfaction-title">Happy clients start with a smooth rental.</h2>
+          </div>
+          <p>
+            From the first quote to vehicle pickup, we focus on the details that make every booking feel simple,
+            personal, and worth remembering.
+          </p>
+        </div>
+
+        <ul class="satisfaction-list" aria-label="What clients appreciate about KD's Exotics">
+          <li>
+            <span class="satisfaction-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg>
+            </span>
+            <div>
+              <h3>Personal attention</h3>
+              <p>Real support helps you choose the right car and plan an experience that fits the occasion.</p>
+            </div>
+          </li>
+          <li>
+            <span class="satisfaction-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg>
+            </span>
+            <div>
+              <h3>Clean, ready vehicles</h3>
+              <p>Every available vehicle is prepared with care so it arrives photo-ready and ready to enjoy.</p>
+            </div>
+          </li>
+          <li>
+            <span class="satisfaction-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg>
+            </span>
+            <div>
+              <h3>Clear communication</h3>
+              <p>We keep you informed about availability, pricing, requirements, and delivery before you book.</p>
+            </div>
+          </li>
+          <li>
+            <span class="satisfaction-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg>
+            </span>
+            <div>
+              <h3>Convenient delivery</h3>
+              <p>Our delivery-only service brings the rental experience to an agreed Southern California location.</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
       <section class="faq-home reveal" id="faq" aria-labelledby="faq-title">
         <div class="faq-home-head">
           <p class="quote-kicker">Good To Know</p>
@@ -415,23 +514,33 @@
         </div>
         <div class="faq-home-list">
           <details open>
-            <summary>What do I need to rent?</summary>
-            <p>You will need a valid driver&apos;s license, proof of insurance, and an approved deposit before your scheduled vehicle delivery.</p>
+            <summary>What do I need to rent an exotic car?</summary>
+            <p>You will need a valid driver&apos;s license, proof of active auto insurance, and an approved security deposit. Vehicle-specific eligibility requirements are reviewed before your reservation is confirmed.</p>
           </details>
           <details>
-            <summary>Can I add a photographer?</summary>
-            <p>Yes. Choose the photographer add-on in the quote form and we will confirm timing, package, and availability.</p>
+            <summary>How does vehicle delivery work?</summary>
+            <p>KD&apos;s Exotics is a delivery-only service with no customer-facing storefront. We confirm an eligible Southern California delivery location, arrival window, and any delivery charge with you before booking.</p>
           </details>
           <details>
-            <summary>How fast can I get a quote?</summary>
-            <p>Send your request with the date and vehicle you want. The team can respond with availability and next steps.</p>
+            <summary>Do I need my own auto insurance?</summary>
+            <p>Proof of active auto insurance is required for approval. Enter your insurance company in the quote form, and we will confirm whether your coverage meets the requirements for the vehicle you requested.</p>
           </details>
           <details>
-            <summary>Are prices final online?</summary>
-            <p>Listed prices are starting rates. Final pricing can vary by vehicle, date, delivery, mileage, and add-ons.</p>
+            <summary>How quickly will I receive a quote?</summary>
+            <p>After you submit the vehicle, rental date, and contact information, we check current availability and follow up with pricing and approval steps. Response time can vary with demand and vehicle availability.</p>
+          </details>
+          <details>
+            <summary>Are the prices shown online the final rental price?</summary>
+            <p>Online prices are starting daily rates. Your final quote may change based on the vehicle, date, rental length, mileage allowance, delivery location, deposit, and selected add-ons.</p>
+          </details>
+          <details>
+            <summary>Can I add a photographer to my rental?</summary>
+            <p>Yes. Select <strong>Photographer</strong> under Add-ons when requesting a quote. We will confirm photographer availability, timing, package details, and pricing before your reservation is finalized.</p>
           </details>
         </div>
       </section>
+
+      <div class="faq-section-divider" aria-hidden="true"></div>
 
       <section class="local-service-section reveal" aria-labelledby="local-service-title">
         <div class="section-heading">
@@ -513,6 +622,6 @@
       </div>
     </footer>
 
-    <script type="module" src="/src/main.js?v=brand-logos-20260711"></script>
+    <script type="module" src="/src/main.js?v=quote-insurance-20260712"></script>
   </body>
 </html>

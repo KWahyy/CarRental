@@ -1,6 +1,6 @@
 import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=gallery-hq-20260710";
 import { fleet as websiteFleet } from "./fleet-data.js?v=gallery-hq-20260710";
-import { isSupabaseFleetConfigured, loadFleetFromSupabase } from "./supabase-fleet.js?v=gallery-hq-20260710";
+import { isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase } from "./supabase-fleet.js?v=monthly-specials-20260712";
 
 let fleet = [
   {
@@ -143,6 +143,9 @@ const typeNext = document.querySelector("[data-type-next]");
 const specialsViewport = document.querySelector("[data-specials-viewport]");
 const specialPrev = document.querySelector("[data-special-prev]");
 const specialNext = document.querySelector("[data-special-next]");
+const specialsRail = document.querySelector("[data-specials-rail]");
+const specialsTitle = document.querySelector("[data-specials-title]");
+const specialsDescription = document.querySelector("[data-specials-description]");
 const vehicleSelects = document.querySelectorAll("[data-vehicle-select]");
 const filterButtons = document.querySelectorAll("[data-filter]");
 const menuToggle = document.querySelector("[data-menu-toggle]");
@@ -378,6 +381,15 @@ function slugify(value) {
     .replace(/(^-|-$)/g, "");
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function vehicleSlug(car) {
   return car.slug || slugify(car.name);
 }
@@ -608,6 +620,55 @@ function scrollSpecials(direction) {
   specialsViewport.scrollBy({ left: direction * distance, behavior: "smooth" });
 }
 
+function currentSpecialMonth() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function monthlyFallbackCars(cars, month) {
+  if (!cars.length) return [];
+  const monthSeed = Number(month.replace("-", ""));
+  const start = monthSeed % cars.length;
+  return Array.from({ length: Math.min(3, cars.length) }, (_, index) => cars[(start + index) % cars.length]);
+}
+
+async function renderMonthlySpecials() {
+  if (!specialsRail || !specialsTitle || !specialsDescription) return;
+  const month = currentSpecialMonth();
+  const monthLabel = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(new Date(`${month}-02T12:00:00`));
+  const configuredSpecial = isSupabaseFleetConfigured ? await loadMonthlySpecialFromSupabase(month) : null;
+  const carsBySlug = new Map(fleet.map((car) => [vehicleSlug(car), car]));
+  const selectedCars = Array.isArray(configuredSpecial?.car_slugs)
+    ? configuredSpecial.car_slugs.map((slug) => carsBySlug.get(slug)).filter(Boolean).slice(0, 3)
+    : [];
+  const specialCars = selectedCars.length ? selectedCars : monthlyFallbackCars(fleet, month);
+
+  specialsTitle.textContent = configuredSpecial?.headline?.trim() || `${monthLabel} rental specials`;
+  specialsDescription.textContent = configuredSpecial?.description?.trim() || "This month's featured active inventory is available for delivery across Los Angeles and Orange County. Ask for current dates and rates.";
+
+  specialsRail.innerHTML = specialCars.length
+    ? specialCars
+        .map(
+          (car) => `
+            <article class="special-card">
+              <img src="${escapeHtml(primaryImageFor(car))}" alt="${escapeHtml(car.name)} monthly rental special" width="1536" height="1024" loading="lazy" />
+              <div class="special-card-copy">
+                <span>${escapeHtml(monthLabel)} feature</span>
+                <h3>${escapeHtml(car.name)}</h3>
+                <p>${escapeHtml(car.color || car.categoryLabel || car.category || "Delivery available in LA & OC")}</p>
+                <a href="/cars/${escapeHtml(vehicleSlug(car))}.html">View special</a>
+              </div>
+            </article>
+          `,
+        )
+        .join("")
+    : `<div class="specials-empty"><strong>New monthly specials are coming soon.</strong><span>Call or text us for current availability.</span></div>`;
+
+  const hasMultiple = specialCars.length > 1;
+  if (specialPrev) specialPrev.hidden = !hasMultiple;
+  if (specialNext) specialNext.hidden = !hasMultiple;
+}
+
 function renderShopBrowsers() {
   const brands = [...new Set(fleet.map(brandFor))].sort((a, b) => a.localeCompare(b));
   const availableTypes = new Set(fleet.map(bodyTypeFor));
@@ -703,6 +764,7 @@ function refreshFleetFromBase(nextBaseFleet = baseFleet) {
   setActiveShopFilter(filter);
   renderFleet(filter);
   hydrateVehicleSelect();
+  renderMonthlySpecials();
 }
 
 function observeReveals() {
@@ -809,6 +871,7 @@ if (quoteForm) {
       name: formData.get("name") || "",
       phone: formData.get("phone") || "",
       email: formData.get("email") || "",
+      insuranceProvider: formData.get("insuranceProvider") || "",
       date: formData.get("date") || "",
       vehicle: formData.get("vehicle") || "Vehicle TBD",
       addons,
@@ -833,6 +896,7 @@ if (quoteForm) {
           name: payload.name || "Website lead",
           phone: payload.phone || "",
           email: payload.email || "",
+          insuranceProvider: payload.insuranceProvider || "",
           vehicle: payload.vehicle || "Vehicle TBD",
           date: payload.date || "",
           addons,

@@ -65,3 +65,20 @@ export async function loadVehicleFromSupabase(slug) {
 
   return mapCar(data);
 }
+
+export async function loadMonthlySpecialFromSupabase(month) {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from("monthly_specials")
+    .select("month, headline, description, car_slugs")
+    .eq("month", month)
+    .maybeSingle();
+
+  if (error) {
+    console.warn("Could not load monthly special:", error.message);
+    return null;
+  }
+
+  return data;
+}

@@ -60,7 +60,9 @@ async function insertQuote(payload, req) {
       vehicle: payload.vehicle || "Vehicle TBD",
       rental_date: payload.date || null,
       addons: payload.addons,
-      message: payload.message,
+      message: [payload.insuranceProvider ? `Insurance provider: ${payload.insuranceProvider}` : "", payload.message]
+        .filter(Boolean)
+        .join("\n\n"),
       source: "website",
       page_url: payload.pageUrl || null,
       user_agent: cleanString(req.headers["user-agent"], 600),
@@ -109,6 +111,7 @@ function quoteEmailHtml(payload) {
           <tr><td style="padding:10px 0;color:#b9b1a6">Email</td><td style="padding:10px 0;font-weight:700">${escapeHtml(payload.email || "Not provided")}</td></tr>
           <tr><td style="padding:10px 0;color:#b9b1a6">Vehicle</td><td style="padding:10px 0;font-weight:700">${escapeHtml(payload.vehicle || "Vehicle TBD")}</td></tr>
           <tr><td style="padding:10px 0;color:#b9b1a6">Rental date</td><td style="padding:10px 0;font-weight:700">${escapeHtml(payload.date || "Date TBD")}</td></tr>
+          <tr><td style="padding:10px 0;color:#b9b1a6">Insurance provider</td><td style="padding:10px 0;font-weight:700">${escapeHtml(payload.insuranceProvider || "Not provided")}</td></tr>
           <tr><td style="padding:10px 0;color:#b9b1a6">Add-ons</td><td style="padding:10px 0;font-weight:700">${escapeHtml(addons)}</td></tr>
         </table>
         <div style="margin-top:18px;padding-top:18px;border-top:1px solid #342c20">
@@ -128,6 +131,7 @@ function quoteEmailText(payload) {
     `Email: ${payload.email || "Not provided"}`,
     `Vehicle: ${payload.vehicle || "Vehicle TBD"}`,
     `Rental date: ${payload.date || "Date TBD"}`,
+    `Insurance provider: ${payload.insuranceProvider || "Not provided"}`,
     `Add-ons: ${payload.addons.length ? payload.addons.join(", ") : "None selected"}`,
     `Message: ${payload.message || "No message included."}`,
   ].join("\n");
@@ -182,6 +186,7 @@ export default async function handler(req, res) {
       name: cleanString(body.name, 120),
       phone: cleanString(body.phone, 80),
       email: cleanString(body.email, 180).toLowerCase(),
+      insuranceProvider: cleanString(body.insuranceProvider, 180),
       vehicle: cleanString(body.vehicle, 180),
       date: cleanString(body.date, 40),
       message: cleanString(body.message, MAX_TEXT_LENGTH),
@@ -191,6 +196,10 @@ export default async function handler(req, res) {
 
     if (!payload.name || !payload.phone) {
       return json(res, 400, { ok: false, message: "Name and phone are required." });
+    }
+
+    if (!payload.insuranceProvider) {
+      return json(res, 400, { ok: false, message: "Insurance provider is required." });
     }
 
     if (payload.email && !isEmail(payload.email)) {
