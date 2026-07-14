@@ -1,5 +1,6 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "../src/supabase-config.js";
 
 const root = process.cwd();
 const outDir = join(root, "dist");
@@ -31,6 +32,34 @@ const siteUrl = "https://www.kdsexotics.com";
 const carDir = join(outDir, "cars");
 const phoneHref = "+12132642967";
 const phoneLabel = "(213) 264-2967";
+
+async function loadActiveInventory() {
+  if (!SUPABASE_URL?.startsWith("https://") || !SUPABASE_PUBLISHABLE_KEY) {
+    throw new Error("Supabase fleet configuration is required to build indexable vehicle pages.");
+  }
+
+  const endpoint = new URL("/rest/v1/cars", SUPABASE_URL);
+  endpoint.searchParams.set("select", "slug,updated_at");
+  endpoint.searchParams.set("is_active", "eq.true");
+  endpoint.searchParams.set("order", "name.asc");
+
+  const response = await fetch(endpoint, {
+    headers: {
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Could not load active inventory for SEO (${response.status} ${response.statusText}).`);
+  }
+
+  const rows = await response.json();
+  return rows.filter((row) => /^[a-z0-9][a-z0-9-]*$/.test(row.slug));
+}
+
+const activeInventory = await loadActiveInventory();
+const activeInventoryBySlug = new Map(activeInventory.map((car) => [car.slug, car]));
 
 const escapeJson = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
 
@@ -173,9 +202,11 @@ if (existsSync(carDir)) {
     const description = html.match(/<meta name="description" content="([^"]*)"/i)?.[1] || "View this exotic rental car from KD's Exotics in Los Angeles and Orange County.";
     const imagePath = `assets/fleet/${slug}.jpg`;
     const imageUrl = existsSync(join(root, imagePath)) ? `${siteUrl}/${imagePath}` : `${siteUrl}/assets/kds-hero.png`;
+    const isActive = activeInventoryBySlug.has(slug);
+    html = html.replace(/\/src\/vehicle\.js\?v=[^\"]+/g, "/src/vehicle.js?v=cloud-gallery-20260714");
     const metadata = `
     <link rel="canonical" href="${siteUrl}/cars/${slug}" />
-    <meta name="robots" content="noindex, follow" data-inventory-indexing />
+    <meta name="robots" content="${isActive ? "index, follow" : "noindex, follow"}" data-inventory-indexing />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="KD's Exotics" />
     <meta property="og:title" content="${title}" />
@@ -216,10 +247,17 @@ writeFileSync(
 );
 
 const sitemapPages = ["", "fleet", "partner", ...companyPages.map(({ slug }) => slug), ...locationPages.map(({ slug }) => `locations/${slug}`)];
+const sitemapVehicles = activeInventory.filter(({ slug }) => existsSync(join(carDir, `${slug}.html`)));
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${sitemapPages.map((page) => `  <url><loc>${siteUrl}/${page}</loc></url>`).join("\n")}
+${sitemapVehicles
+  .map(({ slug, updated_at: updatedAt }) => {
+    const lastmod = updatedAt ? `<lastmod>${String(updatedAt).slice(0, 10)}</lastmod>` : "";
+    return `  <url><loc>${siteUrl}/cars/${slug}</loc>${lastmod}</url>`;
+  })
+  .join("\n")}
 </urlset>\n`;
 writeFileSync(join(outDir, "sitemap.xml"), sitemap);
 
-console.log("Static site copied to dist/");
+console.log(`Static site copied to dist/ with ${sitemapVehicles.length} indexable inventory pages.`);

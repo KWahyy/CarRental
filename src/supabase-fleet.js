@@ -95,8 +95,9 @@ export async function loadVehicleFromSupabase(slug) {
     .single();
 
   if (error) {
+    if (error.code === "PGRST116") return null;
     console.warn("Could not load Supabase vehicle:", error.message);
-    return null;
+    throw error;
   }
 
   return mapCar(data);

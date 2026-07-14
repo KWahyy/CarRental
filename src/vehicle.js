@@ -1,6 +1,6 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=traffic-pricing-20260713";
-import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=traffic-pricing-20260713";
-import { isSupabaseFleetConfigured, loadVehicleFromSupabase, recordFleetEvent } from "./supabase-fleet.js?v=traffic-analytics-20260713";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=cloud-gallery-20260714";
+import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=cloud-gallery-20260714";
+import { isSupabaseFleetConfigured, loadVehicleFromSupabase, recordFleetEvent } from "./supabase-fleet.js?v=cloud-gallery-20260714";
 
 const slug = document.body.dataset.vehicleSlug;
 let baseVehicleFleet = fleet;
@@ -281,7 +281,7 @@ async function hydrateRemoteVehicle() {
   );
   const publicCar = {
     ...remoteCar,
-    ...(bundledCar?.gallery?.length ? { image: bundledCar.image, gallery: bundledCar.gallery } : {}),
+    ...(!remoteCar.gallery?.length && bundledCar?.gallery?.length ? { image: bundledCar.image, gallery: bundledCar.gallery } : {}),
     ...(bundledPricingIsNewer
       ? {
           price: bundledCar.price,
@@ -302,7 +302,7 @@ async function hydrateRemoteVehicle() {
 }
 
 async function initVehicle() {
-  setVehicleIndexing(!isSupabaseFleetConfigured);
+  if (!isSupabaseFleetConfigured) setVehicleIndexing(Boolean(car));
   let hydrated = false;
   if (isSupabaseFleetConfigured) {
     try {

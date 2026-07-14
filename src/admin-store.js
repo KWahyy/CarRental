@@ -22,7 +22,7 @@ export function readCarDrafts() {
   }
 }
 
-function readDeletedCarSlugs() {
+export function readDeletedCarSlugs() {
   try {
     return JSON.parse(window.localStorage.getItem(DELETED_KEY) || "[]");
   } catch {

@@ -1,6 +1,6 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=traffic-pricing-20260713";
-import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=traffic-pricing-20260713";
-import { isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase, recordFleetEvent } from "./supabase-fleet.js?v=traffic-analytics-20260713";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=cloud-gallery-20260714";
+import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=cloud-gallery-20260714";
+import { isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase, recordFleetEvent } from "./supabase-fleet.js?v=cloud-gallery-20260714";
 
 const grid = document.querySelector("[data-fleet-grid]");
 const countLabel = document.querySelector("[data-fleet-count]");
@@ -35,6 +35,7 @@ let popularSlugs = new Set();
 let availabilityTrigger = null;
 const seenCardImpressions = new Set();
 let cardImpressionObserver = null;
+let cloudFleetRefreshPromise = null;
 const CLOUD_FLEET_TIMEOUT_MS = 3500;
 const CRM_REQUESTS_KEY = "kds-crm-requests";
 const POPULAR_VEHICLE_SLUGS = [
@@ -639,7 +640,15 @@ window.addEventListener(
 
 window.addEventListener("storage", (event) => {
   if (event.key !== ADMIN_FLEET_REFRESH_KEY) return;
-  hydrateSupabaseFleet();
+  void refreshVisibleFleetFromCloud();
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") void refreshVisibleFleetFromCloud();
+});
+
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) void refreshVisibleFleetFromCloud();
 });
 
 async function hydrateSupabaseFleet() {
@@ -657,7 +666,7 @@ async function hydrateSupabaseFleet() {
     );
     return {
       ...car,
-      ...(bundled.gallery?.length ? { image: bundled.image, gallery: bundled.gallery } : {}),
+      ...(!car.gallery?.length && bundled.gallery?.length ? { image: bundled.image, gallery: bundled.gallery } : {}),
       ...(bundledPricingIsNewer
         ? {
             price: bundled.price,
@@ -693,6 +702,23 @@ async function hydrateMonthlyDeals() {
     ? configuredSpecial.car_slugs.filter((slug) => activeSlugs.has(slug)).slice(0, 3)
     : [];
   monthlySpecialSlugs = new Set(configuredSlugs.length ? configuredSlugs : monthlyFallbackSlugs(baseFleet, month));
+}
+
+async function refreshVisibleFleetFromCloud() {
+  if (!isSupabaseFleetConfigured) return false;
+  if (cloudFleetRefreshPromise) return cloudFleetRefreshPromise;
+
+  cloudFleetRefreshPromise = (async () => {
+    const hydrated = await hydrateSupabaseFleet();
+    if (!hydrated) return false;
+    await hydrateMonthlyDeals();
+    renderFleet();
+    return true;
+  })().finally(() => {
+    cloudFleetRefreshPromise = null;
+  });
+
+  return cloudFleetRefreshPromise;
 }
 
 async function initFleetPage() {
