@@ -64,6 +64,10 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
     <script type="application/ld+json">${escapeJson(schema)}</script>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
     <link rel="stylesheet" href="/src/styles.css?v=seo-pages-20260712" />
+    <script>
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
