@@ -23,8 +23,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=kds-favicon-20260624" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png?v=kds-favicon-20260624" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=kds-favicon-20260624" />
-    <link rel="preload" href="/src/styles.css?v=fleet-discovery-20260710" as="style" />
-    <link rel="stylesheet" href="/src/styles.css?v=fleet-discovery-20260710" />
+    <link rel="preload" href="/src/styles.css?v=traffic-pricing-20260713" as="style" />
+    <link rel="stylesheet" href="/src/styles.css?v=traffic-pricing-20260713" />
   </head>
   <body class="fleet-page">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -36,10 +36,9 @@
 
       <nav class="desktop-nav" aria-label="Primary navigation">
         <a href="/fleet.html" aria-current="page">Fleet</a>
+        <a href="/#how-it-works">How It Works</a>
         <a href="/partner.html">Partner</a>
-        <a href="/#quote">Quote</a>
         <a href="/#faq">FAQ</a>
-        <a href="/admin/">Admin</a>
       </nav>
 
       <div class="header-actions">
@@ -55,16 +54,39 @@
 
     <div class="mobile-menu" data-mobile-menu>
       <a href="/fleet.html" aria-current="page">Fleet</a>
+      <a href="/#how-it-works">How It Works</a>
       <a href="/partner.html">Partner</a>
-      <a href="/#quote">Quote</a>
       <a href="/#faq">FAQ</a>
-      <a href="/admin/">Admin</a>
-      <a href="sms:+12132642967">Text concierge</a>
+      <a href="tel:+12132642967">Call</a>
+      <a href="/#quote">Reserve</a>
     </div>
 
     <main id="main" class="fleet-showroom-page">
       <section class="fleet-showroom" aria-labelledby="fleet-title">
-        <h1 id="fleet-title" class="sr-only">KD's Exotics fleet</h1>
+        <div class="fleet-discovery-intro">
+          <div>
+            <p class="eyebrow">Curated partner fleet</p>
+            <h1 id="fleet-title">Find the right exotic for your plans.</h1>
+            <p>
+              Choose a vehicle and send your dates. Our concierge will call the rental partner, verify availability,
+              and contact you with final pricing or similar options.
+            </p>
+          </div>
+          <div class="fleet-intro-proof" aria-label="Fleet booking benefits">
+            <span>Manual availability check</span>
+            <span>Southern California delivery</span>
+            <span>Personal concierge follow-up</span>
+          </div>
+        </div>
+
+        <div class="fleet-quick-filters" role="group" aria-label="Quick fleet filters">
+          <button class="active" type="button" data-quick-filter="all" aria-pressed="true">All vehicles</button>
+          <button type="button" data-quick-filter="popular" aria-pressed="false">Most popular</button>
+          <button type="button" data-quick-filter="budget" aria-pressed="false">Under $500/day</button>
+          <button type="button" data-quick-filter="convertible" aria-pressed="false">Convertibles</button>
+          <button type="button" data-quick-filter="suv" aria-pressed="false">Luxury SUVs</button>
+          <button type="button" data-quick-filter="special" aria-pressed="false">Monthly deals</button>
+        </div>
 
         <div class="fleet-showroom-toolbar fleet-showroom-toolbar-minimal">
           <label class="fleet-search-control">
@@ -118,6 +140,75 @@
       </section>
     </main>
 
+    <div class="availability-drawer-shell" hidden data-availability-drawer>
+      <button class="availability-drawer-backdrop" type="button" aria-label="Close availability form" data-availability-close></button>
+      <section class="availability-drawer" role="dialog" aria-modal="true" aria-labelledby="availability-title">
+        <div class="availability-drawer-head">
+          <div>
+            <p class="eyebrow">Partner availability check</p>
+            <h2 id="availability-title">Check your dates.</h2>
+          </div>
+          <button class="availability-close" type="button" aria-label="Close availability form" data-availability-close>&times;</button>
+        </div>
+
+        <div class="availability-vehicle" data-availability-vehicle>
+          <span>Selected vehicle</span>
+          <strong>Vehicle selection</strong>
+        </div>
+
+        <p class="availability-explainer">
+          This fleet is shared with trusted rental partners. We will call the partner to verify your requested dates
+          before confirming the vehicle or final rate.
+        </p>
+
+        <form class="availability-form" data-availability-form>
+          <input name="vehicle" type="hidden" />
+          <input name="requestType" type="hidden" value="availability" />
+          <div class="availability-form-grid">
+            <label>
+              <span>Pickup date</span>
+              <input name="date" type="date" required />
+            </label>
+            <label>
+              <span>Return date</span>
+              <input name="returnDate" type="date" />
+            </label>
+            <label class="availability-field-wide">
+              <span>Delivery city or ZIP code</span>
+              <input name="deliveryLocation" type="text" autocomplete="postal-code" placeholder="Example: Beverly Hills or 90210" required />
+            </label>
+            <label>
+              <span>Name</span>
+              <input name="name" type="text" autocomplete="name" required />
+            </label>
+            <label>
+              <span>Phone</span>
+              <input name="phone" type="tel" autocomplete="tel" required />
+            </label>
+            <label class="availability-field-wide">
+              <span>Email <small>Optional</small></span>
+              <input name="email" type="email" autocomplete="email" />
+            </label>
+          </div>
+
+          <label class="availability-alternatives">
+            <input name="alternatives" type="checkbox" checked />
+            <span>Show me similar cars if this vehicle is unavailable.</span>
+          </label>
+
+          <label class="quote-honeypot" aria-hidden="true">
+            <span>Company</span>
+            <input name="company" type="text" tabindex="-1" autocomplete="off" />
+          </label>
+
+          <button class="availability-submit" type="submit">Request availability check</button>
+          <p class="availability-status" data-availability-status role="status">
+            No charge today. We will verify the vehicle and contact you before any booking step.
+          </p>
+        </form>
+      </section>
+    </div>
+
     <footer class="site-footer">
       <div class="footer-main">
         <a class="brand footer-brand" href="/" aria-label="KD's Exotics home">
@@ -153,6 +244,7 @@
           <a href="/rental-policies">Rental Policies</a>
           <a href="/privacy">Privacy</a>
           <a href="/terms">Terms</a>
+          <a href="/admin/" rel="nofollow">Admin Login</a>
           <a href="https://instagram.com/kdsexotics">Instagram</a>
           <a href="mailto:bookings@kdsexotics.com">Contact</a>
         </nav>
@@ -164,6 +256,6 @@
       </div>
     </footer>
 
-    <script type="module" src="/src/fleet-page.js?v=inventory-strict-20260711"></script>
+    <script type="module" src="/src/fleet-page.js?v=traffic-pricing-v2-20260713"></script>
   </body>
 </html>

@@ -1,6 +1,6 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-import { signalFleetRefresh, slugifyVehicle } from "./admin-store.js?v=gallery-hq-20260710";
-import { fleet } from "./fleet-data.js?v=gallery-hq-20260710";
+import { signalFleetRefresh, slugifyVehicle } from "./admin-store.js?v=traffic-pricing-20260713";
+import { fleet } from "./fleet-data.js?v=traffic-pricing-20260713";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_STORAGE_BUCKET, SUPABASE_URL } from "./supabase-config.js?v=gallery-hq-20260710";
 
 const unsafeParams = new URLSearchParams(window.location.search);
@@ -17,6 +17,7 @@ const configWarning = document.querySelector("[data-config-warning]");
 const signOutButton = document.querySelector("[data-sign-out]");
 const seedButton = document.querySelector("[data-seed-fleet]");
 const newCarButton = document.querySelector("[data-new-car]");
+const newDashboardCarButton = document.querySelector("[data-new-dashboard-car]");
 const deleteCarButton = document.querySelector("[data-delete-car]");
 const carList = document.querySelector("[data-car-list]");
 const carCount = document.querySelector("[data-car-count]");
@@ -46,8 +47,27 @@ const overviewBlockers = document.querySelector("[data-blocker-list]");
 const overviewRevenueList = document.querySelector("[data-revenue-list]");
 const overviewActionQueue = document.querySelector("[data-action-queue]");
 const overviewVehicleHealth = document.querySelector("[data-vehicle-health]");
+const overviewTrafficInsights = document.querySelector("[data-traffic-insights]");
+const dashboardPipeline = document.querySelector("[data-dashboard-pipeline]");
+const dashboardUpcoming = document.querySelector("[data-dashboard-upcoming]");
+const dashboardPartnerQueue = document.querySelector("[data-dashboard-partner-queue]");
+const dashboardPricingAlerts = document.querySelector("[data-dashboard-pricing-alerts]");
+const salesYearSelect = document.querySelector("[data-sales-year]");
+const salesSummary = document.querySelector("[data-sales-summary]");
+const salesChart = document.querySelector("[data-sales-chart]");
+const salesComparisonLabel = document.querySelector("[data-sales-comparison-label]");
+const salesBreakdown = document.querySelector("[data-sales-breakdown]");
+const salesLedger = document.querySelector("[data-sales-ledger]");
+const salesLedgerCount = document.querySelector("[data-sales-ledger-count]");
+const bookingDialog = document.querySelector("[data-booking-dialog]");
+const bookingForm = document.querySelector("[data-booking-form]");
+const bookingQuoteSelect = document.querySelector("[data-booking-quote-select]");
+const bookingEditorTitle = document.querySelector("[data-booking-editor-title]");
+const bookingTotalPreview = document.querySelector("[data-booking-total-preview]");
+const bookingStatus = document.querySelector("[data-booking-status]");
+const deleteBookingButton = document.querySelector("[data-delete-booking]");
 const requestPipeline = document.querySelector("[data-request-pipeline]");
-const addDemoRequestButton = document.querySelector("[data-add-demo-request]");
+const addDemoRequestButtons = [...document.querySelectorAll("[data-add-demo-request]")];
 const calendarGrid = document.querySelector("[data-calendar-grid]");
 const contentForm = document.querySelector("[data-content-form]");
 const settingsForm = document.querySelector("[data-settings-form]");
@@ -58,15 +78,19 @@ const specialMonthInput = document.querySelector("[data-special-month]");
 const specialCarGrid = document.querySelector("[data-special-car-grid]");
 const specialSelectionCount = document.querySelector("[data-special-selection-count]");
 const specialsStatus = document.querySelector("[data-specials-status]");
+const competitorRecommendation = document.querySelector("[data-competitor-recommendation]");
+const applyCompetitivePriceButton = document.querySelector("[data-apply-competitive-price]");
 
 const REQUESTS_KEY = "kds-crm-requests";
 const CONTENT_KEY = "kds-crm-content";
 const SETTINGS_KEY = "kds-crm-settings";
 
 const requestStatuses = [
-  { id: "new", label: "New lead" },
-  { id: "contacted", label: "Contacted" },
-  { id: "approved", label: "Approved" },
+  { id: "new", label: "New request" },
+  { id: "checking", label: "Checking partner" },
+  { id: "available", label: "Available / quote ready" },
+  { id: "alternative", label: "Alternative offered" },
+  { id: "approved", label: "Deposit pending" },
   { id: "booked", label: "Booked" },
 ];
 
@@ -98,6 +122,11 @@ let businessSettings = readJson(SETTINGS_KEY, {
   bookingNotes: "",
 });
 let selectedSpecialSlugs = [];
+let trafficEvents = [];
+let trafficAnalyticsError = "";
+let salesBookings = [];
+let salesDataError = "";
+let selectedSalesYear = new Date().getFullYear();
 
 function currentMonthValue() {
   const now = new Date();
@@ -117,16 +146,18 @@ function writeJson(key, value) {
 }
 
 function sanitizeRequests(value) {
-  return (Array.isArray(value) ? value : []).filter((request) => {
-    const id = String(request?.id || "");
-    const name = String(request?.name || "");
-    const message = String(request?.message || "");
-    return !(
-      id.startsWith("demo-") ||
-      (name === "VIP client" && message.includes("Evening content package")) ||
-      (name === "Weekend booking" && message.includes("Needs final date"))
-    );
-  });
+  return (Array.isArray(value) ? value : [])
+    .filter((request) => {
+      const id = String(request?.id || "");
+      const name = String(request?.name || "");
+      const message = String(request?.message || "");
+      return !(
+        id.startsWith("demo-") ||
+        (name === "VIP client" && message.includes("Evening content package")) ||
+        (name === "Weekend booking" && message.includes("Needs final date"))
+      );
+    })
+    .map((request) => (request.status === "contacted" ? { ...request, status: "checking" } : request));
 }
 
 function escapeHtml(value) {
@@ -291,6 +322,12 @@ function normalizeLocalCar(car) {
     details: car.details,
     is_active: true,
     is_featured: true,
+    competitor_price: car.competitorPrice || car.competitor_price || null,
+    competitor_name: car.competitorName || car.competitor_name || "",
+    competitor_url: car.competitorUrl || car.competitor_url || "",
+    competitor_checked_at: car.competitorCheckedAt || car.competitor_checked_at || null,
+    partner_name: car.partnerName || car.partner_name || "",
+    partner_phone: car.partnerPhone || car.partner_phone || "",
     source: "website",
   };
 }
@@ -322,7 +359,26 @@ function emptyCar() {
     details: [],
     is_active: true,
     is_featured: true,
+    competitor_price: null,
+    competitor_name: "",
+    competitor_url: "",
+    competitor_checked_at: "",
+    partner_name: "",
+    partner_phone: "",
   };
+}
+
+function updateCompetitorRecommendation() {
+  if (!competitorRecommendation || !carForm) return;
+  const competitorPrice = Number(carForm.elements.competitor_price?.value || 0);
+  if (!competitorPrice) {
+    competitorRecommendation.textContent = "Add a competitor rate to calculate the target.";
+    if (applyCompetitivePriceButton) applyCompetitivePriceButton.disabled = true;
+    return;
+  }
+  const target = Math.max(0, competitorPrice - 50);
+  competitorRecommendation.textContent = `Recommended starting rate: ${formatMoney(target)}/day — $50 below the comparable listing.`;
+  if (applyCompetitivePriceButton) applyCompetitivePriceButton.disabled = false;
 }
 
 function selectedCar() {
@@ -382,19 +438,25 @@ function showAdmin(isAdmin) {
 }
 
 function renderCrmStats() {
-  const activeCars = dashboardCars();
-  const carsWithStrongGallery = activeCars.filter(hasStrongGallery);
-  const newLeads = requests.filter((request) => request.status === "new").length;
-  const followUps = requests.filter((request) => ["contacted", "approved"].includes(request.status)).length;
-  const datedRequests = requests.filter((request) => request.date).length;
-  const photoGaps = Math.max(activeCars.length - carsWithStrongGallery.length, 0);
+  const fleetCars = dashboardCars();
+  const newInquiries = requests.filter((request) => request.status === "new").length;
+  const partnerChecks = requests.filter((request) => request.status === "checking").length;
+  const quotesReady = requests.filter((request) => ["available", "alternative"].includes(request.status)).length;
+  const monthKey = new Date().toISOString().slice(0, 7);
+  const monthlySales = salesBookings.filter((booking) => String(booking.booked_on || "").startsWith(monthKey));
+  const monthlyBookings = monthlySales.length
+    ? monthlySales
+    : requests.filter((request) => request.status === "booked" && String(request.date || request.createdAt || "").startsWith(monthKey));
+  const bookedRevenue = monthlySales.length
+    ? monthlySales.reduce((total, booking) => total + bookingTotal(booking), 0)
+    : monthlyBookings.reduce((total, request) => total + requestValue(request, fleetCars), 0);
 
   overviewStats.innerHTML = [
-    ["Ready to rent", `${activeCars.length} cars`, `${carsWithStrongGallery.length} have strong galleries`],
-    ["New leads", `${newLeads}`, `${requests.length} total quote requests`],
-    ["Follow-up queue", `${followUps}`, "Deposit, insurance, or approval"],
-    ["Booking dates", `${datedRequests}`, "Requests with a selected date"],
-    ["Content gaps", `${photoGaps}`, "Cars needing stronger photos"],
+    ["New inquiries", `${newInquiries}`, "Need first response"],
+    ["Partner checks", `${partnerChecks}`, "Waiting for availability"],
+    ["Quotes ready", `${quotesReady}`, "Customer follow-up"],
+    ["Bookings", `${monthlyBookings.length}`, "This month"],
+    ["Booked revenue", formatMoney(bookedRevenue), monthlySales.length ? "Recorded sales this month" : "Starting daily value"],
   ]
     .map(
       ([label, value, note]) => `
@@ -408,17 +470,441 @@ function renderCrmStats() {
     .join("");
 }
 
+function safePhoneHref(value) {
+  const phone = String(value || "").replace(/[^\d+]/g, "");
+  return phone ? `tel:${phone}` : "";
+}
+
+function renderOperationsDashboard() {
+  const fleetCars = dashboardCars();
+
+  if (dashboardPipeline) {
+    dashboardPipeline.innerHTML = requestStatuses
+      .map((status) => {
+        const count = requests.filter((request) => request.status === status.id).length;
+        return `
+          <button type="button" class="dashboard-pipeline-step status-${escapeHtml(status.id)}" data-jump-section="requests">
+            <span>${escapeHtml(status.label)}</span>
+            <strong>${count}</strong>
+          </button>
+        `;
+      })
+      .join("");
+  }
+
+  if (dashboardUpcoming) {
+    const upcoming = requests
+      .filter((request) => ["approved", "booked"].includes(request.status) && request.date)
+      .sort((a, b) => String(a.date).localeCompare(String(b.date)))
+      .slice(0, 5);
+    dashboardUpcoming.innerHTML = upcoming.length
+      ? upcoming
+          .map((request) => `
+            <article class="dashboard-operation-row">
+              <div class="dashboard-operation-date">
+                <span>${escapeHtml(new Date(`${request.date}T12:00:00`).toLocaleDateString("en-US", { month: "short" }))}</span>
+                <strong>${escapeHtml(new Date(`${request.date}T12:00:00`).toLocaleDateString("en-US", { day: "numeric" }))}</strong>
+              </div>
+              <div class="dashboard-operation-copy">
+                <strong>${escapeHtml(request.vehicle || "Vehicle TBD")}</strong>
+                <span>${escapeHtml(request.name || "Customer")} · ${escapeHtml(request.location || "Delivery location TBD")}</span>
+              </div>
+              <span class="quote-badge ${escapeHtml(request.status)}">${escapeHtml(requestStatusLabel(request.status))}</span>
+            </article>
+          `)
+          .join("")
+      : `<p class="admin-empty">Approved bookings with delivery dates will appear here.</p>`;
+  }
+
+  if (dashboardPartnerQueue) {
+    const partnerRequests = requests
+      .filter((request) =>
+        ["new", "checking"].includes(request.status) &&
+        (request.requestType === "availability" || request.message?.includes("Manual partner availability check")),
+      )
+      .slice(0, 6);
+    dashboardPartnerQueue.innerHTML = partnerRequests.length
+      ? partnerRequests
+          .map((request) => {
+            const car = matchedRequestCar(request, fleetCars);
+            const partnerName = car?.partner_name || car?.partnerName || "Partner not assigned";
+            const partnerPhone = car?.partner_phone || car?.partnerPhone || "";
+            const customerPhone = safePhoneHref(request.phone);
+            return `
+              <article class="dashboard-call-row">
+                <div>
+                  <span>${escapeHtml(requestStatusLabel(request.status))}</span>
+                  <strong>${escapeHtml(request.vehicle || "Vehicle TBD")}</strong>
+                  <small>${escapeHtml(request.name || "Customer")} · ${escapeHtml(formatDate(request.date))}</small>
+                </div>
+                <div class="dashboard-call-actions">
+                  ${partnerPhone ? `<a href="${escapeHtml(safePhoneHref(partnerPhone))}">Call ${escapeHtml(partnerName)}</a>` : `<button type="button" data-edit-dashboard-car="${escapeHtml(car?.id || "")}" ${car ? "" : "disabled"}>Add partner</button>`}
+                  ${customerPhone ? `<a class="secondary" href="${escapeHtml(customerPhone)}">Call customer</a>` : ""}
+                </div>
+              </article>
+            `;
+          })
+          .join("")
+      : `<p class="admin-empty">No shared-fleet availability calls are waiting right now.</p>`;
+  }
+
+  if (dashboardPricingAlerts) {
+    const pricedCars = fleetCars
+      .filter((car) => Number(car.competitor_price || car.competitorPrice || 0) > 0)
+      .map((car) => {
+        const checkedAt = car.competitor_checked_at || car.competitorCheckedAt || "";
+        const age = checkedAt ? Math.floor((Date.now() - new Date(`${checkedAt}T12:00:00`).valueOf()) / 86400000) : Infinity;
+        return { car, checkedAt, age };
+      })
+      .sort((a, b) => b.age - a.age)
+      .slice(0, 6);
+    dashboardPricingAlerts.innerHTML = pricedCars.length
+      ? pricedCars
+          .map(({ car, checkedAt, age }) => {
+            const competitorPrice = Number(car.competitor_price || car.competitorPrice);
+            const target = Math.max(0, competitorPrice - 50);
+            const needsCheck = age > 14;
+            return `
+              <article class="dashboard-price-row">
+                <div>
+                  <strong>${escapeHtml(car.name)}</strong>
+                  <span>${formatMoney(car.price)}/day now · ${formatMoney(competitorPrice)} competitor</span>
+                  <small>${checkedAt ? `Checked ${escapeHtml(formatDate(checkedAt))}` : "No check date saved"}</small>
+                </div>
+                <div>
+                  <span class="pricing-health ${needsCheck ? "stale" : "current"}">${needsCheck ? "Recheck" : "Current"}</span>
+                  <strong>${formatMoney(target)} target</strong>
+                  <button type="button" data-edit-dashboard-car="${escapeHtml(car.id)}">Edit</button>
+                </div>
+              </article>
+            `;
+          })
+          .join("")
+      : `<p class="admin-empty">Add a comparable listing to a vehicle to start pricing monitoring.</p>`;
+  }
+}
+
+function bookingTotal(booking) {
+  if (booking.total_amount !== undefined && booking.total_amount !== null) return Number(booking.total_amount || 0);
+  return Math.max(
+    0,
+    Number(booking.rental_days || 1) * Number(booking.daily_rate || 0) +
+      Number(booking.delivery_fee || 0) +
+      Number(booking.addons_total || 0) -
+      Number(booking.discount || 0),
+  );
+}
+
+function bookingProfit(booking) {
+  return bookingTotal(booking) - Number(booking.partner_cost || 0);
+}
+
+function bookingYear(booking) {
+  return Number(String(booking.booked_on || booking.created_at || "").slice(0, 4)) || new Date().getFullYear();
+}
+
+function renderSalesSystem() {
+  if (!salesSummary || !salesChart || !salesLedger) return;
+
+  const currentYear = new Date().getFullYear();
+  const availableYears = [...new Set([currentYear, currentYear - 1, ...salesBookings.map(bookingYear)])].sort((a, b) => b - a);
+  if (!availableYears.includes(selectedSalesYear)) selectedSalesYear = availableYears[0];
+  salesYearSelect.innerHTML = availableYears.map((year) => `<option value="${year}" ${year === selectedSalesYear ? "selected" : ""}>${year}</option>`).join("");
+
+  if (salesDataError) {
+    salesSummary.innerHTML = `<p class="admin-empty sales-system-error">${escapeHtml(salesDataError)}</p>`;
+  }
+
+  const yearBookings = salesBookings.filter((booking) => bookingYear(booking) === selectedSalesYear);
+  const previousBookings = salesBookings.filter((booking) => bookingYear(booking) === selectedSalesYear - 1);
+  const gross = yearBookings.reduce((sum, booking) => sum + bookingTotal(booking), 0);
+  const collected = yearBookings.reduce((sum, booking) => sum + Number(booking.amount_paid || 0), 0);
+  const outstanding = Math.max(0, gross - collected);
+  const profit = yearBookings.reduce((sum, booking) => sum + bookingProfit(booking), 0);
+  const previousGross = previousBookings.reduce((sum, booking) => sum + bookingTotal(booking), 0);
+  const yearChange = previousGross ? Math.round(((gross - previousGross) / previousGross) * 100) : null;
+  const average = yearBookings.length ? Math.round(gross / yearBookings.length) : 0;
+
+  if (!salesDataError) {
+    salesSummary.innerHTML = [
+      ["Gross sales", formatMoney(gross), yearChange === null ? "No prior-year baseline" : `${yearChange >= 0 ? "+" : ""}${yearChange}% vs ${selectedSalesYear - 1}`],
+      ["Cash collected", formatMoney(collected), gross ? `${percent(collected, gross)}% of sales` : "No recorded sales"],
+      ["Outstanding", formatMoney(outstanding), "Customer balances"],
+      ["Gross profit", formatMoney(profit), "After partner costs"],
+      ["Bookings", yearBookings.length.toLocaleString(), `${formatMoney(average)} average sale`],
+    ]
+      .map(([label, value, note]) => `<article><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`)
+      .join("");
+  }
+
+  const monthNames = Array.from({ length: 12 }, (_, month) => new Date(2026, month, 1).toLocaleDateString("en-US", { month: "short" }));
+  const monthlyRevenue = (year) => monthNames.map((_, month) =>
+    salesBookings
+      .filter((booking) => bookingYear(booking) === year && Number(String(booking.booked_on).slice(5, 7)) === month + 1)
+      .reduce((sum, booking) => sum + bookingTotal(booking), 0),
+  );
+  const selectedMonths = monthlyRevenue(selectedSalesYear);
+  const previousMonths = monthlyRevenue(selectedSalesYear - 1);
+  const chartMax = Math.max(1, ...selectedMonths, ...previousMonths);
+  salesComparisonLabel.textContent = `${selectedSalesYear} compared with ${selectedSalesYear - 1}`;
+  salesChart.innerHTML = `
+    <div class="sales-chart-grid" aria-label="Monthly sales comparison for ${selectedSalesYear} and ${selectedSalesYear - 1}">
+      ${monthNames.map((month, index) => `
+        <div class="sales-month" title="${month}: ${formatMoney(selectedMonths[index])} vs ${formatMoney(previousMonths[index])}">
+          <div class="sales-bars">
+            <i class="previous" style="height:${Math.max(previousMonths[index] ? 4 : 0, (previousMonths[index] / chartMax) * 100)}%"></i>
+            <i class="current" style="height:${Math.max(selectedMonths[index] ? 4 : 0, (selectedMonths[index] / chartMax) * 100)}%"></i>
+          </div>
+          <strong>${escapeHtml(month)}</strong>
+          <span>${selectedMonths[index] ? formatMoney(selectedMonths[index]) : "—"}</span>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  const paymentCounts = ["paid", "partial", "pending", "refunded"].map((status) => ({
+    status,
+    count: yearBookings.filter((booking) => booking.payment_status === status).length,
+  }));
+  const vehicleSales = [...yearBookings.reduce((map, booking) => {
+    const name = booking.vehicle || "Vehicle TBD";
+    map.set(name, (map.get(name) || 0) + bookingTotal(booking));
+    return map;
+  }, new Map()).entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
+  salesBreakdown.innerHTML = `
+    <div><span>Payment position</span><strong>${yearBookings.filter((booking) => booking.payment_status === "paid").length} paid in full</strong></div>
+    <div class="sales-payment-mix">${paymentCounts.map((item) => `<p><span class="payment-dot ${item.status}"></span>${escapeHtml(item.status)}<strong>${item.count}</strong></p>`).join("")}</div>
+    <div class="sales-top-vehicles"><span>Top vehicles</span>${vehicleSales.length ? vehicleSales.map(([vehicle, amount]) => `<p><span>${escapeHtml(vehicle)}</span><strong>${formatMoney(amount)}</strong></p>`).join("") : `<p class="admin-empty">No sales recorded for this year.</p>`}</div>
+  `;
+
+  const ledgerRows = [...salesBookings].sort((a, b) => String(b.booked_on).localeCompare(String(a.booked_on)));
+  salesLedgerCount.textContent = `${ledgerRows.length} booking${ledgerRows.length === 1 ? "" : "s"}`;
+  salesLedger.innerHTML = ledgerRows.length
+    ? ledgerRows.map((booking) => {
+        const total = bookingTotal(booking);
+        const paid = Number(booking.amount_paid || 0);
+        return `<tr>
+          <td>${escapeHtml(formatDate(booking.booked_on))}</td>
+          <td><strong>${escapeHtml(booking.customer_name)}</strong><small>${escapeHtml(booking.customer_phone || "No phone")}</small></td>
+          <td>${escapeHtml(booking.vehicle)}</td>
+          <td>${formatMoney(total)}</td>
+          <td>${formatMoney(paid)}</td>
+          <td>${formatMoney(Math.max(0, total - paid))}</td>
+          <td>${formatMoney(bookingProfit(booking))}</td>
+          <td><span class="sales-payment-badge ${escapeHtml(booking.payment_status)}">${escapeHtml(booking.payment_status)}</span></td>
+          <td><button type="button" data-edit-booking="${escapeHtml(booking.id)}">Edit</button></td>
+        </tr>`;
+      }).join("")
+    : `<tr><td colspan="9"><p class="admin-empty">No bookings recorded yet. Use “Record booking” to start the sales ledger.</p></td></tr>`;
+}
+
+function bookingFormNumbers() {
+  const data = new FormData(bookingForm);
+  return {
+    rental_days: Math.max(1, Number(data.get("rental_days") || 1)),
+    daily_rate: Math.max(0, Number(data.get("daily_rate") || 0)),
+    delivery_fee: Math.max(0, Number(data.get("delivery_fee") || 0)),
+    addons_total: Math.max(0, Number(data.get("addons_total") || 0)),
+    discount: Math.max(0, Number(data.get("discount") || 0)),
+    partner_cost: Math.max(0, Number(data.get("partner_cost") || 0)),
+    amount_paid: Math.max(0, Number(data.get("amount_paid") || 0)),
+  };
+}
+
+function updateBookingTotalPreview() {
+  if (!bookingTotalPreview) return;
+  const values = bookingFormNumbers();
+  const total = bookingTotal(values);
+  bookingTotalPreview.innerHTML = `
+    <div><span>Booking total</span><strong>${formatMoney(total)}</strong></div>
+    <div><span>Balance due</span><strong>${formatMoney(Math.max(0, total - values.amount_paid))}</strong></div>
+    <div><span>Gross profit</span><strong>${formatMoney(total - values.partner_cost)}</strong></div>
+  `;
+}
+
+function populateBookingQuoteSelect(selectedId = "") {
+  bookingQuoteSelect.innerHTML = `<option value="">Manual booking</option>${requests
+    .map((request) => `<option value="${escapeHtml(request.id)}" ${String(request.id) === String(selectedId) ? "selected" : ""}>${escapeHtml(request.name || "Lead")} — ${escapeHtml(request.vehicle || "Vehicle TBD")}</option>`)
+    .join("")}`;
+}
+
+function openBookingEditor(bookingId = "", linkedQuoteId = "") {
+  const booking = salesBookings.find((item) => String(item.id) === String(bookingId));
+  const linkedRequest = requests.find((item) => String(item.id) === String(booking?.quote_request_id || linkedQuoteId));
+  const linkedCar = matchedRequestCar(linkedRequest);
+  bookingForm.reset();
+  bookingForm.elements.id.value = booking?.id || "";
+  populateBookingQuoteSelect(booking?.quote_request_id || linkedQuoteId);
+  bookingEditorTitle.textContent = booking ? "Edit booking" : "Record booking";
+  deleteBookingButton.hidden = !booking;
+  const defaults = booking || {
+    customer_name: linkedRequest?.name || "",
+    customer_phone: linkedRequest?.phone || "",
+    vehicle: linkedRequest?.vehicle || "",
+    booked_on: new Date().toISOString().slice(0, 10),
+    start_date: linkedRequest?.date || "",
+    rental_days: 1,
+    daily_rate: carDailyRate(linkedCar),
+    delivery_fee: 0,
+    addons_total: 0,
+    discount: 0,
+    partner_cost: 0,
+    amount_paid: 0,
+    payment_status: "pending",
+  };
+  ["customer_name", "customer_phone", "vehicle", "booked_on", "start_date", "end_date", "rental_days", "daily_rate", "delivery_fee", "addons_total", "discount", "partner_cost", "amount_paid", "payment_status", "notes"].forEach((key) => {
+    if (bookingForm.elements[key]) bookingForm.elements[key].value = defaults[key] ?? "";
+  });
+  setStatus(bookingStatus, "");
+  updateBookingTotalPreview();
+  bookingDialog.showModal();
+}
+
+function renderTrafficInsights() {
+  if (!overviewTrafficInsights) return;
+  if (trafficAnalyticsError) {
+    overviewTrafficInsights.innerHTML = `<p class="admin-empty">${escapeHtml(trafficAnalyticsError)}</p>`;
+    return;
+  }
+
+  const fleetBySlug = new Map(dashboardCars().map((car) => [car.slug, car]));
+  const pageViews = trafficEvents.filter((event) => event.event_type === "fleet_page_view").length;
+  const totals = {
+    impressions: trafficEvents.filter((event) => event.event_type === "card_impression").length,
+    clicks: trafficEvents.filter((event) => event.event_type === "vehicle_detail_click").length,
+    checks: trafficEvents.filter((event) => event.event_type === "availability_open").length,
+    leads: trafficEvents.filter((event) => event.event_type === "availability_success").length,
+  };
+
+  const byVehicle = trafficEvents.reduce((map, event) => {
+    if (!event.car_slug) return map;
+    const current = map.get(event.car_slug) || { slug: event.car_slug, impressions: 0, clicks: 0, checks: 0, leads: 0, detailViews: 0 };
+    if (event.event_type === "card_impression") current.impressions += 1;
+    if (event.event_type === "vehicle_detail_click") current.clicks += 1;
+    if (event.event_type === "vehicle_detail_view") current.detailViews += 1;
+    if (event.event_type === "availability_open") current.checks += 1;
+    if (event.event_type === "availability_success") current.leads += 1;
+    map.set(event.car_slug, current);
+    return map;
+  }, new Map());
+
+  const ranked = [...byVehicle.values()]
+    .map((item) => ({
+      ...item,
+      name: fleetBySlug.get(item.slug)?.name || item.slug.replaceAll("-", " "),
+      engagement: item.clicks + item.checks + item.leads * 2,
+      ctr: item.impressions ? Math.round(((item.clicks + item.checks) / item.impressions) * 100) : 0,
+    }))
+    .sort((a, b) => b.engagement - a.engagement || b.impressions - a.impressions)
+    .slice(0, 10);
+
+  overviewTrafficInsights.innerHTML = `
+    <div class="traffic-kpis">
+      <article><span>Fleet visits</span><strong>${pageViews.toLocaleString()}</strong><small>Page loads</small></article>
+      <article><span>Card views</span><strong>${totals.impressions.toLocaleString()}</strong><small>Vehicles seen on screen</small></article>
+      <article><span>Vehicle clicks</span><strong>${totals.clicks.toLocaleString()}</strong><small>Detail-page interest</small></article>
+      <article><span>Availability interest</span><strong>${totals.checks.toLocaleString()}</strong><small>${totals.leads} completed request${totals.leads === 1 ? "" : "s"}</small></article>
+    </div>
+    ${ranked.length ? `
+      <div class="traffic-table-wrap">
+        <table class="traffic-table">
+          <thead><tr><th>Vehicle</th><th>Seen</th><th>Details</th><th>Checks</th><th>Requests</th><th>Engagement</th></tr></thead>
+          <tbody>${ranked.map((item) => `
+            <tr>
+              <td><strong>${escapeHtml(item.name)}</strong></td>
+              <td>${item.impressions}</td>
+              <td>${item.clicks}</td>
+              <td>${item.checks}</td>
+              <td>${item.leads}</td>
+              <td><span class="traffic-rate">${item.ctr}%</span></td>
+            </tr>`).join("")}</tbody>
+        </table>
+      </div>` : `<p class="admin-empty">No fleet traffic recorded yet. The rankings will populate automatically after deployment.</p>`}
+  `;
+}
+
+async function loadTrafficAnalytics() {
+  if (!supabase) return;
+  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .from("fleet_events")
+    .select("event_type, car_slug, created_at")
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(5000);
+
+  if (error) {
+    trafficEvents = [];
+    trafficAnalyticsError = "Traffic reporting needs the latest Supabase schema. Run supabase/schema.sql, then refresh this page.";
+  } else {
+    trafficEvents = data || [];
+    trafficAnalyticsError = "";
+  }
+  renderTrafficInsights();
+}
+
+function isDatabaseId(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ""));
+}
+
+async function loadCloudCrmData() {
+  if (!supabase) return;
+  const [quoteResult, salesResult] = await Promise.all([
+    supabase.from("quote_requests").select("*").order("created_at", { ascending: false }),
+    supabase.from("booking_sales").select("*").order("booked_on", { ascending: false }),
+  ]);
+
+  const errors = [];
+  if (quoteResult.error) {
+    errors.push("quote requests");
+  } else {
+    const localById = new Map(requests.map((request) => [String(request.id), request]));
+    const cloudRequests = (quoteResult.data || []).map((row) => ({
+      ...(localById.get(String(row.id)) || {}),
+      id: row.id,
+      requestType: row.source === "fleet-availability" ? "availability" : "quote",
+      name: row.name,
+      phone: row.phone,
+      email: row.email || "",
+      vehicle: row.vehicle,
+      date: row.rental_date || "",
+      addons: Array.isArray(row.addons) ? row.addons : [],
+      message: row.message || "",
+      status: row.status || "new",
+      createdAt: row.created_at,
+    }));
+    const cloudIds = new Set(cloudRequests.map((request) => String(request.id)));
+    requests = sanitizeRequests([...cloudRequests, ...requests.filter((request) => !cloudIds.has(String(request.id)))]);
+    writeJson(REQUESTS_KEY, requests);
+  }
+
+  if (salesResult.error) {
+    salesBookings = [];
+    errors.push("booking sales");
+  } else {
+    salesBookings = salesResult.data || [];
+  }
+
+  salesDataError = errors.length
+    ? `Sales cloud setup is incomplete (${errors.join(" and ")}). Run the latest supabase/schema.sql, then refresh.`
+    : "";
+  renderCrm();
+}
+
 function renderOverviewDetails() {
   const activeCars = dashboardCars();
   const strongGalleryCount = activeCars.filter(hasStrongGallery).length;
   const photoGapCars = activeCars.filter((car) => !hasStrongGallery(car));
   const openRequests = requests.filter((request) => request.status !== "booked");
   const newLeads = requests.filter((request) => request.status === "new");
-  const followUps = requests.filter((request) => ["contacted", "approved"].includes(request.status));
+  const followUps = requests.filter((request) => ["checking", "available", "alternative", "approved"].includes(request.status));
   const datedRequests = requests.filter((request) => request.date);
   const missingPhone = requests.filter((request) => !request.phone).length;
   const missingDate = requests.filter((request) => !request.date).length;
   const addonRequests = requests.filter((request) => request.addons?.length).length;
+
+  renderTrafficInsights();
+  renderOperationsDashboard();
 
   if (overviewFleetCheck) {
     const parts = [
@@ -662,6 +1148,7 @@ function renderRequests() {
                           </div>
                           <p>${escapeHtml(request.vehicle || "Vehicle TBD")}</p>
                           <span>${escapeHtml(request.phone || "No phone")}</span>
+                          ${request.requestType === "availability" || request.message?.includes("Manual partner availability check") ? `<strong class="crm-request-alert">Call rental partner to confirm</strong>` : ""}
                           ${request.insuranceProvider ? `<span>Insurance: ${escapeHtml(request.insuranceProvider)}</span>` : ""}
                           ${
                             request.addons?.length
@@ -724,6 +1211,7 @@ function renderCrm() {
   renderMiniLists();
   renderRequests();
   renderCalendar();
+  renderSalesSystem();
 }
 
 function renderCarList() {
@@ -880,6 +1368,12 @@ function fillForm(car) {
   carForm.elements.seats.value = car.seats || seatsFor(car);
   carForm.elements.color.value = car.color || "";
   carForm.elements.summary.value = car.summary || "";
+  carForm.elements.competitor_price.value = car.competitor_price || car.competitorPrice || "";
+  carForm.elements.competitor_name.value = car.competitor_name || car.competitorName || "";
+  carForm.elements.competitor_url.value = car.competitor_url || car.competitorUrl || "";
+  carForm.elements.competitor_checked_at.value = car.competitor_checked_at || car.competitorCheckedAt || "";
+  carForm.elements.partner_name.value = car.partner_name || car.partnerName || "";
+  carForm.elements.partner_phone.value = car.partner_phone || car.partnerPhone || "";
   carForm.elements.tags.value = arrayToLines(car.tags);
   carForm.elements.details.value = arrayToLines(car.details);
   editorTitle.textContent = car.name || "New car";
@@ -887,6 +1381,7 @@ function fillForm(car) {
   editorPreview.alt = car.name ? `${car.name} preview` : "";
   editorPrice.textContent = `$${Number(car.price || 0).toLocaleString()}/day`;
   editorMeta.textContent = [car.category_label, `${car.seats || seatsFor(car)} seats`, car.mileage].filter(Boolean).join(" / ");
+  updateCompetitorRecommendation();
 }
 
 async function selectCar(carId) {
@@ -931,6 +1426,9 @@ async function loadCars() {
 
   try {
     cars = await runQuery(supabase.from("cars").select("*").order("name"));
+    const { data: partnerRows } = await supabase.from("car_partners").select("car_id, partner_name, partner_phone");
+    const partnersByCar = new Map((partnerRows || []).map((row) => [row.car_id, row]));
+    cars = cars.map((car) => ({ ...car, ...(partnersByCar.get(car.id) || {}) }));
   } catch (error) {
     cars = localFleetCars();
     selectedCarId = cars[0]?.id || null;
@@ -1011,6 +1509,12 @@ function buildCarPayloadFromForm() {
     image_url: currentPhotoUrls()[0] || "/assets/kds-hero.png",
     is_active: true,
     is_featured: true,
+    competitor_price: Number(formData.get("competitor_price")) || null,
+    competitor_name: formData.get("competitor_name").trim(),
+    competitor_url: formData.get("competitor_url").trim(),
+    competitor_checked_at: formData.get("competitor_checked_at") || null,
+    partner_name: formData.get("partner_name").trim(),
+    partner_phone: formData.get("partner_phone").trim(),
   };
 }
 
@@ -1034,7 +1538,15 @@ async function saveCar(event) {
     const id = formData.get("id");
     const savedId = id && !isLocalCarId(id) ? id : "";
     const localPayload = buildCarPayloadFromForm();
-    const { categoryLabel, gallery, image, image_url: localImageUrl, ...carPayload } = localPayload;
+    const {
+      categoryLabel,
+      gallery,
+      image,
+      image_url: localImageUrl,
+      partner_name: partnerName,
+      partner_phone: partnerPhone,
+      ...carPayload
+    } = localPayload;
     carPayload.image_url = photos[0]?.file ? selectedCar()?.image_url || "" : localImageUrl;
 
     setStatus(adminStatus, "Saving car...");
@@ -1044,6 +1556,12 @@ async function saveCar(event) {
 
     const savedPhotos = await savePhotos(saved.id, carPayload.slug);
     await saveAvailability(saved.id);
+    await runQuery(
+      supabase.from("car_partners").upsert(
+        { car_id: saved.id, partner_name: partnerName, partner_phone: partnerPhone, updated_at: new Date().toISOString() },
+        { onConflict: "car_id" },
+      ),
+    );
     if (savedPhotos[0]?.url) {
       await runQuery(supabase.from("cars").update({ image_url: savedPhotos[0].url }).eq("id", saved.id));
     }
@@ -1125,6 +1643,8 @@ async function init() {
   showAdmin(Boolean(data.session));
   if (data.session) {
     await loadCars();
+    await loadCloudCrmData();
+    await loadTrafficAnalytics();
     specialMonthInput.value = currentMonthValue();
     await loadMonthlySpecialAdmin();
   }
@@ -1153,6 +1673,8 @@ loginForm.addEventListener("submit", async (event) => {
   setStatus(loginStatus, "");
   showAdmin(true);
   await loadCars();
+  await loadCloudCrmData();
+  await loadTrafficAnalytics();
   specialMonthInput.value = currentMonthValue();
   await loadMonthlySpecialAdmin();
 });
@@ -1194,23 +1716,42 @@ document.addEventListener("click", (event) => {
   switchSection(jumpButton.dataset.jumpSection);
 });
 
-addDemoRequestButton.addEventListener("click", () => {
-  requests.unshift({
-    id: `manual-${Date.now()}`,
-    name: "New client",
-    phone: "",
-    vehicle: selectedCar()?.name || cars[0]?.name || "Vehicle TBD",
-    date: "",
-    addons: ["Delivery"],
-    message: "Manual lead. Add notes after the first call.",
-    status: "new",
-    createdAt: new Date().toISOString(),
+addDemoRequestButtons.forEach((button) => {
+  button.addEventListener("click", async () => {
+    let lead = {
+      id: `manual-${Date.now()}`,
+      name: "New client",
+      phone: "",
+      vehicle: selectedCar()?.name || cars[0]?.name || "Vehicle TBD",
+      date: "",
+      addons: ["Delivery"],
+      message: "Manual lead. Add notes after the first call.",
+      status: "new",
+      createdAt: new Date().toISOString(),
+    };
+    if (supabase) {
+      const { data } = await supabase
+        .from("quote_requests")
+        .insert({ name: lead.name, phone: lead.phone, vehicle: lead.vehicle, rental_date: null, addons: lead.addons, message: lead.message, source: "manual", status: "new" })
+        .select()
+        .single();
+      if (data) lead = { ...lead, id: data.id, createdAt: data.created_at };
+    }
+    requests.unshift(lead);
+    writeJson(REQUESTS_KEY, requests);
+    renderCrm();
+    switchSection("requests");
   });
-  writeJson(REQUESTS_KEY, requests);
-  renderCrm();
 });
 
-requestPipeline.addEventListener("change", (event) => {
+document.addEventListener("click", async (event) => {
+  const editButton = event.target.closest("[data-edit-dashboard-car]");
+  if (!editButton || !editButton.dataset.editDashboardCar) return;
+  switchSection("vehicles");
+  await selectCar(editButton.dataset.editDashboardCar);
+});
+
+requestPipeline.addEventListener("change", async (event) => {
   const select = event.target.closest("[data-request-status]");
   if (!select) return;
 
@@ -1219,6 +1760,115 @@ requestPipeline.addEventListener("change", (event) => {
   );
   writeJson(REQUESTS_KEY, requests);
   renderCrm();
+  if (isDatabaseId(select.dataset.requestStatus) && supabase) {
+    const { error } = await supabase.from("quote_requests").update({ status: select.value, updated_at: new Date().toISOString() }).eq("id", select.dataset.requestStatus);
+    if (error) setStatus(adminStatus, friendlyError(error), "error");
+  }
+  if (select.value === "booked") {
+    const existingBooking = salesBookings.find((booking) => String(booking.quote_request_id) === String(select.dataset.requestStatus));
+    openBookingEditor(existingBooking?.id || "", select.dataset.requestStatus);
+  }
+});
+
+salesYearSelect?.addEventListener("change", () => {
+  selectedSalesYear = Number(salesYearSelect.value);
+  renderSalesSystem();
+});
+
+document.addEventListener("click", (event) => {
+  if (event.target.closest("[data-open-booking-editor]")) openBookingEditor();
+  const editBooking = event.target.closest("[data-edit-booking]");
+  if (editBooking) openBookingEditor(editBooking.dataset.editBooking);
+  if (event.target.closest("[data-close-booking-editor]")) bookingDialog.close();
+});
+
+bookingQuoteSelect?.addEventListener("change", () => {
+  const request = requests.find((item) => String(item.id) === String(bookingQuoteSelect.value));
+  if (!request) return;
+  const car = matchedRequestCar(request);
+  bookingForm.elements.customer_name.value = request.name || "";
+  bookingForm.elements.customer_phone.value = request.phone || "";
+  bookingForm.elements.vehicle.value = request.vehicle || "";
+  bookingForm.elements.start_date.value = request.date || "";
+  bookingForm.elements.daily_rate.value = carDailyRate(car);
+  updateBookingTotalPreview();
+});
+
+bookingForm?.addEventListener("input", (event) => {
+  if (["start_date", "end_date"].includes(event.target.name)) {
+    const start = bookingForm.elements.start_date.value;
+    const end = bookingForm.elements.end_date.value;
+    if (start && end) {
+      const days = Math.max(1, Math.ceil((new Date(`${end}T12:00:00`) - new Date(`${start}T12:00:00`)) / 86400000));
+      bookingForm.elements.rental_days.value = days;
+    }
+  }
+  updateBookingTotalPreview();
+});
+
+bookingForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!requireConfig()) return;
+  const data = new FormData(bookingForm);
+  const numbers = bookingFormNumbers();
+  const total = bookingTotal(numbers);
+  const selectedPaymentStatus = String(data.get("payment_status"));
+  const paymentStatus = selectedPaymentStatus === "refunded"
+    ? "refunded"
+    : numbers.amount_paid >= total && total > 0
+      ? "paid"
+      : numbers.amount_paid > 0
+        ? "partial"
+        : "pending";
+  const quoteId = isDatabaseId(data.get("quote_request_id")) ? data.get("quote_request_id") : null;
+  const payload = {
+    quote_request_id: quoteId,
+    customer_name: String(data.get("customer_name") || "").trim(),
+    customer_phone: String(data.get("customer_phone") || "").trim(),
+    vehicle: String(data.get("vehicle") || "").trim(),
+    booked_on: data.get("booked_on"),
+    start_date: data.get("start_date") || null,
+    end_date: data.get("end_date") || null,
+    ...numbers,
+    total_amount: total,
+    payment_status: paymentStatus,
+    notes: String(data.get("notes") || "").trim(),
+    updated_at: new Date().toISOString(),
+  };
+  try {
+    setStatus(bookingStatus, "Saving booking...");
+    const id = data.get("id");
+    const saved = id
+      ? await runQuery(supabase.from("booking_sales").update(payload).eq("id", id).select().single())
+      : await runQuery(supabase.from("booking_sales").insert(payload).select().single());
+    if (quoteId) {
+      await runQuery(supabase.from("quote_requests").update({ status: "booked", updated_at: new Date().toISOString() }).eq("id", quoteId));
+      requests = requests.map((request) => String(request.id) === String(quoteId) ? { ...request, status: "booked" } : request);
+      writeJson(REQUESTS_KEY, requests);
+    }
+    const existingIndex = salesBookings.findIndex((booking) => String(booking.id) === String(saved.id));
+    if (existingIndex >= 0) salesBookings.splice(existingIndex, 1, saved);
+    else salesBookings.unshift(saved);
+    bookingDialog.close();
+    renderCrm();
+    setStatus(adminStatus, "Booking saved to the sales ledger.", "success");
+  } catch (error) {
+    setStatus(bookingStatus, friendlyError(error), "error");
+  }
+});
+
+deleteBookingButton?.addEventListener("click", async () => {
+  const id = bookingForm.elements.id.value;
+  if (!id || !window.confirm("Delete this booking from the sales ledger?")) return;
+  try {
+    await runQuery(supabase.from("booking_sales").delete().eq("id", id));
+    salesBookings = salesBookings.filter((booking) => String(booking.id) !== String(id));
+    bookingDialog.close();
+    renderCrm();
+    setStatus(adminStatus, "Booking deleted.", "success");
+  } catch (error) {
+    setStatus(bookingStatus, friendlyError(error), "error");
+  }
 });
 
 saveContentButton?.addEventListener("click", () => {
@@ -1245,6 +1895,8 @@ newCarButton.addEventListener("click", () => {
   renderPhotos();
   renderAvailability();
 });
+
+newDashboardCarButton?.addEventListener("click", () => newCarButton.click());
 
 carList.addEventListener("click", (event) => {
   const button = event.target.closest("[data-car-id]");
@@ -1350,6 +2002,15 @@ availabilityList?.addEventListener("click", (event) => {
 });
 
 carForm.addEventListener("submit", saveCar);
+carForm.elements.competitor_price?.addEventListener("input", updateCompetitorRecommendation);
+applyCompetitivePriceButton?.addEventListener("click", () => {
+  const competitorPrice = Number(carForm.elements.competitor_price?.value || 0);
+  if (!competitorPrice) return;
+  const target = Math.max(0, competitorPrice - 50);
+  carForm.elements.price.value = String(target);
+  editorPrice.textContent = `${formatMoney(target)}/day`;
+  updateCompetitorRecommendation();
+});
 deleteCarButton?.addEventListener("click", deleteSelectedCar);
 seedButton.addEventListener("click", seedFleet);
 

@@ -63,15 +63,17 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${escapeJson(schema)}</script>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
-    <link rel="stylesheet" href="/src/styles.css?v=seo-pages-20260712" />
+    <link rel="stylesheet" href="/src/styles.css?v=traffic-pricing-20260713" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <header class="site-header scrolled">
+    <header class="site-header scrolled" data-header>
       <a class="brand" href="/" aria-label="KD's Exotics home"><img class="brand-logo brand-logo-wide" src="/assets/kds-logo-wide.png" alt="" width="1348" height="610" /></a>
-      <nav class="desktop-nav" aria-label="Primary navigation"><a href="/fleet">Fleet</a><a href="/partner">Partner</a><a href="/about">About</a><a href="/#quote">Quote</a></nav>
+      <nav class="desktop-nav" aria-label="Primary navigation"><a href="/fleet.html">Fleet</a><a href="/#how-it-works">How It Works</a><a href="/partner.html">Partner</a><a href="/#faq">FAQ</a></nav>
       <div class="header-actions"><a class="ghost-button" href="tel:${phoneHref}">Call</a><a class="primary-button compact" href="/#quote">Reserve</a></div>
+      <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-toggle><span></span><span></span></button>
     </header>
+    <div class="mobile-menu" data-mobile-menu><a href="/fleet.html">Fleet</a><a href="/#how-it-works">How It Works</a><a href="/partner.html">Partner</a><a href="/#faq">FAQ</a><a href="tel:${phoneHref}">Call</a><a href="/#quote">Reserve</a></div>
     <main id="main" class="seo-page-main">
       <header class="seo-page-hero">
         <p class="eyebrow">${eyebrow}</p>
@@ -86,10 +88,11 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
       <div class="footer-columns">
         <nav class="footer-links" aria-label="Explore"><h3>Explore</h3><a href="/fleet">Fleet</a><a href="/partner">Become a Partner</a><a href="/#quote">Request Quote</a></nav>
         <nav class="footer-links" aria-label="Locations"><h3>Locations</h3><a href="/locations/los-angeles-exotic-car-rental">Los Angeles</a><a href="/locations/orange-county-exotic-car-rental">Orange County</a><a href="/locations/lax-exotic-car-delivery">LAX Delivery</a><a href="/locations/sna-exotic-car-delivery">SNA Delivery</a></nav>
-        <nav class="footer-links" aria-label="Company"><h3>Company</h3><a href="/about">About</a><a href="/rental-policies">Rental Policies</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
+        <nav class="footer-links" aria-label="Company"><h3>Company</h3><a href="/about">About</a><a href="/rental-policies">Rental Policies</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/admin/" rel="nofollow">Admin Login</a></nav>
       </div>
       <div class="footer-bottom"><span>© 2026 KD's Exotics. All rights reserved.</span><span>Rental approval required. Rates subject to availability.</span></div>
     </footer>
+    <script type="module" src="/src/partner.js?v=public-nav-20260713"></script>
   </body>
 </html>`;
 }
@@ -184,6 +187,28 @@ if (existsSync(carDir)) {
     writeFileSync(filePath, html);
   }
 }
+
+const vercelObservability = `
+    <script defer src="/_vercel/insights/script.js" data-sdkn="@vercel/analytics"></script>
+    <script defer src="/_vercel/speed-insights/script.js" data-sdkn="@vercel/speed-insights"></script>`;
+
+function injectVercelObservability(directory, relativePath = "") {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const entryRelativePath = join(relativePath, entry.name);
+    if (entry.isDirectory()) {
+      if (entryRelativePath === "admin") continue;
+      injectVercelObservability(join(directory, entry.name), entryRelativePath);
+      continue;
+    }
+    if (!entry.name.endsWith(".html")) continue;
+    const filePath = join(directory, entry.name);
+    const html = readFileSync(filePath, "utf8");
+    if (html.includes("/_vercel/insights/script.js")) continue;
+    writeFileSync(filePath, html.replace("</body>", `${vercelObservability}\n  </body>`));
+  }
+}
+
+injectVercelObservability(outDir);
 
 writeFileSync(
   join(outDir, "robots.txt"),

@@ -4,6 +4,7 @@ import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./supabase-config.js";
 const configured = Boolean(SUPABASE_URL && SUPABASE_URL.startsWith("https://"));
 const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
 const MAX_LISTING_PHOTOS = 3;
+const ANALYTICS_SESSION_KEY = "kds_fleet_analytics_session";
 
 export const isSupabaseFleetConfigured = configured;
 
@@ -28,7 +29,42 @@ function mapCar(row) {
     gallery: gallery.length ? gallery : [image],
     tags: Array.isArray(row.tags) ? row.tags : [],
     details: Array.isArray(row.details) ? row.details : [],
+    competitorPrice: row.competitor_price || null,
+    competitorName: row.competitor_name || "",
+    competitorUrl: row.competitor_url || "",
+    competitorCheckedAt: row.competitor_checked_at || "",
   };
+}
+
+function analyticsSessionId() {
+  try {
+    let id = window.sessionStorage.getItem(ANALYTICS_SESSION_KEY);
+    if (!id) {
+      id = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      window.sessionStorage.setItem(ANALYTICS_SESSION_KEY, id);
+    }
+    return id;
+  } catch {
+    return "anonymous";
+  }
+}
+
+export async function recordFleetEvent(eventType, { carSlug = "", metadata = {} } = {}) {
+  if (!supabase) return false;
+
+  const { error } = await supabase.from("fleet_events").insert({
+    event_type: eventType,
+    car_slug: String(carSlug || "").slice(0, 120),
+    session_id: analyticsSessionId().slice(0, 120),
+    page_path: window.location.pathname.slice(0, 240),
+    metadata,
+  });
+
+  if (error) {
+    console.warn("Could not record fleet analytics:", error.message);
+    return false;
+  }
+  return true;
 }
 
 export async function loadFleetFromSupabase() {

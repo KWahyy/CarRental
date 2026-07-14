@@ -1,6 +1,6 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=gallery-hq-20260710";
-import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=gallery-hq-20260710";
-import { isSupabaseFleetConfigured, loadFleetFromSupabase } from "./supabase-fleet.js?v=gallery-hq-20260710";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=traffic-pricing-20260713";
+import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=traffic-pricing-20260713";
+import { isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase, recordFleetEvent } from "./supabase-fleet.js?v=traffic-analytics-20260713";
 
 const grid = document.querySelector("[data-fleet-grid]");
 const countLabel = document.querySelector("[data-fleet-count]");
@@ -14,16 +14,37 @@ const brandFilters = document.querySelector("[data-brand-filters]");
 const searchInput = document.querySelector("[data-fleet-search]");
 const clearSearchButton = document.querySelector("[data-clear-search]");
 const sortSelect = document.querySelector("[data-fleet-sort]");
+const quickFilterButtons = [...document.querySelectorAll("[data-quick-filter]")];
 const menuToggle = document.querySelector("[data-menu-toggle]");
 const mobileMenu = document.querySelector("[data-mobile-menu]");
 const header = document.querySelector("[data-header]");
+const availabilityDrawer = document.querySelector("[data-availability-drawer]");
+const availabilityForm = document.querySelector("[data-availability-form]");
+const availabilityVehicle = document.querySelector("[data-availability-vehicle]");
+const availabilityStatus = document.querySelector("[data-availability-status]");
+const availabilityCloseButtons = [...document.querySelectorAll("[data-availability-close]")];
 
 let baseFleet = websiteFleet.slice();
 let cars = baseFleet.slice();
 let activeFilter = "all";
+let quickFilter = "all";
 let searchQuery = "";
 let sortMode = "featured";
+let monthlySpecialSlugs = new Set();
+let popularSlugs = new Set();
+let availabilityTrigger = null;
+const seenCardImpressions = new Set();
+let cardImpressionObserver = null;
 const CLOUD_FLEET_TIMEOUT_MS = 3500;
+const CRM_REQUESTS_KEY = "kds-crm-requests";
+const POPULAR_VEHICLE_SLUGS = [
+  "2021-bmw-m3-comp",
+  "2022-porsche-911-carrera",
+  "2017-audi-r8",
+  "2015-lamborghini-huracan-lp-610-4",
+  "2022-lamborghini-huracan",
+  "2016-ferrari-488-gtb",
+];
 
 function withTimeout(promise, ms, fallback = null) {
   let timeoutId;
@@ -42,6 +63,71 @@ function slugify(value) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function trackFleetEvent(eventName, detail = {}) {
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ event: eventName, ...detail });
+  window.dispatchEvent(new CustomEvent(`kds:${eventName}`, { detail }));
+  document.documentElement.dataset.fleetEventCount = String(Number(document.documentElement.dataset.fleetEventCount || 0) + 1);
+  document.documentElement.dataset.lastFleetEvent = eventName;
+
+  const persistentType = {
+    view_item_list: "fleet_page_view",
+    card_impression: "card_impression",
+    select_item: "vehicle_detail_click",
+    availability_form_open: "availability_open",
+    availability_request_submit: "availability_submit",
+    availability_request_success: "availability_success",
+  }[eventName];
+
+  if (persistentType) {
+    void recordFleetEvent(persistentType, {
+      carSlug: detail.vehicle_slug || "",
+      metadata: {
+        vehicle: detail.vehicle || "",
+        vehicle_count: detail.vehicle_count || undefined,
+      },
+    });
+  }
+}
+
+function observeCardImpressions() {
+  if (!("IntersectionObserver" in window)) return;
+  cardImpressionObserver?.disconnect();
+  cardImpressionObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting || entry.intersectionRatio < 0.55) return;
+        const slug = entry.target.dataset.vehicleSlug || "";
+        if (!slug || seenCardImpressions.has(slug)) return;
+        seenCardImpressions.add(slug);
+        trackFleetEvent("card_impression", {
+          vehicle_slug: slug,
+          vehicle: entry.target.dataset.vehicle || "Vehicle",
+        });
+        cardImpressionObserver.unobserve(entry.target);
+      });
+    },
+    { threshold: [0.55] },
+  );
+
+  grid.querySelectorAll(".showroom-card[data-vehicle-slug]").forEach((card) => {
+    if (!seenCardImpressions.has(card.dataset.vehicleSlug)) cardImpressionObserver.observe(card);
+  });
+}
+
+function vehicleSlug(car) {
+  return car.slug || slugify(car.name);
 }
 
 function brandFor(car) {
@@ -81,6 +167,35 @@ function matchesFilter(car) {
   return true;
 }
 
+function quickFilterLabel(filter) {
+  return {
+    all: "All vehicles",
+    popular: "Most popular",
+    budget: "Under $500/day",
+    convertible: "Convertibles",
+    suv: "Luxury SUVs",
+    special: "Monthly deals",
+  }[filter] || "All vehicles";
+}
+
+function matchesQuickFilter(car) {
+  if (quickFilter === "all") return true;
+  if (quickFilter === "popular") return popularSlugs.has(vehicleSlug(car));
+  if (quickFilter === "budget") return Number(car.price || 0) <= 500;
+  if (quickFilter === "convertible") return bodyTypeFor(car) === "Convertible";
+  if (quickFilter === "suv") return bodyTypeFor(car) === "SUV";
+  if (quickFilter === "special") return monthlySpecialSlugs.has(vehicleSlug(car));
+  return true;
+}
+
+function renderQuickFilters() {
+  quickFilterButtons.forEach((button) => {
+    const isActive = button.dataset.quickFilter === quickFilter;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+}
+
 function searchableText(car) {
   return [car.name, car.make, car.model, car.color, car.category, car.categoryLabel, bodyTypeFor(car)]
     .filter(Boolean)
@@ -99,7 +214,12 @@ function sortedCars(source) {
   if (sortMode === "price-low") return next.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
   if (sortMode === "price-high") return next.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
   if (sortMode === "name") return next.sort((a, b) => a.name.localeCompare(b.name));
-  return next;
+  const popularRank = new Map(POPULAR_VEHICLE_SLUGS.map((slug, index) => [slug, index]));
+  return next.sort((a, b) => {
+    const aRank = popularRank.has(vehicleSlug(a)) ? popularRank.get(vehicleSlug(a)) : Number.MAX_SAFE_INTEGER;
+    const bRank = popularRank.has(vehicleSlug(b)) ? popularRank.get(vehicleSlug(b)) : Number.MAX_SAFE_INTEGER;
+    return aRank - bRank;
+  });
 }
 
 function carImage(car) {
@@ -135,9 +255,11 @@ function renderFilterButtons() {
 }
 
 function renderCards() {
-  const visibleCars = sortedCars(cars.filter(matchesFilter).filter(matchesSearch));
+  const visibleCars = sortedCars(cars.filter(matchesFilter).filter(matchesQuickFilter).filter(matchesSearch));
+  const showPopularRows = quickFilter === "all" && activeFilter === "all" && !searchQuery && sortMode === "featured";
   const label = filterLabel(activeFilter);
-  const resultContext = [label !== "All cars" ? label : "", searchInput.value.trim() ? `Search: “${searchInput.value.trim()}”` : ""]
+  const quickLabel = quickFilterLabel(quickFilter);
+  const resultContext = [quickFilter !== "all" ? quickLabel : "", label !== "All cars" ? label : "", searchInput.value.trim() ? `Search: “${searchInput.value.trim()}”` : ""]
     .filter(Boolean)
     .join(" · ");
 
@@ -145,30 +267,61 @@ function renderCards() {
   filterNote.textContent = resultContext || "All cars";
   activeFilterLabel.textContent = label;
   clearSearchButton.hidden = !searchInput.value;
+  renderQuickFilters();
 
-  grid.innerHTML = visibleCars.length ? visibleCars
-    .map((car) => {
-      const slug = car.slug || slugify(car.name);
+  const popularHeading = showPopularRows && visibleCars.length
+    ? `<header class="fleet-popular-heading"><div><p class="eyebrow">Most requested</p><h2>Popular choices</h2></div><span>Six visitor favorites · two rows</span></header>`
+    : "";
+
+  grid.innerHTML = visibleCars.length ? popularHeading + visibleCars
+    .map((car, index) => {
+      const slug = vehicleSlug(car);
       const { brand, model } = vehicleDisplay(car);
+      const type = bodyTypeFor(car);
+      const isSpecial = monthlySpecialSlugs.has(slug);
+      const isPopular = popularSlugs.has(slug);
+      const meta = [type, car.color, car.seats ? `${car.seats} seats` : ""].filter(Boolean).slice(0, 3);
+      const badge = isPopular ? "Popular choice" : isSpecial ? "Monthly deal" : "";
 
-      return `
-        <article class="showroom-card">
-          <a class="showroom-card-media" href="/cars/${slug}.html" aria-label="View ${car.name}" style="${mediaBackgroundStyle(car)}">
-            <img src="${carImage(car)}" alt="${car.name}" width="760" height="520" loading="lazy" onerror="this.onerror=null;this.src='/assets/kds-hero.png';" />
+      const card = `
+        <article class="showroom-card" data-vehicle-slug="${escapeHtml(slug)}" data-vehicle="${escapeHtml(car.name)}">
+          <a class="showroom-card-media" href="/cars/${escapeHtml(slug)}.html" aria-label="View ${escapeHtml(car.name)}" style="${mediaBackgroundStyle(car)}" data-fleet-card-link data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${escapeHtml(slug)}">
+            ${badge ? `<span class="showroom-card-badge">${escapeHtml(badge)}</span>` : ""}
+            <img src="${escapeHtml(carImage(car))}" alt="${escapeHtml(car.name)}" width="760" height="520" loading="lazy" onerror="this.onerror=null;this.src='/assets/kds-hero.png';" />
           </a>
           <div class="showroom-card-body">
             <div>
-              <span>${brand}</span>
-              <h2>${model}</h2>
+              <span>${escapeHtml(brand)}</span>
+              <h2>${escapeHtml(model)}</h2>
             </div>
-            <strong>${formatPrice(car.price)}<small>/day</small></strong>
+            <strong><small class="price-prefix">Starting at</small>${escapeHtml(formatPrice(car.price))}<small>/day</small></strong>
           </div>
+          <div class="showroom-card-meta" aria-label="Vehicle details">
+            ${meta.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+          </div>
+          <p class="showroom-availability-note">Dates confirmed manually with our rental partner.</p>
           <div class="showroom-card-actions">
-            <a href="/cars/${slug}.html">View details</a>
-            <a href="/?vehicle=${encodeURIComponent(car.name)}#quote">Request quote</a>
+            <a href="/cars/${escapeHtml(slug)}.html" data-fleet-card-link data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${escapeHtml(slug)}">View details</a>
+            <button type="button" data-check-availability data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${escapeHtml(slug)}">Check availability</button>
           </div>
         </article>
       `;
+
+      let additions = "";
+      if (showPopularRows && index === 5 && visibleCars.length > 6) {
+        additions += `<div class="fleet-all-vehicles-divider"><div><p class="eyebrow">Full partner fleet</p><h2>Explore every vehicle</h2></div><span>${visibleCars.length - 6} more options</span></div>`;
+      }
+      if ((index + 1) % 12 === 0 && index !== visibleCars.length - 1) additions += `
+        <aside class="fleet-concierge-break">
+          <div>
+            <p class="eyebrow">Need a recommendation?</p>
+            <h2>Tell us the date, budget, and occasion.</h2>
+            <p>We will check the partner fleet and suggest vehicles that fit your plans.</p>
+          </div>
+          <button type="button" data-concierge-match>Help me choose</button>
+        </aside>
+      `;
+      return `${card}${additions}`;
     })
     .join("") : `
       <div class="fleet-empty-state">
@@ -177,10 +330,13 @@ function renderCards() {
         <button type="button" data-reset-fleet>Show all vehicles</button>
       </div>
     `;
+  observeCardImpressions();
 }
 
 function renderFleet() {
   cars = baseFleet.slice();
+  const activeSlugs = new Set(cars.map(vehicleSlug));
+  popularSlugs = new Set(POPULAR_VEHICLE_SLUGS.filter((slug) => activeSlugs.has(slug)).slice(0, 6));
   if (activeFilter !== "all" && !cars.some(matchesFilter)) activeFilter = "all";
   renderFilterButtons();
   renderCards();
@@ -212,6 +368,136 @@ function renderFleetLoading() {
     `;
   }).join("");
 }
+
+function localDateValue(date = new Date()) {
+  const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return offsetDate.toISOString().slice(0, 10);
+}
+
+function openAvailabilityDrawer(vehicleName, trigger) {
+  if (!availabilityDrawer || !availabilityForm) return;
+  availabilityTrigger = trigger || null;
+  availabilityForm.reset();
+  availabilityForm.querySelectorAll("input, button").forEach((control) => {
+    control.disabled = false;
+  });
+  availabilityForm.elements.vehicle.value = vehicleName;
+  availabilityForm.elements.requestType.value = "availability";
+  availabilityForm.elements.alternatives.checked = true;
+  availabilityForm.elements.date.min = localDateValue();
+  availabilityForm.elements.returnDate.min = localDateValue();
+  availabilityVehicle.querySelector("strong").textContent = vehicleName;
+  availabilityStatus.dataset.tone = "";
+  availabilityStatus.textContent = "No charge today. We will verify the vehicle and contact you before any booking step.";
+  availabilityDrawer.hidden = false;
+  document.body.classList.add("availability-open");
+  availabilityForm.elements.date.focus();
+  trackFleetEvent("availability_form_open", {
+    vehicle: vehicleName,
+    vehicle_slug: trigger?.dataset.vehicleSlug || "",
+  });
+}
+
+function closeAvailabilityDrawer() {
+  if (!availabilityDrawer || availabilityDrawer.hidden) return;
+  availabilityDrawer.hidden = true;
+  document.body.classList.remove("availability-open");
+  availabilityTrigger?.focus();
+  availabilityTrigger = null;
+}
+
+availabilityCloseButtons.forEach((button) => button.addEventListener("click", closeAvailabilityDrawer));
+
+availabilityForm?.elements.date.addEventListener("change", () => {
+  const pickupDate = availabilityForm.elements.date.value || localDateValue();
+  availabilityForm.elements.returnDate.min = pickupDate;
+  if (availabilityForm.elements.returnDate.value && availabilityForm.elements.returnDate.value < pickupDate) {
+    availabilityForm.elements.returnDate.value = pickupDate;
+  }
+});
+
+availabilityForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const submitButton = availabilityForm.querySelector("button[type='submit']");
+  const formData = new FormData(availabilityForm);
+  const alternativesApproved = Boolean(formData.get("alternatives"));
+  const message = [
+    "Manual partner availability check requested.",
+    `Return date: ${formData.get("returnDate") || "Not provided"}`,
+    `Delivery city or ZIP: ${formData.get("deliveryLocation") || "Not provided"}`,
+    `Similar vehicles approved: ${alternativesApproved ? "Yes" : "No"}`,
+  ].join("\n");
+  const payload = {
+    requestType: "availability",
+    name: formData.get("name") || "",
+    phone: formData.get("phone") || "",
+    email: formData.get("email") || "",
+    insuranceProvider: "",
+    date: formData.get("date") || "",
+    vehicle: formData.get("vehicle") || "Help me choose",
+    addons: alternativesApproved ? ["Similar options approved"] : [],
+    message,
+    company: formData.get("company") || "",
+    pageUrl: window.location.href,
+  };
+
+  submitButton.disabled = true;
+  submitButton.textContent = "Sending availability request...";
+  availabilityStatus.dataset.tone = "";
+  availabilityStatus.textContent = "Saving your request for a manual partner check...";
+  trackFleetEvent("availability_request_submit", {
+    vehicle: payload.vehicle,
+    vehicle_slug: availabilityTrigger?.dataset.vehicleSlug || "",
+  });
+
+  try {
+    const response = await fetch("/api/quote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.message || "Availability request failed.");
+
+    try {
+      const storedRequests = JSON.parse(localStorage.getItem(CRM_REQUESTS_KEY)) || [];
+      storedRequests.unshift({
+        id: result.id || `availability-${Date.now()}`,
+        requestType: "availability",
+        name: payload.name,
+        phone: payload.phone,
+        email: payload.email,
+        insuranceProvider: "",
+        vehicle: payload.vehicle,
+        date: payload.date,
+        addons: payload.addons,
+        message: payload.message,
+        status: "new",
+        createdAt: new Date().toISOString(),
+      });
+      localStorage.setItem(CRM_REQUESTS_KEY, JSON.stringify(storedRequests));
+    } catch {
+      // Local mirror is best-effort only; Supabase remains the source of truth.
+    }
+
+    availabilityStatus.dataset.tone = "success";
+    availabilityStatus.textContent = "Request received. We will call the rental partner, verify the dates, and contact you with the result or similar options.";
+    trackFleetEvent("availability_request_success", {
+      vehicle: payload.vehicle,
+      vehicle_slug: availabilityTrigger?.dataset.vehicleSlug || "",
+    });
+    availabilityForm.querySelectorAll("input, button").forEach((control) => {
+      if (control !== submitButton) control.disabled = true;
+    });
+  } catch (error) {
+    availabilityStatus.dataset.tone = "error";
+    availabilityStatus.textContent = error.message || "We could not save this request. Please call us directly.";
+    trackFleetEvent("availability_request_error", { vehicle: payload.vehicle });
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = availabilityStatus.dataset.tone === "success" ? "Request received" : "Request availability check";
+  }
+});
 
 function closeFilters() {
   filterPanel.hidden = true;
@@ -260,14 +546,46 @@ sortSelect.addEventListener("change", () => {
   renderCards();
 });
 
+quickFilterButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    quickFilter = button.dataset.quickFilter || "all";
+    activeFilter = "all";
+    renderCards();
+    trackFleetEvent("fleet_quick_filter", { filter: quickFilter });
+  });
+});
+
 grid.addEventListener("click", (event) => {
-  if (!event.target.closest("[data-reset-fleet]")) return;
-  activeFilter = "all";
-  searchInput.value = "";
-  searchQuery = "";
-  sortSelect.value = "featured";
-  sortMode = "featured";
-  renderFleet();
+  const availabilityButton = event.target.closest("[data-check-availability]");
+  if (availabilityButton) {
+    openAvailabilityDrawer(availabilityButton.dataset.vehicle || "Vehicle selection", availabilityButton);
+    return;
+  }
+
+  const conciergeButton = event.target.closest("[data-concierge-match]");
+  if (conciergeButton) {
+    openAvailabilityDrawer("Help me choose", conciergeButton);
+    return;
+  }
+
+  const cardLink = event.target.closest("[data-fleet-card-link]");
+  if (cardLink) {
+    trackFleetEvent("select_item", {
+      vehicle: cardLink.dataset.vehicle || "Vehicle",
+      vehicle_slug: cardLink.dataset.vehicleSlug || "",
+    });
+    return;
+  }
+
+  if (event.target.closest("[data-reset-fleet]")) {
+    activeFilter = "all";
+    quickFilter = "all";
+    searchInput.value = "";
+    searchQuery = "";
+    sortSelect.value = "featured";
+    sortMode = "featured";
+    renderFleet();
+  }
 });
 
 document.addEventListener("click", (event) => {
@@ -276,7 +594,26 @@ document.addEventListener("click", (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeFilters();
+  if (event.key === "Escape") {
+    closeFilters();
+    closeAvailabilityDrawer();
+    return;
+  }
+
+  if (event.key === "Tab" && availabilityDrawer && !availabilityDrawer.hidden) {
+    const focusable = [...availabilityDrawer.querySelectorAll("button:not(:disabled), input:not(:disabled), a[href]")]
+      .filter((element) => element.offsetParent !== null);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
 });
 
 menuToggle.addEventListener("click", () => {
@@ -313,16 +650,56 @@ async function hydrateSupabaseFleet() {
   const bundledBySlug = new Map(websiteFleet.map((car) => [car.slug || slugify(car.name), car]));
   baseFleet = remoteFleet.map((car) => {
     const bundled = bundledBySlug.get(car.slug || slugify(car.name));
-    if (!bundled?.gallery?.length) return car;
-    return { ...car, image: bundled.image, gallery: bundled.gallery };
+    if (!bundled) return car;
+    const bundledPricingIsNewer = Boolean(
+      bundled.competitorCheckedAt &&
+      (!car.competitorCheckedAt || bundled.competitorCheckedAt >= car.competitorCheckedAt),
+    );
+    return {
+      ...car,
+      ...(bundled.gallery?.length ? { image: bundled.image, gallery: bundled.gallery } : {}),
+      ...(bundledPricingIsNewer
+        ? {
+            price: bundled.price,
+            competitorPrice: bundled.competitorPrice,
+            competitorName: bundled.competitorName,
+            competitorUrl: bundled.competitorUrl,
+            competitorCheckedAt: bundled.competitorCheckedAt,
+          }
+        : {}),
+    };
   });
   renderFleet();
   return true;
 }
 
+function currentSpecialMonth() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function monthlyFallbackSlugs(source, month) {
+  if (!source.length) return [];
+  const seed = Number(month.replace("-", ""));
+  const start = seed % source.length;
+  return Array.from({ length: Math.min(3, source.length) }, (_, index) => vehicleSlug(source[(start + index) % source.length]));
+}
+
+async function hydrateMonthlyDeals() {
+  const month = currentSpecialMonth();
+  const configuredSpecial = isSupabaseFleetConfigured ? await loadMonthlySpecialFromSupabase(month) : null;
+  const activeSlugs = new Set(baseFleet.map(vehicleSlug));
+  const configuredSlugs = Array.isArray(configuredSpecial?.car_slugs)
+    ? configuredSpecial.car_slugs.filter((slug) => activeSlugs.has(slug)).slice(0, 3)
+    : [];
+  monthlySpecialSlugs = new Set(configuredSlugs.length ? configuredSlugs : monthlyFallbackSlugs(baseFleet, month));
+}
+
 async function initFleetPage() {
   if (!isSupabaseFleetConfigured) {
+    await hydrateMonthlyDeals();
     renderFleet();
+    trackFleetEvent("view_item_list", { vehicle_count: baseFleet.length });
     return;
   }
 
@@ -331,8 +708,10 @@ async function initFleetPage() {
     const hydrated = await hydrateSupabaseFleet();
     if (!hydrated) {
       baseFleet = [];
-      renderFleet();
     }
+    await hydrateMonthlyDeals();
+    renderFleet();
+    trackFleetEvent("view_item_list", { vehicle_count: baseFleet.length });
   } catch (error) {
     console.warn("Could not initialize cloud fleet:", error);
     baseFleet = [];
