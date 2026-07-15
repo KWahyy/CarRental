@@ -466,6 +466,18 @@ function shortestFanOffset(index) {
 function updateFanCarousel() {
   const multiplier = fanMultiplier();
   const fanItems = fanStage.querySelectorAll(".fan-card");
+  const isDesktopGrid = window.matchMedia("(min-width: 821px)").matches;
+
+  if (isDesktopGrid) {
+    fanItems.forEach((card, index) => {
+      const isVisible = index < 6;
+      card.style.setProperty("--fan-opacity", isVisible ? "1" : "0");
+      card.style.zIndex = isVisible ? "1" : "0";
+      card.setAttribute("aria-hidden", String(!isVisible));
+      card.tabIndex = isVisible ? 0 : -1;
+    });
+    return;
+  }
 
   fanItems.forEach((card, index) => {
     const offset = shortestFanOffset(index);
@@ -694,7 +706,7 @@ function monthlyFallbackCars(cars, month) {
   if (!cars.length) return [];
   const monthSeed = Number(month.replace("-", ""));
   const start = monthSeed % cars.length;
-  return Array.from({ length: Math.min(3, cars.length) }, (_, index) => cars[(start + index) % cars.length]);
+  return Array.from({ length: Math.min(2, cars.length) }, (_, index) => cars[(start + index) % cars.length]);
 }
 
 async function renderMonthlySpecials() {
@@ -704,11 +716,11 @@ async function renderMonthlySpecials() {
   const configuredSpecial = isSupabaseFleetConfigured ? await loadMonthlySpecialFromSupabase(month) : null;
   const carsBySlug = new Map(fleet.map((car) => [vehicleSlug(car), car]));
   const selectedCars = Array.isArray(configuredSpecial?.car_slugs)
-    ? configuredSpecial.car_slugs.map((slug) => carsBySlug.get(slug)).filter(Boolean).slice(0, 3)
+    ? configuredSpecial.car_slugs.map((slug) => carsBySlug.get(slug)).filter(Boolean).slice(0, 2)
     : [];
   const specialCars = selectedCars.length ? selectedCars : monthlyFallbackCars(fleet, month);
 
-  specialsTitle.textContent = configuredSpecial?.headline?.trim() || `${monthLabel} rental specials`;
+  specialsTitle.textContent = configuredSpecial?.headline?.trim() || `${monthLabel} special`;
   specialsDescription.textContent = configuredSpecial?.description?.trim() || "This month's featured active inventory is available for delivery across Los Angeles and Orange County. Ask for current dates and rates.";
 
   specialsRail.innerHTML = specialCars.length

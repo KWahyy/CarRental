@@ -122,6 +122,7 @@ let businessSettings = readJson(SETTINGS_KEY, {
   bookingNotes: "",
 });
 let selectedSpecialSlugs = [];
+const MAX_MONTHLY_SPECIAL_CARS = 2;
 let trafficEvents = [];
 let trafficAnalyticsError = "";
 let salesBookings = [];
@@ -1297,8 +1298,8 @@ function renderMonthlySpecialPicker() {
   if (!specialCarGrid) return;
   const activeCars = cars.filter((car) => car.is_active !== false);
   const activeSlugs = new Set(activeCars.map((car) => car.slug));
-  selectedSpecialSlugs = selectedSpecialSlugs.filter((slug) => activeSlugs.has(slug)).slice(0, 3);
-  specialSelectionCount.textContent = `${selectedSpecialSlugs.length} of 3 selected`;
+  selectedSpecialSlugs = selectedSpecialSlugs.filter((slug) => activeSlugs.has(slug)).slice(0, MAX_MONTHLY_SPECIAL_CARS);
+  specialSelectionCount.textContent = `${selectedSpecialSlugs.length} of ${MAX_MONTHLY_SPECIAL_CARS} selected`;
 
   specialCarGrid.innerHTML = activeCars.length
     ? activeCars
@@ -1328,7 +1329,7 @@ async function loadMonthlySpecialAdmin() {
     );
     monthlySpecialForm.elements.headline.value = record?.headline || "";
     monthlySpecialForm.elements.description.value = record?.description || "";
-    selectedSpecialSlugs = Array.isArray(record?.car_slugs) ? record.car_slugs.slice(0, 3) : [];
+    selectedSpecialSlugs = Array.isArray(record?.car_slugs) ? record.car_slugs.slice(0, MAX_MONTHLY_SPECIAL_CARS) : [];
     renderMonthlySpecialPicker();
     setStatus(specialsStatus, record ? "Saved selection loaded." : "No saved selection. The website will rotate active cars automatically.");
   } catch (error) {
@@ -1347,7 +1348,7 @@ async function saveMonthlySpecial(event) {
     month: formData.get("month"),
     headline: String(formData.get("headline") || "").trim(),
     description: String(formData.get("description") || "").trim(),
-    car_slugs: selectedSpecialSlugs.slice(0, 3),
+    car_slugs: selectedSpecialSlugs.slice(0, MAX_MONTHLY_SPECIAL_CARS),
     updated_at: new Date().toISOString(),
   };
 
@@ -1787,9 +1788,9 @@ specialMonthInput?.addEventListener("change", loadMonthlySpecialAdmin);
 specialCarGrid?.addEventListener("change", (event) => {
   const checkbox = event.target.closest("input[type='checkbox']");
   if (!checkbox) return;
-  if (checkbox.checked && selectedSpecialSlugs.length >= 3) {
+  if (checkbox.checked && selectedSpecialSlugs.length >= MAX_MONTHLY_SPECIAL_CARS) {
     checkbox.checked = false;
-    setStatus(specialsStatus, "Choose up to three cars for each month.", "error");
+    setStatus(specialsStatus, "Choose up to two cars for each month.", "error");
     return;
   }
   selectedSpecialSlugs = checkbox.checked

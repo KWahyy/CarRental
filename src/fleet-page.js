@@ -691,7 +691,7 @@ function monthlyFallbackSlugs(source, month) {
   if (!source.length) return [];
   const seed = Number(month.replace("-", ""));
   const start = seed % source.length;
-  return Array.from({ length: Math.min(3, source.length) }, (_, index) => vehicleSlug(source[(start + index) % source.length]));
+  return Array.from({ length: Math.min(2, source.length) }, (_, index) => vehicleSlug(source[(start + index) % source.length]));
 }
 
 async function hydrateMonthlyDeals() {
@@ -699,7 +699,7 @@ async function hydrateMonthlyDeals() {
   const configuredSpecial = isSupabaseFleetConfigured ? await loadMonthlySpecialFromSupabase(month) : null;
   const activeSlugs = new Set(baseFleet.map(vehicleSlug));
   const configuredSlugs = Array.isArray(configuredSpecial?.car_slugs)
-    ? configuredSpecial.car_slugs.filter((slug) => activeSlugs.has(slug)).slice(0, 3)
+    ? configuredSpecial.car_slugs.filter((slug) => activeSlugs.has(slug)).slice(0, 2)
     : [];
   monthlySpecialSlugs = new Set(configuredSlugs.length ? configuredSlugs : monthlyFallbackSlugs(baseFleet, month));
 }
