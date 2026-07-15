@@ -1,5 +1,6 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "../src/supabase-config.js";
 
 const root = process.cwd();
 const outDir = join(root, "dist");
@@ -32,6 +33,34 @@ const carDir = join(outDir, "cars");
 const phoneHref = "+12132642967";
 const phoneLabel = "(213) 264-2967";
 
+async function loadActiveInventory() {
+  if (!SUPABASE_URL?.startsWith("https://") || !SUPABASE_PUBLISHABLE_KEY) {
+    throw new Error("Supabase fleet configuration is required to build indexable vehicle pages.");
+  }
+
+  const endpoint = new URL("/rest/v1/cars", SUPABASE_URL);
+  endpoint.searchParams.set("select", "slug,updated_at");
+  endpoint.searchParams.set("is_active", "eq.true");
+  endpoint.searchParams.set("order", "name.asc");
+
+  const response = await fetch(endpoint, {
+    headers: {
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Could not load active inventory for SEO (${response.status} ${response.statusText}).`);
+  }
+
+  const rows = await response.json();
+  return rows.filter((row) => /^[a-z0-9][a-z0-9-]*$/.test(row.slug));
+}
+
+const activeInventory = await loadActiveInventory();
+const activeInventoryBySlug = new Map(activeInventory.map((car) => [car.slug, car]));
+
 const escapeJson = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
 
 function pageShell({ title, description, path, eyebrow, heading, lead, content, schemaType = "WebPage" }) {
@@ -63,15 +92,17 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${escapeJson(schema)}</script>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
-    <link rel="stylesheet" href="/src/styles.css?v=seo-pages-20260712" />
+    <link rel="stylesheet" href="/src/styles.css?v=traffic-pricing-20260713" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <header class="site-header scrolled">
+    <header class="site-header scrolled" data-header>
       <a class="brand" href="/" aria-label="KD's Exotics home"><img class="brand-logo brand-logo-wide" src="/assets/kds-logo-wide.png" alt="" width="1348" height="610" /></a>
-      <nav class="desktop-nav" aria-label="Primary navigation"><a href="/fleet">Fleet</a><a href="/partner">Partner</a><a href="/about">About</a><a href="/#quote">Quote</a></nav>
+      <nav class="desktop-nav" aria-label="Primary navigation"><a href="/fleet.html">Fleet</a><a href="/#how-it-works">How It Works</a><a href="/partner.html">Partner</a><a href="/#faq">FAQ</a></nav>
       <div class="header-actions"><a class="ghost-button" href="tel:${phoneHref}">Call</a><a class="primary-button compact" href="/#quote">Reserve</a></div>
+      <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-toggle><span></span><span></span></button>
     </header>
+    <div class="mobile-menu" data-mobile-menu><a href="/fleet.html">Fleet</a><a href="/#how-it-works">How It Works</a><a href="/partner.html">Partner</a><a href="/#faq">FAQ</a><a href="tel:${phoneHref}">Call</a><a href="/#quote">Reserve</a></div>
     <main id="main" class="seo-page-main">
       <header class="seo-page-hero">
         <p class="eyebrow">${eyebrow}</p>
@@ -86,10 +117,11 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
       <div class="footer-columns">
         <nav class="footer-links" aria-label="Explore"><h3>Explore</h3><a href="/fleet">Fleet</a><a href="/partner">Become a Partner</a><a href="/#quote">Request Quote</a></nav>
         <nav class="footer-links" aria-label="Locations"><h3>Locations</h3><a href="/locations/los-angeles-exotic-car-rental">Los Angeles</a><a href="/locations/orange-county-exotic-car-rental">Orange County</a><a href="/locations/lax-exotic-car-delivery">LAX Delivery</a><a href="/locations/sna-exotic-car-delivery">SNA Delivery</a></nav>
-        <nav class="footer-links" aria-label="Company"><h3>Company</h3><a href="/about">About</a><a href="/rental-policies">Rental Policies</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
+        <nav class="footer-links" aria-label="Company"><h3>Company</h3><a href="/about">About</a><a href="/rental-policies">Rental Policies</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/admin/" rel="nofollow">Admin Login</a></nav>
       </div>
       <div class="footer-bottom"><span>© 2026 KD's Exotics. All rights reserved.</span><span>Rental approval required. Rates subject to availability.</span></div>
     </footer>
+    <script type="module" src="/src/partner.js?v=public-nav-20260713"></script>
   </body>
 </html>`;
 }
@@ -170,9 +202,11 @@ if (existsSync(carDir)) {
     const description = html.match(/<meta name="description" content="([^"]*)"/i)?.[1] || "View this exotic rental car from KD's Exotics in Los Angeles and Orange County.";
     const imagePath = `assets/fleet/${slug}.jpg`;
     const imageUrl = existsSync(join(root, imagePath)) ? `${siteUrl}/${imagePath}` : `${siteUrl}/assets/kds-hero.png`;
+    const isActive = activeInventoryBySlug.has(slug);
+    html = html.replace(/\/src\/vehicle\.js\?v=[^\"]+/g, "/src/vehicle.js?v=cloud-gallery-20260714");
     const metadata = `
     <link rel="canonical" href="${siteUrl}/cars/${slug}" />
-    <meta name="robots" content="noindex, follow" data-inventory-indexing />
+    <meta name="robots" content="${isActive ? "index, follow" : "noindex, follow"}" data-inventory-indexing />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="KD's Exotics" />
     <meta property="og:title" content="${title}" />
@@ -185,16 +219,45 @@ if (existsSync(carDir)) {
   }
 }
 
+const vercelObservability = `
+    <script defer src="/_vercel/insights/script.js" data-sdkn="@vercel/analytics"></script>
+    <script defer src="/_vercel/speed-insights/script.js" data-sdkn="@vercel/speed-insights"></script>`;
+
+function injectVercelObservability(directory, relativePath = "") {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const entryRelativePath = join(relativePath, entry.name);
+    if (entry.isDirectory()) {
+      if (entryRelativePath === "admin") continue;
+      injectVercelObservability(join(directory, entry.name), entryRelativePath);
+      continue;
+    }
+    if (!entry.name.endsWith(".html")) continue;
+    const filePath = join(directory, entry.name);
+    const html = readFileSync(filePath, "utf8");
+    if (html.includes("/_vercel/insights/script.js")) continue;
+    writeFileSync(filePath, html.replace("</body>", `${vercelObservability}\n  </body>`));
+  }
+}
+
+injectVercelObservability(outDir);
+
 writeFileSync(
   join(outDir, "robots.txt"),
   `User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}/sitemap.xml\n`
 );
 
 const sitemapPages = ["", "fleet", "partner", ...companyPages.map(({ slug }) => slug), ...locationPages.map(({ slug }) => `locations/${slug}`)];
+const sitemapVehicles = activeInventory.filter(({ slug }) => existsSync(join(carDir, `${slug}.html`)));
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${sitemapPages.map((page) => `  <url><loc>${siteUrl}/${page}</loc></url>`).join("\n")}
+${sitemapVehicles
+  .map(({ slug, updated_at: updatedAt }) => {
+    const lastmod = updatedAt ? `<lastmod>${String(updatedAt).slice(0, 10)}</lastmod>` : "";
+    return `  <url><loc>${siteUrl}/cars/${slug}</loc>${lastmod}</url>`;
+  })
+  .join("\n")}
 </urlset>\n`;
 writeFileSync(join(outDir, "sitemap.xml"), sitemap);
 
-console.log("Static site copied to dist/");
+console.log(`Static site copied to dist/ with ${sitemapVehicles.length} indexable inventory pages.`);

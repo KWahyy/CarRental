@@ -1,6 +1,6 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=gallery-hq-20260710";
-import { fleet as websiteFleet } from "./fleet-data.js?v=gallery-hq-20260710";
-import { isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase } from "./supabase-fleet.js?v=monthly-specials-20260712";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=cloud-gallery-20260714";
+import { fleet as websiteFleet } from "./fleet-data.js?v=cloud-gallery-20260714";
+import { isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase } from "./supabase-fleet.js?v=cloud-gallery-20260714";
 
 let fleet = [
   {
@@ -135,6 +135,7 @@ const fanStage = document.querySelector("[data-fan-stage]");
 const fanPrev = document.querySelector("[data-fan-prev]");
 const fanNext = document.querySelector("[data-fan-next]");
 const fanDots = document.querySelector("[data-fan-dots]");
+let fanImageObserver;
 const brandGrid = document.querySelector("[data-brand-grid]");
 const brandDots = document.querySelector("[data-brand-dots]");
 const typeGrid = document.querySelector("[data-type-grid]");
@@ -465,6 +466,18 @@ function shortestFanOffset(index) {
 function updateFanCarousel() {
   const multiplier = fanMultiplier();
   const fanItems = fanStage.querySelectorAll(".fan-card");
+  const isDesktopGrid = window.matchMedia("(min-width: 821px)").matches;
+
+  if (isDesktopGrid) {
+    fanItems.forEach((card, index) => {
+      const isVisible = index < 6;
+      card.style.setProperty("--fan-opacity", isVisible ? "1" : "0");
+      card.style.zIndex = isVisible ? "1" : "0";
+      card.setAttribute("aria-hidden", String(!isVisible));
+      card.tabIndex = isVisible ? 0 : -1;
+    });
+    return;
+  }
 
   fanItems.forEach((card, index) => {
     const offset = shortestFanOffset(index);
@@ -498,7 +511,7 @@ function renderFanCarousel() {
     .map(
       (car) => `
         <a class="fan-card" href="/cars/${vehicleSlug(car)}.html" aria-label="View ${car.name}">
-          <img src="${car.image}" alt="${car.name}" loading="lazy" width="500" height="760" onerror="this.onerror=null;this.src='/assets/kds-hero.png';" />
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" data-fan-image="${car.image}" alt="${car.name}" loading="lazy" decoding="async" width="500" height="375" onerror="this.onerror=null;this.src='/assets/kds-hero.png';" />
           <span>${vehicleLabel(car)}</span>
         </a>
       `,
@@ -507,6 +520,70 @@ function renderFanCarousel() {
 
   fanDots.innerHTML = fanCards.map((_, index) => `<span class="${index === fanCenterIndex ? "active" : ""}"></span>`).join("");
   updateFanCarousel();
+  observeFanImages();
+}
+
+function loadFanImages() {
+  fanStage.querySelectorAll("img[data-fan-image]").forEach((image) => {
+    image.src = image.dataset.fanImage;
+    image.removeAttribute("data-fan-image");
+  });
+}
+
+function observeFanImages() {
+  fanImageObserver?.disconnect();
+  if (!("IntersectionObserver" in window)) {
+    loadFanImages();
+    return;
+  }
+
+  fanImageObserver = new IntersectionObserver(
+    (entries, observer) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      loadFanImages();
+      observer.disconnect();
+    },
+    { rootMargin: "240px 0px" },
+  );
+  fanImageObserver.observe(fanStage);
+}
+
+function activateLazyVideo(video) {
+  if (!video || video.dataset.mediaLoaded === "true") return;
+  video.dataset.mediaLoaded = "true";
+  video.querySelectorAll("source[data-src]").forEach((source) => {
+    source.src = source.dataset.src;
+    source.removeAttribute("data-src");
+  });
+  video.load();
+
+  const revealVideo = () => {
+    video.classList.add("is-ready");
+    video.play().catch(() => {});
+  };
+  if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) revealVideo();
+  else video.addEventListener("canplay", revealVideo, { once: true });
+}
+
+function initLazyMedia() {
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const scrollVideos = document.querySelectorAll("[data-scroll-video]");
+  if (!scrollVideos.length || reducedMotion) return;
+  if (!("IntersectionObserver" in window)) {
+    scrollVideos.forEach(activateLazyVideo);
+    return;
+  }
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        activateLazyVideo(entry.target);
+        observer.unobserve(entry.target);
+      });
+    },
+    { rootMargin: "180px 0px" },
+  );
+  scrollVideos.forEach((video) => observer.observe(video));
 }
 
 function renderFleetLoading() {
@@ -629,7 +706,7 @@ function monthlyFallbackCars(cars, month) {
   if (!cars.length) return [];
   const monthSeed = Number(month.replace("-", ""));
   const start = monthSeed % cars.length;
-  return Array.from({ length: Math.min(3, cars.length) }, (_, index) => cars[(start + index) % cars.length]);
+  return Array.from({ length: Math.min(2, cars.length) }, (_, index) => cars[(start + index) % cars.length]);
 }
 
 async function renderMonthlySpecials() {
@@ -639,11 +716,11 @@ async function renderMonthlySpecials() {
   const configuredSpecial = isSupabaseFleetConfigured ? await loadMonthlySpecialFromSupabase(month) : null;
   const carsBySlug = new Map(fleet.map((car) => [vehicleSlug(car), car]));
   const selectedCars = Array.isArray(configuredSpecial?.car_slugs)
-    ? configuredSpecial.car_slugs.map((slug) => carsBySlug.get(slug)).filter(Boolean).slice(0, 3)
+    ? configuredSpecial.car_slugs.map((slug) => carsBySlug.get(slug)).filter(Boolean).slice(0, 2)
     : [];
   const specialCars = selectedCars.length ? selectedCars : monthlyFallbackCars(fleet, month);
 
-  specialsTitle.textContent = configuredSpecial?.headline?.trim() || `${monthLabel} rental specials`;
+  specialsTitle.textContent = configuredSpecial?.headline?.trim() || `${monthLabel} special`;
   specialsDescription.textContent = configuredSpecial?.description?.trim() || "This month's featured active inventory is available for delivery across Los Angeles and Orange County. Ask for current dates and rates.";
 
   specialsRail.innerHTML = specialCars.length
@@ -745,7 +822,7 @@ async function hydrateSupabaseFleet() {
   const bundledBySlug = new Map(websiteFleet.map((car) => [car.slug || slugify(car.name), car]));
   const fleetWithBundledMedia = remoteFleet.map((car) => {
     const bundled = bundledBySlug.get(car.slug || slugify(car.name));
-    if (!bundled?.gallery?.length) return car;
+    if (car.gallery?.length || !bundled?.gallery?.length) return car;
     return { ...car, image: bundled.image, gallery: bundled.gallery };
   });
   refreshFleetFromBase(fleetWithBundledMedia);
@@ -930,6 +1007,7 @@ if (quoteForm) {
 let baseFleet = fleet.slice();
 hydrateDiaText();
 observeReveals();
+initLazyMedia();
 
 async function initFleetSections() {
   if (!isSupabaseFleetConfigured) {

@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=kds-favicon-20260624" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png?v=kds-favicon-20260624" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=kds-favicon-20260624" />
-    <link rel="stylesheet" href="/src/styles.css?v=monthly-specials-20260712" />
+    <link rel="stylesheet" href="/src/styles.css?v=sales-system-20260713" />
   </head>
   <body class="admin-page">
     <main class="admin-shell">
@@ -83,7 +83,7 @@
               <div class="command-topbar">
                 <span>Dashboard</span>
                 <span>/</span>
-                <strong>Fleet overview</strong>
+                <strong>Daily operations</strong>
               </div>
 
               <div class="fleet-command-layout">
@@ -125,20 +125,130 @@
 
                   <div class="command-header">
                     <div>
-                    <h2>Command center</h2>
-                    <p>See what needs attention today: fleet readiness, quote follow-up, deposits, and photo gaps.</p>
+                    <h2>Today’s operations</h2>
+                    <p>Contact customers, verify partner inventory, close bookings, and protect today’s revenue.</p>
                     </div>
-                    <button class="primary-button compact" type="button" data-jump-section="vehicles">Add car</button>
+                    <div class="dashboard-quick-actions" aria-label="Dashboard quick actions">
+                      <button class="primary-button compact" type="button" data-jump-section="requests">Open quotes</button>
+                      <button class="secondary-button compact" type="button" data-add-demo-request>Add lead</button>
+                      <button class="secondary-button compact" type="button" data-new-dashboard-car>Add vehicle</button>
+                      <button class="secondary-button compact" type="button" data-jump-section="specials">Monthly special</button>
+                    </div>
                   </div>
 
                   <div class="command-kpis" data-overview-stats>
-                    <article><span>Ready to rent</span><strong>0 cars</strong><small>Loaded from website fleet</small></article>
-                    <article><span>New leads</span><strong>0</strong><small>Waiting for first response</small></article>
-                    <article><span>Follow-up queue</span><strong>0</strong><small>Deposit, insurance, or approval</small></article>
-                    <article><span>Content gaps</span><strong>0</strong><small>Cars missing stronger galleries</small></article>
+                    <article><span>New inquiries</span><strong>0</strong><small>Need first response</small></article>
+                    <article><span>Partner checks</span><strong>0</strong><small>Waiting for availability</small></article>
+                    <article><span>Quotes ready</span><strong>0</strong><small>Customer follow-up</small></article>
+                    <article><span>Bookings</span><strong>0</strong><small>This month</small></article>
+                    <article><span>Booked revenue</span><strong>$0</strong><small>Starting daily value</small></article>
                   </div>
 
-                  <div class="command-analytics">
+                  <section class="command-card sales-command-center">
+                    <div class="command-card-head sales-command-head">
+                      <div>
+                        <h3>Sales performance</h3>
+                        <p>Track every confirmed booking, compare months, and monitor collected cash, balances, and gross profit.</p>
+                      </div>
+                      <div class="sales-command-actions">
+                        <label>
+                          Reporting year
+                          <select data-sales-year aria-label="Sales reporting year"></select>
+                        </label>
+                        <button class="primary-button compact" type="button" data-open-booking-editor>Record booking</button>
+                      </div>
+                    </div>
+                    <div class="sales-summary" data-sales-summary></div>
+                    <div class="sales-chart-layout">
+                      <div class="sales-chart-panel">
+                        <div class="sales-chart-title">
+                          <div>
+                            <strong>Monthly sales</strong>
+                            <span data-sales-comparison-label>Current year vs previous year</span>
+                          </div>
+                          <div class="sales-chart-legend"><span><i></i> Selected year</span><span><i></i> Previous year</span></div>
+                        </div>
+                        <div class="sales-chart" data-sales-chart></div>
+                      </div>
+                      <aside class="sales-breakdown" data-sales-breakdown></aside>
+                    </div>
+                    <div class="sales-ledger-head">
+                      <div>
+                        <h4>Booking ledger</h4>
+                        <p>Every confirmed sale and its payment position.</p>
+                      </div>
+                      <span data-sales-ledger-count>0 bookings</span>
+                    </div>
+                    <div class="sales-ledger-wrap">
+                      <table class="sales-ledger">
+                        <thead>
+                          <tr><th>Booked</th><th>Customer</th><th>Vehicle</th><th>Total</th><th>Collected</th><th>Balance</th><th>Profit</th><th>Payment</th><th></th></tr>
+                        </thead>
+                        <tbody data-sales-ledger></tbody>
+                      </table>
+                    </div>
+                  </section>
+
+                  <div class="dashboard-operations-grid">
+                    <section class="command-card dashboard-pipeline-card">
+                      <div class="command-card-head">
+                        <div>
+                          <h3>Availability pipeline</h3>
+                          <p>Your live path from inquiry to confirmed booking.</p>
+                        </div>
+                        <button class="text-button" type="button" data-jump-section="requests">Manage quotes</button>
+                      </div>
+                      <div class="dashboard-pipeline" data-dashboard-pipeline></div>
+                    </section>
+
+                    <section class="command-card dashboard-upcoming-card">
+                      <div class="command-card-head">
+                        <div>
+                          <h3>Upcoming bookings & deliveries</h3>
+                          <p>Approved and booked requests with the nearest dates first.</p>
+                        </div>
+                        <button class="text-button" type="button" data-jump-section="calendar">Open bookings</button>
+                      </div>
+                      <div class="dashboard-upcoming" data-dashboard-upcoming></div>
+                    </section>
+                  </div>
+
+                  <section class="command-card traffic-performance-card">
+                    <div class="command-card-head">
+                      <div>
+                        <h3>Fleet traffic & clicks</h3>
+                        <p>Last 30 days of vehicle impressions, detail clicks, availability checks, and completed requests.</p>
+                      </div>
+                    </div>
+                    <div class="traffic-insights" data-traffic-insights>
+                      <p class="admin-empty">Traffic data will appear after visitors use the fleet.</p>
+                    </div>
+                  </section>
+
+                  <div class="dashboard-operations-grid dashboard-operations-secondary">
+                    <section class="command-card dashboard-partner-card">
+                      <div class="command-card-head">
+                        <div>
+                          <h3>Partner availability calls</h3>
+                          <p>Shared-fleet requests that still need a supplier confirmation.</p>
+                        </div>
+                      </div>
+                      <div class="dashboard-partner-queue" data-dashboard-partner-queue></div>
+                    </section>
+
+                    <section class="command-card dashboard-pricing-card">
+                      <div class="command-card-head">
+                        <div>
+                          <h3>Competitive pricing</h3>
+                          <p>Verified comparisons, $50 targets, and rates that need another check.</p>
+                        </div>
+                        <button class="text-button" type="button" data-jump-section="vehicles">Manage pricing</button>
+                      </div>
+                      <div class="dashboard-pricing-alerts" data-dashboard-pricing-alerts></div>
+                    </section>
+                  </div>
+
+                  <div class="command-analytics dashboard-legacy" aria-hidden="true">
                     <section class="command-card availability-card">
                       <div class="command-card-head">
                         <div>
@@ -326,7 +436,7 @@
                     </div>
                   </section>
 
-                  <section class="command-card fleet-management-snapshot">
+                  <section class="command-card fleet-management-snapshot dashboard-legacy" aria-hidden="true">
                     <div class="command-card-head">
                       <div>
                         <h3>Vehicle health</h3>
@@ -363,7 +473,7 @@
                   <strong>Manage website vehicles</strong>
                 </div>
                 <button class="primary-button" type="button" data-new-car>Add vehicle</button>
-                <button class="secondary-button" type="button" data-seed-fleet>Sync website fleet</button>
+                <button class="secondary-button" type="button" data-seed-fleet>Sync all website cars</button>
                 <p class="admin-status" role="status" data-admin-status></p>
               </div>
 
@@ -448,6 +558,50 @@
                         Short description
                         <textarea name="summary" rows="3" required></textarea>
                       </label>
+                      <div class="admin-partner-details">
+                        <div>
+                          <h4>Rental partner</h4>
+                          <p>Used internally for shared-fleet availability calls. This does not appear on the public website.</p>
+                        </div>
+                        <div class="admin-form-grid simple">
+                          <label>
+                            Partner name
+                            <input name="partner_name" autocomplete="organization" placeholder="Rental company" />
+                          </label>
+                          <label>
+                            Partner phone
+                            <input name="partner_phone" type="tel" autocomplete="tel" placeholder="(213) 555-0100" />
+                          </label>
+                        </div>
+                      </div>
+                      <div class="admin-pricing-benchmark">
+                        <div>
+                          <h4>Competitor price check</h4>
+                          <p>Save a comparable public rate. The recommendation stays exactly $50 below it.</p>
+                        </div>
+                        <div class="admin-form-grid simple">
+                          <label>
+                            Competitor rate / day
+                            <input name="competitor_price" type="number" min="0" step="1" />
+                          </label>
+                          <label>
+                            Competitor name
+                            <input name="competitor_name" />
+                          </label>
+                          <label>
+                            Listing URL
+                            <input name="competitor_url" type="url" placeholder="https://" />
+                          </label>
+                          <label>
+                            Date checked
+                            <input name="competitor_checked_at" type="date" />
+                          </label>
+                        </div>
+                        <div class="admin-pricing-recommendation">
+                          <span data-competitor-recommendation>Add a competitor rate to calculate the target.</span>
+                          <button class="secondary-button compact" type="button" data-apply-competitive-price>Use recommended price</button>
+                        </div>
+                      </div>
                     </section>
 
                     <div hidden>
@@ -495,7 +649,7 @@
                 <div>
                   <p class="eyebrow">Homepage promotion</p>
                   <h2>Monthly Special</h2>
-                  <p>Choose up to three active fleet cars for a specific month. If you do not save a selection, the website rotates active inventory automatically.</p>
+                  <p>Choose up to two active fleet cars for a specific month. If you do not save a selection, the website rotates active inventory automatically.</p>
                 </div>
               </div>
 
@@ -532,6 +686,49 @@
       </section>
     </main>
 
-    <script type="module" src="/src/admin.js?v=monthly-specials-20260712"></script>
+    <dialog class="booking-editor-dialog" data-booking-dialog>
+      <form class="booking-editor-form" data-booking-form>
+        <input type="hidden" name="id" />
+        <div class="booking-editor-head">
+          <div>
+            <p class="eyebrow">Sales ledger</p>
+            <h2 data-booking-editor-title>Record booking</h2>
+            <p>Save the full deal so revenue, cash collected, balance, and profit stay accurate.</p>
+          </div>
+          <button class="booking-dialog-close" type="button" data-close-booking-editor aria-label="Close booking editor">×</button>
+        </div>
+        <div class="booking-form-grid">
+          <label class="booking-form-wide">Linked quote
+            <select name="quote_request_id" data-booking-quote-select><option value="">Manual booking</option></select>
+          </label>
+          <label>Customer name<input name="customer_name" required /></label>
+          <label>Customer phone<input name="customer_phone" type="tel" /></label>
+          <label class="booking-form-wide">Vehicle<input name="vehicle" required /></label>
+          <label>Booked on<input name="booked_on" type="date" required /></label>
+          <label>Rental starts<input name="start_date" type="date" /></label>
+          <label>Rental ends<input name="end_date" type="date" /></label>
+          <label>Rental days<input name="rental_days" type="number" min="1" step="1" value="1" required /></label>
+          <label>Daily rate<input name="daily_rate" type="number" min="0" step="1" value="0" required /></label>
+          <label>Delivery fee<input name="delivery_fee" type="number" min="0" step="1" value="0" /></label>
+          <label>Add-ons<input name="addons_total" type="number" min="0" step="1" value="0" /></label>
+          <label>Discount<input name="discount" type="number" min="0" step="1" value="0" /></label>
+          <label>Partner cost<input name="partner_cost" type="number" min="0" step="1" value="0" /></label>
+          <label>Amount collected<input name="amount_paid" type="number" min="0" step="1" value="0" /></label>
+          <label>Payment status
+            <select name="payment_status"><option value="pending">Pending</option><option value="partial">Partially paid</option><option value="paid">Paid</option><option value="refunded">Refunded</option></select>
+          </label>
+          <label class="booking-form-wide">Internal notes<textarea name="notes" rows="3"></textarea></label>
+        </div>
+        <div class="booking-total-preview" data-booking-total-preview></div>
+        <div class="booking-editor-footer">
+          <p class="admin-status" role="status" data-booking-status></p>
+          <button class="danger-button" type="button" data-delete-booking hidden>Delete</button>
+          <button class="secondary-button" type="button" data-close-booking-editor>Cancel</button>
+          <button class="primary-button" type="submit">Save booking</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="/src/admin.js?v=monthly-two-20260715"></script>
   </body>
 </html>

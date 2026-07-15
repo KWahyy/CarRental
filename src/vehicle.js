@@ -1,6 +1,6 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=gallery-hq-20260710";
-import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=gallery-hq-20260710";
-import { isSupabaseFleetConfigured, loadVehicleFromSupabase } from "./supabase-fleet.js?v=gallery-hq-20260710";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=cloud-gallery-20260714";
+import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=cloud-gallery-20260714";
+import { isSupabaseFleetConfigured, loadVehicleFromSupabase, recordFleetEvent } from "./supabase-fleet.js?v=cloud-gallery-20260714";
 
 const slug = document.body.dataset.vehicleSlug;
 let baseVehicleFleet = fleet;
@@ -275,9 +275,23 @@ async function hydrateRemoteVehicle() {
   }
 
   const bundledCar = baseVehicleFleet.find((item) => item.slug === remoteCar.slug);
-  const publicCar = bundledCar?.gallery?.length
-    ? { ...remoteCar, image: bundledCar.image, gallery: bundledCar.gallery }
-    : remoteCar;
+  const bundledPricingIsNewer = Boolean(
+    bundledCar?.competitorCheckedAt &&
+    (!remoteCar.competitorCheckedAt || bundledCar.competitorCheckedAt >= remoteCar.competitorCheckedAt),
+  );
+  const publicCar = {
+    ...remoteCar,
+    ...(!remoteCar.gallery?.length && bundledCar?.gallery?.length ? { image: bundledCar.image, gallery: bundledCar.gallery } : {}),
+    ...(bundledPricingIsNewer
+      ? {
+          price: bundledCar.price,
+          competitorPrice: bundledCar.competitorPrice,
+          competitorName: bundledCar.competitorName,
+          competitorUrl: bundledCar.competitorUrl,
+          competitorCheckedAt: bundledCar.competitorCheckedAt,
+        }
+      : {}),
+  };
 
   baseVehicleFleet = baseVehicleFleet.some((item) => item.slug === publicCar.slug)
     ? baseVehicleFleet.map((item) => (item.slug === publicCar.slug ? publicCar : item))
@@ -288,7 +302,7 @@ async function hydrateRemoteVehicle() {
 }
 
 async function initVehicle() {
-  setVehicleIndexing(!isSupabaseFleetConfigured);
+  if (!isSupabaseFleetConfigured) setVehicleIndexing(Boolean(car));
   let hydrated = false;
   if (isSupabaseFleetConfigured) {
     try {
@@ -302,6 +316,10 @@ async function initVehicle() {
     refreshVehicleFromBase({ allowStaticFallback: !isSupabaseFleetConfigured });
   }
   document.body.classList.remove("is-loading-vehicle");
+  void recordFleetEvent("vehicle_detail_view", {
+    carSlug: slug,
+    metadata: { vehicle: car?.name || slug },
+  });
 }
 
 initVehicle();
