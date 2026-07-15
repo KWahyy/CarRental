@@ -16784,3 +16784,207 @@ body.availability-open {
     min-height: 440px;
   }
 }
+
+/* Private-client hero: cinematic video, restrained campaign typography. */
+.hero-scrim {
+  background:
+    radial-gradient(circle at 50% 74%, rgba(0, 0, 0, 0.16), transparent 34%),
+    linear-gradient(180deg, rgba(4, 4, 4, 0.12) 0%, rgba(4, 4, 4, 0.18) 42%, rgba(4, 4, 4, 0.82) 100%);
+}
+
+.hero-content {
+  align-self: end;
+  width: min(1120px, calc(100% - 48px));
+  padding: clamp(150px, 20vh, 210px) 0 clamp(64px, 9vh, 104px);
+}
+
+.hero-private-label {
+  margin: 0 0 18px;
+  color: rgba(255, 255, 255, 0.82);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: clamp(0.62rem, 0.72vw, 0.74rem);
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.hero h1,
+.hero h1.reveal {
+  max-width: 12ch;
+  color: #fff;
+  background: none;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: clamp(3.2rem, 5.4vw, 6rem);
+  font-weight: 300;
+  line-height: 0.96;
+  letter-spacing: 0.09em;
+  text-shadow: 0 14px 46px rgba(0, 0, 0, 0.7);
+  animation: heroReveal 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero h1 span {
+  display: inline-block;
+  margin-top: 0.08em;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 300;
+}
+
+.hero h1::after {
+  content: none;
+}
+
+.hero-copy {
+  max-width: 620px;
+  margin-top: 22px;
+  color: rgba(255, 255, 255, 0.82);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: clamp(0.92rem, 1vw, 1.06rem);
+  font-weight: 400;
+  letter-spacing: 0.035em;
+  line-height: 1.55;
+}
+
+.hero-cta {
+  margin-top: 30px;
+  gap: 10px;
+}
+
+.hero-booking-button,
+.hero-request-button {
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 2px;
+  padding: 13px clamp(20px, 2.4vw, 32px);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.hero-booking-button {
+  background: #fff;
+  color: #090909;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+}
+
+.hero-booking-button svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hero-request-button {
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+  backdrop-filter: blur(10px);
+}
+
+.hero-booking-button:hover,
+.hero-booking-button:focus-visible {
+  border-color: #fff;
+  background: #fff;
+  color: #090909;
+  transform: translateY(-2px);
+}
+
+.hero-request-button:hover,
+.hero-request-button:focus-visible {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+.hero-trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin: 26px auto 0;
+  color: rgba(255, 255, 255, 0.58);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 0.61rem;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.hero-trust span {
+  display: inline-flex;
+  align-items: center;
+}
+
+.hero-trust span:not(:last-child)::after {
+  content: "";
+  width: 3px;
+  height: 3px;
+  margin: 0 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.46);
+}
+
+@media (max-width: 640px) {
+  .hero-scrim {
+    background:
+      linear-gradient(180deg, rgba(4, 4, 4, 0.18) 0%, rgba(4, 4, 4, 0.24) 38%, rgba(4, 4, 4, 0.9) 100%);
+  }
+
+  .hero-content {
+    width: min(100% - 32px, 560px);
+    padding: 118px 0 46px;
+  }
+
+  .hero-private-label {
+    margin-bottom: 14px;
+    font-size: 0.56rem;
+    letter-spacing: 0.24em;
+  }
+
+  .hero h1,
+  .hero h1.reveal {
+    max-width: 11ch;
+    font-size: clamp(2.55rem, 12.5vw, 3.45rem);
+    line-height: 0.98;
+    letter-spacing: 0.055em;
+  }
+
+  .hero-copy {
+    max-width: 320px;
+    margin-top: 18px;
+    font-size: 0.86rem;
+  }
+
+  .hero-cta {
+    width: min(100%, 340px);
+    margin: 26px auto 0;
+  }
+
+  .hero-booking-button,
+  .hero-request-button {
+    width: 100%;
+    min-height: 50px;
+    font-size: 0.66rem;
+  }
+
+  .hero-trust {
+    margin-top: 22px;
+    font-size: 0.52rem;
+    letter-spacing: 0.15em;
+  }
+
+  .hero-trust span:not(:last-child)::after {
+    margin-inline: 10px;
+  }
+}
