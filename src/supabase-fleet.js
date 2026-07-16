@@ -1,12 +1,24 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./supabase-config.js";
 
 const configured = Boolean(SUPABASE_URL && SUPABASE_URL.startsWith("https://"));
-const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
+let supabasePromise = null;
 const MAX_LISTING_PHOTOS = 3;
 const ANALYTICS_SESSION_KEY = "kds_fleet_analytics_session";
 
 export const isSupabaseFleetConfigured = configured;
+
+async function getSupabase() {
+  if (!configured) return null;
+  if (!supabasePromise) {
+    supabasePromise = import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm")
+      .then(({ createClient }) => createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY))
+      .catch((error) => {
+        supabasePromise = null;
+        throw error;
+      });
+  }
+  return supabasePromise;
+}
 
 function mapCar(row) {
   const photos = [...(row.car_photos || [])].sort((a, b) => Number(a.position) - Number(b.position));
@@ -33,7 +45,21 @@ function mapCar(row) {
     competitorName: row.competitor_name || "",
     competitorUrl: row.competitor_url || "",
     competitorCheckedAt: row.competitor_checked_at || "",
+    updatedAt: row.updated_at || "",
   };
+}
+
+export function cacheSafeFleetImageUrl(url, updatedAt = "") {
+  const source = String(url || "");
+  if (!source || !updatedAt || !source.includes("/storage/v1/object/public/")) return source;
+
+  try {
+    const parsed = new URL(source, window.location.origin);
+    parsed.searchParams.set("v", String(Date.parse(updatedAt) || updatedAt));
+    return parsed.href;
+  } catch {
+    return source;
+  }
 }
 
 function analyticsSessionId() {
@@ -50,6 +76,7 @@ function analyticsSessionId() {
 }
 
 export async function recordFleetEvent(eventType, { carSlug = "", metadata = {} } = {}) {
+  const supabase = await getSupabase();
   if (!supabase) return false;
 
   const { error } = await supabase.from("fleet_events").insert({
@@ -68,6 +95,7 @@ export async function recordFleetEvent(eventType, { carSlug = "", metadata = {} 
 }
 
 export async function loadFleetFromSupabase() {
+  const supabase = await getSupabase();
   if (!supabase) return null;
 
   const { data, error } = await supabase
@@ -85,6 +113,7 @@ export async function loadFleetFromSupabase() {
 }
 
 export async function loadVehicleFromSupabase(slug) {
+  const supabase = await getSupabase();
   if (!supabase) return null;
 
   const { data, error } = await supabase
@@ -104,6 +133,7 @@ export async function loadVehicleFromSupabase(slug) {
 }
 
 export async function loadMonthlySpecialFromSupabase(month) {
+  const supabase = await getSupabase();
   if (!supabase) return null;
 
   const { data, error } = await supabase

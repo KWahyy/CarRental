@@ -105,16 +105,10 @@
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=kds-favicon-20260624" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="preload"
-      as="image"
-      href="/assets/kds-hero.png"
-      fetchpriority="high"
-    />
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/src/styles.css?v=private-hero-20260715" />
+    <link rel="stylesheet" href="/src/styles.css?v=hero-clean-video-20260715" />
   </head>
-  <body>
+  <body class="home-page">
     <a class="skip-link" href="#main">Skip to content</a>
 
     <header class="site-header" data-header>
@@ -157,18 +151,19 @@
           muted
           loop
           playsinline
-          preload="metadata"
-          poster="/assets/kds-hero.png"
+          preload="auto"
           aria-label="Black exotic sports car staged at night for a VIP rental experience"
         >
           <source src="/assets/kds-hero-source.mp4" type="video/mp4" />
           <source src="/assets/kds-hero-loop.webm" type="video/webm" />
         </video>
-        <img class="hero-poster" src="/assets/kds-hero.png" alt="" width="1536" height="864" fetchpriority="high" />
         <div class="hero-scrim" aria-hidden="true"></div>
         <div class="hero-content">
           <p class="hero-private-label reveal">Private Automotive Concierge</p>
-          <h1 class="reveal">Presence.<br /><span>Delivered.</span></h1>
+          <h1 class="reveal">
+            <span class="hero-title-line"><span>Presence.</span></span>
+            <span class="hero-title-line hero-title-line-muted"><span>Delivered.</span></span>
+          </h1>
           <p class="hero-copy reveal">Exceptional vehicles. Discreet service. Every detail handled.</p>
           <div class="hero-cta reveal">
             <a class="primary-button hero-booking-button" href="/fleet.html">
@@ -417,20 +412,25 @@
 
       <section class="quote-section reveal" id="quote" aria-labelledby="quote-title">
         <div class="quote-copy">
-          <p class="quote-kicker">Private Quote</p>
-          <h2 id="quote-title">Tell us what you want to drive.</h2>
+          <p class="quote-kicker">Private Reservation Desk</p>
+          <h2 id="quote-title">Request your arrival.</h2>
           <p>
-            Send the date, car, and experience you want. KD&apos;s Exotics will follow up with availability, approval steps,
-            and the final rate.
+            Share the vehicle and timing you have in mind. Your concierge will confirm availability, arrange the details,
+            and return with a private proposal.
           </p>
           <div class="quote-proof" aria-label="Quote benefits">
-            <span>Fast response</span>
-            <span>Concierge booking</span>
-            <span>Car + photographer options</span>
+            <span data-index="01">Availability confirmed personally</span>
+            <span data-index="02">Every detail handled privately</span>
+            <span data-index="03">No payment collected here</span>
           </div>
         </div>
 
         <form class="quote-form" data-quote-form aria-label="Request a rental quote">
+          <div class="quote-form-head">
+            <p>Confidential Inquiry</p>
+            <strong>Reservation details</strong>
+            <span>A concierge will review your request before anything is confirmed.</span>
+          </div>
           <div class="quote-form-grid">
             <label>
               <span>Name</span>
@@ -453,7 +453,7 @@
               <select name="vehicle" data-vehicle-select></select>
             </label>
             <label class="quote-field-wide">
-              <span>Insurance Provider</span>
+              <span>Current Insurance Carrier</span>
               <input
                 name="insuranceProvider"
                 type="text"
@@ -462,7 +462,7 @@
                 placeholder="Example: State Farm"
                 required
               />
-              <small>Enter the company providing your current auto insurance.</small>
+              <small>Coverage is reviewed privately during approval.</small>
             </label>
           </div>
           <datalist id="insurance-provider-options">
@@ -478,9 +478,9 @@
           </datalist>
 
           <fieldset class="quote-addons">
-            <legend>Add-ons</legend>
-            <label><input type="checkbox" name="photographer" /> Photographer</label>
-            <label><input type="checkbox" name="delivery" /> Delivery</label>
+            <legend>Enhance your arrival</legend>
+            <label><input type="checkbox" name="photographer" /> Content Capture</label>
+            <label><input type="checkbox" name="delivery" /> Arrival Coordination</label>
             <label><input type="checkbox" name="chauffeur" /> Chauffeur</label>
           </fieldset>
 
@@ -493,8 +493,8 @@
               <input name="company" type="text" tabindex="-1" autocomplete="off" />
             </label>
 
-            <button class="quote-submit" type="submit">Request Quote</button>
-            <p class="quote-status" data-quote-status role="status">Valid license, insurance, and deposit may be required before approval.</p>
+            <button class="quote-submit" type="submit">Send Private Request</button>
+            <p class="quote-status" data-quote-status role="status">Your request remains private. License, insurance, and deposit are confirmed before approval.</p>
         </form>
       </section>
 
@@ -687,14 +687,14 @@
 
     </main>
 
-    <footer class="site-footer">
+    <footer class="site-footer reveal">
       <div class="footer-main">
         <a class="brand footer-brand" href="#top" aria-label="KD's Exotics home">
           <span class="footer-logo-frame">
             <img class="brand-logo-wide" src="/assets/kds-logo-wide.png" alt="KD's Exotics" width="1536" height="864" loading="lazy" />
           </span>
         </a>
-        <p>Exotic car rentals, VIP add-ons, and concierge booking for clients who want the full experience.</p>
+        <p>A private automotive concierge for clients who expect discretion, precision, and presence.</p>
         <div class="footer-contact">
           <a href="tel:+12132642967">Call (213) 264-2967</a>
           <a href="sms:+12132642967">Text concierge</a>
@@ -737,6 +737,6 @@
       </div>
     </footer>
 
-    <script type="module" src="/src/main.js?v=popular-grid-20260715"></script>
+    <script type="module" src="/src/main.js?v=fleet-consistency-20260715b"></script>
   </body>
 </html>

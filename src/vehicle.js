@@ -1,6 +1,6 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=cloud-gallery-20260714";
-import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=cloud-gallery-20260714";
-import { isSupabaseFleetConfigured, loadVehicleFromSupabase, recordFleetEvent } from "./supabase-fleet.js?v=cloud-gallery-20260714";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=fleet-consistency-20260715";
+import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=fleet-consistency-20260715";
+import { cacheSafeFleetImageUrl, isSupabaseFleetConfigured, loadVehicleFromSupabase, recordFleetEvent } from "./supabase-fleet.js?v=fleet-consistency-20260715";
 
 const slug = document.body.dataset.vehicleSlug;
 let baseVehicleFleet = fleet;
@@ -11,6 +11,123 @@ const menuToggle = document.querySelector("[data-menu-toggle]");
 const mobileMenu = document.querySelector("[data-mobile-menu]");
 const CLOUD_VEHICLE_TIMEOUT_MS = 3500;
 const MAX_LISTING_PHOTOS = 3;
+const CRM_REQUESTS_KEY = "kds-crm-requests";
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function vehicleYear(vehicle) {
+  return String(vehicle?.year || vehicle?.name?.match(/^(\d{4})/)?.[1] || "Private collection");
+}
+
+function ensureVehicleShell() {
+  const page = document.querySelector("[data-vehicle-page]");
+  if (!page || page.querySelector(".vehicle-private-page")) return;
+  page.innerHTML = `
+    <div class="vehicle-private-page">
+      <a class="vehicle-private-back" href="/fleet.html"><span aria-hidden="true">←</span> Return to collection</a>
+
+      <section class="vehicle-private-hero" aria-labelledby="vehicle-private-title">
+        <div class="vehicle-private-title-card">
+          <span data-vehicle-year>Private collection</span>
+          <p data-vehicle-category>Exotic vehicle</p>
+          <h1 id="vehicle-private-title" data-vehicle-title>Vehicle</h1>
+          <strong data-vehicle-price></strong>
+          <a href="#vehicle-request">Request this vehicle <span aria-hidden="true">↘</span></a>
+        </div>
+        <div class="vehicle-gallery-stage">
+          <button class="vehicle-gallery-nav vehicle-gallery-nav-prev" type="button" aria-label="Previous photo" data-gallery-prev><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></button>
+          <img data-gallery-main alt="" width="1600" height="1100" />
+          <button class="vehicle-gallery-nav vehicle-gallery-nav-next" type="button" aria-label="Next photo" data-gallery-next><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+        </div>
+      </section>
+
+      <div class="vehicle-private-photo-grid" data-gallery-thumbs aria-label="Vehicle gallery"></div>
+
+      <section class="vehicle-private-information" aria-label="Vehicle information and request">
+        <article class="vehicle-private-overview">
+          <p class="eyebrow">Overview</p>
+          <h2>Made for the moment.</h2>
+          <p class="vehicle-private-summary" data-vehicle-summary></p>
+          <div class="vehicle-private-specs" aria-label="Vehicle specifications">
+            <div><span>Engine</span><strong data-vehicle-engine></strong></div>
+            <div><span>Seats</span><strong data-vehicle-seats></strong></div>
+            <div><span>0–60 mph</span><strong data-vehicle-acceleration></strong></div>
+            <div><span>Body</span><strong data-vehicle-type></strong></div>
+            <div><span>Exterior</span><strong data-vehicle-color></strong></div>
+            <div><span>Included mileage</span><strong data-vehicle-mileage></strong></div>
+          </div>
+
+          <div class="vehicle-private-inclusions">
+            <p class="eyebrow">The vehicle</p>
+            <ul data-vehicle-details></ul>
+          </div>
+
+          <div class="vehicle-private-rates">
+            <p class="eyebrow">Rate guidance</p>
+            <div data-vehicle-tags></div>
+            <p>Multi-day savings are calculated from the displayed daily rate. Additional mileage, delivery, and add-ons are confirmed by your concierge before approval.</p>
+          </div>
+        </article>
+
+        <aside id="vehicle-request" class="vehicle-private-request">
+          <p class="eyebrow">Private vehicle request</p>
+          <h2>Check your dates.</h2>
+          <p>Availability changes frequently. Your concierge will verify the exact vehicle and requested dates before confirming anything.</p>
+          <div class="vehicle-request-rate"><span>Starting from</span><strong data-vehicle-price></strong></div>
+          <form data-vehicle-request-form>
+            <input name="vehicle" type="hidden" />
+            <div class="vehicle-request-dates">
+              <label><span>Pickup date</span><input name="date" type="date" required /></label>
+              <label><span>Return date</span><input name="returnDate" type="date" required /></label>
+            </div>
+            <label><span>Delivery city or ZIP</span><input name="deliveryLocation" type="text" placeholder="Beverly Hills or 90210" required /></label>
+            <label><span>Full name</span><input name="name" type="text" autocomplete="name" required /></label>
+            <label><span>Phone</span><input name="phone" type="tel" autocomplete="tel" required /></label>
+            <label><span>Email <small>Optional</small></span><input name="email" type="email" autocomplete="email" /></label>
+            <label class="vehicle-request-alternatives"><input name="alternatives" type="checkbox" checked /><span>Show me similar options if this car is unavailable.</span></label>
+            <label class="quote-honeypot" aria-hidden="true"><span>Company</span><input name="company" type="text" tabindex="-1" autocomplete="off" /></label>
+            <button type="submit">Request This Vehicle <span aria-hidden="true">↗</span></button>
+            <p data-vehicle-request-status role="status">No charge today. We will verify availability and contact you personally.</p>
+          </form>
+          <a class="vehicle-request-call" href="tel:+12132642967">Prefer to speak privately? Call (213) 264-2967</a>
+        </aside>
+      </section>
+
+      <section class="vehicle-private-essentials" aria-labelledby="vehicle-essentials-title">
+        <header><p class="eyebrow">Before you request</p><h2 id="vehicle-essentials-title">The essentials.</h2></header>
+        <div>
+          <article><span>01</span><h3>Driver approval</h3><p>A valid driver’s license, approved age and driving history, and identity verification may be required.</p></article>
+          <article><span>02</span><h3>Insurance</h3><p>Proof of active insurance or another approved coverage arrangement is reviewed for the exact vehicle.</p></article>
+          <article><span>03</span><h3>Security deposit</h3><p>The amount and release timing vary by vehicle, dates, coverage, and driver profile.</p></article>
+          <article><span>04</span><h3>Concierge delivery</h3><p>Delivery timing, access, mileage, and any applicable fee are confirmed for your requested address.</p></article>
+        </div>
+      </section>
+
+      <section class="vehicle-private-faq" aria-labelledby="vehicle-faq-title">
+        <header><p class="eyebrow">Private rental desk</p><h2 id="vehicle-faq-title">Questions,<br /><em>answered.</em></h2></header>
+        <div class="vehicle-private-faq-list">
+          <details><summary>How do I qualify to rent this vehicle?<span>+</span></summary><p>Approval is vehicle-specific. You may need a valid driver’s license, proof of insurance, an acceptable driving history, identity verification, and an approved security deposit.</p></details>
+          <details><summary>How many miles are included?<span>+</span></summary><p>The included daily mileage is shown above when available. Your confirmed quote will state the total allowance and the additional-mileage rate.</p></details>
+          <details><summary>Can you deliver the car to me?<span>+</span></summary><p>Yes. KD’s Exotics operates as a delivery-only service. We confirm timing, access, and any delivery fee for your hotel, residence, airport-area meeting point, or approved address.</p></details>
+          <details><summary>What payment methods are accepted?<span>+</span></summary><p>Accepted payment methods may vary by vehicle and booking. Your concierge will explain the approved payment arrangement before confirmation.</p></details>
+          <details><summary>How much is the security deposit?<span>+</span></summary><p>Deposits vary by vehicle, dates, coverage, and driver profile. The exact amount is disclosed before you approve the reservation.</p></details>
+          <details><summary>Can an international visitor rent?<span>+</span></summary><p>Possibly. International licenses, passports, coverage, age, and additional verification are reviewed individually before approval.</p></details>
+        </div>
+      </section>
+
+      <section class="related-section vehicle-product-related" aria-label="Related vehicles">
+        <div class="section-heading compact-heading"><p class="eyebrow">Continue exploring</p><h2>Similar vehicles</h2><p>Three considered alternatives from the active collection.</p></div>
+        <div class="related-grid" data-related></div>
+      </section>
+    </div>`;
+}
 
 function setVehicleIndexing(isActive) {
   let robots = document.querySelector("meta[name='robots']");
@@ -39,16 +156,26 @@ function setText(selector, value) {
   if (node) node.textContent = value;
 }
 
+function setTextAll(selector, value) {
+  document.querySelectorAll(selector).forEach((node) => {
+    node.textContent = value;
+  });
+}
+
 function setAttr(selector, attribute, value) {
   const node = document.querySelector(selector);
   if (node) node.setAttribute(attribute, value);
 }
 
-function rateFromTag(tag) {
+function rateFromTag(tag, basePrice) {
   const match = tag.match(/\$([\d,]+)(?:\.00)?\s+(.+)/);
   if (!match) return null;
+  const multiDayPrice = Number(match[1].replaceAll(",", ""));
+  const dailyPrice = Number(basePrice);
+  if (!Number.isFinite(multiDayPrice) || !Number.isFinite(dailyPrice) || dailyPrice <= 0) return null;
+  const discount = Math.max(0, Math.round(((dailyPrice - multiDayPrice) / dailyPrice) * 100));
   return {
-    price: `$${match[1]}`,
+    discount,
     label: match[2],
   };
 }
@@ -100,7 +227,9 @@ function typeForVehicle(vehicle) {
 }
 
 function listingGallery(vehicle) {
-  return [...new Set([...(vehicle.gallery || []), vehicle.image].filter(Boolean))].slice(0, MAX_LISTING_PHOTOS);
+  return [...new Set([...(vehicle.gallery || []), vehicle.image].filter(Boolean))]
+    .slice(0, MAX_LISTING_PHOTOS)
+    .map((image) => cacheSafeFleetImageUrl(image, vehicle.updatedAt || vehicle.updated_at));
 }
 
 function renderGallery(gallery) {
@@ -150,7 +279,84 @@ function renderGallery(gallery) {
   if (nextButton) nextButton.onclick = () => setActiveImage(activeIndex + 1);
 }
 
+function localDateValue(date = new Date()) {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 10);
+}
+
+function bindVehicleRequestForm() {
+  const form = document.querySelector("[data-vehicle-request-form]");
+  if (!form || form.dataset.bound === "true") return;
+  form.dataset.bound = "true";
+  const status = form.querySelector("[data-vehicle-request-status]");
+  const pickup = form.elements.date;
+  const returnDate = form.elements.returnDate;
+  pickup.min = localDateValue();
+  returnDate.min = localDateValue();
+  pickup.addEventListener("change", () => {
+    returnDate.min = pickup.value || localDateValue();
+    if (returnDate.value && returnDate.value < returnDate.min) returnDate.value = returnDate.min;
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const submit = form.querySelector("button[type='submit']");
+    const data = new FormData(form);
+    const alternatives = Boolean(data.get("alternatives"));
+    const payload = {
+      requestType: "availability",
+      name: data.get("name") || "",
+      phone: data.get("phone") || "",
+      email: data.get("email") || "",
+      insuranceProvider: "",
+      date: data.get("date") || "",
+      vehicle: car?.name || data.get("vehicle") || "Vehicle request",
+      addons: alternatives ? ["Similar options approved"] : [],
+      message: [
+        "Vehicle product-page availability request.",
+        `Return date: ${data.get("returnDate") || "Not provided"}`,
+        `Delivery city or ZIP: ${data.get("deliveryLocation") || "Not provided"}`,
+        `Similar options approved: ${alternatives ? "Yes" : "No"}`,
+      ].join("\n"),
+      company: data.get("company") || "",
+      pageUrl: window.location.href,
+    };
+
+    submit.disabled = true;
+    submit.firstChild.textContent = "Sending request ";
+    status.dataset.tone = "";
+    status.textContent = "Saving your request for a personal availability check...";
+    try {
+      const response = await fetch("/api/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.ok) throw new Error(result.message || "Request could not be saved.");
+      try {
+        const requests = JSON.parse(localStorage.getItem(CRM_REQUESTS_KEY)) || [];
+        requests.unshift({ id: result.id || `vehicle-${Date.now()}`, ...payload, status: "new", createdAt: new Date().toISOString() });
+        localStorage.setItem(CRM_REQUESTS_KEY, JSON.stringify(requests));
+      } catch {
+        // The local Admin mirror is best-effort; Supabase remains authoritative.
+      }
+      status.dataset.tone = "success";
+      status.textContent = "Request received. Your concierge will verify the vehicle and contact you personally.";
+      submit.firstChild.textContent = "Request received ";
+      void recordFleetEvent("availability_success", { carSlug: slug, metadata: { vehicle: payload.vehicle } });
+    } catch (error) {
+      status.dataset.tone = "error";
+      status.textContent = error.message || "Please call us directly to request this vehicle.";
+      submit.firstChild.textContent = "Request This Vehicle ";
+    } finally {
+      submit.disabled = status.dataset.tone === "success";
+    }
+  });
+}
+
 function renderVehicle() {
+  ensureVehicleShell();
   if (!car) {
     document.querySelector("[data-vehicle-page]").innerHTML = `
       <section class="vehicle-empty">
@@ -163,10 +369,17 @@ function renderVehicle() {
   }
 
   document.title = `${car.name} | KD's Exotics`;
+  setText("[data-vehicle-year]", vehicleYear(car));
   setText("[data-vehicle-category]", car.categoryLabel);
-  setText("[data-vehicle-title]", car.name);
+  const vehicleTitle = car.name.replace(/^\d{4}\s+/, "");
+  const vehicleTitleNode = document.querySelector("[data-vehicle-title]");
+  if (vehicleTitleNode) {
+    vehicleTitleNode.textContent = vehicleTitle;
+    vehicleTitleNode.classList.toggle("vehicle-title-long", vehicleTitle.length > 18);
+    vehicleTitleNode.classList.toggle("vehicle-title-extra-long", vehicleTitle.length > 28);
+  }
   setText("[data-vehicle-summary]", car.summary);
-  setText("[data-vehicle-price]", `${formatPrice(car.price)}/day`);
+  setTextAll("[data-vehicle-price]", `${formatPrice(car.price)}/day`);
   setText("[data-vehicle-mileage]", car.mileage);
   setText("[data-vehicle-color]", car.color);
   setText("[data-vehicle-make]", car.make);
@@ -176,12 +389,15 @@ function renderVehicle() {
   setText("[data-vehicle-acceleration]", accelerationForVehicle(car));
   setText("[data-vehicle-type]", typeForVehicle(car));
   setAttr("[data-booking-link]", "href", `/?vehicle=${encodeURIComponent(car.name)}#booking`);
+  const requestForm = document.querySelector("[data-vehicle-request-form]");
+  if (requestForm) requestForm.elements.vehicle.value = car.name;
+  bindVehicleRequestForm();
 
   const gallery = listingGallery(car);
   renderGallery(gallery);
 
-  const rates = car.tags.map(rateFromTag).filter(Boolean);
-  const featureTags = car.tags.filter((tag) => !rateFromTag(tag));
+  const rates = car.tags.map((tag) => rateFromTag(tag, car.price)).filter(Boolean);
+  const featureTags = car.tags.filter((tag) => !rateFromTag(tag, car.price));
   const tagsNode = document.querySelector("[data-vehicle-tags]");
   if (tagsNode) {
     tagsNode.innerHTML = `
@@ -191,7 +407,7 @@ function renderVehicle() {
             (rate) => `
               <div class="vehicle-rate-card">
                 <span>${rate.label}</span>
-                <strong>${rate.price}<small>/day</small></strong>
+                <strong>${rate.discount}%<small> savings</small></strong>
               </div>
             `,
           )
@@ -225,12 +441,21 @@ function renderVehicle() {
   if (relatedNode) {
     relatedNode.innerHTML = related
       .map(
-        (item) => `
+        (item, index) => `
           <a class="related-car" href="/cars/${item.slug}.html">
-            <img src="${item.image}" alt="${item.name}" loading="lazy" width="360" height="270" />
-            <span>${item.categoryLabel}</span>
-            <strong>${item.name}</strong>
-            <small>${formatPrice(item.price)}/day</small>
+            <div class="related-car-media">
+              <img src="${item.image}" alt="${escapeHtml(item.name)}" loading="lazy" width="720" height="540" />
+              <span aria-hidden="true">0${index + 1}</span>
+            </div>
+            <div class="related-car-meta">
+              <span>${escapeHtml(item.categoryLabel)}</span>
+              <small>${escapeHtml(vehicleYear(item))}</small>
+            </div>
+            <div class="related-car-main">
+              <strong>${escapeHtml(item.name.replace(/^\d{4}\s+/, ""))}</strong>
+              <small>${formatPrice(item.price)}<em>/day</em></small>
+            </div>
+            <span class="related-car-action">View vehicle <b aria-hidden="true">↗</b></span>
           </a>
         `,
       )
@@ -302,6 +527,8 @@ async function hydrateRemoteVehicle() {
 }
 
 async function initVehicle() {
+  renderVehicle();
+  document.body.classList.remove("is-loading-vehicle");
   if (!isSupabaseFleetConfigured) setVehicleIndexing(Boolean(car));
   let hydrated = false;
   if (isSupabaseFleetConfigured) {
@@ -324,8 +551,8 @@ async function initVehicle() {
 
 initVehicle();
 
-window.addEventListener("storage", (event) => {
-  if (event.key !== ADMIN_FLEET_REFRESH_KEY) return;
+function refreshCloudVehicle() {
+  if (!isSupabaseFleetConfigured) return;
   document.body.classList.add("is-loading-vehicle");
   hydrateRemoteVehicle()
     .then((hydrated) => {
@@ -339,4 +566,17 @@ window.addEventListener("storage", (event) => {
     .finally(() => {
       document.body.classList.remove("is-loading-vehicle");
     });
+}
+
+window.addEventListener("storage", (event) => {
+  if (event.key !== ADMIN_FLEET_REFRESH_KEY) return;
+  refreshCloudVehicle();
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") refreshCloudVehicle();
+});
+
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) refreshCloudVehicle();
 });

@@ -23,8 +23,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=kds-favicon-20260624" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png?v=kds-favicon-20260624" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=kds-favicon-20260624" />
-    <link rel="preload" href="/src/styles.css?v=traffic-pricing-20260713" as="style" />
-    <link rel="stylesheet" href="/src/styles.css?v=traffic-pricing-20260713" />
+    <link rel="preload" href="/src/styles.css?v=fleet-scroll-clean-20260715" as="style" />
+    <link rel="stylesheet" href="/src/styles.css?v=fleet-scroll-clean-20260715" />
   </head>
   <body class="fleet-page">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -62,30 +62,53 @@
     </div>
 
     <main id="main" class="fleet-showroom-page">
-      <section class="fleet-showroom" aria-labelledby="fleet-title">
-        <div class="fleet-discovery-intro">
+      <section class="fleet-editorial-hero" aria-labelledby="fleet-title">
+        <div class="fleet-hero-index" aria-hidden="true">01 / The collection</div>
+        <div class="fleet-hero-copy">
+          <p class="eyebrow">The private collection</p>
+          <h1 id="fleet-title">Choose the<br /><em>arrival.</em></h1>
+          <p>Exotic cars selected for the entrance, the occasion, and the way you want the night to be remembered.</p>
+          <a href="#popular-collection">Enter the collection <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="fleet-hero-concierge">
+          <span>Every request is handled personally.</span>
+          <p>We personally verify the exact vehicle and requested dates before anything is confirmed.</p>
+        </div>
+      </section>
+
+      <section id="popular-collection" class="fleet-popular-stage" aria-labelledby="popular-title">
+        <header class="fleet-section-heading">
           <div>
-            <p class="eyebrow">Curated partner fleet</p>
-            <h1 id="fleet-title">Find the right exotic for your plans.</h1>
-            <p>
-              Choose a vehicle and send your dates. Our concierge will call the rental partner, verify availability,
-              and contact you with final pricing or similar options.
-            </p>
+            <p class="eyebrow">Most requested</p>
+            <h2 id="popular-title">Popular cars</h2>
           </div>
-          <div class="fleet-intro-proof" aria-label="Fleet booking benefits">
-            <span>Manual availability check</span>
-            <span>Southern California delivery</span>
-            <span>Personal concierge follow-up</span>
+          <button type="button" data-show-popular>View all popular</button>
+        </header>
+        <div class="fleet-popular-grid" data-popular-grid></div>
+      </section>
+
+      <section class="fleet-brand-gallery" aria-labelledby="brand-title">
+        <p class="eyebrow">Explore by marque</p>
+        <h2 id="brand-title">The names that need no introduction.</h2>
+        <div class="fleet-brand-rail" data-brand-rail aria-label="Filter fleet by brand"></div>
+      </section>
+
+      <section class="fleet-showroom" aria-labelledby="collection-title">
+        <div class="fleet-collection-heading">
+          <div>
+            <p class="eyebrow">The complete collection</p>
+            <h2 id="collection-title">Find your car.</h2>
           </div>
+          <p>Pricing is shown by day. Final availability and rate are verified personally for your requested dates.</p>
         </div>
 
         <div class="fleet-quick-filters" role="group" aria-label="Quick fleet filters">
-          <button class="active" type="button" data-quick-filter="all" aria-pressed="true">All vehicles</button>
-          <button type="button" data-quick-filter="popular" aria-pressed="false">Most popular</button>
-          <button type="button" data-quick-filter="budget" aria-pressed="false">Under $500/day</button>
+          <button class="active" type="button" data-quick-filter="all" aria-pressed="true">All</button>
+          <button type="button" data-quick-filter="popular" aria-pressed="false">Popular</button>
+          <button type="button" data-quick-filter="budget" aria-pressed="false">Under $500</button>
           <button type="button" data-quick-filter="convertible" aria-pressed="false">Convertibles</button>
-          <button type="button" data-quick-filter="suv" aria-pressed="false">Luxury SUVs</button>
-          <button type="button" data-quick-filter="special" aria-pressed="false">Monthly deals</button>
+          <button type="button" data-quick-filter="suv" aria-pressed="false">SUVs</button>
+          <button type="button" data-quick-filter="special" aria-pressed="false">Monthly selections</button>
         </div>
 
         <div class="fleet-showroom-toolbar fleet-showroom-toolbar-minimal">
@@ -95,7 +118,7 @@
               <circle cx="11" cy="11" r="7" />
               <path d="m16 16 4 4" />
             </svg>
-            <input type="search" placeholder="Search make, model, or color" autocomplete="off" data-fleet-search />
+            <input type="search" placeholder="Search the collection" autocomplete="off" data-fleet-search />
             <button type="button" aria-label="Clear fleet search" hidden data-clear-search>&times;</button>
           </label>
 
@@ -132,7 +155,7 @@
         </div>
 
         <div class="fleet-result-line" aria-live="polite">
-          <span data-fleet-count>Loading fleet</span>
+          <span data-fleet-count>Loading collection</span>
           <span data-fleet-filter-note>All cars</span>
         </div>
 
@@ -145,8 +168,8 @@
       <section class="availability-drawer" role="dialog" aria-modal="true" aria-labelledby="availability-title">
         <div class="availability-drawer-head">
           <div>
-            <p class="eyebrow">Partner availability check</p>
-            <h2 id="availability-title">Check your dates.</h2>
+          <p class="eyebrow">Private vehicle request</p>
+            <h2 id="availability-title">Request this vehicle.</h2>
           </div>
           <button class="availability-close" type="button" aria-label="Close availability form" data-availability-close>&times;</button>
         </div>
@@ -157,8 +180,8 @@
         </div>
 
         <p class="availability-explainer">
-          This fleet is shared with trusted rental partners. We will call the partner to verify your requested dates
-          before confirming the vehicle or final rate.
+          Collection availability changes frequently. Your concierge will verify the exact vehicle, requested dates,
+          delivery details, and final rate before confirming anything.
         </p>
 
         <form class="availability-form" data-availability-form>
@@ -201,7 +224,7 @@
             <input name="company" type="text" tabindex="-1" autocomplete="off" />
           </label>
 
-          <button class="availability-submit" type="submit">Request availability check</button>
+          <button class="availability-submit" type="submit">Request This Vehicle</button>
           <p class="availability-status" data-availability-status role="status">
             No charge today. We will verify the vehicle and contact you before any booking step.
           </p>
@@ -256,6 +279,6 @@
       </div>
     </footer>
 
-    <script type="module" src="/src/fleet-page.js?v=monthly-two-20260715"></script>
+    <script type="module" src="/src/fleet-page.js?v=private-collection-20260715"></script>
   </body>
 </html>

@@ -20,10 +20,10 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=kds-favicon-20260624" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png?v=kds-favicon-20260624" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=kds-favicon-20260624" />
-    <link rel="preload" href="/src/styles.css?v=traffic-pricing-20260713" as="style" />
-    <link rel="stylesheet" href="/src/styles.css?v=traffic-pricing-20260713" />
+    <link rel="preload" href="/src/styles.css?v=partner-banner-20260715" as="style" />
+    <link rel="stylesheet" href="/src/styles.css?v=partner-banner-20260715" />
   </head>
-  <body class="partner-page">
+  <body class="partner-page partner-private-page">
     <a class="skip-link" href="#main">Skip to content</a>
 
     <header class="site-header scrolled" data-header>
@@ -59,120 +59,143 @@
     </div>
 
     <main id="main">
-      <section class="partner-hero">
-        <img
-          class="partner-hero-media"
-          src="/assets/kds-porsche-gt3rs-wide.jpg"
-          alt="Porsche GT3 RS driving on a racetrack"
-          width="2048"
-          height="1024"
-          fetchpriority="high"
-        />
-        <div class="partner-hero-overlay" aria-hidden="true"></div>
-        <div class="partner-hero-inner">
-          <div class="partner-hero-copy">
-            <p class="eyebrow reveal">Owner program</p>
-            <h1 class="reveal">
-              <span>List your exotic.</span>
-              <span>Keep control.</span>
-            </h1>
-            <p class="reveal">
-              We handle vetted renters, presentation, and concierge booking while you choose availability.
-            </p>
-            <ul class="partner-hero-points reveal" aria-label="Partner benefits">
-              <li>Screened renters</li>
-              <li>Owner control</li>
-              <li>Premium listings</li>
-            </ul>
-            <div class="partner-hero-actions reveal">
-              <a class="primary-button" href="#partner-application">Apply to Partner</a>
-              <a class="partner-text-link" href="sms:+12132642967">Text first</a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="partner-strip" aria-label="Owner partner benefits">
-        <div>
-          <span>01</span>
-          <strong>Curated renters</strong>
-          <p>We prioritize quality requests, deposits, and approval steps before a car is released.</p>
-        </div>
-        <div>
-          <span>02</span>
-          <strong>Concierge bookings</strong>
-          <p>Our team handles quote follow-up, timing, add-ons, delivery coordination, and client expectations.</p>
-        </div>
-        <div>
-          <span>03</span>
-          <strong>Premium positioning</strong>
-          <p>Your car is presented with the same luxury showroom feel as the KD's Exotics fleet.</p>
-        </div>
-      </section>
-
-      <section id="partner-application" class="partner-application section" aria-labelledby="partner-application-title">
-        <div class="partner-application-copy">
-          <p class="eyebrow">Partner application</p>
-          <h2 id="partner-application-title">Tell us what you own.</h2>
-          <p>
-            Send the basics and we will follow up with the next steps. Strong photos help us review the vehicle faster.
+      <section class="partner-private-hero" aria-labelledby="partner-hero-title">
+        <video
+          class="partner-private-hero-media"
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="metadata"
+          aria-hidden="true"
+        >
+          <source src="/assets/kds-partner-hero.mp4" type="video/mp4" />
+        </video>
+        <div class="partner-private-hero-shade" aria-hidden="true"></div>
+        <div class="partner-private-hero-frame" aria-hidden="true"></div>
+        <div class="partner-private-hero-inner">
+          <p class="partner-private-kicker">Private owner program</p>
+          <h1 id="partner-hero-title">
+            <span><span>Your car.</span></span>
+            <span><span>Your terms.</span></span>
+          </h1>
+          <p class="partner-private-hero-copy">
+            A selective placement program for exceptional vehicles. You decide when it is available. We manage the client experience.
           </p>
-          <div class="partner-note">
-            <strong>Before approval</strong>
-            <span>Vehicle ownership, insurance, registration, condition, and rental terms may need to be verified.</span>
+          <div class="partner-private-actions">
+            <a class="partner-private-button partner-private-button-light" href="#partner-application">Request a private review</a>
+            <a class="partner-private-button partner-private-button-ghost" href="tel:+12132642967">Speak with the desk</a>
+          </div>
+          <p class="partner-private-trust" aria-label="Owner program principles">
+            <span>Owner control</span>
+            <span>Vetted requests</span>
+            <span>Discreet management</span>
+          </p>
+        </div>
+        <a class="partner-private-scroll" href="#owner-service" aria-label="Explore the owner program">
+          <span>Explore the program</span>
+          <i aria-hidden="true"></i>
+        </a>
+      </section>
+
+      <section id="owner-service" class="partner-private-process" aria-labelledby="owner-service-title">
+        <div class="partner-private-section-head">
+          <p>How placement works</p>
+          <h2 id="owner-service-title">One point of contact.<br />Full owner control.</h2>
+        </div>
+        <ol class="partner-private-steps">
+          <li>
+            <span>01</span>
+            <div>
+              <h3>Set the boundaries</h3>
+              <p>You choose the dates, booking types, mileage, and conditions that make sense for your vehicle.</p>
+            </div>
+          </li>
+          <li>
+            <span>02</span>
+            <div>
+              <h3>Approve the opportunity</h3>
+              <p>We qualify the request and bring you the details. Nothing proceeds until you say yes.</p>
+            </div>
+          </li>
+          <li>
+            <span>03</span>
+            <div>
+              <h3>We manage the handoff</h3>
+              <p>Our desk handles the client, schedule, delivery details, and expectations from start to finish.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="partner-collection-banner" aria-label="KD's Exotics curated vehicle collection">
+        <img
+          src="/assets/kds-partner-collection-banner.jpg"
+          alt="A curated lineup of exotic cars presented outside a luxury property"
+          width="1983"
+          height="793"
+          loading="lazy"
+          decoding="async"
+        />
+      </section>
+
+      <section class="partner-private-standard" aria-labelledby="partner-standard-title">
+        <div class="partner-private-standard-copy">
+          <p>Curated by standards, not volume</p>
+          <h2 id="partner-standard-title">Chosen for more than the badge.</h2>
+          <p>
+            The right vehicle has presence, a compelling specification, and an owner who cares how it is presented.
+          </p>
+          <a href="#partner-application">Start vehicle review <span aria-hidden="true">&#8599;</span></a>
+        </div>
+        <div class="partner-private-standards" aria-label="Vehicle review standards">
+          <article><span>01</span><h3>Exceptional condition</h3><p>Maintained, detailed, and ready to arrive properly.</p></article>
+          <article><span>02</span><h3>Clear documentation</h3><p>Ownership, registration, and coverage available for review.</p></article>
+          <article><span>03</span><h3>Distinctive presence</h3><p>A specification that earns its place in a considered collection.</p></article>
+          <article><span>04</span><h3>Owner alignment</h3><p>Clear expectations around access, mileage, and presentation.</p></article>
+        </div>
+      </section>
+
+      <section id="partner-application" class="partner-private-application" aria-labelledby="partner-application-title">
+        <div class="partner-private-application-copy">
+          <p>Vehicle consideration</p>
+          <h2 id="partner-application-title">Show us the car.</h2>
+          <p>
+            Share the essentials. If the vehicle fits the collection, our team will contact you directly to discuss the arrangement.
+          </p>
+          <div class="partner-private-review-note">
+            <span>01</span>
+            <p><strong>Nothing is listed automatically.</strong> Ownership, condition, coverage, terms, and presentation are reviewed before any placement.</p>
           </div>
         </div>
 
-        <form class="partner-form" data-partner-form>
-          <div class="partner-form-grid">
-            <label>
-              Name
-              <input name="name" type="text" autocomplete="name" required />
-            </label>
-            <label>
-              Phone
-              <input name="phone" type="tel" autocomplete="tel" required />
-            </label>
-            <label>
-              Email
-              <input name="email" type="email" autocomplete="email" required />
-            </label>
-            <label>
-              Vehicle
-              <input name="vehicle" type="text" placeholder="Example: Lamborghini Huracan" required />
-            </label>
-            <label>
-              Year
-              <input name="year" type="text" inputmode="numeric" placeholder="2022" />
-            </label>
-            <label>
-              Estimated mileage
-              <input name="mileage" type="text" placeholder="12,500 miles" />
-            </label>
+        <form class="partner-form partner-private-form" data-partner-form>
+          <div class="partner-private-form-head">
+            <p>Owner &amp; vehicle details</p>
+            <span>Handled discreetly</span>
           </div>
-
-          <label>
-            Availability
+          <div class="partner-form-grid">
+            <label>Name<input name="name" type="text" autocomplete="name" placeholder="Your full name" required /></label>
+            <label>Phone<input name="phone" type="tel" autocomplete="tel" placeholder="Best contact number" required /></label>
+            <label>Email<input name="email" type="email" autocomplete="email" placeholder="Email address" required /></label>
+            <label>Vehicle<input name="vehicle" type="text" placeholder="Year, make, and model" required /></label>
+            <label>Year<input name="year" type="text" inputmode="numeric" placeholder="2022" /></label>
+            <label>Estimated mileage<input name="mileage" type="text" placeholder="12,500 miles" /></label>
+          </div>
+          <label>Preferred availability
             <select name="availability">
+              <option>Flexible</option>
               <option>Weekends only</option>
               <option>Weekdays only</option>
-              <option>Flexible</option>
               <option>Events only</option>
             </select>
           </label>
-
-          <label>
-            Notes
-            <textarea
-              name="notes"
-              rows="5"
-              placeholder="Tell us condition, color, title status, modifications, photos link, and any rules you want."
-            ></textarea>
+          <label>Vehicle details
+            <textarea name="notes" rows="5" placeholder="Condition, color, ownership status, modifications, photo link, and any boundaries you want us to know."></textarea>
           </label>
-
           <div class="partner-form-actions">
-            <button class="primary-button" type="submit">Apply to Partner</button>
-            <p data-partner-status aria-live="polite">Your application opens as an email draft so nothing gets lost.</p>
+            <button class="partner-private-submit" type="submit">Submit for review <span aria-hidden="true">&#8599;</span></button>
+            <p data-partner-status aria-live="polite">Your details open in a prepared email draft. Add photos before sending if available.</p>
           </div>
         </form>
       </section>
@@ -185,7 +208,7 @@
             <img class="brand-logo-wide" src="/assets/kds-logo-wide.png" alt="KD's Exotics" width="1536" height="864" loading="lazy" />
           </span>
         </a>
-        <p>VIP exotic rentals, concierge delivery, and content-ready experiences for private clients, brands, and events.</p>
+        <p>A private rental desk for exceptional cars, considered arrivals, and clients who expect every detail handled.</p>
         <div class="footer-contact">
           <a href="tel:+12132642967">Call</a>
           <a href="sms:+12132642967">Text concierge</a>
@@ -225,6 +248,6 @@
       </div>
     </footer>
 
-    <script type="module" src="/src/partner.js?v=partner-home-theme-20260713"></script>
+    <script type="module" src="/src/partner.js?v=partner-private-20260715"></script>
   </body>
 </html>
