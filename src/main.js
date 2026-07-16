@@ -1,6 +1,6 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=cloud-gallery-20260714";
-import { fleet as websiteFleet } from "./fleet-data.js?v=cloud-gallery-20260714";
-import { isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase } from "./supabase-fleet.js?v=cloud-gallery-20260714";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=fleet-consistency-20260715";
+import { fleet as websiteFleet } from "./fleet-data.js?v=fleet-consistency-20260715";
+import { cacheSafeFleetImageUrl, isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase } from "./supabase-fleet.js?v=fleet-consistency-20260715";
 
 let fleet = [
   {
@@ -160,6 +160,8 @@ const CRM_REQUESTS_KEY = "kds-crm-requests";
 const diaText = document.querySelector("[data-dia-words]");
 const CLOUD_FLEET_TIMEOUT_MS = 3500;
 const BEST_FAN_LIMIT = 9;
+let monthlySpecialRenderVersion = 0;
+let cloudHomeRefreshPromise = null;
 const BEST_FAN_SLUGS = [
   "2022-lamborghini-huracan",
   "lamborghini-huracan-blue",
@@ -400,10 +402,13 @@ function vehicleLabel(car) {
 }
 
 function primaryImageFor(car) {
-  return car.image || car.gallery?.[0] || "/assets/kds-hero.png";
+  if (!car) return "/assets/kds-hero.png";
+  const image = car.image || car.gallery?.[0] || "/assets/kds-hero.png";
+  return cacheSafeFleetImageUrl(image, car.updatedAt || car.updated_at);
 }
 
 function isUsableFanCar(car) {
+  if (!car) return false;
   const image = primaryImageFor(car);
   return car?.name && vehicleSlug(car) && image && !image.includes("kds-hero");
 }
@@ -711,14 +716,18 @@ function monthlyFallbackCars(cars, month) {
 
 async function renderMonthlySpecials() {
   if (!specialsRail || !specialsTitle || !specialsDescription) return;
+  const renderVersion = ++monthlySpecialRenderVersion;
+  const fleetSnapshot = fleet.slice();
   const month = currentSpecialMonth();
   const monthLabel = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(new Date(`${month}-02T12:00:00`));
   const configuredSpecial = isSupabaseFleetConfigured ? await loadMonthlySpecialFromSupabase(month) : null;
-  const carsBySlug = new Map(fleet.map((car) => [vehicleSlug(car), car]));
+  if (renderVersion !== monthlySpecialRenderVersion) return;
+
+  const carsBySlug = new Map(fleetSnapshot.map((car) => [vehicleSlug(car), car]));
   const selectedCars = Array.isArray(configuredSpecial?.car_slugs)
     ? configuredSpecial.car_slugs.map((slug) => carsBySlug.get(slug)).filter(Boolean).slice(0, 2)
     : [];
-  const specialCars = selectedCars.length ? selectedCars : monthlyFallbackCars(fleet, month);
+  const specialCars = selectedCars.length ? selectedCars : monthlyFallbackCars(fleetSnapshot, month);
 
   specialsTitle.textContent = configuredSpecial?.headline?.trim() || `${monthLabel} special`;
   specialsDescription.textContent = configuredSpecial?.description?.trim() || "This month's featured active inventory is available for delivery across Los Angeles and Orange County. Ask for current dates and rates.";
@@ -886,7 +895,15 @@ specialNext?.addEventListener("click", () => scrollSpecials(1));
 window.addEventListener("resize", updateFanCarousel);
 window.addEventListener("storage", (event) => {
   if (event.key !== ADMIN_FLEET_REFRESH_KEY) return;
-  hydrateSupabaseFleet();
+  void refreshHomeFleetFromCloud();
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") void refreshHomeFleetFromCloud();
+});
+
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) void refreshHomeFleetFromCloud();
 });
 
 menuToggle.addEventListener("click", () => {
@@ -915,7 +932,7 @@ if (form) {
     event.preventDefault();
     const submitButton = form.querySelector("button[type='submit']");
     submitButton.disabled = true;
-    submitButton.textContent = "Sending request...";
+    submitButton.textContent = "Sending private request...";
 
     window.setTimeout(() => {
       submitButton.disabled = false;
@@ -988,7 +1005,7 @@ if (quoteForm) {
 
       if (quoteStatus) {
         quoteStatus.dataset.tone = "success";
-        quoteStatus.textContent = "Quote request received. KD's Exotics will follow up shortly.";
+        quoteStatus.textContent = "Private request received. A concierge will follow up shortly.";
       }
       quoteForm.reset();
       hydrateVehicleSelect();
@@ -999,7 +1016,7 @@ if (quoteForm) {
       }
     } finally {
       submitButton.disabled = false;
-      submitButton.textContent = "Request Quote";
+      submitButton.textContent = "Send Private Request";
     }
   });
 }
@@ -1010,19 +1027,32 @@ observeReveals();
 initLazyMedia();
 
 async function initFleetSections() {
+  // Never hide usable inventory behind a cloud request. The bundled fleet is
+  // generated from the active website inventory and can render immediately;
+  // Supabase then refreshes it in place when the latest records arrive.
+  refreshFleetFromBase();
+
   if (!isSupabaseFleetConfigured) {
-    refreshFleetFromBase();
     return;
   }
 
-  renderFleetLoading();
-  try {
-    const hydrated = await hydrateSupabaseFleet();
-    if (!hydrated) refreshFleetFromBase([]);
-  } catch (error) {
-    console.warn("Could not initialize cloud fleet:", error);
-    refreshFleetFromBase([]);
-  }
+  await refreshHomeFleetFromCloud();
+}
+
+async function refreshHomeFleetFromCloud() {
+  if (!isSupabaseFleetConfigured) return false;
+  if (cloudHomeRefreshPromise) return cloudHomeRefreshPromise;
+
+  cloudHomeRefreshPromise = hydrateSupabaseFleet()
+    .catch((error) => {
+      console.warn("Could not refresh cloud fleet:", error);
+      return false;
+    })
+    .finally(() => {
+      cloudHomeRefreshPromise = null;
+    });
+
+  return cloudHomeRefreshPromise;
 }
 
 initFleetSections();

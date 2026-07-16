@@ -39,7 +39,7 @@ if (form) {
 
     const formData = new FormData(form);
     const lines = [
-      "New KD's Exotics partner application",
+      "New KD's Exotics private vehicle review",
       "",
       `Name: ${valueOf(formData, "name")}`,
       `Phone: ${valueOf(formData, "phone")}`,
@@ -53,12 +53,12 @@ if (form) {
       valueOf(formData, "notes") || "Not provided",
     ];
 
-    const subject = encodeURIComponent("KD's Exotics Partner Application");
+    const subject = encodeURIComponent("KD's Exotics Private Vehicle Review");
     const body = encodeURIComponent(lines.join("\n"));
     window.location.href = `mailto:bookings@kdsexotics.com?subject=${subject}&body=${body}`;
 
     if (status) {
-      status.textContent = "Email draft opened. Attach photos before sending if you have them ready.";
+      status.textContent = "Private review draft opened. Attach vehicle photos before sending if available.";
     }
   });
 }

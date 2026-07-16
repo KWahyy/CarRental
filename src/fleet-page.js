@@ -1,8 +1,10 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=cloud-gallery-20260714";
-import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=cloud-gallery-20260714";
-import { isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase, recordFleetEvent } from "./supabase-fleet.js?v=cloud-gallery-20260714";
+import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=fleet-consistency-20260715";
+import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=fleet-consistency-20260715";
+import { cacheSafeFleetImageUrl, isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase, recordFleetEvent } from "./supabase-fleet.js?v=fleet-consistency-20260715";
 
 const grid = document.querySelector("[data-fleet-grid]");
+const popularGrid = document.querySelector("[data-popular-grid]");
+const brandRail = document.querySelector("[data-brand-rail]");
 const countLabel = document.querySelector("[data-fleet-count]");
 const filterNote = document.querySelector("[data-fleet-filter-note]");
 const filterControl = document.querySelector("[data-filter-control]");
@@ -122,7 +124,7 @@ function observeCardImpressions() {
     { threshold: [0.55] },
   );
 
-  grid.querySelectorAll(".showroom-card[data-vehicle-slug]").forEach((card) => {
+  document.querySelectorAll(".showroom-card[data-vehicle-slug]").forEach((card) => {
     if (!seenCardImpressions.has(card.dataset.vehicleSlug)) cardImpressionObserver.observe(card);
   });
 }
@@ -224,7 +226,8 @@ function sortedCars(source) {
 }
 
 function carImage(car) {
-  return car.image || car.image_url || car.gallery?.[0] || "/assets/kds-hero.png";
+  const image = car.image || car.image_url || car.gallery?.[0] || "/assets/kds-hero.png";
+  return cacheSafeFleetImageUrl(image, car.updatedAt || car.updated_at);
 }
 
 function mediaBackgroundStyle(car) {
@@ -253,11 +256,52 @@ function renderFilterButtons() {
       return `<button class="${activeFilter === value ? "active" : ""}" type="button" data-filter="${value}">${brand}<small>${count}</small></button>`;
     })
     .join("");
+
+  if (brandRail) {
+    brandRail.innerHTML = brands.slice(0, 10).map((brand) => {
+      const count = cars.filter((car) => brandFor(car) === brand).length;
+      return `<button type="button" data-brand-shortcut="${escapeHtml(brand)}"><span>${escapeHtml(brand)}</span><small>${count} vehicles</small></button>`;
+    }).join("");
+  }
+}
+
+function vehicleYear(car) {
+  return String(car.year || car.name.match(/^(\d{4})/)?.[1] || "Exclusive");
+}
+
+function cardMarkup(car, variant = "collection") {
+  const slug = vehicleSlug(car);
+  const { brand, model } = vehicleDisplay(car);
+  return `
+    <article class="showroom-card showroom-card-${variant}" data-vehicle-slug="${escapeHtml(slug)}" data-vehicle="${escapeHtml(car.name)}">
+      <a class="showroom-card-media" href="/cars/${escapeHtml(slug)}.html" aria-label="View ${escapeHtml(car.name)}" style="${mediaBackgroundStyle(car)}" data-fleet-card-link data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${escapeHtml(slug)}">
+        <img src="${escapeHtml(carImage(car))}" alt="${escapeHtml(car.name)}" width="900" height="675" loading="lazy" onerror="this.onerror=null;this.src='/assets/kds-hero.png';" />
+      </a>
+      <div class="showroom-card-body">
+        <div class="showroom-card-title">
+          <span>${escapeHtml(vehicleYear(car))} · ${escapeHtml(brand)}</span>
+          <h3>${escapeHtml(model)}</h3>
+        </div>
+        <strong>${escapeHtml(formatPrice(car.price))}<small>/day</small></strong>
+      </div>
+      <button class="showroom-request" type="button" data-check-availability data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${escapeHtml(slug)}">
+        Request This Vehicle <span aria-hidden="true">↗</span>
+      </button>
+    </article>`;
+}
+
+function renderPopularCars() {
+  if (!popularGrid) return;
+  const selected = POPULAR_VEHICLE_SLUGS
+    .map((slug) => cars.find((car) => vehicleSlug(car) === slug))
+    .filter(Boolean)
+    .slice(0, 3);
+  const fallback = selected.length === 3 ? selected : sortedCars(cars).slice(0, 3);
+  popularGrid.innerHTML = fallback.map((car) => cardMarkup(car, "popular")).join("");
 }
 
 function renderCards() {
   const visibleCars = sortedCars(cars.filter(matchesFilter).filter(matchesQuickFilter).filter(matchesSearch));
-  const showPopularRows = quickFilter === "all" && activeFilter === "all" && !searchQuery && sortMode === "featured";
   const label = filterLabel(activeFilter);
   const quickLabel = quickFilterLabel(quickFilter);
   const resultContext = [quickFilter !== "all" ? quickLabel : "", label !== "All cars" ? label : "", searchInput.value.trim() ? `Search: “${searchInput.value.trim()}”` : ""]
@@ -270,54 +314,17 @@ function renderCards() {
   clearSearchButton.hidden = !searchInput.value;
   renderQuickFilters();
 
-  const popularHeading = showPopularRows && visibleCars.length
-    ? `<header class="fleet-popular-heading"><div><p class="eyebrow">Most requested</p><h2>Popular choices</h2></div><span>Six visitor favorites · two rows</span></header>`
-    : "";
-
-  grid.innerHTML = visibleCars.length ? popularHeading + visibleCars
+  grid.innerHTML = visibleCars.length ? visibleCars
     .map((car, index) => {
-      const slug = vehicleSlug(car);
-      const { brand, model } = vehicleDisplay(car);
-      const type = bodyTypeFor(car);
-      const isSpecial = monthlySpecialSlugs.has(slug);
-      const isPopular = popularSlugs.has(slug);
-      const meta = [type, car.color, car.seats ? `${car.seats} seats` : ""].filter(Boolean).slice(0, 3);
-      const badge = isPopular ? "Popular choice" : isSpecial ? "Monthly deal" : "";
-
-      const card = `
-        <article class="showroom-card" data-vehicle-slug="${escapeHtml(slug)}" data-vehicle="${escapeHtml(car.name)}">
-          <a class="showroom-card-media" href="/cars/${escapeHtml(slug)}.html" aria-label="View ${escapeHtml(car.name)}" style="${mediaBackgroundStyle(car)}" data-fleet-card-link data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${escapeHtml(slug)}">
-            ${badge ? `<span class="showroom-card-badge">${escapeHtml(badge)}</span>` : ""}
-            <img src="${escapeHtml(carImage(car))}" alt="${escapeHtml(car.name)}" width="760" height="520" loading="lazy" onerror="this.onerror=null;this.src='/assets/kds-hero.png';" />
-          </a>
-          <div class="showroom-card-body">
-            <div>
-              <span>${escapeHtml(brand)}</span>
-              <h2>${escapeHtml(model)}</h2>
-            </div>
-            <strong><small class="price-prefix">Starting at</small>${escapeHtml(formatPrice(car.price))}<small>/day</small></strong>
-          </div>
-          <div class="showroom-card-meta" aria-label="Vehicle details">
-            ${meta.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
-          </div>
-          <p class="showroom-availability-note">Dates confirmed manually with our rental partner.</p>
-          <div class="showroom-card-actions">
-            <a href="/cars/${escapeHtml(slug)}.html" data-fleet-card-link data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${escapeHtml(slug)}">View details</a>
-            <button type="button" data-check-availability data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${escapeHtml(slug)}">Check availability</button>
-          </div>
-        </article>
-      `;
+      const card = cardMarkup(car);
 
       let additions = "";
-      if (showPopularRows && index === 5 && visibleCars.length > 6) {
-        additions += `<div class="fleet-all-vehicles-divider"><div><p class="eyebrow">Full partner fleet</p><h2>Explore every vehicle</h2></div><span>${visibleCars.length - 6} more options</span></div>`;
-      }
       if ((index + 1) % 12 === 0 && index !== visibleCars.length - 1) additions += `
         <aside class="fleet-concierge-break">
           <div>
             <p class="eyebrow">Need a recommendation?</p>
             <h2>Tell us the date, budget, and occasion.</h2>
-            <p>We will check the partner fleet and suggest vehicles that fit your plans.</p>
+            <p>We will review the collection and suggest vehicles that fit your plans.</p>
           </div>
           <button type="button" data-concierge-match>Help me choose</button>
         </aside>
@@ -340,6 +347,7 @@ function renderFleet() {
   popularSlugs = new Set(POPULAR_VEHICLE_SLUGS.filter((slug) => activeSlugs.has(slug)).slice(0, 6));
   if (activeFilter !== "all" && !cars.some(matchesFilter)) activeFilter = "all";
   renderFilterButtons();
+  renderPopularCars();
   renderCards();
 }
 
@@ -423,7 +431,7 @@ availabilityForm?.addEventListener("submit", async (event) => {
   const formData = new FormData(availabilityForm);
   const alternativesApproved = Boolean(formData.get("alternatives"));
   const message = [
-    "Manual partner availability check requested.",
+    "Personal vehicle availability check requested.",
     `Return date: ${formData.get("returnDate") || "Not provided"}`,
     `Delivery city or ZIP: ${formData.get("deliveryLocation") || "Not provided"}`,
     `Similar vehicles approved: ${alternativesApproved ? "Yes" : "No"}`,
@@ -445,7 +453,7 @@ availabilityForm?.addEventListener("submit", async (event) => {
   submitButton.disabled = true;
   submitButton.textContent = "Sending availability request...";
   availabilityStatus.dataset.tone = "";
-  availabilityStatus.textContent = "Saving your request for a manual partner check...";
+  availabilityStatus.textContent = "Saving your request for a personal availability check...";
   trackFleetEvent("availability_request_submit", {
     vehicle: payload.vehicle,
     vehicle_slug: availabilityTrigger?.dataset.vehicleSlug || "",
@@ -482,7 +490,7 @@ availabilityForm?.addEventListener("submit", async (event) => {
     }
 
     availabilityStatus.dataset.tone = "success";
-    availabilityStatus.textContent = "Request received. We will call the rental partner, verify the dates, and contact you with the result or similar options.";
+    availabilityStatus.textContent = "Request received. We will verify the exact vehicle and dates, then contact you with the result or similar options.";
     trackFleetEvent("availability_request_success", {
       vehicle: payload.vehicle,
       vehicle_slug: availabilityTrigger?.dataset.vehicleSlug || "",
@@ -556,7 +564,7 @@ quickFilterButtons.forEach((button) => {
   });
 });
 
-grid.addEventListener("click", (event) => {
+function handleFleetCardClick(event) {
   const availabilityButton = event.target.closest("[data-check-availability]");
   if (availabilityButton) {
     openAvailabilityDrawer(availabilityButton.dataset.vehicle || "Vehicle selection", availabilityButton);
@@ -587,6 +595,25 @@ grid.addEventListener("click", (event) => {
     sortMode = "featured";
     renderFleet();
   }
+}
+
+grid.addEventListener("click", handleFleetCardClick);
+popularGrid?.addEventListener("click", handleFleetCardClick);
+
+brandRail?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-brand-shortcut]");
+  if (!button) return;
+  activeFilter = `brand:${button.dataset.brandShortcut}`;
+  quickFilter = "all";
+  renderFleet();
+  document.querySelector(".fleet-showroom")?.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+document.querySelector("[data-show-popular]")?.addEventListener("click", () => {
+  activeFilter = "all";
+  quickFilter = "popular";
+  renderCards();
+  document.querySelector(".fleet-showroom")?.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
 document.addEventListener("click", (event) => {
@@ -722,26 +749,23 @@ async function refreshVisibleFleetFromCloud() {
 }
 
 async function initFleetPage() {
+  renderFleet();
+  trackFleetEvent("view_item_list", { vehicle_count: baseFleet.length });
+
   if (!isSupabaseFleetConfigured) {
     await hydrateMonthlyDeals();
     renderFleet();
-    trackFleetEvent("view_item_list", { vehicle_count: baseFleet.length });
     return;
   }
 
-  renderFleetLoading();
   try {
     const hydrated = await hydrateSupabaseFleet();
-    if (!hydrated) {
-      baseFleet = [];
-    }
+    if (!hydrated) return;
     await hydrateMonthlyDeals();
     renderFleet();
     trackFleetEvent("view_item_list", { vehicle_count: baseFleet.length });
   } catch (error) {
     console.warn("Could not initialize cloud fleet:", error);
-    baseFleet = [];
-    renderFleet();
   }
 }
 

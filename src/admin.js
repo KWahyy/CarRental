@@ -1,6 +1,6 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-import { deleteCarDraft, readDeletedCarSlugs, signalFleetRefresh, slugifyVehicle } from "./admin-store.js?v=cloud-delete-20260714";
-import { fleet } from "./fleet-data.js?v=fleet-sync-20260714";
+import { deleteCarDraft, readDeletedCarSlugs, signalFleetRefresh, slugifyVehicle } from "./admin-store.js?v=fleet-consistency-20260715";
+import { fleet } from "./fleet-data.js?v=fleet-consistency-20260715";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_STORAGE_BUCKET, SUPABASE_URL } from "./supabase-config.js?v=fleet-sync-20260714";
 
 const unsafeParams = new URLSearchParams(window.location.search);
@@ -382,6 +382,7 @@ function normalizeLocalCar(car) {
     partner_name: car.partnerName || car.partner_name || "",
     partner_phone: car.partnerPhone || car.partner_phone || "",
     source: "website",
+    updated_at: new Date().toISOString(),
   };
 }
 
@@ -1481,7 +1482,7 @@ async function loadCars() {
   if (!requireConfig()) return;
 
   try {
-    cars = await runQuery(supabase.from("cars").select("*").order("name"));
+    cars = await runQuery(supabase.from("cars").select("*").eq("is_active", true).order("name"));
     const { data: partnerRows, error: partnerError } = await supabase.from("car_partners").select("car_id, partner_name, partner_phone");
     if (partnerError && isMissingSchemaItem(partnerError, ["car_partners"])) supportsPartnerTable = false;
     else if (partnerError) throw partnerError;
@@ -1497,11 +1498,9 @@ async function loadCars() {
   }
 
   if (!cars.length) {
-    cars = localFleetCars();
-    selectedCarId = cars[0]?.id || null;
-    renderCarList();
-    if (selectedCarId) await selectCar(selectedCarId);
-    setStatus(adminStatus, "Showing the current website fleet. Click Sync current fleet to save these cars into Supabase.", "");
+    selectedCarId = null;
+    await selectCar(null);
+    setStatus(adminStatus, "Supabase has no available vehicles. Add a vehicle to publish one.", "");
     return;
   }
 
@@ -1509,16 +1508,7 @@ async function loadCars() {
   renderCarList();
   if (selectedCarId) await selectCar(selectedCarId);
 
-  const cloudSlugs = new Set(cars.map((car) => car.slug));
-  const deletedSlugs = new Set(readDeletedCarSlugs());
-  const pendingWebsiteCars = fleet.filter((car) => !cloudSlugs.has(car.slug) && !deletedSlugs.has(car.slug));
-  if (pendingWebsiteCars.length) {
-    setStatus(
-      adminStatus,
-      `${pendingWebsiteCars.length} website ${pendingWebsiteCars.length === 1 ? "car is" : "cars are"} waiting to publish. Click Sync all website cars.`,
-      "",
-    );
-  }
+  setStatus(adminStatus, `${cars.length} available Supabase ${cars.length === 1 ? "vehicle" : "vehicles"} loaded.`, "success");
 }
 
 async function uploadPhoto(file, slug, position) {
@@ -1541,41 +1531,36 @@ async function savePhotos(carId, slug) {
     }
   }
 
-  await runQuery(supabase.from("car_photos").delete().eq("car_id", carId));
-  if (nextPhotos.length) await runQuery(supabase.from("car_photos").insert(nextPhotos));
+  if (nextPhotos.length) {
+    await runQuery(supabase.from("car_photos").upsert(nextPhotos, { onConflict: "car_id,position" }));
+    const activePositions = new Set(nextPhotos.map((photo) => photo.position));
+    for (let position = 1; position <= MAX_LISTING_PHOTOS; position += 1) {
+      if (!activePositions.has(position)) {
+        await runQuery(supabase.from("car_photos").delete().eq("car_id", carId).eq("position", position));
+      }
+    }
+  } else {
+    await runQuery(supabase.from("car_photos").delete().eq("car_id", carId));
+  }
   return nextPhotos;
 }
 
-async function syncWebsiteCar(localCar) {
-  const {
-    gallery,
-    id,
-    source,
-    partner_name: partnerName,
-    partner_phone: partnerPhone,
-    ...carPayload
-  } = normalizeLocalCar(localCar);
-  const saved = await saveCarRecord(carPayload);
-  const photoRows = (localCar.gallery || []).slice(0, MAX_LISTING_PHOTOS).map((url, index) => ({
-    car_id: saved.id,
-    position: index + 1,
-    url,
-  }));
-  await runQuery(supabase.from("car_photos").delete().eq("car_id", saved.id));
-  if (photoRows.length) await runQuery(supabase.from("car_photos").insert(photoRows));
-  if (photoRows[0]?.url) await runQuery(supabase.from("cars").update({ image_url: photoRows[0].url }).eq("id", saved.id));
-  await savePartnerRecord(saved.id, partnerName, partnerPhone);
-  return saved;
-}
+async function verifySavedCarPhotos(carId, expectedPhotos) {
+  const savedCar = await runQuery(
+    supabase.from("cars").select("id, slug, image_url, updated_at, car_photos(position, url)").eq("id", carId).single(),
+  );
+  const actualPhotos = [...(savedCar.car_photos || [])]
+    .sort((a, b) => Number(a.position) - Number(b.position))
+    .map((photo) => photo.url);
+  const expectedUrls = expectedPhotos.map((photo) => photo.url);
 
-async function syncMissingWebsiteCars() {
-  const cloudCars = await runQuery(supabase.from("cars").select("slug"));
-  const cloudSlugs = new Set(cloudCars.map((car) => car.slug));
-  const deletedSlugs = new Set(readDeletedCarSlugs());
-  const missingCars = fleet.filter((car) => !cloudSlugs.has(car.slug) && !deletedSlugs.has(car.slug));
-
-  for (const localCar of missingCars) await syncWebsiteCar(localCar);
-  return missingCars.length;
+  if (actualPhotos.length !== expectedUrls.length || actualPhotos.some((url, index) => url !== expectedUrls[index])) {
+    throw new Error("The vehicle saved, but its gallery did not verify correctly. Reload the listing before trying again.");
+  }
+  if ((expectedUrls[0] || "") !== (savedCar.image_url || "")) {
+    throw new Error("The vehicle gallery saved, but the main image did not match Photo 1.");
+  }
+  return savedCar;
 }
 
 function currentPhotoUrls() {
@@ -1616,6 +1601,7 @@ function buildCarPayloadFromForm() {
     competitor_checked_at: formData.get("competitor_checked_at") || null,
     partner_name: formData.get("partner_name").trim(),
     partner_phone: formData.get("partner_phone").trim(),
+    updated_at: new Date().toISOString(),
   };
 }
 
@@ -1648,6 +1634,8 @@ async function saveCar(event) {
       partner_phone: partnerPhone,
       ...carPayload
     } = localPayload;
+    const existingCar = savedId ? selectedCar() : null;
+    if (existingCar?.slug) carPayload.slug = existingCar.slug;
     carPayload.image_url = photos[0]?.file ? selectedCar()?.image_url || "" : localImageUrl;
 
     setStatus(adminStatus, "Saving car...");
@@ -1656,24 +1644,38 @@ async function saveCar(event) {
     const savedPhotos = await savePhotos(saved.id, carPayload.slug);
     await saveAvailability(saved.id);
     await savePartnerRecord(saved.id, partnerName, partnerPhone);
+    const savedAt = new Date().toISOString();
     if (savedPhotos[0]?.url) {
-      await runQuery(supabase.from("cars").update({ image_url: savedPhotos[0].url }).eq("id", saved.id));
+      await runQuery(supabase.from("cars").update({ image_url: savedPhotos[0].url, updated_at: savedAt }).eq("id", saved.id));
+    } else {
+      await runQuery(supabase.from("cars").update({ image_url: null, updated_at: savedAt }).eq("id", saved.id));
     }
-    setStatus(adminStatus, "Car saved. Syncing any missing website vehicles...");
-    const syncedMissingCount = await syncMissingWebsiteCars();
+    await verifySavedCarPhotos(saved.id, savedPhotos);
     selectedCarId = saved.id;
     await loadCars();
     signalFleetRefresh();
-    setStatus(
-      adminStatus,
-      syncedMissingCount
-        ? `Saved to Supabase and published ${syncedMissingCount} missing website ${syncedMissingCount === 1 ? "car" : "cars"}.`
-        : "Saved to Supabase. The Fleet page has been refreshed.",
-      "success",
-    );
+    setStatus(adminStatus, "Saved and verified in Supabase. Open website pages will refresh from this exact listing.", "success");
   } catch (error) {
     setStatus(adminStatus, friendlyError(error), "error");
   }
+}
+
+async function removeCarFromMonthlySpecials(slug) {
+  if (!slug) return 0;
+  const { data, error } = await supabase.from("monthly_specials").select("month, car_slugs");
+  if (error && isMissingSchemaItem(error, ["monthly_specials"])) return 0;
+  if (error) throw error;
+
+  const affected = (data || []).filter((record) => Array.isArray(record.car_slugs) && record.car_slugs.includes(slug));
+  for (const record of affected) {
+    await runQuery(
+      supabase
+        .from("monthly_specials")
+        .update({ car_slugs: record.car_slugs.filter((item) => item !== slug), updated_at: new Date().toISOString() })
+        .eq("month", record.month),
+    );
+  }
+  return affected.length;
 }
 
 async function deleteSelectedCar() {
@@ -1698,6 +1700,8 @@ async function deleteSelectedCar() {
       throw new Error(`${car.name} was not found in Supabase. Reload the inventory and try again.`);
     }
 
+    await removeCarFromMonthlySpecials(car.slug);
+
     deleteCarDraft(car.slug || car.name);
 
     selectedCarId = null;
@@ -1712,22 +1716,12 @@ async function deleteSelectedCar() {
 async function seedFleet() {
   if (!requireConfig()) return;
   try {
-    setStatus(adminStatus, "Syncing current website fleet...");
-
-    const deletedSlugs = new Set(readDeletedCarSlugs());
-    const syncableFleet = fleet.filter((car) => !deletedSlugs.has(car.slug));
-    let syncedCount = 0;
-    for (const localCar of syncableFleet) {
-      await syncWebsiteCar(localCar);
-      syncedCount += 1;
-      setStatus(adminStatus, `Syncing current website fleet... ${syncedCount}/${syncableFleet.length}`);
-    }
-
+    setStatus(adminStatus, "Refreshing available inventory from Supabase...");
     selectedCarId = null;
     await loadCars();
     signalFleetRefresh();
-    const compatibilityNote = !supportsCompetitorColumns || !supportsPartnerTable ? " Core vehicle data and photos are live." : "";
-    setStatus(adminStatus, `${syncedCount} website vehicles synced into Supabase.${compatibilityNote}`, "success");
+    const availableCount = cars.filter((car) => car.is_active !== false).length;
+    setStatus(adminStatus, `${availableCount} available ${availableCount === 1 ? "vehicle" : "vehicles"} loaded from Supabase. Deleted cars were not restored.`, "success");
   } catch (error) {
     setStatus(adminStatus, friendlyError(error), "error");
   }

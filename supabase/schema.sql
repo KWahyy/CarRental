@@ -72,6 +72,59 @@ create table if not exists public.monthly_specials (
   updated_at timestamptz not null default now()
 );
 
+create or replace function public.touch_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists cars_touch_updated_at on public.cars;
+create trigger cars_touch_updated_at
+before update on public.cars
+for each row execute function public.touch_updated_at();
+
+drop trigger if exists monthly_specials_touch_updated_at on public.monthly_specials;
+create trigger monthly_specials_touch_updated_at
+before update on public.monthly_specials
+for each row execute function public.touch_updated_at();
+
+create or replace function public.sync_car_main_image()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  target_car_id uuid;
+begin
+  target_car_id = case when tg_op = 'DELETE' then old.car_id else new.car_id end;
+
+  update public.cars
+  set image_url = (
+    select url
+    from public.car_photos
+    where car_id = target_car_id
+    order by position asc
+    limit 1
+  )
+  where id = target_car_id;
+
+  if tg_op = 'DELETE' then
+    return old;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists car_photos_sync_main_image on public.car_photos;
+create trigger car_photos_sync_main_image
+after insert or update or delete on public.car_photos
+for each row execute function public.sync_car_main_image();
+
 create table if not exists public.quote_requests (
   id uuid primary key default gen_random_uuid(),
   name text not null,

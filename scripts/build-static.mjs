@@ -39,7 +39,10 @@ async function loadActiveInventory() {
   }
 
   const endpoint = new URL("/rest/v1/cars", SUPABASE_URL);
-  endpoint.searchParams.set("select", "slug,updated_at");
+  endpoint.searchParams.set(
+    "select",
+    "slug,name,make,model,category,category_label,price,mileage,seats,color,summary,image_url,tags,details,updated_at,car_photos(position,url)",
+  );
   endpoint.searchParams.set("is_active", "eq.true");
   endpoint.searchParams.set("order", "name.asc");
 
@@ -60,6 +63,54 @@ async function loadActiveInventory() {
 
 const activeInventory = await loadActiveInventory();
 const activeInventoryBySlug = new Map(activeInventory.map((car) => [car.slug, car]));
+
+const publicFleetSnapshot = activeInventory.map((car) => {
+  const photos = [...(car.car_photos || [])].sort((a, b) => Number(a.position) - Number(b.position));
+  const gallery = photos.map((photo) => photo.url).filter(Boolean).slice(0, 3);
+  const image = gallery[0] || car.image_url || "/assets/kds-hero.png";
+  return {
+    slug: car.slug,
+    name: car.name,
+    make: car.make,
+    model: car.model,
+    category: car.category,
+    categoryLabel: car.category_label,
+    category_label: car.category_label,
+    price: car.price,
+    mileage: car.mileage,
+    seats: car.seats,
+    color: car.color,
+    summary: car.summary,
+    image,
+    image_url: image,
+    gallery: gallery.length ? gallery : [image],
+    tags: Array.isArray(car.tags) ? car.tags : [],
+    details: Array.isArray(car.details) ? car.details : [],
+    competitorPrice: null,
+    competitorName: "",
+    competitorUrl: "",
+    competitorCheckedAt: "",
+    updatedAt: car.updated_at || "",
+  };
+});
+
+const fleetSnapshotModule = `export const fleet = ${JSON.stringify(publicFleetSnapshot, null, 2).replace(/</g, "\\u003c")};
+
+export function formatPrice(price) {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(price);
+}
+
+export function formatCategory(category) {
+  const label = category.split(" ")[0];
+  return label === "suv" ? "SUV" : label;
+}
+
+export function getVehicle(slug) {
+  return fleet.find((car) => car.slug === slug);
+}
+`;
+
+writeFileSync(join(outDir, "src", "fleet-data.js"), fleetSnapshotModule);
 
 const escapeJson = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
 
@@ -178,7 +229,7 @@ const locationPages = [
 ];
 
 const companyPages = [
-  { slug: "about", title: "About KD's Exotics | LA & OC Exotic Car Rentals", description: "Learn how KD's Exotics approaches delivery-only exotic car rentals, client approval, and vehicle partnerships in LA and Orange County.", eyebrow: "About KD's Exotics", heading: "The car is only part of the experience.", lead: "KD's Exotics brings together distinctive vehicles, direct booking support, and planned delivery for private clients, events, brands, and productions.", content: `<section><h2>What we do</h2><p>We are a delivery-only service with no customer-facing storefront. We help clients find and reserve exotic cars, luxury SUVs, convertibles, and performance vehicles for approved addresses across Los Angeles and Orange County.</p></section><section><h2>How we work</h2><p>Every request is reviewed for vehicle availability, driver requirements, dates, mileage, delivery access, and the intended experience. Our public fleet reflects vehicles marked active in the inventory system. A quote is not a guaranteed reservation until the vehicle, driver, documents, deposit, agreement, and payment details are approved.</p></section><section><h2>Talk with the team</h2><p>Call or text ${phoneLabel}, or email reservations@kdsexotics.com with the vehicle, date, and delivery area you have in mind.</p></section>` },
+  { slug: "about", title: "About KD's Exotics | LA & OC Exotic Car Rentals", description: "Learn how KD's Exotics approaches delivery-only exotic car rentals, client approval, and concierge service in LA and Orange County.", eyebrow: "About KD's Exotics", heading: "The car is only part of the experience.", lead: "KD's Exotics brings together distinctive vehicles, direct booking support, and planned delivery for private clients, events, brands, and productions.", content: `<section><h2>What we do</h2><p>We are a delivery-only service with no customer-facing storefront. We help clients find and reserve exotic cars, luxury SUVs, convertibles, and performance vehicles for approved addresses across Los Angeles and Orange County.</p></section><section><h2>How we work</h2><p>Every request is reviewed for vehicle availability, driver requirements, dates, mileage, delivery access, and the intended experience. Our public fleet reflects vehicles marked active in the inventory system. A quote is not a guaranteed reservation until the vehicle, driver, documents, deposit, agreement, and payment details are approved.</p></section><section><h2>Talk with the team</h2><p>Call or text ${phoneLabel}, or email reservations@kdsexotics.com with the vehicle, date, and delivery area you have in mind.</p></section>` },
   { slug: "rental-policies", title: "Rental Policies | KD's Exotics", description: "Review the general driver, insurance, deposit, mileage, delivery, cancellation, and vehicle-use policies for KD's Exotics rentals.", eyebrow: "Before You Book", heading: "Rental policies and requirements.", lead: "These general guidelines help you prepare. Your signed rental agreement and confirmed quote control the final terms for a specific booking.", content: `<section><h2>Driver approval</h2><ul><li>A valid driver’s license is required.</li><li>Proof of insurance or other approved coverage may be required.</li><li>Age, driving history, and additional-driver rules vary by vehicle.</li></ul></section><section><h2>Deposit, payment, and agreement</h2><p>A security deposit, signed agreement, and confirmed payment arrangement may be required before the scheduled delivery. Deposit amounts and release timing vary by vehicle and booking.</p></section><section><h2>Delivery-only service</h2><p>KD's Exotics does not operate a customer-facing rental counter or storefront. Every approved booking includes a confirmed delivery and return plan for an eligible address. Access, timing, distance, and delivery fees vary by location.</p></section><section><h2>Mileage and vehicle use</h2><p>Your quote should identify included mileage and any additional-mileage rate. Track use, racing, reckless driving, smoking, unauthorized drivers, illegal activity, subleasing, and travel outside approved areas are prohibited unless explicitly authorized in writing.</p></section><section><h2>Fuel, damage, and cancellations</h2><p>Return condition, fuel or charge level, tolls, tickets, cleaning, damage, late returns, cancellation, and rescheduling terms are confirmed in the rental agreement.</p></section>` },
   { slug: "privacy", title: "Privacy Policy | KD's Exotics", description: "Read how KD's Exotics handles information submitted through quote requests, partner applications, calls, texts, email, and website usage.", eyebrow: "Privacy", heading: "Privacy policy.", lead: "This policy explains the information we may receive and how it may be used when you contact KD's Exotics or use this website.", content: `<section><h2>Information you provide</h2><p>We may receive contact details, requested dates, vehicle preferences, delivery information, event details, partner-vehicle information, and messages you submit. Driver’s-license, insurance, payment, and agreement information may be requested later through an approved booking process.</p></section><section><h2>How information is used</h2><p>Information may be used to respond, verify availability, evaluate eligibility, prepare quotes, coordinate bookings, prevent fraud, meet legal obligations, and improve service. We do not claim to sell personal information.</p></section><section><h2>Service providers and retention</h2><p>Information may be processed by hosting, database, communications, analytics, payment, insurance, verification, or booking providers as needed. Records may be retained for operational, security, dispute, tax, insurance, and legal purposes.</p></section><section><h2>Your choices</h2><p>To ask about your information or request a correction or deletion where applicable, email reservations@kdsexotics.com. Do not send sensitive identity or payment information through an unsecured website message.</p></section>` },
   { slug: "terms", title: "Website Terms | KD's Exotics", description: "Review the website terms, quote limitations, availability notices, and acceptable-use rules for KD's Exotics.", eyebrow: "Website Terms", heading: "Terms of use.", lead: "By using this website, you agree to these website terms. A separate signed agreement governs any approved vehicle rental.", content: `<section><h2>Website information and quotes</h2><p>Vehicle descriptions, photos, rates, promotions, and availability may change. Online rates are starting points unless expressly confirmed. A submitted form, call, text, or email does not create a reservation.</p></section><section><h2>Rental approval</h2><p>All rentals remain subject to vehicle availability, driver approval, insurance or coverage requirements, deposit, payment, identity verification, and a signed agreement.</p></section><section><h2>Acceptable use and ownership</h2><p>Do not misuse the website, attempt unauthorized access, interfere with service, scrape protected information, impersonate another person, or submit unlawful content. Website branding, design, copy, and owned media remain protected by applicable intellectual-property laws.</p></section><section><h2>Limitations and updates</h2><p>The website is provided on an “as available” basis to the extent permitted by law. These terms may be updated as the business and services change. Contact reservations@kdsexotics.com with questions.</p></section>` }
@@ -203,7 +254,9 @@ if (existsSync(carDir)) {
     const imagePath = `assets/fleet/${slug}.jpg`;
     const imageUrl = existsSync(join(root, imagePath)) ? `${siteUrl}/${imagePath}` : `${siteUrl}/assets/kds-hero.png`;
     const isActive = activeInventoryBySlug.has(slug);
-    html = html.replace(/\/src\/vehicle\.js\?v=[^\"]+/g, "/src/vehicle.js?v=cloud-gallery-20260714");
+    html = html
+      .replace(/\/src\/vehicle\.js\?v=[^\"]+/g, "/src/vehicle.js?v=kds-product-v10-20260715")
+      .replace(/\/src\/styles\.css\?v=[^\"]+/g, "/src/styles.css?v=kds-product-v10-20260715");
     const metadata = `
     <link rel="canonical" href="${siteUrl}/cars/${slug}" />
     <meta name="robots" content="${isActive ? "index, follow" : "noindex, follow"}" data-inventory-indexing />
