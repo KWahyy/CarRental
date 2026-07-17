@@ -156,6 +156,10 @@ const form = document.querySelector(".booking-form");
 const formStatus = document.querySelector("[data-form-status]");
 const quoteForm = document.querySelector("[data-quote-form]");
 const quoteStatus = document.querySelector("[data-quote-status]");
+const quoteTyping = document.querySelector("[data-quote-typing]");
+const quoteProgressText = document.querySelector("[data-quote-progress-text]");
+const quoteProgressPercent = document.querySelector("[data-quote-progress-percent]");
+const quoteProgressBar = document.querySelector("[data-quote-progress-bar]");
 const CRM_REQUESTS_KEY = "kds-crm-requests";
 const diaText = document.querySelector("[data-dia-words]");
 const CLOUD_FLEET_TIMEOUT_MS = 3500;
@@ -740,7 +744,7 @@ async function renderMonthlySpecials() {
               <img src="${escapeHtml(primaryImageFor(car))}" alt="${escapeHtml(car.name)} monthly rental special" width="1536" height="1024" loading="lazy" />
               <div class="special-card-copy">
                 <span>${escapeHtml(monthLabel)} feature</span>
-                <h3>${escapeHtml(car.name)}</h3>
+                <h3>${escapeHtml(car.name.replace(/^\s*(?:19|20)\d{2}\s+/, ""))}</h3>
                 <p>${escapeHtml(car.color || car.categoryLabel || car.category || "Delivery available in LA & OC")}</p>
                 <a href="/cars/${escapeHtml(vehicleSlug(car))}.html">View special</a>
               </div>
@@ -945,7 +949,106 @@ if (form) {
   });
 }
 
+function localDateValue(date = new Date()) {
+  const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return offsetDate.toISOString().slice(0, 10);
+}
+
+function updateQuoteProgress() {
+  if (!quoteForm) return;
+  const requiredFields = [...quoteForm.querySelectorAll("[required]")];
+  const completed = requiredFields.filter((field) => field.value.trim() && field.checkValidity()).length;
+  const percent = requiredFields.length ? Math.round((completed / requiredFields.length) * 100) : 0;
+
+  if (quoteProgressText) quoteProgressText.textContent = `${completed} of ${requiredFields.length} details complete`;
+  if (quoteProgressPercent) quoteProgressPercent.textContent = `${percent}%`;
+  if (quoteProgressBar) quoteProgressBar.style.transform = `scaleX(${percent / 100})`;
+
+  quoteForm.querySelectorAll("label").forEach((label) => {
+    const field = label.querySelector("input:not([type='checkbox']), select, textarea");
+    if (!field || !field.name || field.name === "company") return;
+    label.classList.toggle("is-complete", Boolean(field.value.trim()) && field.checkValidity());
+  });
+
+  quoteForm.querySelectorAll(".quote-addons label").forEach((label) => {
+    label.classList.toggle("is-selected", Boolean(label.querySelector("input")?.checked));
+  });
+}
+
+function initQuoteTyping() {
+  if (!quoteTyping) return;
+  const fullText = "A concierge will review your request before anything is confirmed.";
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let timerId = 0;
+  let started = false;
+  let interrupted = false;
+
+  const finish = () => {
+    window.clearTimeout(timerId);
+    quoteTyping.textContent = fullText;
+    quoteTyping.closest(".quote-typing-line")?.classList.add("typing-complete");
+  };
+
+  const typeNext = (index = 0) => {
+    if (interrupted || index >= fullText.length) {
+      finish();
+      return;
+    }
+    quoteTyping.textContent = fullText.slice(0, index + 1);
+    timerId = window.setTimeout(() => typeNext(index + 1), index < 11 ? 34 : 22);
+  };
+
+  const start = () => {
+    if (started) return;
+    started = true;
+    if (reduceMotion) {
+      finish();
+      return;
+    }
+    quoteTyping.textContent = "";
+    typeNext();
+  };
+
+  quoteForm?.addEventListener("focusin", () => {
+    interrupted = true;
+    finish();
+  }, { once: true });
+
+  if (!("IntersectionObserver" in window)) {
+    start();
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    if (!entries.some((entry) => entry.isIntersecting)) return;
+    observer.disconnect();
+    start();
+  }, { threshold: 0.35 });
+  observer.observe(quoteTyping.closest(".quote-section") || quoteTyping);
+}
+
 if (quoteForm) {
+  const rentalDate = quoteForm.elements.date;
+  if (rentalDate) rentalDate.min = localDateValue();
+
+  quoteForm.addEventListener("input", (event) => {
+    updateQuoteProgress();
+    const field = event.target.closest("input:not([type='checkbox']), select, textarea");
+    if (!field || !field.required || !field.checkValidity()) return;
+    field.removeAttribute("aria-invalid");
+    field.closest("label")?.classList.remove("is-invalid");
+  });
+  quoteForm.addEventListener("change", updateQuoteProgress);
+  quoteForm.addEventListener("focusout", (event) => {
+    const field = event.target.closest("input:not([type='checkbox']), select, textarea");
+    if (!field || !field.required) return;
+    field.setAttribute("aria-invalid", String(!field.checkValidity()));
+    field.closest("label")?.classList.toggle("is-invalid", !field.checkValidity());
+  });
+
+  initQuoteTyping();
+  window.setTimeout(updateQuoteProgress, 0);
+
   quoteForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const submitButton = quoteForm.querySelector("button[type='submit']");
@@ -956,6 +1059,8 @@ if (quoteForm) {
 
     submitButton.disabled = true;
     submitButton.textContent = "Sending request...";
+    submitButton.classList.add("is-sending");
+    quoteForm.setAttribute("aria-busy", "true");
     if (quoteStatus) {
       quoteStatus.dataset.tone = "";
       quoteStatus.textContent = "Saving your quote request...";
@@ -1009,6 +1114,9 @@ if (quoteForm) {
       }
       quoteForm.reset();
       hydrateVehicleSelect();
+      quoteForm.querySelectorAll("[aria-invalid]").forEach((field) => field.removeAttribute("aria-invalid"));
+      quoteForm.querySelectorAll(".is-invalid").forEach((label) => label.classList.remove("is-invalid"));
+      window.setTimeout(updateQuoteProgress, 0);
     } catch (error) {
       if (quoteStatus) {
         quoteStatus.dataset.tone = "error";
@@ -1016,6 +1124,8 @@ if (quoteForm) {
       }
     } finally {
       submitButton.disabled = false;
+      submitButton.classList.remove("is-sending");
+      quoteForm.removeAttribute("aria-busy");
       submitButton.textContent = "Send Private Request";
     }
   });

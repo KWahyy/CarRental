@@ -18471,6 +18471,76 @@ body.availability-open {
   line-height: 1.5;
 }
 
+.quote-typing-line {
+  min-height: 2.4em;
+  display:flex;
+  align-items:flex-start;
+  gap:5px;
+}
+
+.quote-typing-line > span {
+  min-height:1.5em;
+}
+
+.quote-typing-line > i {
+  width:1px;
+  height:1.05em;
+  flex:0 0 auto;
+  margin-top:.18em;
+  background:rgba(255,255,255,.72);
+  animation:quoteTypingCursor 760ms steps(1,end) infinite;
+}
+
+.quote-typing-line.typing-complete > i {
+  opacity:0;
+  animation:none;
+}
+
+.quote-completion {
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:center;
+  gap:9px 18px;
+  margin-top:8px;
+}
+
+.quote-completion > span,
+.quote-completion > strong {
+  color:rgba(255,255,255,.42);
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size:.58rem;
+  font-weight:600;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+
+.quote-completion > strong {
+  color:rgba(255,255,255,.78);
+  font-variant-numeric:tabular-nums;
+}
+
+.quote-completion > i {
+  grid-column:1 / -1;
+  height:2px;
+  overflow:hidden;
+  background:rgba(255,255,255,.12);
+}
+
+.quote-completion > i > b {
+  width:100%;
+  height:100%;
+  display:block;
+  background:#fff;
+  transform:scaleX(0);
+  transform-origin:left center;
+  transition:transform 260ms cubic-bezier(.22,1,.36,1);
+}
+
+@keyframes quoteTypingCursor {
+  0%,48% { opacity:1; }
+  49%,100% { opacity:0; }
+}
+
 .quote-form-grid {
   gap: 20px 18px;
 }
@@ -18520,6 +18590,22 @@ body.availability-open {
   box-shadow: none;
 }
 
+.quote-form label.is-complete > span::after {
+  content:" · READY";
+  color:rgba(255,255,255,.72);
+  font-size:.82em;
+}
+
+.quote-form label.is-invalid > span {
+  color:#ffb4a9;
+}
+
+.quote-form label.is-invalid input,
+.quote-form label.is-invalid select,
+.quote-form label.is-invalid textarea {
+  border-bottom-color:#ff8f80;
+}
+
 .quote-field-wide small {
   color: rgba(255, 255, 255, 0.34);
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -18554,6 +18640,13 @@ body.availability-open {
   color: #fff;
 }
 
+.quote-addons label.is-selected,
+.quote-addons label:has(input:checked) {
+  border-color:rgba(255,255,255,.72);
+  background:#f2f0eb;
+  color:#080808;
+}
+
 .quote-addons input {
   width: 15px;
   min-height: 15px;
@@ -18581,6 +18674,16 @@ body.availability-open {
   background: transparent;
   color: #fff;
   transform: translateY(-2px);
+}
+
+.quote-submit.is-sending {
+  cursor:wait;
+  opacity:.72;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quote-typing-line > i { display:none; }
+  .quote-completion > i > b { transition:none; }
 }
 
 .quote-status {
