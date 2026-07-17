@@ -106,7 +106,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/src/styles.css?v=hero-clean-video-20260715" />
+    <link rel="stylesheet" href="/src/styles.css?v=quote-concierge-20260716" />
   </head>
   <body class="home-page">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -429,7 +429,15 @@
           <div class="quote-form-head">
             <p>Confidential Inquiry</p>
             <strong>Reservation details</strong>
-            <span>A concierge will review your request before anything is confirmed.</span>
+            <span class="quote-typing-line" aria-label="A concierge will review your request before anything is confirmed.">
+              <span data-quote-typing aria-hidden="true">A concierge will review your request before anything is confirmed.</span>
+              <i aria-hidden="true"></i>
+            </span>
+            <div class="quote-completion" aria-label="Quote form completion">
+              <span data-quote-progress-text>0 of 5 details complete</span>
+              <strong data-quote-progress-percent>0%</strong>
+              <i aria-hidden="true"><b data-quote-progress-bar></b></i>
+            </div>
           </div>
           <div class="quote-form-grid">
             <label>
@@ -450,7 +458,7 @@
             </label>
             <label>
               <span>Vehicle</span>
-              <select name="vehicle" data-vehicle-select></select>
+              <select name="vehicle" data-vehicle-select required></select>
             </label>
             <label class="quote-field-wide">
               <span>Current Insurance Carrier</span>
@@ -486,15 +494,15 @@
 
           <label>
             <span>Message</span>
-              <textarea name="message" rows="4" placeholder="Tell us the car, date, timing, and experience you want."></textarea>
-            </label>
-            <label class="quote-honeypot" aria-hidden="true">
-              <span>Company</span>
-              <input name="company" type="text" tabindex="-1" autocomplete="off" />
-            </label>
+            <textarea name="message" rows="4" placeholder="Tell us the car, date, timing, and experience you want."></textarea>
+          </label>
+          <label class="quote-honeypot" aria-hidden="true">
+            <span>Company</span>
+            <input name="company" type="text" tabindex="-1" autocomplete="off" />
+          </label>
 
-            <button class="quote-submit" type="submit">Send Private Request</button>
-            <p class="quote-status" data-quote-status role="status">Your request remains private. License, insurance, and deposit are confirmed before approval.</p>
+          <button class="quote-submit" type="submit">Send Private Request</button>
+          <p class="quote-status" data-quote-status role="status">Your request remains private. License, insurance, and deposit are confirmed before approval.</p>
         </form>
       </section>
 
@@ -737,6 +745,6 @@
       </div>
     </footer>
 
-    <script type="module" src="/src/main.js?v=fleet-consistency-20260715b"></script>
+    <script type="module" src="/src/main.js?v=special-card-no-year-20260716"></script>
   </body>
 </html>
