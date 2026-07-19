@@ -178,6 +178,154 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
 </html>`;
 }
 
+function orangeCountyPage({ title, description, heading, lead, path }) {
+  const canonical = `${siteUrl}/${path}`;
+  const preferredSlugs = [
+    "2022-lamborghini-huracan",
+    "ferrari-f8",
+    "rolls-royce-cullinan-white",
+  ];
+  const featuredCars = preferredSlugs
+    .map((slug) => activeInventoryBySlug.get(slug))
+    .filter(Boolean);
+
+  for (const car of activeInventory) {
+    if (featuredCars.length >= 3) break;
+    if (!featuredCars.some((featured) => featured.slug === car.slug)) featuredCars.push(car);
+  }
+
+  const getCarImage = (car) => {
+    const photos = [...(car.car_photos || [])].sort((a, b) => Number(a.position) - Number(b.position));
+    return photos.find((photo) => photo.url)?.url || car.image_url || "/assets/kds-hero.png";
+  };
+  const heroCar = featuredCars[0];
+  const heroImage = heroCar ? getCarImage(heroCar) : "/assets/kds-hero.png";
+  const fleetCards = featuredCars.map((car) => `
+          <article class="oc-showroom-card">
+            <a class="oc-showroom-media" href="/cars/${car.slug}" aria-label="View ${car.make} ${car.model}">
+              <img src="${getCarImage(car)}" alt="${car.make} ${car.model} available from KD's Exotics" width="1200" height="900" loading="eager" decoding="async" />
+            </a>
+            <div class="oc-showroom-card-copy">
+              <div>
+                <span>${car.make}</span>
+                <h3>${car.model}</h3>
+              </div>
+              <p>From <strong>$${Number(car.price).toLocaleString("en-US")}</strong>/day</p>
+            </div>
+            <a class="oc-showroom-link" href="/cars/${car.slug}"><span>View vehicle</span><span aria-hidden="true">&#8599;</span></a>
+          </article>`).join("");
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: heading,
+    description,
+    url: canonical,
+    areaServed: ["Orange County", "Newport Beach", "Irvine", "Anaheim"],
+    provider: { "@id": `${siteUrl}/#business` },
+  };
+
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="${description}" />
+    <meta name="theme-color" content="#080808" />
+    <title>${title}</title>
+    <link rel="canonical" href="${canonical}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="KD's Exotics" />
+    <meta property="og:title" content="${title}" />
+    <meta property="og:description" content="${description}" />
+    <meta property="og:url" content="${canonical}" />
+    <meta property="og:image" content="${heroImage.startsWith("http") ? heroImage : `${siteUrl}${heroImage}`}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json">${escapeJson(schema)}</script>
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+    <link rel="stylesheet" href="/src/styles.css?v=oc-showroom-20260719" />
+  </head>
+  <body class="fleet-page oc-location-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header scrolled" data-header>
+      <a class="brand" href="/" aria-label="KD's Exotics home"><img class="brand-logo brand-logo-wide" src="/assets/kds-logo-wide.png" alt="" width="1348" height="610" /></a>
+      <nav class="desktop-nav" aria-label="Primary navigation"><a href="/fleet.html">Fleet</a><a href="/#how-it-works">How It Works</a><a href="/partner.html">Partner</a><a href="/#faq">FAQ</a></nav>
+      <div class="header-actions"><a class="ghost-button" href="tel:${phoneHref}">Call</a><a class="primary-button compact" href="/#quote">Reserve</a></div>
+      <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-toggle><span></span><span></span></button>
+    </header>
+    <div class="mobile-menu" data-mobile-menu><a href="/fleet.html">Fleet</a><a href="/#how-it-works">How It Works</a><a href="/partner.html">Partner</a><a href="/#faq">FAQ</a><a href="tel:${phoneHref}">Call</a><a href="/#quote">Reserve</a></div>
+
+    <main id="main" class="oc-location-main">
+      <section class="oc-location-hero" aria-labelledby="oc-location-title">
+        <img class="oc-location-hero-media" src="${heroImage}" alt="${heroCar ? `${heroCar.make} ${heroCar.model}` : "Exotic car"} available for Orange County delivery" width="1800" height="1200" fetchpriority="high" decoding="async" />
+        <div class="oc-location-hero-scrim" aria-hidden="true"></div>
+        <div class="oc-location-hero-content">
+          <p class="oc-location-kicker">Orange County / Concierge delivery</p>
+          <h1 id="oc-location-title">Orange County<br />Exotic Car Rental</h1>
+          <p>${lead}</p>
+          <div class="oc-location-actions">
+            <a class="oc-location-primary" href="#orange-county-fleet">Choose a vehicle</a>
+            <a class="oc-location-secondary" href="/#quote">Request a quote <span aria-hidden="true">&#8599;</span></a>
+          </div>
+        </div>
+        <div class="oc-location-areas" aria-label="Orange County delivery areas">
+          <span>Newport Beach</span><span>Irvine</span><span>Anaheim</span><span>Coastal delivery</span>
+        </div>
+      </section>
+
+      <section class="oc-location-fleet" id="orange-county-fleet" aria-labelledby="oc-fleet-title">
+        <header class="oc-section-heading">
+          <div><p>Available now</p><h2 id="oc-fleet-title">Choose your arrival.</h2></div>
+          <a href="/fleet.html">View the full fleet <span aria-hidden="true">&#8594;</span></a>
+        </header>
+        <div class="oc-showroom-grid">${fleetCards}</div>
+      </section>
+
+      <section class="oc-location-service" aria-labelledby="oc-service-title">
+        <div class="oc-service-intro">
+          <p>Concierge, not counter service</p>
+          <h2 id="oc-service-title">Delivered around your plans.</h2>
+        </div>
+        <div class="oc-service-steps">
+          <article><span>01</span><h3>Choose the car</h3><p>Send the vehicle, date, and driver details you have in mind.</p></article>
+          <article><span>02</span><h3>Confirm the details</h3><p>We verify availability, mileage, deposit, and the delivery address.</p></article>
+          <article><span>03</span><h3>Meet the car</h3><p>Your approved vehicle arrives at the confirmed Orange County handoff.</p></article>
+        </div>
+      </section>
+
+      <section class="oc-location-quote" aria-labelledby="oc-quote-title">
+        <div>
+          <p>What your quote includes</p>
+          <h2 id="oc-quote-title">One clear plan.<br />No guessing.</h2>
+        </div>
+        <dl>
+          <div><dt>Vehicle</dt><dd>Exact car and availability</dd></div>
+          <div><dt>Timing</dt><dd>Rental dates and delivery window</dd></div>
+          <div><dt>Driver</dt><dd>Approval and document requirements</dd></div>
+          <div><dt>Rate</dt><dd>Mileage, deposit, delivery, and add-ons</dd></div>
+        </dl>
+      </section>
+
+      <section class="oc-location-final" aria-labelledby="oc-final-title">
+        <p>Ready when you are</p>
+        <h2 id="oc-final-title">Pick the car.<br />We handle the arrival.</h2>
+        <div><a class="oc-location-primary" href="/#quote">Request a quote</a><a class="oc-location-secondary" href="tel:${phoneHref}">Call ${phoneLabel}</a></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-main"><a class="brand footer-brand" href="/" aria-label="KD's Exotics home"><span class="footer-logo-frame"><img class="brand-logo-wide" src="/assets/kds-logo-wide.png" alt="KD's Exotics" width="1536" height="864" loading="lazy" /></span></a><p>Exotic and luxury car rentals with concierge delivery across Los Angeles and Orange County.</p><div class="footer-contact"><a href="tel:${phoneHref}">Call ${phoneLabel}</a><a href="sms:${phoneHref}">Text concierge</a><a href="mailto:reservations@kdsexotics.com">Email</a></div></div>
+      <div class="footer-columns">
+        <nav class="footer-links" aria-label="Explore"><h3>Explore</h3><a href="/fleet">Fleet</a><a href="/partner">Become a Partner</a><a href="/#quote">Request Quote</a></nav>
+        <nav class="footer-links" aria-label="Locations"><h3>Locations</h3><a href="/locations/los-angeles-exotic-car-rental">Los Angeles</a><a href="/locations/orange-county-exotic-car-rental">Orange County</a><a href="/locations/lax-exotic-car-delivery">LAX Delivery</a><a href="/locations/sna-exotic-car-delivery">SNA Delivery</a></nav>
+        <nav class="footer-links" aria-label="Company"><h3>Company</h3><a href="/about">About</a><a href="/rental-policies">Rental Policies</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/admin/" rel="nofollow">Admin Login</a></nav>
+      </div>
+      <div class="footer-bottom"><span>© 2026 KD's Exotics. All rights reserved.</span><span>Rental approval required. Rates subject to availability.</span></div>
+    </footer>
+    <script type="module" src="/src/partner.js?v=public-nav-20260713"></script>
+  </body>
+</html>`;
+}
+
 const locationPages = [
   {
     slug: "los-angeles-exotic-car-rental",
@@ -239,7 +387,11 @@ const companyPages = [
 const locationsDir = join(outDir, "locations");
 mkdirSync(locationsDir, { recursive: true });
 for (const page of locationPages) {
-  writeFileSync(join(locationsDir, `${page.slug}.html`), pageShell({ ...page, path: `locations/${page.slug}`, eyebrow: "KD's Exotics Service Area", schemaType: "Service" }));
+  const pageOptions = { ...page, path: `locations/${page.slug}` };
+  const html = page.slug === "orange-county-exotic-car-rental"
+    ? orangeCountyPage(pageOptions)
+    : pageShell({ ...pageOptions, eyebrow: "KD's Exotics Service Area", schemaType: "Service" });
+  writeFileSync(join(locationsDir, `${page.slug}.html`), html);
 }
 for (const page of companyPages) {
   writeFileSync(join(outDir, `${page.slug}.html`), pageShell({ ...page, path: page.slug }));
