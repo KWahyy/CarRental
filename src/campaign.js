@@ -33,6 +33,29 @@ function showValidationError(field) {
   field.setAttribute("aria-invalid", String(!field.checkValidity()));
 }
 
+function brandFromVehicle(value) {
+  const vehicle = String(value || "").toLowerCase();
+  const brandAliases = [
+    ["Rolls-Royce", ["rolls-royce", "rolls royce", "cullinan"]],
+    ["Mercedes-Benz", ["mercedes", "maybach", "amg"]],
+    ["Land Rover", ["land rover", "range rover"]],
+    ["Chevrolet", ["chevrolet", "chevy", "corvette", "c8"]],
+    ["Lamborghini", ["lamborghini", "huracan", "urus"]],
+    ["McLaren", ["mclaren"]],
+    ["Ferrari", ["ferrari"]],
+    ["Porsche", ["porsche"]],
+    ["Cadillac", ["cadillac", "escalade"]],
+    ["Bentley", ["bentley", "continental"]],
+    ["Audi", ["audi"]],
+    ["BMW", ["bmw"]],
+    ["Ford", ["ford"]],
+    ["Lotus", ["lotus"]],
+    ["Tesla", ["tesla"]],
+  ];
+
+  return brandAliases.find(([, aliases]) => aliases.some((alias) => vehicle.includes(alias)))?.[0] || "Help me choose";
+}
+
 function loadDecodedImage(url) {
   return new Promise((resolve, reject) => {
     const image = new Image();
@@ -121,9 +144,9 @@ if (form) {
       email: formData.get("email") || "",
       insuranceProvider: formData.get("insuranceProvider") || "",
       date: formData.get("date") || "",
-      vehicle: formData.get("vehicle") || "Vehicle TBD",
+      vehicle: formData.get("vehicle") || "Help me choose",
       addons: ["Delivery"],
-      message: "Google Ads landing page request.",
+      message: "Google Ads landing page brand request.",
       company: formData.get("company") || "",
       pageUrl: window.location.href,
     };
@@ -159,11 +182,12 @@ if (form) {
 document.querySelectorAll("[data-select-car]").forEach((button) => {
   button.addEventListener("click", () => {
     const selectedCar = button.dataset.selectCar;
+    const selectedBrand = brandFromVehicle(selectedCar);
     const vehicleSelect = form?.elements.vehicle;
-    if (vehicleSelect && selectedCar) vehicleSelect.value = selectedCar;
+    if (vehicleSelect) vehicleSelect.value = selectedBrand;
     document.querySelector("#quote-card")?.scrollIntoView({ behavior: "smooth", block: "center" });
     window.setTimeout(() => vehicleSelect?.focus({ preventScroll: true }), 450);
-    trackCampaignEvent("select_campaign_vehicle", { vehicle: selectedCar });
+    trackCampaignEvent("select_campaign_vehicle", { vehicle: selectedCar, brand: selectedBrand });
   });
 });
 

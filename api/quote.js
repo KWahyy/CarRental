@@ -382,6 +382,10 @@ export default async function handler(req, res) {
       return json(res, 400, { ok: false, message: "Insurance provider is required." });
     }
 
+    if (payload.source === "google-ads-landing-page" && !payload.email) {
+      return json(res, 400, { ok: false, message: "Email is required for campaign requests." });
+    }
+
     if (payload.email && !isEmail(payload.email)) {
       return json(res, 400, { ok: false, message: "Use a valid email address." });
     }
