@@ -17673,7 +17673,7 @@ body.availability-open {
 
 .hero h1,
 .hero h1.reveal {
-  max-width: 12ch;
+  max-width: 15ch;
   color: #fff;
   background: none;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -17816,8 +17816,8 @@ body.availability-open {
 
   .hero h1,
   .hero h1.reveal {
-    max-width: 11ch;
-    font-size: clamp(2.55rem, 12.5vw, 3.45rem);
+    max-width: 15ch;
+    font-size: clamp(2.4rem, 11vw, 3.2rem);
     line-height: 0.98;
     letter-spacing: 0.055em;
   }
