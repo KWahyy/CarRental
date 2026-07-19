@@ -20737,6 +20737,38 @@ body.availability-open {
   line-height:1.55;
 }
 
+.oc-new-client-offer {
+  width:fit-content;
+  display:grid;
+  grid-template-columns:auto auto;
+  align-items:baseline;
+  gap:4px 14px;
+  margin-top:24px;
+  padding:13px 16px 12px;
+  border-left:3px solid var(--oc-gold);
+  background:rgba(0,0,0,.38);
+  backdrop-filter:blur(10px);
+}
+
+.oc-new-client-offer strong {
+  color:var(--oc-gold);
+  font-size:1rem;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+
+.oc-new-client-offer span {
+  color:#fff;
+  font-size:.88rem;
+  font-weight:600;
+}
+
+.oc-new-client-offer small {
+  grid-column:1 / -1;
+  color:rgba(255,255,255,.55);
+  font-size:.67rem;
+}
+
 .oc-location-actions,
 .oc-location-final > div {
   display:flex;
@@ -21064,6 +21096,16 @@ body.availability-open {
   .oc-location-kicker { margin-bottom:13px; font-size:.6rem; }
   .oc-location-hero h1 { max-width:100%; font-size:clamp(2.8rem,13.5vw,3.75rem); line-height:.9; }
   .oc-location-hero-content > p:not(.oc-location-kicker) { max-width:340px; margin-top:18px; font-size:.91rem; line-height:1.5; }
+  .oc-new-client-offer {
+    width:100%;
+    grid-template-columns:auto 1fr;
+    gap:3px 10px;
+    margin-top:18px;
+    padding:11px 13px;
+  }
+  .oc-new-client-offer strong { font-size:.88rem; }
+  .oc-new-client-offer span { font-size:.8rem; }
+  .oc-new-client-offer small { font-size:.61rem; }
   .oc-location-actions { display:grid; grid-template-columns:1fr; margin-top:24px; }
   .oc-location-primary,
   .oc-location-secondary { width:100%; min-height:50px; }

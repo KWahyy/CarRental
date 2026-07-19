@@ -262,6 +262,11 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
           <p class="oc-location-kicker">Orange County exotic car rental</p>
           <h1 id="oc-location-title">Meet your<br />next arrival.</h1>
           <p>Premium cars, clear quotes, and concierge delivery built around your plans.</p>
+          <div class="oc-new-client-offer" aria-label="New client offer">
+            <strong>10% off</strong>
+            <span>Your first KD's Exotics rental</span>
+            <small>New clients only. Select vehicles and dates.</small>
+          </div>
           <div class="oc-location-actions">
             <a class="oc-location-primary" href="#orange-county-fleet">Explore the fleet</a>
             <a class="oc-location-secondary" href="/#quote">Request a quote <span aria-hidden="true">&#8594;</span></a>
