@@ -1,3 +1,5 @@
+import { submitQuoteRequest } from "./quote-api.js?v=lead-delivery-20260718b";
+
 const menuToggle = document.querySelector("[data-menu-toggle]");
 const mobileMenu = document.querySelector("[data-mobile-menu]");
 const form = document.querySelector("[data-partner-form]");
@@ -34,17 +36,12 @@ function valueOf(formData, key) {
 }
 
 if (form) {
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const formData = new FormData(form);
+    const submitButton = form.querySelector("button[type='submit']");
     const lines = [
-      "New KD's Exotics private vehicle review",
-      "",
-      `Name: ${valueOf(formData, "name")}`,
-      `Phone: ${valueOf(formData, "phone")}`,
-      `Email: ${valueOf(formData, "email")}`,
-      `Vehicle: ${valueOf(formData, "vehicle")}`,
       `Year: ${valueOf(formData, "year") || "Not provided"}`,
       `Mileage: ${valueOf(formData, "mileage") || "Not provided"}`,
       `Availability: ${valueOf(formData, "availability")}`,
@@ -53,12 +50,46 @@ if (form) {
       valueOf(formData, "notes") || "Not provided",
     ];
 
-    const subject = encodeURIComponent("KD's Exotics Private Vehicle Review");
-    const body = encodeURIComponent(lines.join("\n"));
-    window.location.href = `mailto:bookings@kdsexotics.com?subject=${subject}&body=${body}`;
+    const payload = {
+      requestType: "partner",
+      source: "partner-vehicle-review",
+      name: valueOf(formData, "name"),
+      phone: valueOf(formData, "phone"),
+      email: valueOf(formData, "email"),
+      insuranceProvider: "",
+      vehicle: valueOf(formData, "vehicle"),
+      date: "",
+      addons: ["Owner partner application"],
+      message: lines.join("\n"),
+      company: "",
+      pageUrl: window.location.href,
+    };
 
+    submitButton.disabled = true;
+    submitButton.textContent = "Sending for review...";
+    form.setAttribute("aria-busy", "true");
     if (status) {
-      status.textContent = "Private review draft opened. Attach vehicle photos before sending if available.";
+      status.dataset.tone = "";
+      status.textContent = "Saving your vehicle review securely...";
+    }
+
+    try {
+      await submitQuoteRequest(payload);
+      form.reset();
+      if (status) {
+        status.dataset.tone = "success";
+        status.textContent = "Vehicle received. Our team will contact you after a private review.";
+      }
+      submitButton.textContent = "Review received";
+    } catch (error) {
+      if (status) {
+        status.dataset.tone = "error";
+        status.textContent = error.message || "We could not save your vehicle. Please call us directly.";
+      }
+      submitButton.textContent = "Submit for review";
+    } finally {
+      submitButton.disabled = false;
+      form.removeAttribute("aria-busy");
     }
   });
 }

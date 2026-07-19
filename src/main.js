@@ -1,6 +1,7 @@
 import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=fleet-consistency-20260715";
 import { fleet as websiteFleet } from "./fleet-data.js?v=fleet-consistency-20260715";
 import { cacheSafeFleetImageUrl, isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase } from "./supabase-fleet.js?v=fleet-consistency-20260715";
+import { submitQuoteRequest } from "./quote-api.js?v=lead-delivery-20260718b";
 
 let fleet = [
   {
@@ -1067,6 +1068,7 @@ if (quoteForm) {
     }
 
     const payload = {
+      source: "homepage-private-quote",
       name: formData.get("name") || "",
       phone: formData.get("phone") || "",
       email: formData.get("email") || "",
@@ -1080,13 +1082,7 @@ if (quoteForm) {
     };
 
     try {
-      const response = await fetch("/api/quote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok || !result.ok) throw new Error(result.message || "Quote request failed.");
+      const result = await submitQuoteRequest(payload);
 
       try {
         const storedRequests = JSON.parse(localStorage.getItem(CRM_REQUESTS_KEY)) || [];

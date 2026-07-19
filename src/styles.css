@@ -13932,44 +13932,141 @@ details p {
 .fleet-page .showroom-request:hover span { transform: translate(3px, -3px); }
 
 .fleet-brand-gallery {
-  min-height: 520px;
+  min-height: 340px;
   display: grid;
   place-content: center;
   text-align: center;
-  padding: clamp(90px, 11vw, 165px) max(5vw, 28px);
-  background:
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.055), transparent 48%),
-    #111;
+  padding: clamp(56px, 7vw, 94px) max(5vw, 28px);
+  background: #050505;
 }
 
 .fleet-brand-gallery h2 { max-width: 980px; margin: 0 auto; font-size: clamp(2.7rem, 5vw, 5.5rem); }
 
-.fleet-brand-rail {
-  width: min(1180px, 100%);
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin: clamp(44px, 6vw, 80px) auto 0;
-  border-top: 1px solid var(--fleet-line);
-  border-bottom: 1px solid var(--fleet-line);
+.fleet-brand-carousel {
+  width: min(1240px, 100%);
+  margin: 0 auto;
+  overflow: hidden;
 }
 
+.fleet-brand-rail {
+  width: 100%;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 120px) / 6);
+  gap: 24px;
+  margin: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.fleet-brand-rail::-webkit-scrollbar { display: none; }
+
 .fleet-brand-rail button {
-  flex: 1 1 180px;
-  min-height: 104px;
+  min-width: 0;
+  min-height: 154px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: center;
   border: 0;
-  border-right: 1px solid var(--fleet-line);
   background: transparent;
-  color: var(--fleet-ivory);
-  padding: 20px;
+  color: rgba(240, 238, 232, 0.72);
+  padding: 14px 8px;
+  cursor: pointer;
+  transition: color 200ms ease, opacity 200ms ease;
+}
+
+.fleet-brand-rail button:hover,
+.fleet-brand-rail button:focus-visible,
+.fleet-brand-rail button.active { color: #fff; }
+
+.fleet-brand-rail button:focus-visible { outline: 1px solid rgba(255,255,255,.72); outline-offset: -2px; }
+
+.fleet-brand-mark {
+  width: 104px;
+  height: 74px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 10px;
+}
+
+.fleet-brand-mark img,
+.fleet-brand-mark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  filter: grayscale(1) brightness(2.1);
+}
+
+.fleet-brand-mark svg { fill: none; stroke: currentColor; stroke-width: 1.5; }
+
+.fleet-brand-fallback {
+  color: currentColor;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.25rem;
+  letter-spacing: -0.08em;
+}
+
+.fleet-brand-rail strong {
+  display: block;
+  color: currentColor;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.fleet-brand-rail small {
+  display: block;
+  margin-top: 9px;
+  color: currentColor;
+  opacity: 0.72;
+  font-size: 0.61rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fleet-brand-dots {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 10px auto 0;
+}
+
+.fleet-brand-dots button {
+  width: 20px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  padding: 0;
   cursor: pointer;
 }
 
-.fleet-brand-rail button:last-child { border-right: 0; }
-.fleet-brand-rail button:hover { background: var(--fleet-ivory); color: #111; }
-.fleet-brand-rail span { display: block; font-family: Georgia, serif; font-size: 1.25rem; }
-.fleet-brand-rail small { display: block; margin-top: 8px; opacity: 0.48; font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.fleet-brand-dots button span {
+  width: 7px;
+  height: 7px;
+  display: block;
+  border-radius: 50%;
+  background: rgba(255,255,255,.45);
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.fleet-brand-dots button:hover span,
+.fleet-brand-dots button:focus-visible span,
+.fleet-brand-dots button.active span { background: #fff; transform: scale(1.18); }
+.fleet-brand-dots button:focus-visible { outline: 1px solid rgba(255,255,255,.75); outline-offset: -4px; }
 
 .fleet-page .fleet-showroom {
   width: 100%;
@@ -14113,8 +14210,9 @@ details p {
   .fleet-popular-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin-right: -20px; width: calc(100% + 20px); }
   .fleet-popular-grid .showroom-card { flex: 0 0 86%; scroll-snap-align: start; }
   .fleet-brand-gallery { min-height: auto; }
-  .fleet-brand-rail { flex-wrap: nowrap; justify-content: start; overflow-x: auto; scrollbar-width: none; }
-  .fleet-brand-rail button { flex: 0 0 155px; }
+  .fleet-brand-rail { grid-auto-columns: calc((100% - 32px) / 3); gap: 16px; }
+  .fleet-brand-rail button { min-height: 140px; }
+  .fleet-brand-mark { width: 86px; height: 62px; }
   .fleet-page .fleet-showroom-toolbar-minimal { position: relative; top: auto; grid-template-columns: 1fr; }
   .fleet-page .fleet-search-control { grid-column: auto; }
   .fleet-page .fleet-sort-control,

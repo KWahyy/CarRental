@@ -23,8 +23,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=kds-favicon-20260624" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png?v=kds-favicon-20260624" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=kds-favicon-20260624" />
-    <link rel="preload" href="/src/styles.css?v=fleet-scroll-clean-20260715" as="style" />
-    <link rel="stylesheet" href="/src/styles.css?v=fleet-scroll-clean-20260715" />
+    <link rel="preload" href="/src/styles.css?v=fleet-logo-carousel-20260716" as="style" />
+    <link rel="stylesheet" href="/src/styles.css?v=fleet-logo-carousel-20260716" />
   </head>
   <body class="fleet-page">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -88,9 +88,12 @@
       </section>
 
       <section class="fleet-brand-gallery" aria-labelledby="brand-title">
-        <p class="eyebrow">Explore by marque</p>
-        <h2 id="brand-title">The names that need no introduction.</h2>
-        <div class="fleet-brand-rail" data-brand-rail aria-label="Filter fleet by brand"></div>
+        <p class="eyebrow sr-only">Explore by marque</p>
+        <h2 id="brand-title" class="sr-only">Browse the collection by brand</h2>
+        <div class="fleet-brand-carousel">
+          <div class="fleet-brand-rail" data-brand-rail aria-label="Filter fleet by brand"></div>
+          <div class="fleet-brand-dots" data-fleet-brand-dots aria-label="Brand carousel navigation"></div>
+        </div>
       </section>
 
       <section class="fleet-showroom" aria-labelledby="collection-title">
@@ -279,6 +282,6 @@
       </div>
     </footer>
 
-    <script type="module" src="/src/fleet-page.js?v=private-collection-20260715"></script>
+    <script type="module" src="/src/fleet-page.js?v=quote-delivery-20260718"></script>
   </body>
 </html>

@@ -1,6 +1,7 @@
 import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=fleet-consistency-20260715";
 import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=fleet-consistency-20260715";
 import { cacheSafeFleetImageUrl, isSupabaseFleetConfigured, loadVehicleFromSupabase, recordFleetEvent } from "./supabase-fleet.js?v=fleet-consistency-20260715";
+import { submitQuoteRequest } from "./quote-api.js?v=lead-delivery-20260718b";
 
 const slug = document.body.dataset.vehicleSlug;
 let baseVehicleFleet = fleet;
@@ -327,13 +328,7 @@ function bindVehicleRequestForm() {
     status.dataset.tone = "";
     status.textContent = "Saving your request for a personal availability check...";
     try {
-      const response = await fetch("/api/quote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok || !result.ok) throw new Error(result.message || "Request could not be saved.");
+      const result = await submitQuoteRequest(payload);
       try {
         const requests = JSON.parse(localStorage.getItem(CRM_REQUESTS_KEY)) || [];
         requests.unshift({ id: result.id || `vehicle-${Date.now()}`, ...payload, status: "new", createdAt: new Date().toISOString() });

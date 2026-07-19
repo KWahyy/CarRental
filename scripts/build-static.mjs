@@ -10,6 +10,7 @@ mkdirSync(outDir, { recursive: true });
 
 const pathsToCopy = [
   "index.html",
+  "exotic-car-rental.html",
   "fleet.html",
   "partner.html",
   "admin",
@@ -255,7 +256,7 @@ if (existsSync(carDir)) {
     const imageUrl = existsSync(join(root, imagePath)) ? `${siteUrl}/${imagePath}` : `${siteUrl}/assets/kds-hero.png`;
     const isActive = activeInventoryBySlug.has(slug);
     html = html
-      .replace(/\/src\/vehicle\.js\?v=[^\"]+/g, "/src/vehicle.js?v=kds-product-v10-20260715")
+      .replace(/\/src\/vehicle\.js\?v=[^\"]+/g, "/src/vehicle.js?v=quote-delivery-20260718")
       .replace(/\/src\/styles\.css\?v=[^\"]+/g, "/src/styles.css?v=kds-product-v10-20260715");
     const metadata = `
     <link rel="canonical" href="${siteUrl}/cars/${slug}" />

@@ -1,10 +1,12 @@
 import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=fleet-consistency-20260715";
 import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=fleet-consistency-20260715";
 import { cacheSafeFleetImageUrl, isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase, recordFleetEvent } from "./supabase-fleet.js?v=fleet-consistency-20260715";
+import { submitQuoteRequest } from "./quote-api.js?v=lead-delivery-20260718b";
 
 const grid = document.querySelector("[data-fleet-grid]");
 const popularGrid = document.querySelector("[data-popular-grid]");
 const brandRail = document.querySelector("[data-brand-rail]");
+const brandDots = document.querySelector("[data-fleet-brand-dots]");
 const countLabel = document.querySelector("[data-fleet-count]");
 const filterNote = document.querySelector("[data-fleet-filter-note]");
 const filterControl = document.querySelector("[data-filter-control]");
@@ -137,6 +139,42 @@ function brandFor(car) {
   return car.make || car.name.split(" ")[1] || "Other";
 }
 
+const BRAND_LOGOS = {
+  Audi: "/assets/brand-logos/audi.svg",
+  Bentley: "/assets/brand-logos/bentley.svg",
+  BMW: "/assets/brand-logos/bmw.svg",
+  Cadillac: "/assets/brand-logos/cadillac.svg",
+  Chevy: "/assets/brand-logos/chevrolet.svg",
+  Chevrolet: "/assets/brand-logos/chevrolet.svg",
+  Ferrari: "/assets/brand-logos/ferrari.svg",
+  Ford: "/assets/brand-logos/ford.svg",
+  Lamborghini: "/assets/brand-logos/lamborghini.svg",
+  "Land Rover": "/assets/brand-logos/land-rover.svg",
+  Lotus: "/assets/brand-logos/lotus.svg",
+  McLaren: "/assets/brand-logos/mclaren.svg",
+  Porsche: "/assets/brand-logos/porsche.svg",
+  "Rolls-Royce": "/assets/brand-logos/rolls-royce.svg",
+  Tesla: "/assets/brand-logos/tesla.svg",
+};
+
+function brandLogoMarkup(brand) {
+  if (brand.startsWith("Mercedes")) {
+    return `
+      <svg aria-hidden="true" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="27"></circle>
+        <path d="M32 8.5V32L12.5 46M32 32l19.5 14"></path>
+      </svg>`;
+  }
+
+  const logo = BRAND_LOGOS[brand];
+  if (!logo) return `<span class="fleet-brand-fallback" aria-hidden="true">${escapeHtml(brand.slice(0, 2))}</span>`;
+  return `<img src="${logo}" alt="" width="96" height="72" loading="lazy" />`;
+}
+
+function brandDisplayName(brand) {
+  return brand === "Chevy" ? "Chevrolet" : brand;
+}
+
 function bodyTypeFor(car) {
   const name = car.name.toLowerCase();
   const feature = [car.color, car.category, car.categoryLabel, car.summary].join(" ").toLowerCase();
@@ -258,10 +296,22 @@ function renderFilterButtons() {
     .join("");
 
   if (brandRail) {
-    brandRail.innerHTML = brands.slice(0, 10).map((brand) => {
+    brandRail.innerHTML = brands.map((brand) => {
       const count = cars.filter((car) => brandFor(car) === brand).length;
-      return `<button type="button" data-brand-shortcut="${escapeHtml(brand)}"><span>${escapeHtml(brand)}</span><small>${count} vehicles</small></button>`;
+      const isActive = activeFilter === `brand:${brand}`;
+      return `
+        <button class="${isActive ? "active" : ""}" type="button" data-brand-shortcut="${escapeHtml(brand)}" aria-label="Show ${count} ${escapeHtml(brandDisplayName(brand))} cars" aria-pressed="${isActive}">
+          <span class="fleet-brand-mark">${brandLogoMarkup(brand)}</span>
+          <strong>${escapeHtml(brandDisplayName(brand))}</strong>
+          <small>${count} ${count === 1 ? "car" : "cars"}</small>
+        </button>`;
     }).join("");
+
+    if (brandDots) {
+      brandDots.innerHTML = brands.map((brand, index) => `
+        <button class="${index === 0 ? "active" : ""}" type="button" data-brand-dot="${index}" aria-label="Show ${escapeHtml(brandDisplayName(brand))} in the brand carousel" aria-pressed="${index === 0}"><span></span></button>
+      `).join("");
+    }
   }
 }
 
@@ -460,13 +510,7 @@ availabilityForm?.addEventListener("submit", async (event) => {
   });
 
   try {
-    const response = await fetch("/api/quote", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok || !result.ok) throw new Error(result.message || "Availability request failed.");
+    const result = await submitQuoteRequest(payload);
 
     try {
       const storedRequests = JSON.parse(localStorage.getItem(CRM_REQUESTS_KEY)) || [];
@@ -608,6 +652,37 @@ brandRail?.addEventListener("click", (event) => {
   renderFleet();
   document.querySelector(".fleet-showroom")?.scrollIntoView({ behavior: "smooth", block: "start" });
 });
+
+brandDots?.addEventListener("click", (event) => {
+  const dot = event.target.closest("[data-brand-dot]");
+  if (!dot || !brandRail) return;
+  const card = brandRail.children[Number(dot.dataset.brandDot)];
+  card?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+});
+
+let brandScrollFrame = 0;
+brandRail?.addEventListener("scroll", () => {
+  window.cancelAnimationFrame(brandScrollFrame);
+  brandScrollFrame = window.requestAnimationFrame(() => {
+    const railCenter = brandRail.scrollLeft + brandRail.clientWidth / 2;
+    const cards = [...brandRail.children];
+    let closestIndex = 0;
+    let closestDistance = Number.POSITIVE_INFINITY;
+    cards.forEach((card, index) => {
+      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+      const distance = Math.abs(cardCenter - railCenter);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestIndex = index;
+      }
+    });
+    brandDots?.querySelectorAll("[data-brand-dot]").forEach((dot, index) => {
+      const active = index === closestIndex;
+      dot.classList.toggle("active", active);
+      dot.setAttribute("aria-pressed", String(active));
+    });
+  });
+}, { passive: true });
 
 document.querySelector("[data-show-popular]")?.addEventListener("click", () => {
   activeFilter = "all";
