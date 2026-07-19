@@ -1607,3 +1607,225 @@ body {
     font-size: clamp(8rem, 8vw, 10.7rem);
   }
 }
+
+/* Keep the campaign conversion path composed on phone-sized screens. */
+@media (max-width: 760px) {
+  .campaign-header {
+    grid-template-columns: minmax(0, 1fr) 48px;
+    gap: 12px;
+    width: 100%;
+    min-height: calc(76px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) 16px 0;
+  }
+
+  .campaign-header-proof {
+    display: none;
+  }
+
+  .campaign-brand {
+    width: 132px;
+    height: 58px;
+  }
+
+  .campaign-call {
+    display: inline-flex !important;
+    grid-column: 2;
+    width: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    justify-self: end;
+    padding: 0;
+  }
+
+  .campaign-hero {
+    display: block;
+    width: 100%;
+    min-height: 0;
+    padding: calc(94px + env(safe-area-inset-top)) 16px 32px;
+  }
+
+  .campaign-hero-media {
+    height: min(680px, 82svh);
+    min-height: 620px;
+  }
+
+  .campaign-hero-media img {
+    object-position: 51% 49%;
+    transform: none;
+  }
+
+  .campaign-hero::after {
+    bottom: auto;
+    height: min(680px, 82svh);
+    min-height: 620px;
+    background:
+      linear-gradient(0deg, rgba(4, 4, 4, 0.98) 0%, rgba(4, 4, 4, 0.77) 49%, rgba(4, 4, 4, 0.36) 100%),
+      linear-gradient(90deg, rgba(4, 4, 4, 0.72), rgba(4, 4, 4, 0.08));
+  }
+
+  .campaign-hero-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: 100%;
+    min-height: min(510px, calc(82svh - 94px));
+    padding: 32px 0 22px;
+  }
+
+  .campaign-eyebrow {
+    margin-bottom: 10px;
+    font-size: 0.66rem;
+    line-height: 1.35;
+    letter-spacing: 0.16em;
+  }
+
+  .campaign-hero h1 {
+    max-width: 360px;
+    font-size: clamp(3.35rem, 15vw, 4.3rem);
+    line-height: 0.86;
+    letter-spacing: -0.055em;
+  }
+
+  .campaign-hero h1 span {
+    margin-top: 0.08em;
+    letter-spacing: -0.045em;
+  }
+
+  .campaign-lead {
+    max-width: 350px;
+    margin-top: 18px;
+    font-size: 1rem;
+    line-height: 1.48;
+  }
+
+  .campaign-benefits {
+    gap: 8px;
+    margin-top: 18px;
+  }
+
+  .campaign-benefits li {
+    gap: 9px;
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+
+  .campaign-scroll-cta {
+    width: 100%;
+    min-height: 52px;
+    margin-top: 22px;
+  }
+
+  .campaign-form-card {
+    width: 100%;
+    min-width: 0;
+    margin-top: 24px;
+    scroll-margin-top: 16px;
+  }
+
+  .campaign-form-head,
+  .campaign-form-card form {
+    width: 100%;
+    padding-inline: 20px;
+  }
+
+  .campaign-form-head h2 {
+    max-width: 100%;
+    font-size: clamp(1.8rem, 9vw, 2.25rem);
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+  }
+
+  .campaign-field-grid,
+  .campaign-form-card label,
+  .campaign-form-card input,
+  .campaign-form-card select,
+  .campaign-form-card button[type="submit"] {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 900px) {
+  .campaign-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 20px;
+    min-height: 84px;
+    padding-inline: 28px;
+  }
+
+  .campaign-header-proof {
+    display: none;
+  }
+
+  .campaign-hero {
+    display: block;
+    min-height: 0;
+    padding: 122px 32px 54px;
+  }
+
+  .campaign-hero-media,
+  .campaign-hero::after {
+    height: 760px;
+  }
+
+  .campaign-hero-media img {
+    object-position: 51% 50%;
+  }
+
+  .campaign-hero::after {
+    bottom: auto;
+    background:
+      linear-gradient(0deg, rgba(4, 4, 4, 0.98) 0%, rgba(4, 4, 4, 0.72) 47%, rgba(4, 4, 4, 0.3) 100%),
+      linear-gradient(90deg, rgba(4, 4, 4, 0.76), rgba(4, 4, 4, 0.08));
+  }
+
+  .campaign-hero-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 585px;
+    padding-bottom: 34px;
+  }
+
+  .campaign-hero h1 {
+    max-width: 520px;
+    font-size: clamp(5.1rem, 12vw, 6.3rem);
+    line-height: 0.82;
+  }
+
+  .campaign-form-card {
+    width: min(580px, 100%);
+    margin: 28px auto 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .campaign-hero {
+    padding-inline: 14px;
+  }
+
+  .campaign-hero h1 {
+    max-width: 320px;
+    font-size: clamp(3.05rem, 14.8vw, 3.5rem);
+  }
+
+  .campaign-hero-copy {
+    min-height: 500px;
+  }
+
+  .campaign-form-head,
+  .campaign-form-card form {
+    padding-inline: 18px;
+  }
+}
+
+@media (max-width: 760px) and (orientation: landscape) {
+  .campaign-hero-media,
+  .campaign-hero::after {
+    height: 620px;
+  }
+
+  .campaign-hero-copy {
+    min-height: 500px;
+  }
+}
