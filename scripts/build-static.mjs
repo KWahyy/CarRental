@@ -242,7 +242,7 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${escapeJson(schema)}</script>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
-    <link rel="stylesheet" href="/src/styles.css?v=oc-showroom-20260719" />
+    <link rel="stylesheet" href="/src/styles.css?v=oc-showroom-hero-20260719" />
   </head>
   <body class="fleet-page oc-location-page">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -259,17 +259,15 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
         <img class="oc-location-hero-media" src="${heroImage}" alt="${heroCar ? `${heroCar.make} ${heroCar.model}` : "Exotic car"} available for Orange County delivery" width="1800" height="1200" fetchpriority="high" decoding="async" />
         <div class="oc-location-hero-scrim" aria-hidden="true"></div>
         <div class="oc-location-hero-content">
-          <p class="oc-location-kicker">Orange County / Concierge delivery</p>
-          <h1 id="oc-location-title">Orange County<br />Exotic Car Rental</h1>
-          <p>${lead}</p>
+          <p class="oc-location-kicker">Orange County exotic car rental</p>
+          <h1 id="oc-location-title">Meet your<br />next arrival.</h1>
+          <p>Premium cars, clear quotes, and concierge delivery built around your plans.</p>
           <div class="oc-location-actions">
-            <a class="oc-location-primary" href="#orange-county-fleet">Choose a vehicle</a>
-            <a class="oc-location-secondary" href="/#quote">Request a quote <span aria-hidden="true">&#8599;</span></a>
+            <a class="oc-location-primary" href="#orange-county-fleet">Explore the fleet</a>
+            <a class="oc-location-secondary" href="/#quote">Request a quote <span aria-hidden="true">&#8594;</span></a>
           </div>
         </div>
-        <div class="oc-location-areas" aria-label="Orange County delivery areas">
-          <span>Newport Beach</span><span>Irvine</span><span>Anaheim</span><span>Coastal delivery</span>
-        </div>
+        ${heroCar ? `<a class="oc-location-featured" href="/cars/${heroCar.slug}"><span>Featured vehicle</span><strong>${heroCar.make} ${heroCar.model}</strong><small>From $${Number(heroCar.price).toLocaleString("en-US")}/day <b aria-hidden="true">&#8599;</b></small></a>` : ""}
       </section>
 
       <section class="oc-location-fleet" id="orange-county-fleet" aria-labelledby="oc-fleet-title">
