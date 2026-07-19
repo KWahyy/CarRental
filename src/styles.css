@@ -20985,19 +20985,17 @@ body.availability-open {
 }
 
 .oc-service-intro {
-  display:grid;
-  grid-template-columns:minmax(220px,.55fr) minmax(0,1.45fr);
-  align-items:end;
-  gap:48px;
+  width:min(100%,980px);
   margin-bottom:clamp(48px,6vw,82px);
 }
 
-.oc-service-intro > p { margin-bottom:8px; }
+.oc-service-intro > p { margin-bottom:18px; }
 
 .oc-service-intro h2 {
-  max-width:980px;
+  max-width:860px;
   color:#fff;
-  font-size:clamp(3rem,5.2vw,6.2rem);
+  font-size:clamp(3rem,4.7vw,5.6rem);
+  line-height:.92;
 }
 
 .oc-service-steps {
@@ -21007,7 +21005,7 @@ body.availability-open {
 }
 
 .oc-service-steps article {
-  min-height:250px;
+  min-height:232px;
   display:flex;
   flex-direction:column;
   align-items:flex-start;
@@ -21030,7 +21028,7 @@ body.availability-open {
 }
 
 .oc-service-steps h3 {
-  margin:40px 0 10px;
+  margin:34px 0 10px;
   color:#fff;
   font-size:clamp(1.15rem,1.5vw,1.45rem);
   font-weight:600;
@@ -21046,19 +21044,33 @@ body.availability-open {
 
 .oc-location-quote {
   display:grid;
-  grid-template-columns:minmax(300px,.75fr) minmax(0,1.25fr);
-  gap:clamp(56px,9vw,150px);
+  grid-template-columns:minmax(300px,.82fr) minmax(520px,1.18fr);
+  gap:clamp(72px,9vw,148px);
   align-items:center;
   padding:clamp(96px,10vw,164px) max(48px,calc((100vw - 1680px) / 2));
-  background:
-    linear-gradient(90deg,#e7e3da 0,#e7e3da 31%,var(--oc-paper) 31%,var(--oc-paper) 100%);
+  background:var(--oc-paper);
   color:#111;
+}
+
+.oc-location-quote > div {
+  position:relative;
+  padding-left:34px;
+}
+
+.oc-location-quote > div::before {
+  content:"";
+  position:absolute;
+  top:2px;
+  bottom:4px;
+  left:0;
+  width:3px;
+  background:var(--oc-gold);
 }
 
 .oc-location-quote > div > p { color:#7f6221; }
 
 .oc-location-quote h2 {
-  max-width:620px;
+  max-width:560px;
   font-family:Georgia,"Times New Roman",serif;
   font-size:clamp(3.6rem,6.2vw,7rem);
   font-weight:400;
@@ -21069,7 +21081,8 @@ body.availability-open {
 .oc-location-quote dl {
   position:relative;
   margin:0;
-  padding:24px 36px;
+  width:100%;
+  padding:26px 38px;
   border:1px solid rgba(17,17,17,.18);
   background:#fff;
   box-shadow:0 24px 70px rgba(35,29,18,.08);
@@ -21111,7 +21124,11 @@ body.availability-open {
   position:relative;
   isolation:isolate;
   display:grid;
-  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-columns:minmax(0,900px) minmax(240px,300px);
+  grid-template-rows:auto auto;
+  grid-template-areas:
+    "eyebrow actions"
+    "headline actions";
   align-items:center;
   gap:64px;
   min-height:440px;
@@ -21136,13 +21153,13 @@ body.availability-open {
 }
 
 .oc-location-final > p {
-  grid-column:1;
+  grid-area:eyebrow;
   margin-bottom:16px;
   color:#0a0a0a;
 }
 
 .oc-location-final h2 {
-  grid-column:1;
+  grid-area:headline;
   max-width:850px;
   color:#0a0a0a;
   font-size:clamp(3rem,5.6vw,6.5rem);
@@ -21150,8 +21167,7 @@ body.availability-open {
 }
 
 .oc-location-final > div {
-  grid-column:2;
-  grid-row:1 / span 2;
+  grid-area:actions;
   display:grid;
   grid-template-columns:1fr;
   min-width:min(100%,280px);
@@ -21189,12 +21205,15 @@ body.availability-open {
   .oc-showroom-card:last-child { grid-column:1 / -1; width:calc(50% - 12px); }
   .oc-location-service,
   .oc-location-quote { grid-template-columns:1fr; gap:64px; }
-  .oc-service-intro { grid-template-columns:1fr; gap:20px; }
   .oc-service-steps { grid-template-columns:1fr; }
   .oc-service-steps article { min-height:210px; }
   .oc-location-quote { background:var(--oc-paper); }
-  .oc-location-final { grid-template-columns:1fr; gap:40px; }
-  .oc-location-final > div { grid-column:1; grid-row:auto; }
+  .oc-location-final {
+    grid-template-columns:1fr;
+    grid-template-areas:"eyebrow" "headline" "actions";
+    gap:0;
+  }
+  .oc-location-final > div { margin-top:38px; }
 }
 
 @media (max-width:680px) {
@@ -21248,6 +21267,7 @@ body.availability-open {
   .oc-service-steps article { min-height:190px; padding:22px; }
   .oc-service-steps h3 { margin-top:30px; }
   .oc-location-quote dl { padding:18px; }
+  .oc-location-quote > div { padding-left:20px; }
   .oc-location-quote dl > div { grid-template-columns:1fr; gap:8px; }
   .oc-location-final { min-height:0; padding-top:78px; padding-bottom:78px; }
   .oc-location-final::before { right:-12vw; font-size:15rem; }

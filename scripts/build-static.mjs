@@ -242,7 +242,7 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${escapeJson(schema)}</script>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
-  <link rel="stylesheet" href="/src/styles.css?v=oc-sections-20260719" />
+  <link rel="stylesheet" href="/src/styles.css?v=oc-sections-layout-20260719" />
   </head>
   <body class="fleet-page oc-location-page">
     <a class="skip-link" href="#main">Skip to content</a>
