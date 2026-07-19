@@ -285,32 +285,32 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
 
       <section class="oc-location-service" aria-labelledby="oc-service-title">
         <div class="oc-service-intro">
-          <p>Concierge, not counter service</p>
-          <h2 id="oc-service-title">Delivered around your plans.</h2>
+          <p>Three steps. No rental counter.</p>
+          <h2 id="oc-service-title">Booked without the runaround.</h2>
         </div>
         <div class="oc-service-steps">
-          <article><span>01</span><h3>Choose the car</h3><p>Send the vehicle, date, and driver details you have in mind.</p></article>
-          <article><span>02</span><h3>Confirm the details</h3><p>We verify availability, mileage, deposit, and the delivery address.</p></article>
-          <article><span>03</span><h3>Meet the car</h3><p>Your approved vehicle arrives at the confirmed Orange County handoff.</p></article>
+          <article><span>01</span><h3>Choose the car</h3><p>Send the vehicle, date, and driver details.</p></article>
+          <article><span>02</span><h3>Get approved</h3><p>We confirm availability, insurance, deposit, mileage, and delivery.</p></article>
+          <article><span>03</span><h3>Take the keys</h3><p>Meet your vehicle at the confirmed handoff.</p></article>
         </div>
       </section>
 
       <section class="oc-location-quote" aria-labelledby="oc-quote-title">
         <div>
-          <p>What your quote includes</p>
-          <h2 id="oc-quote-title">One clear plan.<br />No guessing.</h2>
+          <p>Before you commit</p>
+          <h2 id="oc-quote-title">Everything<br />upfront.</h2>
         </div>
         <dl>
-          <div><dt>Vehicle</dt><dd>Exact car and availability</dd></div>
-          <div><dt>Timing</dt><dd>Rental dates and delivery window</dd></div>
-          <div><dt>Driver</dt><dd>Approval and document requirements</dd></div>
-          <div><dt>Rate</dt><dd>Mileage, deposit, delivery, and add-ons</dd></div>
+          <div><dt>Vehicle</dt><dd>Exact car and live availability</dd></div>
+          <div><dt>Schedule</dt><dd>Dates and delivery window</dd></div>
+          <div><dt>Approval</dt><dd>License, insurance, and deposit</dd></div>
+          <div><dt>Total</dt><dd>Mileage, delivery, and add-ons</dd></div>
         </dl>
       </section>
 
       <section class="oc-location-final" aria-labelledby="oc-final-title">
-        <p>Ready when you are</p>
-        <h2 id="oc-final-title">Pick the car.<br />We handle the arrival.</h2>
+        <p>10% off for first-time clients</p>
+        <h2 id="oc-final-title">Make the first one count.</h2>
         <div><a class="oc-location-primary" href="/#quote">Request a quote</a><a class="oc-location-secondary" href="tel:${phoneHref}">Call ${phoneLabel}</a></div>
       </section>
     </main>
