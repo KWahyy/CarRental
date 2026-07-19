@@ -17926,13 +17926,14 @@ body.availability-open {
 
 .home-page .hero-private-label::before {
   right: calc(100% + 18px);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.46));
   transform-origin: right;
 }
 
 .home-page .hero-private-label::after {
   left: calc(100% + 18px);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.46), transparent);
   transform-origin: left;
-  rotate: 180deg;
 }
 
 .home-page .hero h1,
