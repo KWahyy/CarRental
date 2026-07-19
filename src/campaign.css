@@ -18,13 +18,18 @@
 }
 
 html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   scroll-behavior: smooth;
   background: var(--campaign-black);
 }
 
 body {
+  width: 100%;
+  max-width: 100%;
   margin: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
   background: var(--campaign-black);
   color: var(--campaign-cream);
   font-family: "Inter", Arial, sans-serif;
@@ -407,7 +412,15 @@ a {
 
 .campaign-honeypot {
   position: absolute !important;
-  left: -9999px !important;
+  left: 0 !important;
+  width: 1px !important;
+  height: 1px !important;
+  max-width: 1px !important;
+  max-height: 1px !important;
+  overflow: hidden !important;
+  contain: strict !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
 }
 
 .campaign-trust-strip {
@@ -834,6 +847,18 @@ a {
 }
 
 @media (max-width: 760px) {
+  main,
+  .campaign-header,
+  .campaign-hero,
+  .campaign-trust-strip,
+  .campaign-fleet,
+  .campaign-requirements,
+  .campaign-faq,
+  .campaign-final-cta,
+  .campaign-footer {
+    max-width: 100vw;
+  }
+
   body {
     padding-bottom: calc(72px + env(safe-area-inset-bottom));
   }
@@ -1560,15 +1585,32 @@ body {
   }
 
   .campaign-requirements {
-    width: calc(100% - 40px);
+    width: calc(100vw - 40px);
+  }
+
+  .campaign-requirements-copy,
+  .campaign-requirements ul,
+  .campaign-requirements li,
+  .campaign-requirements li > div {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .campaign-requirements h2 {
+    max-width: 100%;
+    font-size: clamp(2.15rem, 10.8vw, 3.25rem);
+    line-height: 0.98;
   }
 
   .campaign-car-grid {
     display: flex;
-    width: calc(100% + 20px);
-    margin-right: -20px;
+    width: 100%;
+    max-width: 100%;
+    margin-right: 0;
+    padding-right: 20px;
     gap: 18px;
     overflow-x: auto;
+    overscroll-behavior-inline: contain;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
   }
@@ -1584,6 +1626,10 @@ body {
   }
 
   .campaign-mobile-bar {
+    right: auto;
+    left: 0;
+    width: 100vw;
+    max-width: 100vw;
     background: rgba(8, 8, 8, 0.96);
   }
 
@@ -1613,7 +1659,7 @@ body {
   .campaign-header {
     grid-template-columns: minmax(0, 1fr) 48px;
     gap: 12px;
-    width: 100%;
+    width: 100vw;
     min-height: calc(76px + env(safe-area-inset-top));
     padding: env(safe-area-inset-top) 16px 0;
   }
@@ -1640,7 +1686,7 @@ body {
   .campaign-hero {
     --campaign-mobile-hero-height: min(680px, 82svh);
     display: block;
-    width: 100%;
+    width: 100vw;
     min-height: 0;
     padding: calc(94px + env(safe-area-inset-top)) 16px 32px;
     background-color: #040404;
@@ -1648,9 +1694,9 @@ body {
       linear-gradient(
         0deg,
         #040404 0%,
-        rgba(4, 4, 4, 0.78) 26%,
-        rgba(4, 4, 4, 0.2) 60%,
-        transparent 100%
+        rgba(4, 4, 4, 0.86) 28%,
+        rgba(4, 4, 4, 0.38) 62%,
+        rgba(4, 4, 4, 0.2) 100%
       ),
       url("/assets/campaign-exotic-lineup-hero.jpg");
     background-position: center top, 52% top;
