@@ -1730,16 +1730,19 @@ body {
   }
 
   .campaign-hero h1 {
-    max-width: 330px;
+    max-width: 310px;
     margin-inline: auto;
-    font-size: clamp(3rem, 13.8vw, 3.8rem);
-    line-height: 0.88;
-    letter-spacing: -0.045em;
+    font-size: clamp(2.45rem, 11.2vw, 3.05rem);
+    line-height: 0.9;
+    letter-spacing: -0.04em;
   }
 
   .campaign-hero h1 span {
-    margin-top: 0.08em;
-    letter-spacing: -0.045em;
+    max-width: 300px;
+    margin-top: 0.12em;
+    font-size: 0.94em;
+    line-height: 0.94;
+    letter-spacing: -0.04em;
   }
 
   .campaign-lead,
@@ -1849,8 +1852,8 @@ body {
   }
 
   .campaign-hero h1 {
-    max-width: 320px;
-    font-size: clamp(3.05rem, 14.8vw, 3.5rem);
+    max-width: 290px;
+    font-size: clamp(2.35rem, 11.8vw, 2.8rem);
   }
 
   .campaign-hero-copy {
