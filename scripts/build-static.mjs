@@ -144,9 +144,9 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${escapeJson(schema)}</script>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
-    <link rel="stylesheet" href="/src/styles.css?v=traffic-pricing-20260713" />
+    <link rel="stylesheet" href="/src/styles.css?v=site-theme-20260719" />
   </head>
-  <body>
+  <body class="site-theme site-content-page">
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header scrolled" data-header>
       <a class="brand" href="/" aria-label="KD's Exotics home"><img class="brand-logo brand-logo-wide" src="/assets/kds-logo-wide.png" alt="" width="1348" height="610" /></a>
@@ -242,9 +242,9 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${escapeJson(schema)}</script>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
-  <link rel="stylesheet" href="/src/styles.css?v=oc-sections-layout-20260719" />
+  <link rel="stylesheet" href="/src/styles.css?v=site-theme-20260719" />
   </head>
-  <body class="fleet-page oc-location-page">
+  <body class="site-theme fleet-page oc-location-page">
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header scrolled" data-header>
       <a class="brand" href="/" aria-label="KD's Exotics home"><img class="brand-logo brand-logo-wide" src="/assets/kds-logo-wide.png" alt="" width="1348" height="610" /></a>
@@ -412,7 +412,8 @@ if (existsSync(carDir)) {
     const isActive = activeInventoryBySlug.has(slug);
     html = html
       .replace(/\/src\/vehicle\.js\?v=[^\"]+/g, "/src/vehicle.js?v=quote-delivery-20260718")
-      .replace(/\/src\/styles\.css\?v=[^\"]+/g, "/src/styles.css?v=kds-product-v10-20260715");
+      .replace(/\/src\/styles\.css\?v=[^\"]+/g, "/src/styles.css?v=site-theme-20260719")
+      .replace(/<body class="(?!site-theme )/, '<body class="site-theme ');
     const metadata = `
     <link rel="canonical" href="${siteUrl}/cars/${slug}" />
     <meta name="robots" content="${isActive ? "index, follow" : "noindex, follow"}" data-inventory-indexing />

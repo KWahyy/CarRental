@@ -21281,3 +21281,318 @@ body.availability-open {
   .oc-location-secondary { transition:none; }
   .oc-showroom-card:hover .oc-showroom-media img { transform:none; }
 }
+
+/*
+ * KD's Exotics public-site theme
+ *
+ * The homepage is the visual source of truth. New public pages should add
+ * `site-theme` to the body and compose the primitives below. Campaign and
+ * admin surfaces intentionally keep their own product-specific systems.
+ */
+:root {
+  --site-bg: #070606;
+  --site-surface: #11100f;
+  --site-surface-raised: #171513;
+  --site-paper: #f0eee8;
+  --site-paper-muted: #ded9cf;
+  --site-text: #f8f5ef;
+  --site-text-muted: #c8bfb2;
+  --site-text-dark: #11100f;
+  --site-gold: #d7b46a;
+  --site-gold-bright: #f0ce83;
+  --site-line: rgba(248, 245, 239, 0.14);
+  --site-line-dark: rgba(17, 16, 15, 0.2);
+  --site-container: 1180px;
+  --site-container-wide: 1500px;
+  --site-section-space: clamp(72px, 9vw, 144px);
+  --site-gutter: clamp(18px, 4vw, 48px);
+  --site-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --site-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --site-motion-fast: 180ms;
+  --site-motion-enter: 420ms;
+}
+
+body.site-theme {
+  min-width: 320px;
+  background: var(--site-bg);
+  color: var(--site-text);
+  font-family: var(--site-body);
+  letter-spacing: 0;
+  overflow-x: clip;
+}
+
+.site-theme :where(h1, h2, h3, p) {
+  text-wrap: pretty;
+}
+
+.site-shell {
+  width: min(var(--site-container), calc(100% - (2 * var(--site-gutter))));
+  margin-inline: auto;
+}
+
+.site-shell--wide {
+  width: min(var(--site-container-wide), calc(100% - (2 * var(--site-gutter))));
+  margin-inline: auto;
+}
+
+.site-section {
+  position: relative;
+  padding-block: var(--site-section-space);
+  background: var(--site-bg);
+  color: var(--site-text);
+}
+
+.site-section--surface {
+  background: var(--site-surface);
+}
+
+.site-section--light {
+  background: var(--site-paper);
+  color: var(--site-text-dark);
+}
+
+.site-eyebrow,
+.site-content-page .eyebrow {
+  margin: 0 0 18px;
+  color: var(--site-gold);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.site-display {
+  max-width: 12ch;
+  margin: 0;
+  font-family: var(--site-display);
+  font-size: clamp(3rem, 7.2vw, 7.5rem);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+.site-lead {
+  max-width: 620px;
+  margin: 24px 0 0;
+  color: var(--site-text-muted);
+  font-size: clamp(1rem, 1.35vw, 1.2rem);
+  line-height: 1.65;
+}
+
+.site-section--light .site-lead {
+  color: #645f57;
+}
+
+.site-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.site-button {
+  min-height: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid var(--site-line);
+  border-radius: 2px;
+  padding: 0 24px;
+  background: transparent;
+  color: var(--site-text);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  transition: background var(--site-motion-fast) ease, border-color var(--site-motion-fast) ease, color var(--site-motion-fast) ease;
+}
+
+.site-button:hover {
+  border-color: var(--site-text);
+  background: var(--site-text);
+  color: var(--site-text-dark);
+}
+
+.site-button--primary {
+  border-color: var(--site-gold);
+  background: var(--site-gold);
+  color: var(--site-text-dark);
+}
+
+.site-button--primary:hover {
+  border-color: var(--site-gold-bright);
+  background: var(--site-gold-bright);
+}
+
+.site-section--light .site-button:not(.site-button--primary) {
+  border-color: var(--site-line-dark);
+  color: var(--site-text-dark);
+}
+
+.site-editorial-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+  align-items: center;
+  gap: clamp(48px, 8vw, 120px);
+}
+
+.site-media {
+  min-height: clamp(360px, 52vw, 720px);
+  overflow: hidden;
+  background: var(--site-surface-raised);
+}
+
+.site-media img,
+.site-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.site-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.site-card {
+  min-height: 220px;
+  border: 1px solid var(--site-line);
+  border-radius: 2px;
+  padding: clamp(22px, 3vw, 34px);
+  background: var(--site-surface-raised);
+}
+
+/* Generated service and location pages inherit the homepage editorial rhythm. */
+.site-content-page .seo-page-main {
+  width: min(var(--site-container), calc(100% - (2 * var(--site-gutter))));
+  padding: clamp(148px, 17vw, 210px) 0 var(--site-section-space);
+}
+
+.site-content-page .seo-page-hero {
+  max-width: 980px;
+  margin-bottom: clamp(64px, 9vw, 120px);
+}
+
+.site-content-page .seo-page-hero h1 {
+  max-width: 12ch;
+  margin: 0;
+  font-family: var(--site-display);
+  font-size: clamp(3.1rem, 7.5vw, 7.4rem);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+.site-content-page .seo-page-lead {
+  max-width: 660px;
+  margin-top: 26px;
+  color: var(--site-text-muted);
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  line-height: 1.65;
+}
+
+.site-content-page .seo-page-actions {
+  margin-top: 34px;
+}
+
+.site-content-page .seo-copy {
+  gap: 0;
+}
+
+.site-content-page .seo-copy > section {
+  width: 100%;
+  max-width: none;
+  border-top: 1px solid var(--site-line);
+  padding-block: clamp(54px, 7vw, 92px);
+}
+
+.site-content-page .seo-copy h2 {
+  max-width: 15ch;
+  margin: 0 0 22px;
+  font-family: var(--site-display);
+  font-size: clamp(2.2rem, 4.5vw, 4.5rem);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 0.94;
+  text-transform: uppercase;
+}
+
+.site-content-page .seo-card-grid {
+  gap: 16px;
+}
+
+.site-content-page .seo-card {
+  min-height: 190px;
+  border-radius: 2px;
+  padding: clamp(22px, 3vw, 34px);
+  background: var(--site-surface-raised);
+}
+
+@media (max-width: 900px) {
+  .site-editorial-grid,
+  .site-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .site-editorial-grid {
+    gap: 42px;
+  }
+
+  .site-media {
+    min-height: min(72vw, 560px);
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --site-section-space: 72px;
+    --site-gutter: 18px;
+  }
+
+  .site-display,
+  .site-content-page .seo-page-hero h1 {
+    max-width: 100%;
+    font-size: clamp(2.75rem, 13vw, 4.15rem);
+    line-height: 0.92;
+  }
+
+  .site-actions,
+  .site-content-page .seo-page-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .site-button,
+  .site-content-page .seo-page-actions a {
+    width: 100%;
+    min-height: 52px;
+  }
+
+  .site-content-page .seo-page-main {
+    padding-top: 124px;
+  }
+
+  .site-content-page .seo-page-hero {
+    margin-bottom: 58px;
+  }
+
+  .site-content-page .seo-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-theme *,
+  .site-theme *::before,
+  .site-theme *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

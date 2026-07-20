@@ -3,6 +3,8 @@ import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=fleet-consiste
 import { cacheSafeFleetImageUrl, isSupabaseFleetConfigured, loadVehicleFromSupabase, recordFleetEvent } from "./supabase-fleet.js?v=fleet-consistency-20260715";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-delivery-20260718b";
 
+document.body.classList.add("site-theme");
+
 const slug = document.body.dataset.vehicleSlug;
 let baseVehicleFleet = fleet;
 let vehicleFleet = baseVehicleFleet.slice();
