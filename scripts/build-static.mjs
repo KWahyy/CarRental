@@ -433,6 +433,31 @@ const vercelObservability = `
     <script defer src="/_vercel/insights/script.js" data-sdkn="@vercel/analytics"></script>
     <script defer src="/_vercel/speed-insights/script.js" data-sdkn="@vercel/speed-insights"></script>`;
 
+const googleAdsTag = `    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17965450187"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'AW-17965450187');
+    </script>`;
+
+function injectGoogleAdsTag(directory) {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const entryPath = join(directory, entry.name);
+    if (entry.isDirectory()) {
+      injectGoogleAdsTag(entryPath);
+      continue;
+    }
+    if (!entry.name.endsWith(".html")) continue;
+
+    const html = readFileSync(entryPath, "utf8");
+    if (html.includes("AW-17965450187")) continue;
+    writeFileSync(entryPath, html.replace(/<head([^>]*)>/i, (head) => `${head}\n${googleAdsTag}`));
+  }
+}
+
 function injectVercelObservability(directory, relativePath = "") {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     const entryRelativePath = join(relativePath, entry.name);
@@ -449,6 +474,7 @@ function injectVercelObservability(directory, relativePath = "") {
   }
 }
 
+injectGoogleAdsTag(outDir);
 injectVercelObservability(outDir);
 
 writeFileSync(
