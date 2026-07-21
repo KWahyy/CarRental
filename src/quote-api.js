@@ -35,5 +35,9 @@ export async function submitQuoteRequest(payload) {
     throw new Error(result.message || "Your request could not be sent.");
   }
 
+  if (typeof window.gtag_report_conversion === "function") {
+    window.gtag_report_conversion();
+  }
+
   return result;
 }

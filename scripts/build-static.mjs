@@ -411,7 +411,7 @@ if (existsSync(carDir)) {
     const imageUrl = existsSync(join(root, imagePath)) ? `${siteUrl}/${imagePath}` : `${siteUrl}/assets/kds-hero.png`;
     const isActive = activeInventoryBySlug.has(slug);
     html = html
-      .replace(/\/src\/vehicle\.js\?v=[^\"]+/g, "/src/vehicle.js?v=quote-delivery-20260718")
+      .replace(/\/src\/vehicle\.js\?v=[^\"]+/g, "/src/vehicle.js?v=lead-conversion-20260720")
       .replace(/\/src\/styles\.css\?v=[^\"]+/g, "/src/styles.css?v=site-theme-20260719")
       .replace(/<body class="(?!site-theme )/, '<body class="site-theme ');
     const metadata = `
@@ -456,6 +456,21 @@ const googleAdsTag = `    <!-- Google tag (gtag.js) -->
           'event_callback': callback,
           'event_timeout': 2000,
           // <event_parameters>
+        });
+        return false;
+      }
+    </script>
+    <!-- Event snippet for Submit lead form conversion page -->
+    <script>
+      function gtag_report_conversion(url) {
+        var callback = function () {
+          if (typeof(url) != 'undefined') {
+            window.location = url;
+          }
+        };
+        gtag('event', 'conversion', {
+          'send_to': 'AW-17965450187/oJtrCN-pqoMcEMuHzPZC',
+          'event_callback': callback
         });
         return false;
       }

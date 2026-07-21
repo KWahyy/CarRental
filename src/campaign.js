@@ -3,7 +3,7 @@ import {
   isSupabaseFleetConfigured,
   loadVehicleFromSupabase,
 } from "./supabase-fleet.js?v=campaign-cloud-fleet-20260718";
-import { submitQuoteRequest } from "./quote-api.js?v=lead-delivery-20260718b";
+import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
 
 const form = document.querySelector("[data-campaign-form]");
 const status = document.querySelector("[data-campaign-status]");
