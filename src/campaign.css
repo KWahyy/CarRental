@@ -1477,6 +1477,47 @@ body {
   color: var(--campaign-gold-dark);
 }
 
+.campaign-fleet-more-wrap {
+  display: flex;
+  justify-content: center;
+  width: min(1580px, 100%);
+  margin: clamp(48px, 6vw, 84px) auto 0;
+}
+
+.campaign-fleet-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-width: 210px;
+  min-height: 54px;
+  padding: 14px 24px;
+  border: 1px solid #111;
+  color: #111;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.campaign-fleet-more span {
+  font-size: 1rem;
+  transition: transform 180ms ease;
+}
+
+.campaign-fleet-more:hover,
+.campaign-fleet-more:focus-visible {
+  background: #111;
+  color: var(--campaign-cream);
+}
+
+.campaign-fleet-more:hover span,
+.campaign-fleet-more:focus-visible span {
+  transform: translateX(3px);
+}
+
 .campaign-requirements,
 .campaign-faq {
   width: min(calc(100% - 10vw), 1580px);
