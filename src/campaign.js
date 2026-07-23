@@ -49,29 +49,6 @@ function showFormStep(stepNumber) {
   form.dataset.currentStep = String(stepNumber);
 }
 
-function brandFromVehicle(value) {
-  const vehicle = String(value || "").toLowerCase();
-  const brandAliases = [
-    ["Rolls-Royce", ["rolls-royce", "rolls royce", "cullinan"]],
-    ["Mercedes-Benz", ["mercedes", "maybach", "amg"]],
-    ["Land Rover", ["land rover", "range rover"]],
-    ["Chevrolet", ["chevrolet", "chevy", "corvette", "c8"]],
-    ["Lamborghini", ["lamborghini", "huracan", "urus"]],
-    ["McLaren", ["mclaren"]],
-    ["Ferrari", ["ferrari"]],
-    ["Porsche", ["porsche"]],
-    ["Cadillac", ["cadillac", "escalade"]],
-    ["Bentley", ["bentley", "continental"]],
-    ["Audi", ["audi"]],
-    ["BMW", ["bmw"]],
-    ["Ford", ["ford"]],
-    ["Lotus", ["lotus"]],
-    ["Tesla", ["tesla"]],
-  ];
-
-  return brandAliases.find(([, aliases]) => aliases.some((alias) => vehicle.includes(alias)))?.[0] || "Help me choose";
-}
-
 function loadDecodedImage(url) {
   return new Promise((resolve, reject) => {
     const image = new Image();
@@ -113,6 +90,12 @@ async function hydrateCampaignCar(card) {
     const requestButton = card.querySelector("[data-select-car]");
     if (requestButton) requestButton.dataset.selectCar = car.name;
 
+    const cloudOption = document.querySelector("[data-campaign-cloud-option]");
+    if (cloudOption && car.name) {
+      cloudOption.value = car.name;
+      cloudOption.textContent = car.name;
+    }
+
     card.dataset.cloudState = "ready";
   } catch (error) {
     console.error("Unable to hydrate campaign vehicle from Supabase:", error);
@@ -138,7 +121,7 @@ if (form) {
     if (invalidField) {
       firstStep.querySelectorAll("input[required], select[required]").forEach(showValidationError);
       invalidField.focus();
-      setStatus("Choose a brand and rental date to continue.", "error");
+      setStatus("Choose a vehicle and rental date to continue.", "error");
       return;
     }
     setStatus("Insurance and deposit are confirmed after availability.");
@@ -184,7 +167,7 @@ if (form) {
       date: formData.get("date") || "",
       vehicle: formData.get("vehicle") || "Help me choose",
       addons: ["Delivery"],
-      message: "Google Ads landing page brand request.",
+      message: "Google Ads landing page vehicle request.",
       company: formData.get("company") || "",
       pageUrl: window.location.href,
     };
@@ -223,12 +206,17 @@ if (form) {
 document.querySelectorAll("[data-select-car]").forEach((button) => {
   button.addEventListener("click", () => {
     const selectedCar = button.dataset.selectCar;
-    const selectedBrand = brandFromVehicle(selectedCar);
     const vehicleSelect = form?.elements.vehicle;
-    if (vehicleSelect) vehicleSelect.value = selectedBrand;
+    if (vehicleSelect) {
+      const exactOption = Array.from(vehicleSelect.options).find(
+        (option) => option.value.toLowerCase() === selectedCar.toLowerCase(),
+      );
+      vehicleSelect.value = exactOption?.value || "Help me choose";
+    }
+    showFormStep(1);
     document.querySelector("#quote-card")?.scrollIntoView({ behavior: "smooth", block: "center" });
     window.setTimeout(() => vehicleSelect?.focus({ preventScroll: true }), 450);
-    trackCampaignEvent("select_campaign_vehicle", { vehicle: selectedCar, brand: selectedBrand });
+    trackCampaignEvent("select_campaign_vehicle", { vehicle: selectedCar });
   });
 });
 
