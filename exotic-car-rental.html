@@ -16,7 +16,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
     <link rel="preload" as="image" href="/assets/campaign-exotic-lineup-hero.jpg" fetchpriority="high" />
-    <link rel="stylesheet" href="/src/campaign.css?v=campaign-fleet-six-20260722" />
+    <link rel="stylesheet" href="/src/campaign.css?v=campaign-two-step-20260722" />
   </head>
   <body>
     <a class="campaign-skip" href="#campaign-main">Skip to main content</a>
@@ -42,6 +42,7 @@
         </div>
         <div class="campaign-hero-copy">
           <p class="campaign-eyebrow">Los Angeles + Orange County</p>
+          <p class="campaign-first-offer">First-time clients save 10%</p>
           <h1 id="campaign-title">Exotic cars.<br /><span>Make an entrance.</span></h1>
           <p class="campaign-lead">Choose your car and date. Our private rental desk handles availability, pricing, and delivery.</p>
           <ul class="campaign-benefits" aria-label="Rental benefits">
@@ -59,65 +60,88 @@
           <div class="campaign-form-head">
             <p>Private request</p>
             <h2 id="quote-card-title">Check availability</h2>
-            <span>No payment required to request a quote.</span>
+            <span>Two quick steps. No payment required.</span>
           </div>
           <form data-campaign-form novalidate>
-            <div class="campaign-field-grid">
-              <label>
-                <span>Name <b aria-hidden="true">*</b></span>
-                <input name="name" type="text" autocomplete="name" required placeholder="Your name" />
-              </label>
-              <label>
-                <span>Mobile number <b aria-hidden="true">*</b></span>
-                <input name="phone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="(555) 555-5555" />
-              </label>
+            <div class="campaign-form-progress" aria-label="Quote request progress">
+              <span data-step-indicator="1" aria-current="step">1</span>
+              <i aria-hidden="true"></i>
+              <span data-step-indicator="2">2</span>
+              <small data-step-label>Car and date</small>
             </div>
-            <label>
-              <span>Preferred brand <b aria-hidden="true">*</b></span>
-              <select name="vehicle" required>
-                <option value="">Choose a brand</option>
-                <option>Audi</option>
-                <option>Bentley</option>
-                <option>BMW</option>
-                <option>Cadillac</option>
-                <option>Chevrolet</option>
-                <option>Ferrari</option>
-                <option>Ford</option>
-                <option>Lamborghini</option>
-                <option>Land Rover</option>
-                <option>Lotus</option>
-                <option>McLaren</option>
-                <option>Mercedes-Benz</option>
-                <option>Porsche</option>
-                <option>Rolls-Royce</option>
-                <option>Tesla</option>
-                <option value="Help me choose">Help me choose</option>
-              </select>
-            </label>
-            <div class="campaign-field-grid">
+
+            <div class="campaign-form-step" data-form-step="1">
+              <label>
+                <span>Preferred brand <b aria-hidden="true">*</b></span>
+                <select name="vehicle" required>
+                  <option value="">Choose a brand</option>
+                  <option>Audi</option>
+                  <option>Bentley</option>
+                  <option>BMW</option>
+                  <option>Cadillac</option>
+                  <option>Chevrolet</option>
+                  <option>Ferrari</option>
+                  <option>Ford</option>
+                  <option>Lamborghini</option>
+                  <option>Land Rover</option>
+                  <option>Lotus</option>
+                  <option>McLaren</option>
+                  <option>Mercedes-Benz</option>
+                  <option>Porsche</option>
+                  <option>Rolls-Royce</option>
+                  <option>Tesla</option>
+                  <option value="Help me choose">Help me choose</option>
+                </select>
+              </label>
               <label>
                 <span>Rental date <b aria-hidden="true">*</b></span>
                 <input name="date" type="date" required />
               </label>
-              <label>
-                <span>Insurance company <b aria-hidden="true">*</b></span>
-                <input name="insuranceProvider" type="text" autocomplete="organization" required placeholder="e.g. State Farm" />
-              </label>
+              <button class="campaign-step-next" type="button" data-step-next>
+                <span>Continue</span>
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
+              </button>
             </div>
-            <label>
-              <span>Email <b aria-hidden="true">*</b></span>
-              <input name="email" type="email" inputmode="email" autocomplete="email" required placeholder="you@email.com" />
-            </label>
+
+            <div class="campaign-form-step" data-form-step="2" hidden>
+              <label>
+                <span>Name <b aria-hidden="true">*</b></span>
+                <input name="name" type="text" autocomplete="name" required placeholder="Your name" />
+              </label>
+              <div class="campaign-field-grid">
+                <label>
+                  <span>Mobile number <b aria-hidden="true">*</b></span>
+                  <input name="phone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="(555) 555-5555" />
+                </label>
+                <label>
+                  <span>Email <b aria-hidden="true">*</b></span>
+                  <input name="email" type="email" inputmode="email" autocomplete="email" required placeholder="you@email.com" />
+                </label>
+              </div>
+              <div class="campaign-form-actions">
+                <button class="campaign-step-back" type="button" data-step-back aria-label="Return to car and date">Back</button>
+                <button type="submit">
+                  <span>Get my exact rate</span>
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
+                </button>
+              </div>
+              <p class="campaign-privacy-note">Your details are used only to respond to this rental request.</p>
+            </div>
             <label class="campaign-honeypot" aria-hidden="true">
               Company
               <input name="company" type="text" tabindex="-1" autocomplete="off" />
             </label>
-            <button type="submit">
-              <span>Get my private quote</span>
-              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
-            </button>
-            <p class="campaign-form-status" data-campaign-status role="status" aria-live="polite">License, insurance, and deposit are confirmed before approval.</p>
+            <p class="campaign-form-status" data-campaign-status role="status" aria-live="polite">Insurance and deposit are confirmed after availability.</p>
           </form>
+          <div class="campaign-form-success" data-campaign-success hidden tabindex="-1">
+            <p>Request received</p>
+            <h3>We are checking your car.</h3>
+            <span>Our concierge will call or email you with availability and the exact rate.</span>
+            <div>
+              <a href="tel:+12132642967">Call concierge</a>
+              <a href="/fleet.html">View fleet</a>
+            </div>
+          </div>
         </aside>
       </section>
 
@@ -222,6 +246,6 @@
       <a href="#quote-card">Get a quote</a>
     </nav>
 
-    <script type="module" src="/src/campaign.js?v=lead-conversion-20260720"></script>
+    <script type="module" src="/src/campaign.js?v=campaign-two-step-20260722"></script>
   </body>
 </html>

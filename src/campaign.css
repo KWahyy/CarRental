@@ -1116,6 +1116,192 @@ a {
   }
 }
 
+/* Conversion-focused campaign form */
+.campaign-first-offer {
+  width: fit-content;
+  margin: 0 0 18px;
+  padding: 8px 11px;
+  border: 1px solid rgba(221, 185, 98, 0.65);
+  background: rgba(9, 8, 6, 0.5);
+  color: var(--campaign-gold);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.campaign-form-progress {
+  display: grid;
+  grid-template-columns: 26px minmax(30px, 1fr) 26px;
+  align-items: center;
+  gap: 8px;
+}
+
+.campaign-form-progress > span {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border: 1px solid rgba(17, 17, 17, 0.22);
+  border-radius: 50%;
+  color: #77736c;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.campaign-form-progress > span[aria-current="step"] {
+  border-color: #111;
+  background: #111;
+  color: var(--campaign-cream);
+}
+
+.campaign-form-progress i {
+  height: 1px;
+  background: rgba(17, 17, 17, 0.16);
+}
+
+.campaign-form-progress small {
+  grid-column: 1 / -1;
+  color: #6e6a62;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.campaign-form-step {
+  display: grid;
+  gap: 14px;
+}
+
+.campaign-form-step[hidden],
+.campaign-form-success[hidden] {
+  display: none !important;
+}
+
+.campaign-form-card .campaign-step-next {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  border: 0;
+  border-radius: 5px;
+  background: #111;
+  color: var(--campaign-cream);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.campaign-form-card .campaign-step-next svg {
+  width: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.campaign-form-actions {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.campaign-form-card .campaign-step-back {
+  min-height: 56px;
+  border: 1px solid rgba(17, 17, 17, 0.22);
+  border-radius: 5px;
+  background: transparent;
+  color: #33312d;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.campaign-form-card .campaign-form-actions button[type="submit"] {
+  margin: 0;
+}
+
+.campaign-privacy-note {
+  margin: -2px 0 0;
+  color: #77736c;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.campaign-form-success {
+  display: grid;
+  gap: 14px;
+  padding: 34px 30px 38px;
+  outline: 0;
+}
+
+.campaign-form-success > p {
+  margin: 0;
+  color: #81631f;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.campaign-form-success h3 {
+  margin: 0;
+  color: #111;
+  font-size: clamp(28px, 3vw, 42px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.campaign-form-success > span {
+  color: #5f5b54;
+  line-height: 1.6;
+}
+
+.campaign-form-success > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.campaign-form-success a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  border: 1px solid #111;
+  color: #111;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.campaign-form-success a:first-child {
+  background: #111;
+  color: var(--campaign-cream);
+}
+
+@media (max-width: 760px) {
+  .campaign-first-offer {
+    margin: 0 auto 12px;
+    background: rgba(4, 4, 4, 0.62);
+  }
+
+  .campaign-form-actions,
+  .campaign-form-success > div {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-form-card .campaign-step-back {
+    order: 2;
+    min-height: 48px;
+  }
+}
+
 @media (min-width: 1800px) {
   :root {
     --campaign-container: 1480px;

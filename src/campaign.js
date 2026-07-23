@@ -8,6 +8,10 @@ import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
 const form = document.querySelector("[data-campaign-form]");
 const status = document.querySelector("[data-campaign-status]");
 const submitButton = form?.querySelector("button[type='submit']");
+const successPanel = document.querySelector("[data-campaign-success]");
+const formSteps = form ? [...form.querySelectorAll("[data-form-step]")] : [];
+const stepIndicators = form ? [...form.querySelectorAll("[data-step-indicator]")] : [];
+const stepLabel = form?.querySelector("[data-step-label]");
 
 function localDateValue(date = new Date()) {
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
@@ -31,6 +35,18 @@ function setStatus(message, tone = "") {
 
 function showValidationError(field) {
   field.setAttribute("aria-invalid", String(!field.checkValidity()));
+}
+
+function showFormStep(stepNumber) {
+  formSteps.forEach((step) => {
+    step.hidden = Number(step.dataset.formStep) !== stepNumber;
+  });
+  stepIndicators.forEach((indicator) => {
+    if (Number(indicator.dataset.stepIndicator) === stepNumber) indicator.setAttribute("aria-current", "step");
+    else indicator.removeAttribute("aria-current");
+  });
+  if (stepLabel) stepLabel.textContent = stepNumber === 1 ? "Car and date" : "Your contact details";
+  form.dataset.currentStep = String(stepNumber);
 }
 
 function brandFromVehicle(value) {
@@ -114,6 +130,27 @@ document.querySelectorAll("[data-campaign-car]").forEach((card) => {
 if (form) {
   const rentalDate = form.elements.date;
   if (rentalDate) rentalDate.min = localDateValue();
+  showFormStep(1);
+
+  form.querySelector("[data-step-next]")?.addEventListener("click", () => {
+    const firstStep = form.querySelector('[data-form-step="1"]');
+    const invalidField = firstStep?.querySelector(":invalid");
+    if (invalidField) {
+      firstStep.querySelectorAll("input[required], select[required]").forEach(showValidationError);
+      invalidField.focus();
+      setStatus("Choose a brand and rental date to continue.", "error");
+      return;
+    }
+    setStatus("Insurance and deposit are confirmed after availability.");
+    showFormStep(2);
+    form.elements.name?.focus();
+    trackCampaignEvent("campaign_quote_step", { step: 2 });
+  });
+
+  form.querySelector("[data-step-back]")?.addEventListener("click", () => {
+    showFormStep(1);
+    form.elements.vehicle?.focus();
+  });
 
   form.addEventListener("input", (event) => {
     const field = event.target.closest("input, select");
@@ -131,6 +168,7 @@ if (form) {
     const invalidField = form.querySelector(":invalid");
     if (invalidField) {
       [...form.querySelectorAll("input[required], select[required]")].forEach(showValidationError);
+      if (invalidField.closest('[data-form-step="1"]')) showFormStep(1);
       invalidField.focus();
       setStatus("Complete the highlighted details so we can check availability.", "error");
       return;
@@ -142,7 +180,7 @@ if (form) {
       name: formData.get("name") || "",
       phone: formData.get("phone") || "",
       email: formData.get("email") || "",
-      insuranceProvider: formData.get("insuranceProvider") || "",
+      insuranceProvider: "To be confirmed after availability",
       date: formData.get("date") || "",
       vehicle: formData.get("vehicle") || "Help me choose",
       addons: ["Delivery"],
@@ -165,15 +203,18 @@ if (form) {
         notification: result.notification || "unknown",
       });
 
-      setStatus("Request received. The rental desk will contact you after checking the vehicle.", "success");
+      setStatus("Request received.", "success");
       form.reset();
       if (rentalDate) rentalDate.min = localDateValue();
       form.querySelectorAll("[aria-invalid]").forEach((field) => field.removeAttribute("aria-invalid"));
+      form.hidden = true;
+      successPanel.hidden = false;
+      successPanel.focus({ preventScroll: true });
     } catch (error) {
       setStatus(`${error.message || "We could not save this request."} Call (213) 264-2967 for immediate help.`, "error");
     } finally {
       submitButton.disabled = false;
-      submitButton.querySelector("span").textContent = "Get my private quote";
+      submitButton.querySelector("span").textContent = "Get my exact rate";
       form.removeAttribute("aria-busy");
     }
   });

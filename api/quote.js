@@ -378,7 +378,7 @@ export default async function handler(req, res) {
       return json(res, 400, { ok: false, message: "Name and phone are required." });
     }
 
-    if (payload.requestType === "quote" && !payload.insuranceProvider) {
+    if (payload.requestType === "quote" && payload.source !== "google-ads-landing-page" && !payload.insuranceProvider) {
       return json(res, 400, { ok: false, message: "Insurance provider is required." });
     }
 
