@@ -11,6 +11,7 @@ mkdirSync(outDir, { recursive: true });
 const pathsToCopy = [
   "index.html",
   "exotic-car-rental.html",
+  "faq.html",
   "fleet.html",
   "partner.html",
   "admin",
@@ -150,11 +151,11 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header scrolled" data-header>
       <a class="brand" href="/" aria-label="KD's Exotics home"><img class="brand-logo brand-logo-wide" src="/assets/kds-logo-wide.png" alt="" width="1348" height="610" /></a>
-      <nav class="desktop-nav" aria-label="Primary navigation"><a href="/fleet.html">Fleet</a><a href="/#how-it-works">How It Works</a><a href="/partner.html">Partner</a><a href="/#faq">FAQ</a></nav>
+      <nav class="desktop-nav" aria-label="Primary navigation"><a href="/fleet.html">Fleet</a><a href="/#how-it-works">How It Works</a><a href="/partner.html">Partner</a><a href="/faq">FAQ</a></nav>
       <div class="header-actions"><a class="ghost-button" href="tel:${phoneHref}">Call</a><a class="primary-button compact" href="/#quote">Reserve</a></div>
       <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-toggle><span></span><span></span></button>
     </header>
-    <div class="mobile-menu" data-mobile-menu><a href="/fleet.html">Fleet</a><a href="/#how-it-works">How It Works</a><a href="/partner.html">Partner</a><a href="/#faq">FAQ</a><a href="tel:${phoneHref}">Call</a><a href="/#quote">Reserve</a></div>
+    <div class="mobile-menu" data-mobile-menu><a href="/fleet.html">Fleet</a><a href="/#how-it-works">How It Works</a><a href="/partner.html">Partner</a><a href="/faq">FAQ</a><a href="tel:${phoneHref}">Call</a><a href="/#quote">Reserve</a></div>
     <main id="main" class="seo-page-main">
       <header class="seo-page-hero">
         <p class="eyebrow">${eyebrow}</p>
@@ -248,11 +249,11 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header scrolled" data-header>
       <a class="brand" href="/" aria-label="KD's Exotics home"><img class="brand-logo brand-logo-wide" src="/assets/kds-logo-wide.png" alt="" width="1348" height="610" /></a>
-      <nav class="desktop-nav" aria-label="Primary navigation"><a href="/fleet.html">Fleet</a><a href="/#how-it-works">How It Works</a><a href="/partner.html">Partner</a><a href="/#faq">FAQ</a></nav>
+      <nav class="desktop-nav" aria-label="Primary navigation"><a href="/fleet.html">Fleet</a><a href="/#how-it-works">How It Works</a><a href="/partner.html">Partner</a><a href="/faq">FAQ</a></nav>
       <div class="header-actions"><a class="ghost-button" href="tel:${phoneHref}">Call</a><a class="primary-button compact" href="/#quote">Reserve</a></div>
       <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-toggle><span></span><span></span></button>
     </header>
-    <div class="mobile-menu" data-mobile-menu><a href="/fleet.html">Fleet</a><a href="/#how-it-works">How It Works</a><a href="/partner.html">Partner</a><a href="/#faq">FAQ</a><a href="tel:${phoneHref}">Call</a><a href="/#quote">Reserve</a></div>
+    <div class="mobile-menu" data-mobile-menu><a href="/fleet.html">Fleet</a><a href="/#how-it-works">How It Works</a><a href="/partner.html">Partner</a><a href="/faq">FAQ</a><a href="tel:${phoneHref}">Call</a><a href="/#quote">Reserve</a></div>
 
     <main id="main" class="oc-location-main">
       <section class="oc-location-hero" aria-labelledby="oc-location-title">
