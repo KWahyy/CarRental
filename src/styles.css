@@ -21959,7 +21959,12 @@ body.site-theme {
 }
 
 .faq-category-questions details {
+  margin: 0;
+  padding: 0;
+  border: 0;
   border-bottom: 1px solid #c9c4bb;
+  border-radius: 0;
+  background: transparent;
 }
 
 .faq-category-questions summary {
@@ -21970,9 +21975,17 @@ body.site-theme {
   align-items: center;
   cursor: pointer;
   color: #171512;
+  -webkit-text-fill-color: #171512;
   font-size: clamp(0.98rem, 1.3vw, 1.12rem);
   font-weight: 750;
   list-style: none;
+}
+
+.faq-category-questions summary:hover,
+.faq-category-questions summary:focus-visible,
+.faq-category-questions details[open] summary {
+  color: #171512;
+  -webkit-text-fill-color: #171512;
 }
 
 .faq-category-questions summary::-webkit-details-marker {
