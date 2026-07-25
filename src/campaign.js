@@ -45,7 +45,7 @@ function showFormStep(stepNumber) {
     if (Number(indicator.dataset.stepIndicator) === stepNumber) indicator.setAttribute("aria-current", "step");
     else indicator.removeAttribute("aria-current");
   });
-  if (stepLabel) stepLabel.textContent = stepNumber === 1 ? "Car and date" : "Your contact details";
+  if (stepLabel) stepLabel.textContent = stepNumber === 1 ? "Brand and date" : "Your contact details";
   form.dataset.currentStep = String(stepNumber);
 }
 
@@ -90,12 +90,6 @@ async function hydrateCampaignCar(card) {
     const requestButton = card.querySelector("[data-select-car]");
     if (requestButton) requestButton.dataset.selectCar = car.name;
 
-    const cloudOption = document.querySelector("[data-campaign-cloud-option]");
-    if (cloudOption && car.name) {
-      cloudOption.value = car.name;
-      cloudOption.textContent = car.name;
-    }
-
     card.dataset.cloudState = "ready";
   } catch (error) {
     console.error("Unable to hydrate campaign vehicle from Supabase:", error);
@@ -121,7 +115,7 @@ if (form) {
     if (invalidField) {
       firstStep.querySelectorAll("input[required], select[required]").forEach(showValidationError);
       invalidField.focus();
-      setStatus("Choose a vehicle and rental date to continue.", "error");
+      setStatus("Choose a brand and rental date to continue.", "error");
       return;
     }
     setStatus("Insurance and deposit are confirmed after availability.");
@@ -206,17 +200,18 @@ if (form) {
 document.querySelectorAll("[data-select-car]").forEach((button) => {
   button.addEventListener("click", () => {
     const selectedCar = button.dataset.selectCar;
+    const selectedBrand = button.dataset.selectBrand || "Help me choose";
     const vehicleSelect = form?.elements.vehicle;
     if (vehicleSelect) {
-      const exactOption = Array.from(vehicleSelect.options).find(
-        (option) => option.value.toLowerCase() === selectedCar.toLowerCase(),
+      const brandOption = Array.from(vehicleSelect.options).find(
+        (option) => option.value.toLowerCase() === selectedBrand.toLowerCase(),
       );
-      vehicleSelect.value = exactOption?.value || "Help me choose";
+      vehicleSelect.value = brandOption?.value || "Help me choose";
     }
     showFormStep(1);
     document.querySelector("#quote-card")?.scrollIntoView({ behavior: "smooth", block: "center" });
     window.setTimeout(() => vehicleSelect?.focus({ preventScroll: true }), 450);
-    trackCampaignEvent("select_campaign_vehicle", { vehicle: selectedCar });
+    trackCampaignEvent("select_campaign_vehicle", { brand: selectedBrand, featured_vehicle: selectedCar });
   });
 });
 
