@@ -22349,20 +22349,35 @@ body.site-theme {
   text-transform: uppercase;
 }
 
+.wedding-hero .partner-private-kicker {
+  gap: 16px;
+  color: rgba(244, 241, 234, 0.84);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+}
+
+.wedding-hero .partner-private-kicker::before {
+  width: 52px;
+  background: #d8b665;
+}
+
 .wedding-hero h1 {
-  max-width: 9ch;
+  max-width: 10ch;
   margin: 0;
-  color: #fff;
-  font-size: clamp(4.6rem, 8.8vw, 9.5rem);
+  color: #f8f4ec;
+  font-family: "Iowan Old Style", "Baskerville", "Times New Roman", Georgia, serif;
+  font-size: clamp(4.5rem, 8vw, 8.75rem);
   font-weight: 400;
-  line-height: 0.8;
-  letter-spacing: -0.06em;
-  text-transform: uppercase;
+  line-height: 0.86;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
 }
 
 .wedding-hero h1 > span {
   display: block;
   overflow: hidden;
+  padding: 0 0.08em 0.08em 0;
 }
 
 .wedding-hero h1 > span > span {
@@ -22371,16 +22386,19 @@ body.site-theme {
 }
 
 .wedding-hero h1 > span:nth-child(2) > span {
-  color: rgba(255, 255, 255, 0.82);
+  padding-left: 0.34em;
+  color: #e8d8b7;
+  font-style: italic;
   animation-delay: 0.12s;
 }
 
 .wedding-hero-copy {
-  max-width: 620px;
-  margin: 30px 0 0;
-  color: rgba(255, 255, 255, 0.76);
-  font-size: clamp(1rem, 1.25vw, 1.25rem);
-  line-height: 1.65;
+  max-width: 570px;
+  margin: 34px 0 0;
+  color: rgba(248, 244, 236, 0.8);
+  font-family: "Iowan Old Style", "Baskerville", "Times New Roman", Georgia, serif;
+  font-size: clamp(1.08rem, 1.4vw, 1.34rem);
+  line-height: 1.58;
 }
 
 .wedding-hero .partner-private-actions {
@@ -22950,15 +22968,21 @@ body.site-theme {
   }
 
   .wedding-hero h1 {
-    max-width: 8ch;
-    font-size: clamp(3.55rem, 17vw, 5.2rem);
-    line-height: 0.84;
+    max-width: 9ch;
+    font-size: clamp(3.7rem, 17vw, 5.15rem);
+    line-height: 0.88;
+    letter-spacing: -0.04em;
+  }
+
+  .wedding-hero h1 > span:nth-child(2) > span {
+    padding-left: 0.2em;
   }
 
   .wedding-hero-copy {
-    max-width: 34rem;
-    margin-top: 24px;
-    font-size: 0.96rem;
+    max-width: 31rem;
+    margin-top: 26px;
+    font-size: 1.03rem;
+    line-height: 1.55;
   }
 
   .wedding-hero .partner-private-actions {
