@@ -39,8 +39,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=kds-favicon-20260624" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png?v=kds-favicon-20260624" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=kds-favicon-20260624" />
-    <link rel="preload" href="/images/wedding-experience-banner.jpg" as="image" />
-    <link rel="stylesheet" href="/src/styles.css?v=wedding-private-20260729" />
+    <link rel="preload" href="/assets/wedding-hero-film.mp4" as="video" type="video/mp4" />
+    <link rel="stylesheet" href="/src/styles.css?v=wedding-film-20260729" />
   </head>
   <body class="site-theme wedding-page partner-private-page">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -76,16 +76,20 @@
 
     <main id="main">
       <section class="wedding-hero" aria-labelledby="wedding-hero-title">
-        <img
+        <video
           class="wedding-hero-media"
-          src="/images/wedding-experience-banner.jpg"
-          alt="Wedding couple with an exotic Lamborghini and luxury Rolls-Royce"
-          width="1983"
-          height="793"
-          fetchpriority="high"
-          decoding="async"
-        />
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="auto"
+          poster="/images/wedding-experience-banner.jpg"
+          aria-label="Cinematic wedding car arrival"
+        >
+          <source src="/assets/wedding-hero-film.mp4" type="video/mp4" />
+        </video>
         <div class="wedding-hero-shade" aria-hidden="true"></div>
+        <div class="wedding-hero-grain" aria-hidden="true"></div>
         <div class="wedding-hero-frame" aria-hidden="true"></div>
         <div class="wedding-hero-inner">
           <p class="partner-private-kicker">Private wedding arrivals</p>
