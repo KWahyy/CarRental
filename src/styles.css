@@ -23434,3 +23434,261 @@ body.site-theme {
     object-position: 56% center;
   }
 }
+
+/* Wedding service editorial */
+.wedding-reasons {
+  display: grid;
+  grid-template-columns: minmax(360px, 0.82fr) minmax(560px, 1.18fr);
+  min-height: 900px;
+  padding: 0;
+  overflow: hidden;
+  background: #fff;
+  color: #080808;
+}
+
+.wedding-reasons-head {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 56px;
+  padding: clamp(72px, 8vw, 132px) clamp(42px, 6vw, 108px);
+  overflow: hidden;
+  background: #070707;
+  color: #fff;
+}
+
+.wedding-reasons-head::before {
+  width: 64px;
+  height: 1px;
+  content: "";
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.wedding-reasons-head::after {
+  position: absolute;
+  right: -0.08em;
+  bottom: -0.22em;
+  content: "06";
+  color: rgba(255, 255, 255, 0.045);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: clamp(15rem, 27vw, 31rem);
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.wedding-reasons-head > p {
+  position: absolute;
+  top: clamp(72px, 8vw, 132px);
+  left: clamp(130px, 14vw, 230px);
+  z-index: 1;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.wedding-reasons-head h2 {
+  position: relative;
+  z-index: 1;
+  max-width: 7.5ch;
+  margin-top: auto;
+  color: #fff;
+  font-family: "Iowan Old Style", "Baskerville", "Times New Roman", Georgia, serif;
+  font-size: clamp(4.35rem, 7vw, 8.2rem);
+  font-weight: 400;
+  line-height: 0.82;
+  letter-spacing: -0.055em;
+}
+
+.wedding-reasons-head h2 em {
+  display: block;
+  margin-top: 0.1em;
+  color: #fff;
+  font-weight: 400;
+}
+
+.wedding-reasons-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(6, minmax(145px, 1fr));
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  background: #fff;
+}
+
+.wedding-reasons-grid article,
+.wedding-reasons-grid article:nth-child(3n),
+.wedding-reasons-grid article:nth-child(-n + 3) {
+  position: relative;
+  display: grid;
+  min-height: 0;
+  grid-template-columns: 64px minmax(180px, 0.82fr) minmax(230px, 1.18fr);
+  align-items: center;
+  gap: clamp(20px, 3vw, 48px);
+  padding: 25px clamp(34px, 5vw, 82px);
+  border: 0;
+  border-bottom: 1px solid #111;
+  background: #fff;
+  color: #0a0a0a;
+}
+
+.wedding-reasons-grid article:nth-child(even) {
+  background: #0a0a0a;
+  color: #fff;
+}
+
+.wedding-reasons-grid article:last-child {
+  border-bottom: 0;
+}
+
+.wedding-reason-icon {
+  position: static;
+  width: 54px;
+  height: 54px;
+  border: 1px solid #111;
+  color: #0a0a0a;
+}
+
+.wedding-reasons-grid article:nth-child(even) .wedding-reason-icon {
+  border-color: rgba(255, 255, 255, 0.52);
+  color: #fff;
+}
+
+.wedding-reason-icon svg {
+  width: 26px;
+  height: 26px;
+  stroke-width: 1.25;
+}
+
+.wedding-reason-number {
+  top: 20px;
+  right: clamp(20px, 2vw, 34px);
+  color: rgba(10, 10, 10, 0.34);
+  font-family: "Iowan Old Style", "Baskerville", "Times New Roman", Georgia, serif;
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.wedding-reasons-grid article:nth-child(even) .wedding-reason-number {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.wedding-reasons-grid h3 {
+  max-width: 16ch;
+  margin: 0;
+  color: inherit;
+  font-family: "Iowan Old Style", "Baskerville", "Times New Roman", Georgia, serif;
+  font-size: clamp(1.45rem, 2vw, 2.15rem);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.wedding-reasons-grid p {
+  max-width: 38ch;
+  margin: 0;
+  color: rgba(10, 10, 10, 0.62);
+  font-size: clamp(0.88rem, 1vw, 1rem);
+  line-height: 1.55;
+}
+
+.wedding-reasons-grid article:nth-child(even) p {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+@media (max-width: 1100px) {
+  .wedding-reasons {
+    grid-template-columns: minmax(310px, 0.72fr) minmax(500px, 1.28fr);
+  }
+
+  .wedding-reasons-head {
+    padding-inline: 42px;
+  }
+
+  .wedding-reasons-head > p {
+    left: 130px;
+  }
+
+  .wedding-reasons-grid {
+    grid-template-columns: 1fr;
+    margin-top: 0;
+  }
+
+  .wedding-reasons-grid article,
+  .wedding-reasons-grid article:nth-child(3n),
+  .wedding-reasons-grid article:nth-child(-n + 3) {
+    grid-template-columns: 54px minmax(160px, 0.85fr) minmax(190px, 1.15fr);
+    gap: 20px;
+    padding-inline: 28px;
+  }
+}
+
+@media (max-width: 820px) {
+  .wedding-reasons {
+    display: block;
+    min-height: 0;
+  }
+
+  .wedding-reasons-head {
+    min-height: 500px;
+    gap: 42px;
+    padding: 70px 22px 56px;
+  }
+
+  .wedding-reasons-head::before {
+    width: 48px;
+  }
+
+  .wedding-reasons-head::after {
+    font-size: 17rem;
+  }
+
+  .wedding-reasons-head > p {
+    top: 67px;
+    left: 88px;
+    font-size: 0.61rem;
+  }
+
+  .wedding-reasons-head h2 {
+    max-width: 8ch;
+    font-size: clamp(3.85rem, 17vw, 5.2rem);
+    line-height: 0.84;
+  }
+
+  .wedding-reasons-grid {
+    display: block;
+  }
+
+  .wedding-reasons-grid article,
+  .wedding-reasons-grid article:nth-child(3n),
+  .wedding-reasons-grid article:nth-child(-n + 3) {
+    display: grid;
+    min-height: 190px;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 18px;
+    padding: 30px 22px;
+  }
+
+  .wedding-reason-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .wedding-reasons-grid h3 {
+    margin: 0 36px 8px 0;
+    font-size: 1.55rem;
+  }
+
+  .wedding-reasons-grid p {
+    grid-column: 2;
+    padding: 0 24px 0 0;
+    font-size: 0.94rem;
+  }
+}
