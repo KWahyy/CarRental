@@ -14,6 +14,7 @@ const pathsToCopy = [
   "faq.html",
   "fleet.html",
   "partner.html",
+  "wedding-car-rental.html",
   "admin",
   "assets",
   "cars",
@@ -516,7 +517,7 @@ writeFileSync(
   `User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}/sitemap.xml\n`
 );
 
-const sitemapPages = ["", "fleet", "partner", ...companyPages.map(({ slug }) => slug), ...locationPages.map(({ slug }) => `locations/${slug}`)];
+const sitemapPages = ["", "fleet", "partner", "wedding-car-rental", ...companyPages.map(({ slug }) => slug), ...locationPages.map(({ slug }) => `locations/${slug}`)];
 const sitemapVehicles = activeInventory.filter(({ slug }) => existsSync(join(carDir, `${slug}.html`)));
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
