@@ -66,8 +66,7 @@
 
 .wedding-fleet-lookbook {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  grid-auto-flow: dense;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(12px, 1.5vw, 24px);
   max-width: 1540px;
   margin: 0 auto;
@@ -75,29 +74,21 @@
 
 .wedding-fleet-car {
   position: relative;
-  grid-column: span 4;
   min-width: 0;
   color: #fff;
   overflow: hidden;
   background: #171715;
   text-decoration: none;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 4 / 4.7;
 }
 
-.wedding-fleet-car--hero {
-  grid-column: span 8;
-  grid-row: span 2;
-  aspect-ratio: auto;
-  min-height: 760px;
-}
-
-.wedding-fleet-car--portrait {
-  grid-column: span 4;
-}
-
+.wedding-fleet-car--hero,
+.wedding-fleet-car--portrait,
 .wedding-fleet-car--wide {
-  grid-column: span 6;
-  aspect-ratio: 16 / 10;
+  grid-column: auto;
+  grid-row: auto;
+  min-height: 0;
+  aspect-ratio: 4 / 4.7;
 }
 
 .wedding-fleet-car figure {
@@ -221,22 +212,8 @@
     max-width: 620px;
   }
 
-  .wedding-fleet-car,
-  .wedding-fleet-car--portrait {
-    grid-column: span 6;
-    aspect-ratio: 4 / 5;
-  }
-
-  .wedding-fleet-car--hero {
-    grid-column: 1 / -1;
-    grid-row: auto;
-    min-height: 0;
-    aspect-ratio: 16 / 10;
-  }
-
-  .wedding-fleet-car--wide {
-    grid-column: span 6;
-    aspect-ratio: 4 / 5;
+  .wedding-fleet-lookbook {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -258,8 +235,7 @@
   }
 
   .wedding-fleet-lookbook {
-    display: flex;
-    flex-direction: column;
+    grid-template-columns: 1fr;
     gap: 12px;
   }
 
