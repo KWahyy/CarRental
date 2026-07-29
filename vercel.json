@@ -3,6 +3,13 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/wedding-car-rental",
+      "destination": "/wedding",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/admin",

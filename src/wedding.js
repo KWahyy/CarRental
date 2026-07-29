@@ -56,7 +56,7 @@ if (form) {
 
     const payload = {
       requestType: "wedding",
-      source: "wedding-car-rental",
+      source: "wedding",
       name: valueOf(formData, "name"),
       phone: valueOf(formData, "phone"),
       email: valueOf(formData, "email"),
