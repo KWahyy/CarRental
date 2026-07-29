@@ -22644,42 +22644,73 @@ body.site-theme {
 
 .wedding-image-break-copy {
   position: absolute;
-  top: 8.5%;
+  top: 50%;
   left: clamp(34px, 6vw, 116px);
   z-index: 2;
   display: flex;
-  width: min(38vw, 610px);
+  width: min(34vw, 570px);
   flex-direction: column;
   align-items: center;
-  color: #17130f;
+  padding: clamp(28px, 3vw, 50px) clamp(28px, 3.4vw, 58px);
+  color: #2a2119;
   text-align: center;
-  text-shadow: 0 1px 18px rgba(255, 250, 241, 0.32);
+  text-shadow: none;
+  background: rgba(255, 252, 247, 0.76);
+  border: 1px solid rgba(174, 139, 94, 0.58);
+  outline: 1px solid rgba(255, 255, 255, 0.72);
+  outline-offset: -7px;
+  box-shadow:
+    0 24px 70px rgba(40, 27, 15, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(10px) saturate(0.82);
+  -webkit-backdrop-filter: blur(10px) saturate(0.82);
+  transform: translateY(-50%);
+}
+
+.wedding-image-break-copy::before,
+.wedding-image-break-copy::after {
+  position: absolute;
+  top: 12px;
+  width: 30px;
+  height: 30px;
+  content: "";
+  border-top: 1px solid rgba(151, 113, 71, 0.72);
+}
+
+.wedding-image-break-copy::before {
+  left: 12px;
+  border-left: 1px solid rgba(151, 113, 71, 0.72);
+}
+
+.wedding-image-break-copy::after {
+  right: 12px;
+  border-right: 1px solid rgba(151, 113, 71, 0.72);
 }
 
 .wedding-image-kicker {
-  font-size: clamp(0.7rem, 1.18vw, 1.2rem);
+  font-size: clamp(0.62rem, 0.82vw, 0.88rem);
   font-weight: 600;
   line-height: 1;
-  letter-spacing: 0.48em;
+  letter-spacing: 0.54em;
   text-transform: uppercase;
 }
 
 .wedding-image-break-copy strong {
-  margin-top: clamp(2px, 0.45vw, 8px);
-  color: #9a7650;
+  margin-top: clamp(8px, 0.7vw, 14px);
+  color: #9b7650;
   font-family: "Iowan Old Style", "Baskerville", "Times New Roman", Georgia, serif;
-  font-size: clamp(4.8rem, 9.5vw, 10.5rem);
+  font-size: clamp(4.25rem, 7.25vw, 8rem);
   font-style: italic;
   font-weight: 400;
-  line-height: 0.67;
-  letter-spacing: -0.055em;
+  line-height: 0.72;
+  letter-spacing: -0.045em;
 }
 
 .wedding-image-divider {
   position: relative;
-  width: min(88%, 500px);
+  width: min(82%, 420px);
   height: 1px;
-  margin-top: clamp(22px, 2.4vw, 42px);
+  margin-top: clamp(22px, 2vw, 34px);
   background: rgba(125, 91, 57, 0.58);
 }
 
@@ -22695,11 +22726,12 @@ body.site-theme {
 }
 
 .wedding-image-subtitle {
-  margin-top: clamp(14px, 1.4vw, 24px);
-  font-size: clamp(0.63rem, 1vw, 1rem);
+  max-width: 32ch;
+  margin-top: clamp(14px, 1.2vw, 20px);
+  font-size: clamp(0.58rem, 0.76vw, 0.78rem);
   font-weight: 600;
-  line-height: 1.45;
-  letter-spacing: 0.3em;
+  line-height: 1.55;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
 }
 
@@ -23202,41 +23234,65 @@ body.site-theme {
 
   .wedding-image-break-frame::after {
     background:
-      linear-gradient(90deg, rgba(5, 5, 5, 0.62), rgba(5, 5, 5, 0.18) 66%, transparent 100%),
-      linear-gradient(180deg, rgba(5, 5, 5, 0.18), transparent 58%, rgba(5, 5, 5, 0.12));
+      linear-gradient(90deg, rgba(5, 5, 5, 0.24), transparent 72%),
+      linear-gradient(180deg, rgba(5, 5, 5, 0.1), transparent 58%, rgba(5, 5, 5, 0.12));
   }
 
   .wedding-image-break-copy {
-    top: 8%;
-    left: 18px;
-    width: min(56vw, 218px);
-    color: #f5f0e8;
-    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.62);
+    top: 50%;
+    left: 14px;
+    width: min(59vw, 230px);
+    padding: 20px 18px 22px;
+    color: #2a2119;
+    text-shadow: none;
+    background: rgba(255, 252, 247, 0.82);
+    border-color: rgba(174, 139, 94, 0.62);
+    outline-offset: -5px;
+    box-shadow: 0 12px 34px rgba(23, 15, 9, 0.18);
+    backdrop-filter: blur(7px) saturate(0.82);
+    -webkit-backdrop-filter: blur(7px) saturate(0.82);
+    transform: translateY(-50%);
+  }
+
+  .wedding-image-break-copy::before,
+  .wedding-image-break-copy::after {
+    top: 8px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .wedding-image-break-copy::before {
+    left: 8px;
+  }
+
+  .wedding-image-break-copy::after {
+    right: 8px;
   }
 
   .wedding-image-kicker {
-    font-size: clamp(0.42rem, 2.05vw, 0.55rem);
-    letter-spacing: 0.3em;
+    font-size: clamp(0.38rem, 1.75vw, 0.48rem);
+    letter-spacing: 0.34em;
   }
 
   .wedding-image-break-copy strong {
-    margin-top: 3px;
-    color: #d2ad78;
-    font-size: clamp(2.8rem, 14.5vw, 4.2rem);
-    line-height: 0.74;
+    margin-top: 7px;
+    color: #a17d55;
+    font-size: clamp(2.55rem, 12.5vw, 3.65rem);
+    line-height: 0.72;
   }
 
   .wedding-image-divider {
-    margin-top: 13px;
-    background: rgba(224, 197, 155, 0.7);
+    width: 82%;
+    margin-top: 15px;
+    background: rgba(151, 113, 71, 0.58);
   }
 
   .wedding-image-subtitle {
-    max-width: 25ch;
-    margin-top: 9px;
-    font-size: clamp(0.4rem, 1.9vw, 0.52rem);
-    line-height: 1.45;
-    letter-spacing: 0.17em;
+    max-width: 24ch;
+    margin-top: 10px;
+    font-size: clamp(0.35rem, 1.55vw, 0.44rem);
+    line-height: 1.5;
+    letter-spacing: 0.15em;
   }
 
   .wedding-reasons-head,
