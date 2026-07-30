@@ -23280,53 +23280,299 @@ body.site-theme {
   line-height: 1.6;
 }
 
-.wedding-timeline {
-  min-height: 72svh;
-  display: grid;
-  grid-template-columns: minmax(300px, 0.88fr) minmax(460px, 1.12fr);
-  gap: clamp(70px, 10vw, 170px);
-  align-items: center;
-  background: #f5f3ee;
+.wedding-packages {
+  padding: clamp(88px, 9vw, 150px) clamp(24px, 5vw, 84px);
+  overflow: hidden;
+  background: #f3f0ea;
   color: #0a0a0a;
 }
 
-.wedding-timeline-title h2 {
-  color: #0a0a0a;
-}
-
-.wedding-timeline-steps {
-  margin: 0;
-  padding: 0;
-  border-top: 1px solid rgba(10, 10, 10, 0.48);
-  list-style: none;
-}
-
-.wedding-timeline-steps li {
+.wedding-packages-head {
   display: grid;
-  grid-template-columns: 54px 1fr;
-  gap: 22px;
-  padding: 28px 0 30px;
-  border-bottom: 1px solid rgba(10, 10, 10, 0.2);
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+  gap: clamp(48px, 9vw, 150px);
+  align-items: end;
+  max-width: 1500px;
+  margin: 0 auto clamp(58px, 7vw, 100px);
 }
 
-.wedding-timeline-steps li > span {
-  color: #a27820;
-  font-size: 0.7rem;
+.wedding-packages-head > div > p,
+.wedding-addons-title > p {
+  margin: 0 0 18px;
+  color: #9a741f;
+  font-size: 0.68rem;
   font-weight: 750;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.wedding-packages-head h2 {
+  max-width: 10ch;
+  margin: 0;
+  color: #090909;
+  font-family: "Iowan Old Style", "Baskerville", "Times New Roman", Georgia, serif;
+  font-size: clamp(3.5rem, 6vw, 7.25rem);
+  font-weight: 400;
+  line-height: 0.88;
+  letter-spacing: -0.055em;
+}
+
+.wedding-packages-head > p {
+  max-width: 42ch;
+  margin: 0 0 8px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(10, 10, 10, 0.24);
+  color: rgba(10, 10, 10, 0.58);
+  font-size: 0.96rem;
+  line-height: 1.65;
+}
+
+.wedding-package-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(14px, 1.5vw, 24px);
+  max-width: 1500px;
+  margin: 0 auto;
+  align-items: stretch;
+}
+
+.wedding-package {
+  min-width: 0;
+  min-height: 760px;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(28px, 3vw, 48px);
+  border: 1px solid rgba(10, 10, 10, 0.18);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.wedding-package--featured {
+  border-color: #111;
+  background: #0a0a0a;
+  color: #f4f1ea;
+  box-shadow: 0 24px 60px rgba(28, 23, 16, 0.13);
+}
+
+.wedding-package-number {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 42px;
+  border: 1px solid rgba(10, 10, 10, 0.25);
+  border-radius: 50%;
+  color: #8f6b1b;
+  font-size: 0.68rem;
+  font-weight: 800;
   letter-spacing: 0.12em;
 }
 
-.wedding-timeline-steps h3 {
-  margin: 0 0 8px;
-  color: #0a0a0a;
-  font-size: clamp(1.2rem, 1.6vw, 1.55rem);
-  font-weight: 650;
+.wedding-package--featured .wedding-package-number {
+  border-color: rgba(216, 182, 101, 0.48);
+  color: #d8b665;
 }
 
-.wedding-timeline-steps p {
-  margin: 0;
+.wedding-package-label {
+  margin: 0 0 16px;
+  color: #8f6b1b;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.wedding-package--featured .wedding-package-label {
+  color: #d8b665;
+}
+
+.wedding-package h3 {
+  max-width: 12ch;
+  margin: 0 0 24px;
+  color: #0a0a0a;
+  font-family: "Iowan Old Style", "Baskerville", "Times New Roman", Georgia, serif;
+  font-size: clamp(2.15rem, 3.2vw, 3.8rem);
+  font-weight: 400;
+  line-height: 0.94;
+  letter-spacing: -0.045em;
+}
+
+.wedding-package--featured h3 {
+  color: #f4f1ea;
+}
+
+.wedding-package-perfect {
+  min-height: 76px;
+  margin: 0 0 30px;
   color: rgba(10, 10, 10, 0.58);
+  font-size: 0.9rem;
   line-height: 1.55;
+}
+
+.wedding-package--featured .wedding-package-perfect {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.wedding-package-perfect span,
+.wedding-package footer p span {
+  display: block;
+  margin-bottom: 3px;
+  color: currentColor;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.wedding-package ul {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid rgba(10, 10, 10, 0.16);
+  list-style: none;
+}
+
+.wedding-package li {
+  position: relative;
+  padding: 13px 0 13px 22px;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.12);
+  color: rgba(10, 10, 10, 0.73);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.wedding-package li::before {
+  position: absolute;
+  top: 18px;
+  left: 2px;
+  width: 5px;
+  height: 5px;
+  content: "";
+  border-radius: 50%;
+  background: #a67d22;
+}
+
+.wedding-package--featured ul {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.wedding-package--featured li {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.wedding-package--featured li::before {
+  background: #d8b665;
+}
+
+.wedding-package footer {
+  margin-top: auto;
+  padding-top: 34px;
+}
+
+.wedding-package footer p {
+  min-height: 66px;
+  margin: 0 0 24px;
+  color: rgba(10, 10, 10, 0.54);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.wedding-package--featured footer p {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.wedding-package footer a {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 0 16px;
+  border: 1px solid #111;
+  color: #111;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.wedding-package footer a:hover {
+  background: #111;
+  color: #fff;
+}
+
+.wedding-package--featured footer a {
+  border-color: #d8b665;
+  background: #d8b665;
+  color: #090909;
+}
+
+.wedding-package--featured footer a:hover {
+  background: #f0d58c;
+  color: #090909;
+}
+
+.wedding-addons {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.55fr) minmax(0, 1.45fr);
+  gap: clamp(42px, 8vw, 130px);
+  max-width: 1500px;
+  margin: clamp(48px, 6vw, 86px) auto 0;
+  padding-top: clamp(40px, 5vw, 72px);
+  border-top: 1px solid rgba(10, 10, 10, 0.25);
+}
+
+.wedding-addons-title h3 {
+  margin: 0;
+  color: #090909;
+  font-family: "Iowan Old Style", "Baskerville", "Times New Roman", Georgia, serif;
+  font-size: clamp(2.4rem, 4vw, 4.8rem);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+}
+
+.wedding-addons ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid rgba(10, 10, 10, 0.2);
+  list-style: none;
+}
+
+.wedding-addons li {
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 6px 12px 0;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.15);
+  color: rgba(10, 10, 10, 0.76);
+  font-size: 0.85rem;
+}
+
+.wedding-addons li:nth-child(odd) {
+  margin-right: 28px;
+}
+
+.wedding-addons li::before {
+  flex: 0 0 auto;
+  color: #9a741f;
+  content: "+";
+  font-size: 1.1rem;
+}
+
+.wedding-addons li span {
+  margin-left: auto;
+  color: rgba(10, 10, 10, 0.43);
+  font-size: 0.68rem;
+  text-transform: uppercase;
 }
 
 .wedding-contrast {
@@ -23624,8 +23870,21 @@ body.site-theme {
     padding-left: 0;
   }
 
-  .wedding-timeline,
+  .wedding-packages-head,
   .wedding-inquiry {
+    grid-template-columns: 1fr;
+  }
+
+  .wedding-package-grid {
+    grid-template-columns: 1fr;
+    max-width: 760px;
+  }
+
+  .wedding-package {
+    min-height: 0;
+  }
+
+  .wedding-addons {
     grid-template-columns: 1fr;
   }
 
@@ -23701,7 +23960,7 @@ body.site-theme {
 
   .wedding-reasons,
   .wedding-moments,
-  .wedding-timeline,
+  .wedding-packages,
   .wedding-inquiry {
     padding: 78px 22px;
   }
@@ -23793,7 +24052,7 @@ body.site-theme {
 
   .wedding-reasons-head h2,
   .wedding-moments-head h2,
-  .wedding-timeline-title h2,
+  .wedding-packages-head h2,
   .wedding-inquiry-copy h2 {
     font-size: clamp(3rem, 14vw, 4.5rem);
   }
@@ -23856,9 +24115,38 @@ body.site-theme {
     margin: 46px 0 10px;
   }
 
-  .wedding-timeline {
-    min-height: auto;
-    gap: 54px;
+  .wedding-packages-head {
+    gap: 32px;
+    margin-bottom: 48px;
+  }
+
+  .wedding-packages-head > p {
+    padding-top: 20px;
+  }
+
+  .wedding-package {
+    padding: 28px 22px;
+  }
+
+  .wedding-package-number {
+    margin-bottom: 30px;
+  }
+
+  .wedding-package-perfect,
+  .wedding-package footer p {
+    min-height: 0;
+  }
+
+  .wedding-addons {
+    gap: 34px;
+  }
+
+  .wedding-addons ul {
+    grid-template-columns: 1fr;
+  }
+
+  .wedding-addons li:nth-child(odd) {
+    margin-right: 0;
   }
 
   .wedding-contrast {
