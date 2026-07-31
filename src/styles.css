@@ -23575,48 +23575,154 @@ body.site-theme {
   text-transform: uppercase;
 }
 
-.wedding-contrast {
-  min-height: 76svh;
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  padding: 100px 28px;
-  background:
-    radial-gradient(circle at 50% 48%, rgba(216, 182, 101, 0.1), transparent 28%),
-    #050505;
-  text-align: center;
+.wedding-arrival {
+  position: relative;
+  min-height: clamp(620px, 57vw, 900px);
+  overflow: hidden;
+  isolation: isolate;
+  background: #13100c;
 }
 
-.wedding-contrast > p:first-child {
-  margin: 0 0 18px;
-  color: rgba(255, 255, 255, 0.46);
-  font-size: 0.74rem;
-  letter-spacing: 0.18em;
+.wedding-arrival-media {
+  position: absolute;
+  inset: -2%;
+  width: 104%;
+  height: 104%;
+  object-fit: cover;
+  object-position: 54% center;
+  animation: wedding-arrival-settle 16s ease-in-out infinite alternate;
+}
+
+.wedding-arrival-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(12, 9, 6, 0.78) 0%, rgba(12, 9, 6, 0.49) 31%, rgba(12, 9, 6, 0.08) 62%, transparent 78%),
+    linear-gradient(0deg, rgba(9, 7, 5, 0.58) 0%, transparent 42%);
+}
+
+.wedding-arrival-copy {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 1560px);
+  min-height: inherit;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  margin: 0 auto;
+  padding: clamp(72px, 8vw, 132px) clamp(28px, 7vw, 116px);
+  color: #fffdf8;
+}
+
+.wedding-arrival-kicker {
+  margin: 0 0 22px;
+  color: rgba(255, 253, 248, 0.78);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
 }
 
-.wedding-contrast h2 {
+.wedding-arrival h2 {
+  max-width: 900px;
   margin: 0;
-  color: #f4f1ea;
-  font-size: clamp(4rem, 9vw, 10rem);
+  color: #fffdf8;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(3.7rem, 6.2vw, 7.3rem);
   font-weight: 400;
-  line-height: 0.86;
-  letter-spacing: -0.07em;
+  line-height: 0.84;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
 }
 
-.wedding-contrast-line {
-  width: 1px;
-  height: 70px;
-  margin: 42px 0 30px;
-  background: #d8b665;
+.wedding-arrival h2 em {
+  color: #ead8b1;
+  font-weight: 400;
 }
 
-.wedding-contrast > p:last-child {
-  max-width: 610px;
+.wedding-arrival-rule {
+  width: min(340px, 42vw);
+  height: 1px;
+  margin: clamp(32px, 4vw, 54px) 0 28px;
+  background: linear-gradient(90deg, #d8b665, rgba(216, 182, 101, 0));
+  transform-origin: left;
+}
+
+.wedding-arrival-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  max-width: 840px;
+}
+
+.wedding-arrival-footer p {
+  max-width: 580px;
   margin: 0;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 1rem;
-  line-height: 1.65;
+  color: rgba(255, 253, 248, 0.78);
+  font-size: clamp(0.96rem, 1.2vw, 1.08rem);
+  line-height: 1.55;
+}
+
+.wedding-arrival-footer a {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 0;
+  border-bottom: 1px solid rgba(234, 216, 177, 0.62);
+  color: #fffdf8;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: color 180ms ease, border-color 180ms ease;
+}
+
+.wedding-arrival-footer a:hover {
+  border-color: #ead8b1;
+  color: #ead8b1;
+}
+
+.wedding-arrival .reveal {
+  transform: translateY(28px);
+}
+
+.wedding-arrival .reveal.revealed {
+  transform: translateY(0);
+}
+
+.wedding-arrival-kicker.reveal {
+  transition-delay: 40ms;
+}
+
+.wedding-arrival h2.reveal {
+  transition-delay: 110ms;
+}
+
+.wedding-arrival-rule.reveal {
+  opacity: 1;
+  transform: scaleX(0);
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: 230ms;
+}
+
+.wedding-arrival-rule.reveal.revealed {
+  transform: scaleX(1);
+}
+
+.wedding-arrival-footer.reveal {
+  transition-delay: 300ms;
+}
+
+@keyframes wedding-arrival-settle {
+  from {
+    transform: scale(1.035) translate3d(-0.4%, 0, 0);
+  }
+  to {
+    transform: scale(1) translate3d(0.4%, 0, 0);
+  }
 }
 
 .wedding-inquiry {
@@ -24149,13 +24255,43 @@ body.site-theme {
     margin-right: 0;
   }
 
-  .wedding-contrast {
-    min-height: 610px;
-    padding-inline: 22px;
+  .wedding-arrival {
+    min-height: 720px;
   }
 
-  .wedding-contrast h2 {
-    font-size: clamp(3.7rem, 18vw, 5.8rem);
+  .wedding-arrival-media {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-position: 60% center;
+  }
+
+  .wedding-arrival-shade {
+    background:
+      linear-gradient(0deg, rgba(10, 7, 5, 0.9) 0%, rgba(10, 7, 5, 0.5) 52%, rgba(10, 7, 5, 0.14) 100%),
+      linear-gradient(90deg, rgba(10, 7, 5, 0.45), transparent 75%);
+  }
+
+  .wedding-arrival-copy {
+    justify-content: flex-end;
+    padding: 64px 22px;
+  }
+
+  .wedding-arrival h2 {
+    max-width: 8ch;
+    font-size: clamp(3.35rem, 15vw, 5rem);
+    line-height: 0.88;
+  }
+
+  .wedding-arrival-rule {
+    width: 180px;
+    margin: 30px 0 22px;
+  }
+
+  .wedding-arrival-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
   }
 
   .wedding-inquiry {
@@ -24195,10 +24331,24 @@ body.site-theme {
     flex-direction: column;
     gap: 8px;
   }
+
+  .wedding-arrival {
+    min-height: 680px;
+  }
+
+  .wedding-arrival-copy {
+    padding-bottom: 46px;
+  }
+
+  .wedding-arrival-kicker {
+    margin-bottom: 16px;
+    font-size: 0.62rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .wedding-hero-media,
+  .wedding-arrival-media,
   .wedding-hero h1 > span > span,
   .wedding-hero .partner-private-scroll i::after {
     animation: none;
