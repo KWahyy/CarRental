@@ -68,6 +68,15 @@ const bookingStatus = document.querySelector("[data-booking-status]");
 const deleteBookingButton = document.querySelector("[data-delete-booking]");
 const requestPipeline = document.querySelector("[data-request-pipeline]");
 const addDemoRequestButtons = [...document.querySelectorAll("[data-add-demo-request]")];
+const quoteKpis = document.querySelector("[data-quote-kpis]");
+const requestSearchInput = document.querySelector("[data-request-search]");
+const requestFilterSelect = document.querySelector("[data-request-filter]");
+const requestSortSelect = document.querySelector("[data-request-sort]");
+const quotePageStatus = document.querySelector("[data-quote-status]");
+const quoteDialog = document.querySelector("[data-quote-dialog]");
+const quoteForm = document.querySelector("[data-quote-form]");
+const quoteDialogStatus = document.querySelector("[data-quote-dialog-status]");
+const quoteDialogCloseButtons = [...document.querySelectorAll("[data-close-quote-dialog]")];
 const calendarGrid = document.querySelector("[data-calendar-grid]");
 const contentForm = document.querySelector("[data-content-form]");
 const settingsForm = document.querySelector("[data-settings-form]");
@@ -108,6 +117,10 @@ let draggedPhotoIndex = null;
 const storedRequestDraft = readJson(REQUESTS_KEY, defaultRequests);
 let requests = sanitizeRequests(storedRequestDraft);
 if (requests.length !== storedRequestDraft.length) writeJson(REQUESTS_KEY, requests);
+let selectedRequestId = requests[0]?.id || null;
+let requestSearchTerm = "";
+let requestStatusFilter = "all";
+let requestSort = "newest";
 let contentDraft = readJson(CONTENT_KEY, {
   heroHeadline: "Not Your Average Rental",
   specialHeadline: "Monthly Rental Specials",
@@ -158,7 +171,16 @@ function sanitizeRequests(value) {
         (name === "Weekend booking" && message.includes("Needs final date"))
       );
     })
-    .map((request) => (request.status === "contacted" ? { ...request, status: "checking" } : request));
+    .map((request) => ({
+      ...request,
+      status: request.status === "contacted" ? "checking" : request.status || "new",
+      email: request.email || "",
+      source: request.source || "",
+      pageUrl: request.pageUrl || "",
+      notificationStatus: request.notificationStatus || "",
+      notificationError: request.notificationError || "",
+      updatedAt: request.updatedAt || request.createdAt || new Date(0).toISOString(),
+    }));
 }
 
 function escapeHtml(value) {
@@ -262,6 +284,7 @@ function isLocalCarId(id) {
 }
 
 function setStatus(node, message, tone = "") {
+  if (!node) return;
   node.textContent = message;
   node.dataset.tone = tone;
 }
@@ -928,7 +951,12 @@ async function loadCloudCrmData() {
       addons: Array.isArray(row.addons) ? row.addons : [],
       message: row.message || "",
       status: row.status || "new",
+      source: row.source || "",
+      pageUrl: row.page_url || "",
+      notificationStatus: row.notification_status || "",
+      notificationError: row.notification_error || "",
       createdAt: row.created_at,
+      updatedAt: row.updated_at || row.created_at,
     }));
     const cloudIds = new Set(cloudRequests.map((request) => String(request.id)));
     requests = sanitizeRequests([...cloudRequests, ...requests.filter((request) => !cloudIds.has(String(request.id)))]);
@@ -1182,59 +1210,142 @@ function renderMiniLists() {
     : `<p class="admin-empty">Dated quote requests will show here.</p>`;
 }
 
-function renderRequests() {
-  requestPipeline.innerHTML = requestStatuses
-    .map((status) => {
-      const statusRequests = requests.filter((request) => request.status === status.id);
-      return `
-        <section class="crm-pipeline-column">
-          <div class="crm-pipeline-head">
-            <h3>${escapeHtml(status.label)}</h3>
-            <span>${statusRequests.length}</span>
-          </div>
-          <div class="crm-request-stack">
-            ${
-              statusRequests.length
-                ? statusRequests
-                    .map(
-                      (request) => `
-                        <article class="crm-request-card">
-                          <div class="crm-request-top">
-                            <strong>${escapeHtml(request.name || "Lead")}</strong>
-                            <small>${escapeHtml(formatDate(request.date))}</small>
-                          </div>
-                          <p>${escapeHtml(request.vehicle || "Vehicle TBD")}</p>
-                          <span>${escapeHtml(request.phone || "No phone")}</span>
-                          ${request.requestType === "availability" || request.message?.includes("Manual partner availability check") ? `<strong class="crm-request-alert">Call rental partner to confirm</strong>` : ""}
-                          ${request.insuranceProvider ? `<span>Insurance: ${escapeHtml(request.insuranceProvider)}</span>` : ""}
-                          ${
-                            request.addons?.length
-                              ? `<div class="crm-request-tags">${request.addons.map((addon) => `<em>${escapeHtml(addon)}</em>`).join("")}</div>`
-                              : ""
-                          }
-                          ${request.message ? `<small class="crm-request-note">${escapeHtml(request.message)}</small>` : ""}
-                          <label>
-                            Move status
-                            <select data-request-status="${escapeHtml(request.id)}">
-                              ${requestStatuses
-                                .map(
-                                  (option) =>
-                                    `<option value="${option.id}" ${option.id === request.status ? "selected" : ""}>${escapeHtml(option.label)}</option>`,
-                                )
-                                .join("")}
-                            </select>
-                          </label>
-                        </article>
-                      `,
-                    )
-                    .join("")
-                : `<p class="admin-empty">No requests here.</p>`
-            }
-          </div>
-        </section>
-      `;
+function requestTimestamp(request) {
+  return Date.parse(request.updatedAt || request.createdAt || "") || 0;
+}
+
+function relativeRequestTime(request) {
+  const elapsed = Math.max(0, Date.now() - requestTimestamp(request));
+  const minutes = Math.floor(elapsed / 60000);
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+function requestNeedsResponse(request) {
+  if (request.status === "booked") return false;
+  return request.status === "new" || Date.now() - requestTimestamp(request) > 24 * 60 * 60 * 1000;
+}
+
+function requestSourceLabel(source) {
+  const labels = {
+    "fleet-availability": "Fleet page",
+    "campaign-landing": "Google campaign",
+    "home-quote": "Homepage",
+    "car-detail": "Vehicle page",
+    manual: "Manual lead",
+  };
+  return labels[source] || (source ? String(source).replaceAll("-", " ") : "Website");
+}
+
+function filteredQuoteRequests() {
+  const query = requestSearchTerm.trim().toLowerCase();
+  return requests
+    .filter((request) => requestStatusFilter === "all" || request.status === requestStatusFilter)
+    .filter((request) => {
+      if (!query) return true;
+      return [request.name, request.phone, request.email, request.vehicle, request.message]
+        .some((value) => String(value || "").toLowerCase().includes(query));
     })
+    .sort((a, b) => {
+      if (requestSort === "oldest") return requestTimestamp(a) - requestTimestamp(b);
+      if (requestSort === "rental-date") {
+        const aDate = Date.parse(a.date || "") || Number.MAX_SAFE_INTEGER;
+        const bDate = Date.parse(b.date || "") || Number.MAX_SAFE_INTEGER;
+        return aDate - bDate;
+      }
+      return requestTimestamp(b) - requestTimestamp(a);
+    });
+}
+
+function renderQuoteKpis() {
+  if (!quoteKpis) return;
+  const open = requests.filter((request) => request.status !== "booked");
+  const newCount = requests.filter((request) => request.status === "new").length;
+  const dueCount = open.filter(requestNeedsResponse).length;
+  const datedCount = open.filter((request) => request.date).length;
+  const bookedCount = requests.filter((request) => request.status === "booked").length;
+  quoteKpis.innerHTML = [
+    ["New", newCount, "Uncontacted requests"],
+    ["Follow-up due", dueCount, "New or idle 24+ hours"],
+    ["Rental dates", datedCount, "Open leads with a date"],
+    ["Booked", bookedCount, "Confirmed requests"],
+  ]
+    .map(([label, value, note]) => `<article class="quote-kpi-card"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>`)
     .join("");
+}
+
+function renderRequests() {
+  if (!requestPipeline) return;
+  renderQuoteKpis();
+  const visibleRequests = filteredQuoteRequests();
+  if (!visibleRequests.some((request) => String(request.id) === String(selectedRequestId))) {
+    selectedRequestId = visibleRequests[0]?.id || null;
+  }
+  const selected = visibleRequests.find((request) => String(request.id) === String(selectedRequestId));
+
+  if (!visibleRequests.length) {
+    requestPipeline.innerHTML = `
+      <section class="quote-inbox-list"><p class="admin-empty">No requests match these filters.</p></section>
+      <section class="quote-detail-panel quote-detail-empty"><strong>No quote selected</strong><span>Clear the filters or add a manual lead.</span></section>
+    `;
+    return;
+  }
+
+  const list = visibleRequests
+    .map((request) => `
+      <button class="quote-list-item ${String(request.id) === String(selectedRequestId) ? "active" : ""}" type="button" data-select-request="${escapeHtml(request.id)}">
+        <span class="quote-list-top"><strong>${escapeHtml(request.name || "New lead")}</strong><small>${escapeHtml(relativeRequestTime(request))}</small></span>
+        <span class="quote-list-vehicle">${escapeHtml(request.vehicle || "Vehicle not selected")}</span>
+        <span class="quote-list-meta"><em>${escapeHtml(requestStatusLabel(request.status))}</em><small>${escapeHtml(formatDate(request.date))}</small></span>
+        ${requestNeedsResponse(request) ? `<span class="quote-response-flag">Needs response</span>` : ""}
+      </button>
+    `)
+    .join("");
+
+  const phoneHref = selected.phone ? `tel:${String(selected.phone).replace(/[^+\d]/g, "")}` : "";
+  const emailHref = selected.email ? `mailto:${encodeURIComponent(selected.email)}?subject=${encodeURIComponent(`KD's Exotics quote: ${selected.vehicle || "vehicle request"}`)}` : "";
+  const notificationStatus = selected.notificationStatus || "not recorded";
+  const notificationFailed = /fail|error/i.test(notificationStatus) || Boolean(selected.notificationError);
+
+  requestPipeline.innerHTML = `
+    <section class="quote-inbox-list" aria-label="Quote request list">
+      <div class="quote-list-summary"><strong>${visibleRequests.length} request${visibleRequests.length === 1 ? "" : "s"}</strong><span>Newest activity first</span></div>
+      <div class="quote-list-scroll">${list}</div>
+    </section>
+    <section class="quote-detail-panel" aria-live="polite">
+      <header class="quote-detail-head">
+        <div><span>${escapeHtml(requestSourceLabel(selected.source))}</span><h3>${escapeHtml(selected.name || "New lead")}</h3><p>${escapeHtml(selected.vehicle || "Vehicle not selected")}</p></div>
+        <em>${escapeHtml(requestStatusLabel(selected.status))}</em>
+      </header>
+      <div class="quote-contact-actions">
+        ${phoneHref ? `<a class="quote-contact-action primary" href="${phoneHref}">Call ${escapeHtml(selected.phone)}</a>` : `<span class="quote-contact-action disabled">Phone missing</span>`}
+        ${emailHref ? `<a class="quote-contact-action" href="${emailHref}">Email customer</a>` : `<span class="quote-contact-action disabled">Email missing</span>`}
+      </div>
+      <dl class="quote-detail-grid">
+        <div><dt>Rental date</dt><dd>${escapeHtml(formatDate(selected.date))}</dd></div>
+        <div><dt>Submitted</dt><dd>${escapeHtml(relativeRequestTime({ ...selected, updatedAt: selected.createdAt }))}</dd></div>
+        <div><dt>Phone</dt><dd>${escapeHtml(selected.phone || "Not provided")}</dd></div>
+        <div><dt>Email</dt><dd>${escapeHtml(selected.email || "Not provided")}</dd></div>
+      </dl>
+      <div class="quote-detail-copy">
+        <span>Customer request</span>
+        <p>${escapeHtml(selected.message || "No message was included with this request.")}</p>
+        ${selected.addons?.length ? `<div class="crm-request-tags">${selected.addons.map((addon) => `<em>${escapeHtml(addon)}</em>`).join("")}</div>` : ""}
+      </div>
+      <div class="quote-notification ${notificationFailed ? "failed" : ""}">
+        <div><span>Owner email</span><strong>${escapeHtml(notificationStatus)}</strong></div>
+        <p>${escapeHtml(selected.notificationError || (selected.notificationStatus ? "Notification result returned by the quote endpoint." : "No delivery status was recorded for this lead."))}</p>
+      </div>
+      <div class="quote-detail-footer">
+        <label>Sales stage<select data-request-status="${escapeHtml(selected.id)}">${requestStatuses.map((option) => `<option value="${option.id}" ${option.id === selected.status ? "selected" : ""}>${escapeHtml(option.label)}</option>`).join("")}</select></label>
+        <button class="secondary-button compact" type="button" data-create-booking="${escapeHtml(selected.id)}">${selected.status === "booked" ? "Open booking" : "Create booking"}</button>
+      </div>
+    </section>
+  `;
 }
 
 function renderCalendar() {
@@ -1815,31 +1926,75 @@ document.addEventListener("click", (event) => {
 });
 
 addDemoRequestButtons.forEach((button) => {
-  button.addEventListener("click", async () => {
-    let lead = {
-      id: `manual-${Date.now()}`,
-      name: "New client",
-      phone: "",
-      vehicle: selectedCar()?.name || cars[0]?.name || "Vehicle TBD",
-      date: "",
-      addons: ["Delivery"],
-      message: "Manual lead. Add notes after the first call.",
-      status: "new",
-      createdAt: new Date().toISOString(),
-    };
-    if (supabase) {
-      const { data } = await supabase
-        .from("quote_requests")
-        .insert({ name: lead.name, phone: lead.phone, vehicle: lead.vehicle, rental_date: null, addons: lead.addons, message: lead.message, source: "manual", status: "new" })
-        .select()
-        .single();
-      if (data) lead = { ...lead, id: data.id, createdAt: data.created_at };
-    }
-    requests.unshift(lead);
-    writeJson(REQUESTS_KEY, requests);
-    renderCrm();
-    switchSection("requests");
+  button.addEventListener("click", () => {
+    quoteForm?.reset();
+    if (quoteForm?.elements.vehicle) quoteForm.elements.vehicle.value = selectedCar()?.name || cars[0]?.name || "";
+    setStatus(quoteDialogStatus, "");
+    quoteDialog?.showModal();
   });
+});
+
+quoteDialogCloseButtons.forEach((button) => button.addEventListener("click", () => quoteDialog?.close()));
+
+quoteForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const formData = new FormData(quoteForm);
+  const phone = String(formData.get("phone") || "").trim();
+  const email = String(formData.get("email") || "").trim();
+  if (!phone && !email) {
+    setStatus(quoteDialogStatus, "Add a phone number or email so the lead can be contacted.", "error");
+    return;
+  }
+
+  const now = new Date().toISOString();
+  let lead = {
+    id: `manual-${Date.now()}`,
+    name: String(formData.get("name") || "New client").trim(),
+    phone,
+    email,
+    vehicle: String(formData.get("vehicle") || "Vehicle TBD").trim(),
+    date: String(formData.get("rental_date") || ""),
+    addons: [],
+    message: String(formData.get("message") || "Manual lead").trim(),
+    source: "manual",
+    notificationStatus: "not applicable",
+    notificationError: "",
+    status: "new",
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  setStatus(quoteDialogStatus, "Adding lead...");
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("quote_requests")
+      .insert({
+        name: lead.name,
+        phone: lead.phone,
+        email: lead.email || null,
+        vehicle: lead.vehicle,
+        rental_date: lead.date || null,
+        addons: lead.addons,
+        message: lead.message,
+        source: lead.source,
+        status: lead.status,
+      })
+      .select()
+      .single();
+    if (error) {
+      setStatus(quoteDialogStatus, friendlyError(error), "error");
+      return;
+    }
+    lead = { ...lead, id: data.id, createdAt: data.created_at, updatedAt: data.updated_at || data.created_at };
+  }
+
+  requests.unshift(lead);
+  selectedRequestId = lead.id;
+  writeJson(REQUESTS_KEY, requests);
+  quoteDialog?.close();
+  renderCrm();
+  switchSection("requests");
+  setStatus(quotePageStatus, "Lead added to the quote inbox.", "success");
 });
 
 document.addEventListener("click", async (event) => {
@@ -1849,23 +2004,64 @@ document.addEventListener("click", async (event) => {
   await selectCar(editButton.dataset.editDashboardCar);
 });
 
-requestPipeline.addEventListener("change", async (event) => {
-  const select = event.target.closest("[data-request-status]");
-  if (!select) return;
-
-  requests = requests.map((request) =>
-    String(request.id) === String(select.dataset.requestStatus) ? { ...request, status: select.value } : request,
-  );
+async function updateRequestStatus(id, nextStatus) {
+  const existing = requests.find((request) => String(request.id) === String(id));
+  if (!existing || existing.status === nextStatus) return;
+  const previous = existing.status;
+  const updatedAt = new Date().toISOString();
+  requests = requests.map((request) => String(request.id) === String(id) ? { ...request, status: nextStatus, updatedAt } : request);
   writeJson(REQUESTS_KEY, requests);
   renderCrm();
-  if (isDatabaseId(select.dataset.requestStatus) && supabase) {
-    const { error } = await supabase.from("quote_requests").update({ status: select.value, updated_at: new Date().toISOString() }).eq("id", select.dataset.requestStatus);
-    if (error) setStatus(adminStatus, friendlyError(error), "error");
+  if (isDatabaseId(id) && supabase) {
+    const { error } = await supabase.from("quote_requests").update({ status: nextStatus, updated_at: updatedAt }).eq("id", id);
+    if (error) {
+      requests = requests.map((request) => String(request.id) === String(id) ? { ...request, status: previous } : request);
+      writeJson(REQUESTS_KEY, requests);
+      renderCrm();
+      setStatus(quotePageStatus, friendlyError(error), "error");
+      return;
+    }
   }
-  if (select.value === "booked") {
-    const existingBooking = salesBookings.find((booking) => String(booking.quote_request_id) === String(select.dataset.requestStatus));
-    openBookingEditor(existingBooking?.id || "", select.dataset.requestStatus);
+  setStatus(quotePageStatus, `Moved to ${requestStatusLabel(nextStatus)}.`, "success");
+  if (nextStatus === "booked") {
+    const existingBooking = salesBookings.find((booking) => String(booking.quote_request_id) === String(id));
+    openBookingEditor(existingBooking?.id || "", id);
   }
+}
+
+requestPipeline?.addEventListener("change", async (event) => {
+  const select = event.target.closest("[data-request-status]");
+  if (!select) return;
+  await updateRequestStatus(select.dataset.requestStatus, select.value);
+});
+
+requestPipeline?.addEventListener("click", (event) => {
+  const requestButton = event.target.closest("[data-select-request]");
+  if (requestButton) {
+    selectedRequestId = requestButton.dataset.selectRequest;
+    renderRequests();
+    return;
+  }
+  const bookingButton = event.target.closest("[data-create-booking]");
+  if (!bookingButton) return;
+  const quoteId = bookingButton.dataset.createBooking;
+  const existingBooking = salesBookings.find((booking) => String(booking.quote_request_id) === String(quoteId));
+  openBookingEditor(existingBooking?.id || "", quoteId);
+});
+
+requestSearchInput?.addEventListener("input", () => {
+  requestSearchTerm = requestSearchInput.value;
+  renderRequests();
+});
+
+requestFilterSelect?.addEventListener("change", () => {
+  requestStatusFilter = requestFilterSelect.value;
+  renderRequests();
+});
+
+requestSortSelect?.addEventListener("change", () => {
+  requestSort = requestSortSelect.value;
+  renderRequests();
 });
 
 salesYearSelect?.addEventListener("change", () => {

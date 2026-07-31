@@ -15915,6 +15915,577 @@ details p {
   }
 }
 
+/* Quote inbox: compact sales workspace */
+.admin-page [data-section-panel="requests"] {
+  display: grid;
+  gap: 18px;
+}
+
+.admin-page [data-section-panel="requests"][hidden] {
+  display: none;
+}
+
+.admin-page .quote-section-head {
+  align-items: end;
+  padding: 26px 28px;
+  background: #f7f6f2;
+  color: #171713;
+}
+
+.admin-page .quote-section-head > div {
+  max-width: 720px;
+}
+
+.admin-page .quote-section-head h2 {
+  margin: 5px 0 7px;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(2rem, 3vw, 3.1rem);
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.admin-page .quote-section-head p:last-child {
+  max-width: 620px;
+  margin: 0;
+  color: #65645f;
+}
+
+.admin-page .quote-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-page .quote-kpi-card {
+  display: grid;
+  min-height: 124px;
+  align-content: space-between;
+  padding: 18px 20px;
+  border: 1px solid #302f2b;
+  border-radius: 8px;
+  background: #1b1b18;
+}
+
+.admin-page .quote-kpi-card span,
+.admin-page .quote-kpi-card small {
+  color: #aaa79e;
+  font-size: 0.75rem;
+}
+
+.admin-page .quote-kpi-card strong {
+  color: #f7f5ef;
+  font-size: 2rem;
+  font-weight: 650;
+}
+
+.admin-page .quote-toolbar {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(180px, 0.35fr) minmax(180px, 0.35fr);
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid #2c2b27;
+  border-radius: 8px;
+  background: #151512;
+}
+
+.admin-page .quote-toolbar label,
+.admin-page .quote-detail-footer label {
+  display: grid;
+  gap: 7px;
+  color: #aaa79e;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.admin-page .quote-toolbar input,
+.admin-page .quote-toolbar select,
+.admin-page .quote-detail-footer select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 13px;
+  border: 1px solid #3a3934;
+  border-radius: 6px;
+  background: #0d0d0b;
+  color: #f7f5ef;
+  font: inherit;
+  font-size: 0.9rem;
+  text-transform: none;
+}
+
+.admin-page .quote-page-status {
+  min-height: 0;
+  margin: -6px 2px 0;
+}
+
+.admin-page .quote-page-status:empty {
+  display: none;
+}
+
+.admin-page .quote-inbox {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.76fr) minmax(0, 1.5fr);
+  gap: 14px;
+  min-height: 560px;
+}
+
+.admin-page .quote-inbox-list,
+.admin-page .quote-detail-panel {
+  border: 1px solid #302f2b;
+  border-radius: 8px;
+  background: #181815;
+  overflow: hidden;
+}
+
+.admin-page .quote-list-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 55px;
+  padding: 0 17px;
+  border-bottom: 1px solid #302f2b;
+}
+
+.admin-page .quote-list-summary strong {
+  color: #f7f5ef;
+  font-size: 0.86rem;
+}
+
+.admin-page .quote-list-summary span {
+  color: #85837c;
+  font-size: 0.72rem;
+}
+
+.admin-page .quote-list-scroll {
+  max-height: 635px;
+  overflow-y: auto;
+}
+
+.admin-page .quote-list-item {
+  position: relative;
+  display: grid;
+  width: 100%;
+  gap: 7px;
+  padding: 16px 17px;
+  border: 0;
+  border-bottom: 1px solid #2b2a26;
+  background: transparent;
+  color: #f7f5ef;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-page .quote-list-item:hover,
+.admin-page .quote-list-item.active {
+  background: #24231e;
+}
+
+.admin-page .quote-list-item.active::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: #d9b862;
+  content: "";
+}
+
+.admin-page .quote-list-top,
+.admin-page .quote-list-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-page .quote-list-top strong {
+  font-size: 0.92rem;
+}
+
+.admin-page .quote-list-top small,
+.admin-page .quote-list-meta small {
+  color: #85837c;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.admin-page .quote-list-vehicle {
+  overflow: hidden;
+  color: #b7b4ac;
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-page .quote-list-meta em,
+.admin-page .quote-response-flag {
+  width: fit-content;
+  color: #d9b862;
+  font-size: 0.66rem;
+  font-style: normal;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.admin-page .quote-response-flag {
+  margin-top: 2px;
+  padding: 4px 7px;
+  border: 1px solid #6b5830;
+  border-radius: 4px;
+  background: #2b2518;
+}
+
+.admin-page .quote-detail-panel {
+  display: grid;
+  align-content: start;
+  padding: 24px;
+}
+
+.admin-page .quote-detail-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 19px;
+  border-bottom: 1px solid #302f2b;
+}
+
+.admin-page .quote-detail-head span {
+  color: #d9b862;
+  font-size: 0.68rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.admin-page .quote-detail-head h3 {
+  margin: 6px 0 4px;
+  color: #f7f5ef;
+  font-size: clamp(1.45rem, 2vw, 2rem);
+  letter-spacing: 0;
+}
+
+.admin-page .quote-detail-head p {
+  margin: 0;
+  color: #aaa79e;
+}
+
+.admin-page .quote-detail-head > em {
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  border: 1px solid #44423c;
+  border-radius: 5px;
+  color: #dedbd2;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.admin-page .quote-contact-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.admin-page .quote-contact-action {
+  display: grid;
+  min-height: 46px;
+  place-items: center;
+  border: 1px solid #48463f;
+  border-radius: 6px;
+  color: #f7f5ef;
+  font-size: 0.84rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.admin-page .quote-contact-action.primary {
+  border-color: #d9b862;
+  background: #d9b862;
+  color: #15130d;
+}
+
+.admin-page .quote-contact-action.disabled {
+  color: #6d6b65;
+  cursor: not-allowed;
+}
+
+.admin-page .quote-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid #302f2b;
+  border-left: 1px solid #302f2b;
+}
+
+.admin-page .quote-detail-grid > div {
+  min-width: 0;
+  padding: 14px;
+  border-right: 1px solid #302f2b;
+  border-bottom: 1px solid #302f2b;
+}
+
+.admin-page .quote-detail-grid dt,
+.admin-page .quote-detail-copy > span,
+.admin-page .quote-notification span {
+  color: #85837c;
+  font-size: 0.64rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.admin-page .quote-detail-grid dd {
+  overflow-wrap: anywhere;
+  margin: 5px 0 0;
+  color: #e8e5dd;
+  font-size: 0.84rem;
+}
+
+.admin-page .quote-detail-copy,
+.admin-page .quote-notification {
+  margin-top: 17px;
+  padding: 16px;
+  border: 1px solid #302f2b;
+  border-radius: 6px;
+  background: #121210;
+}
+
+.admin-page .quote-detail-copy p,
+.admin-page .quote-notification p {
+  margin: 8px 0 0;
+  color: #c3c0b7;
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.admin-page .quote-notification {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.35fr) minmax(0, 1fr);
+  gap: 18px;
+}
+
+.admin-page .quote-notification strong {
+  display: block;
+  margin-top: 5px;
+  color: #d8d5cc;
+  font-size: 0.82rem;
+  text-transform: capitalize;
+}
+
+.admin-page .quote-notification p {
+  margin: 0;
+}
+
+.admin-page .quote-notification.failed {
+  border-color: #7f4145;
+  background: #241718;
+}
+
+.admin-page .quote-notification.failed strong,
+.admin-page .quote-notification.failed p {
+  color: #f0b8bb;
+}
+
+.admin-page .quote-detail-footer {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.admin-page .quote-detail-footer .admin-button {
+  min-height: 46px;
+  padding: 0 18px;
+}
+
+.admin-page .quote-detail-empty {
+  place-content: center;
+  text-align: center;
+}
+
+.admin-page .quote-detail-empty strong {
+  color: #f7f5ef;
+}
+
+.admin-page .quote-detail-empty span {
+  margin-top: 6px;
+  color: #85837c;
+}
+
+.quote-lead-dialog {
+  width: min(680px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid #373630;
+  border-radius: 8px;
+  background: #171714;
+  color: #f7f5ef;
+}
+
+.quote-lead-dialog::backdrop {
+  background: rgb(0 0 0 / 72%);
+  backdrop-filter: blur(4px);
+}
+
+.quote-lead-form {
+  padding: 24px;
+}
+
+.quote-dialog-head,
+.quote-dialog-footer {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.quote-dialog-head h2 {
+  margin: 4px 0 6px;
+  font-size: 1.8rem;
+}
+
+.quote-dialog-head p:last-child {
+  margin: 0;
+  color: #aaa79e;
+}
+
+.quote-lead-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 22px 0;
+}
+
+.quote-lead-grid label {
+  display: grid;
+  gap: 7px;
+  color: #aaa79e;
+  font-size: 0.7rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.quote-lead-grid input,
+.quote-lead-grid textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #3a3934;
+  border-radius: 6px;
+  background: #0d0d0b;
+  color: #f7f5ef;
+  font: inherit;
+  text-transform: none;
+}
+
+.quote-lead-grid .quote-form-wide {
+  grid-column: 1 / -1;
+}
+
+.quote-dialog-footer {
+  align-items: center;
+  justify-content: end;
+  padding-top: 18px;
+  border-top: 1px solid #302f2b;
+}
+
+.quote-dialog-footer .admin-status {
+  margin-right: auto;
+}
+
+@media (max-width: 1050px) {
+  .admin-page .quote-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-page .quote-inbox {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .quote-list-scroll {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-height: 370px;
+  }
+
+  .admin-page .quote-list-item:nth-child(odd) {
+    border-right: 1px solid #2b2a26;
+  }
+}
+
+@media (max-width: 700px) {
+  .admin-page .quote-section-head {
+    align-items: stretch;
+    padding: 22px 18px;
+  }
+
+  .admin-page .quote-section-head .primary-button {
+    width: 100%;
+  }
+
+  .admin-page .quote-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .quote-kpi-grid {
+    gap: 8px;
+  }
+
+  .admin-page .quote-kpi-card {
+    min-height: 112px;
+    padding: 14px;
+  }
+
+  .admin-page .quote-list-scroll {
+    display: block;
+    max-height: 360px;
+  }
+
+  .admin-page .quote-list-item:nth-child(odd) {
+    border-right: 0;
+  }
+
+  .admin-page .quote-detail-panel {
+    padding: 18px;
+  }
+
+  .admin-page .quote-detail-head,
+  .admin-page .quote-detail-footer,
+  .admin-page .quote-notification {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .quote-detail-head {
+    display: grid;
+  }
+
+  .admin-page .quote-detail-head > em {
+    width: fit-content;
+  }
+
+  .admin-page .quote-contact-actions,
+  .admin-page .quote-detail-grid,
+  .quote-lead-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .quote-detail-footer .admin-button {
+    width: 100%;
+  }
+
+  .quote-lead-grid .quote-form-wide {
+    grid-column: auto;
+  }
+
+  .quote-dialog-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .quote-dialog-footer .admin-status {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+}
+
 /* Wedding service editorial — quiet monochrome */
 .wedding-page .wedding-reasons {
   display: grid;

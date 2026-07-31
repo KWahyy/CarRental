@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=kds-favicon-20260624" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png?v=kds-favicon-20260624" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=kds-favicon-20260624" />
-    <link rel="stylesheet" href="/src/styles.css?v=sales-system-20260713" />
+    <link rel="stylesheet" href="/src/styles.css?v=quote-inbox-20260731" />
   </head>
   <body class="admin-page">
     <main class="admin-shell">
@@ -456,14 +456,43 @@
             </section>
 
             <section class="admin-section" data-section-panel="requests" hidden>
-              <div class="admin-section-head">
+              <div class="admin-section-head quote-section-head">
                 <div>
-                  <p class="eyebrow">Pipeline</p>
-                  <h2>Quote Requests</h2>
+                  <p class="eyebrow">Sales inbox</p>
+                  <h2>Quote requests</h2>
+                  <p>See who needs a response, contact the client, and move every request toward a booking.</p>
                 </div>
                 <button class="primary-button compact" type="button" data-add-demo-request>Add manual lead</button>
               </div>
-              <div class="crm-pipeline" data-request-pipeline></div>
+              <div class="quote-kpi-grid" data-quote-kpis></div>
+              <div class="quote-toolbar" aria-label="Quote request controls">
+                <label class="quote-search-field">
+                  <span>Search</span>
+                  <input type="search" placeholder="Name, phone, email, or vehicle" autocomplete="off" data-request-search />
+                </label>
+                <label>
+                  <span>Stage</span>
+                  <select data-request-filter>
+                    <option value="all">All requests</option>
+                    <option value="new">New request</option>
+                    <option value="checking">Checking partner</option>
+                    <option value="available">Quote ready</option>
+                    <option value="alternative">Alternative offered</option>
+                    <option value="approved">Deposit pending</option>
+                    <option value="booked">Booked</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Sort</span>
+                  <select data-request-sort>
+                    <option value="newest">Newest first</option>
+                    <option value="oldest">Oldest first</option>
+                    <option value="rental-date">Rental date</option>
+                  </select>
+                </label>
+              </div>
+              <p class="admin-status quote-page-status" role="status" data-quote-status></p>
+              <div class="quote-inbox" data-request-pipeline></div>
             </section>
 
             <section class="admin-section" data-section-panel="vehicles" hidden>
@@ -729,6 +758,32 @@
       </form>
     </dialog>
 
-    <script type="module" src="/src/admin.js?v=fleet-consistency-20260715"></script>
+    <dialog class="quote-lead-dialog" data-quote-dialog>
+      <form class="quote-lead-form" data-quote-form>
+        <div class="quote-dialog-head">
+          <div>
+            <p class="eyebrow">New inquiry</p>
+            <h2>Add a lead</h2>
+            <p>Record a phone, DM, or referral so it stays in the same follow-up queue.</p>
+          </div>
+          <button class="booking-dialog-close" type="button" data-close-quote-dialog aria-label="Close lead form">×</button>
+        </div>
+        <div class="quote-lead-grid">
+          <label>Client name<input name="name" autocomplete="name" required /></label>
+          <label>Phone<input name="phone" type="tel" autocomplete="tel" /></label>
+          <label>Email<input name="email" type="email" autocomplete="email" /></label>
+          <label>Rental date<input name="rental_date" type="date" /></label>
+          <label class="quote-form-wide">Requested vehicle<input name="vehicle" placeholder="Vehicle or brand" required /></label>
+          <label class="quote-form-wide">Notes<textarea name="message" rows="4" placeholder="What does the client need?"></textarea></label>
+        </div>
+        <div class="quote-dialog-footer">
+          <p class="admin-status" role="status" data-quote-dialog-status></p>
+          <button class="secondary-button" type="button" data-close-quote-dialog>Cancel</button>
+          <button class="primary-button" type="submit">Add to inbox</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="/src/admin.js?v=quote-inbox-20260731"></script>
   </body>
 </html>
