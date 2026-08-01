@@ -140,12 +140,41 @@ create table if not exists public.quote_requests (
   notification_status text not null default 'pending',
   notification_error text,
   status text not null default 'new' check (status in ('new', 'checking', 'available', 'alternative', 'approved', 'booked')),
+  follow_up_at timestamptz,
+  quote_daily_rate integer not null default 0,
+  quote_days integer not null default 1,
+  quote_delivery_fee integer not null default 0,
+  quote_addons_total integer not null default 0,
+  quote_discount integer not null default 0,
+  quote_deposit integer not null default 0,
+  quote_total integer not null default 0,
+  quote_expires_at date,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 alter table public.quote_requests add column if not exists status text not null default 'new';
 alter table public.quote_requests add column if not exists updated_at timestamptz not null default now();
+alter table public.quote_requests add column if not exists follow_up_at timestamptz;
+alter table public.quote_requests add column if not exists quote_daily_rate integer not null default 0;
+alter table public.quote_requests add column if not exists quote_days integer not null default 1;
+alter table public.quote_requests add column if not exists quote_delivery_fee integer not null default 0;
+alter table public.quote_requests add column if not exists quote_addons_total integer not null default 0;
+alter table public.quote_requests add column if not exists quote_discount integer not null default 0;
+alter table public.quote_requests add column if not exists quote_deposit integer not null default 0;
+alter table public.quote_requests add column if not exists quote_total integer not null default 0;
+alter table public.quote_requests add column if not exists quote_expires_at date;
+
+create table if not exists public.quote_activities (
+  id uuid primary key default gen_random_uuid(),
+  quote_request_id uuid not null references public.quote_requests(id) on delete cascade,
+  activity_type text not null default 'note' check (activity_type in ('note', 'call', 'email', 'status', 'follow_up', 'pricing')),
+  body text not null,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists quote_activities_request_idx on public.quote_activities (quote_request_id, created_at desc);
 
 create table if not exists public.booking_sales (
   id uuid primary key default gen_random_uuid(),
@@ -208,11 +237,19 @@ alter table public.monthly_specials enable row level security;
 alter table public.fleet_events enable row level security;
 alter table public.car_partners enable row level security;
 alter table public.quote_requests enable row level security;
+alter table public.quote_activities enable row level security;
 alter table public.booking_sales enable row level security;
 
 drop policy if exists "Authenticated admin can manage quote requests" on public.quote_requests;
 create policy "Authenticated admin can manage quote requests"
 on public.quote_requests for all
+to authenticated
+using (true)
+with check (true);
+
+drop policy if exists "Authenticated admin can manage quote activities" on public.quote_activities;
+create policy "Authenticated admin can manage quote activities"
+on public.quote_activities for all
 to authenticated
 using (true)
 with check (true);

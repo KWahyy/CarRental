@@ -121,6 +121,8 @@ let selectedRequestId = requests[0]?.id || null;
 let requestSearchTerm = "";
 let requestStatusFilter = "all";
 let requestSort = "newest";
+let quoteActivities = [];
+let quoteWorkflowError = "";
 let contentDraft = readJson(CONTENT_KEY, {
   heroHeadline: "Not Your Average Rental",
   specialHeadline: "Monthly Rental Specials",
@@ -179,6 +181,15 @@ function sanitizeRequests(value) {
       pageUrl: request.pageUrl || "",
       notificationStatus: request.notificationStatus || "",
       notificationError: request.notificationError || "",
+      followUpAt: request.followUpAt || "",
+      quoteDailyRate: Math.max(0, Number(request.quoteDailyRate || 0)),
+      quoteDays: Math.max(1, Number(request.quoteDays || 1)),
+      quoteDeliveryFee: Math.max(0, Number(request.quoteDeliveryFee || 0)),
+      quoteAddonsTotal: Math.max(0, Number(request.quoteAddonsTotal || 0)),
+      quoteDiscount: Math.max(0, Number(request.quoteDiscount || 0)),
+      quoteDeposit: Math.max(0, Number(request.quoteDeposit || 0)),
+      quoteTotal: Math.max(0, Number(request.quoteTotal || 0)),
+      quoteExpiresAt: request.quoteExpiresAt || "",
       updatedAt: request.updatedAt || request.createdAt || new Date(0).toISOString(),
     }));
 }
@@ -291,6 +302,9 @@ function setStatus(node, message, tone = "") {
 
 function friendlyError(error) {
   const message = error?.message || String(error);
+  if (message.includes("quote_activities") || message.includes("follow_up_at") || message.includes("quote_daily_rate")) {
+    return "Quote workflow setup is required. Run supabase/quote-workflow.sql once in Supabase SQL Editor, then reload this page.";
+  }
   if (message.includes("monthly_specials")) {
     return "Monthly specials setup is required. Run supabase/monthly-specials.sql once in the Supabase SQL Editor, then reload this page.";
   }
@@ -929,9 +943,10 @@ function isDatabaseId(value) {
 
 async function loadCloudCrmData() {
   if (!supabase) return;
-  const [quoteResult, salesResult] = await Promise.all([
+  const [quoteResult, salesResult, activityResult] = await Promise.all([
     supabase.from("quote_requests").select("*").order("created_at", { ascending: false }),
     supabase.from("booking_sales").select("*").order("booked_on", { ascending: false }),
+    supabase.from("quote_activities").select("*").order("created_at", { ascending: false }),
   ]);
 
   const errors = [];
@@ -955,6 +970,15 @@ async function loadCloudCrmData() {
       pageUrl: row.page_url || "",
       notificationStatus: row.notification_status || "",
       notificationError: row.notification_error || "",
+      followUpAt: row.follow_up_at || "",
+      quoteDailyRate: row.quote_daily_rate || 0,
+      quoteDays: row.quote_days || 1,
+      quoteDeliveryFee: row.quote_delivery_fee || 0,
+      quoteAddonsTotal: row.quote_addons_total || 0,
+      quoteDiscount: row.quote_discount || 0,
+      quoteDeposit: row.quote_deposit || 0,
+      quoteTotal: row.quote_total || 0,
+      quoteExpiresAt: row.quote_expires_at || "",
       createdAt: row.created_at,
       updatedAt: row.updated_at || row.created_at,
     }));
@@ -968,6 +992,21 @@ async function loadCloudCrmData() {
     errors.push("booking sales");
   } else {
     salesBookings = salesResult.data || [];
+  }
+
+  if (activityResult.error) {
+    quoteActivities = [];
+    quoteWorkflowError = friendlyError(activityResult.error);
+  } else {
+    quoteActivities = (activityResult.data || []).map((row) => ({
+      id: row.id,
+      quoteRequestId: row.quote_request_id,
+      type: row.activity_type || "note",
+      body: row.body || "",
+      metadata: row.metadata || {},
+      createdAt: row.created_at,
+    }));
+    quoteWorkflowError = "";
   }
 
   salesDataError = errors.length
@@ -1225,8 +1264,44 @@ function relativeRequestTime(request) {
   return `${days}d ago`;
 }
 
+function formatDateTime(value) {
+  if (!value) return "Not scheduled";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Not scheduled";
+  return date.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+function toDateTimeLocal(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+function followUpState(request) {
+  if (!request.followUpAt) return "none";
+  return Date.parse(request.followUpAt) <= Date.now() ? "due" : "scheduled";
+}
+
+function calculateQuoteTotal(request) {
+  return Math.max(0,
+    Number(request.quoteDailyRate || 0) * Math.max(1, Number(request.quoteDays || 1))
+    + Number(request.quoteDeliveryFee || 0)
+    + Number(request.quoteAddonsTotal || 0)
+    - Number(request.quoteDiscount || 0));
+}
+
+function requestActivities(requestId) {
+  return quoteActivities
+    .filter((activity) => String(activity.quoteRequestId) === String(requestId))
+    .sort((a, b) => Date.parse(b.createdAt || "") - Date.parse(a.createdAt || ""));
+}
+
 function requestNeedsResponse(request) {
   if (request.status === "booked") return false;
+  if (followUpState(request) === "due") return true;
+  if (followUpState(request) === "scheduled") return false;
   return request.status === "new" || Date.now() - requestTimestamp(request) > 24 * 60 * 60 * 1000;
 }
 
@@ -1265,12 +1340,12 @@ function renderQuoteKpis() {
   if (!quoteKpis) return;
   const open = requests.filter((request) => request.status !== "booked");
   const newCount = requests.filter((request) => request.status === "new").length;
-  const dueCount = open.filter(requestNeedsResponse).length;
+  const dueCount = open.filter((request) => followUpState(request) === "due").length;
   const datedCount = open.filter((request) => request.date).length;
   const bookedCount = requests.filter((request) => request.status === "booked").length;
   quoteKpis.innerHTML = [
     ["New", newCount, "Uncontacted requests"],
-    ["Follow-up due", dueCount, "New or idle 24+ hours"],
+    ["Reminders due", dueCount, "Scheduled follow-ups ready now"],
     ["Rental dates", datedCount, "Open leads with a date"],
     ["Booked", bookedCount, "Confirmed requests"],
   ]
@@ -1301,6 +1376,7 @@ function renderRequests() {
         <span class="quote-list-top"><strong>${escapeHtml(request.name || "New lead")}</strong><small>${escapeHtml(relativeRequestTime(request))}</small></span>
         <span class="quote-list-vehicle">${escapeHtml(request.vehicle || "Vehicle not selected")}</span>
         <span class="quote-list-meta"><em>${escapeHtml(requestStatusLabel(request.status))}</em><small>${escapeHtml(formatDate(request.date))}</small></span>
+        ${followUpState(request) !== "none" ? `<span class="quote-reminder-flag ${followUpState(request)}">${followUpState(request) === "due" ? "Follow-up due" : escapeHtml(formatDateTime(request.followUpAt))}</span>` : ""}
         ${requestNeedsResponse(request) ? `<span class="quote-response-flag">Needs response</span>` : ""}
       </button>
     `)
@@ -1310,6 +1386,15 @@ function renderRequests() {
   const emailHref = selected.email ? `mailto:${encodeURIComponent(selected.email)}?subject=${encodeURIComponent(`KD's Exotics quote: ${selected.vehicle || "vehicle request"}`)}` : "";
   const notificationStatus = selected.notificationStatus || "not recorded";
   const notificationFailed = /fail|error/i.test(notificationStatus) || Boolean(selected.notificationError);
+  const activities = requestActivities(selected.id);
+  const pricingTotal = calculateQuoteTotal(selected);
+  const activityTimeline = activities.length
+    ? activities.map((activity) => `
+        <article class="quote-activity-item">
+          <span>${escapeHtml(String(activity.type || "note").replaceAll("_", " "))}</span>
+          <div><p>${escapeHtml(activity.body)}</p><time>${escapeHtml(formatDateTime(activity.createdAt))}</time></div>
+        </article>`).join("")
+    : `<p class="quote-activity-empty">No activity yet. Add the first note after contacting this lead.</p>`;
 
   requestPipeline.innerHTML = `
     <section class="quote-inbox-list" aria-label="Quote request list">
@@ -1336,6 +1421,41 @@ function renderRequests() {
         <p>${escapeHtml(selected.message || "No message was included with this request.")}</p>
         ${selected.addons?.length ? `<div class="crm-request-tags">${selected.addons.map((addon) => `<em>${escapeHtml(addon)}</em>`).join("")}</div>` : ""}
       </div>
+      ${quoteWorkflowError ? `<div class="quote-workflow-alert">${escapeHtml(quoteWorkflowError)}</div>` : ""}
+      <div class="quote-workflow-grid">
+        <section class="quote-workflow-section quote-follow-up-section">
+          <header><div><span>Next action</span><h4>Follow-up reminder</h4></div>${selected.followUpAt ? `<em class="${followUpState(selected)}">${followUpState(selected) === "due" ? "Due now" : "Scheduled"}</em>` : ""}</header>
+          <form data-follow-up-form="${escapeHtml(selected.id)}">
+            <label>Remind me<input name="follow_up_at" type="datetime-local" value="${escapeHtml(toDateTimeLocal(selected.followUpAt))}" required /></label>
+            <button class="primary-button compact" type="submit">Save reminder</button>
+            ${selected.followUpAt ? `<button class="quote-text-button" type="button" data-clear-follow-up="${escapeHtml(selected.id)}">Clear</button>` : ""}
+          </form>
+        </section>
+        <section class="quote-workflow-section quote-pricing-section">
+          <header><div><span>Estimate</span><h4>Pricing builder</h4></div><strong data-quote-total>${formatMoney(pricingTotal)}</strong></header>
+          <form data-quote-pricing-form="${escapeHtml(selected.id)}">
+            <div class="quote-pricing-grid">
+              <label>Daily rate<input name="quote_daily_rate" type="number" min="0" step="1" value="${selected.quoteDailyRate}" /></label>
+              <label>Days<input name="quote_days" type="number" min="1" step="1" value="${selected.quoteDays}" /></label>
+              <label>Delivery<input name="quote_delivery_fee" type="number" min="0" step="1" value="${selected.quoteDeliveryFee}" /></label>
+              <label>Add-ons<input name="quote_addons_total" type="number" min="0" step="1" value="${selected.quoteAddonsTotal}" /></label>
+              <label>Discount<input name="quote_discount" type="number" min="0" step="1" value="${selected.quoteDiscount}" /></label>
+              <label>Deposit<input name="quote_deposit" type="number" min="0" step="1" value="${selected.quoteDeposit}" /></label>
+              <label>Valid through<input name="quote_expires_at" type="date" value="${escapeHtml(selected.quoteExpiresAt)}" /></label>
+            </div>
+            <button class="primary-button compact" type="submit">Save estimate</button>
+          </form>
+        </section>
+      </div>
+      <section class="quote-workflow-section quote-activity-section">
+        <header><div><span>History</span><h4>Activity & notes</h4></div><small>${activities.length} ${activities.length === 1 ? "entry" : "entries"}</small></header>
+        <form data-quote-note-form="${escapeHtml(selected.id)}">
+          <select name="activity_type" aria-label="Activity type"><option value="note">Note</option><option value="call">Call</option><option value="email">Email</option></select>
+          <textarea name="body" rows="2" placeholder="Add an internal note..." aria-label="Internal note" required></textarea>
+          <button class="secondary-button compact" type="submit">Add note</button>
+        </form>
+        <div class="quote-activity-timeline">${activityTimeline}</div>
+      </section>
       <div class="quote-notification ${notificationFailed ? "failed" : ""}">
         <div><span>Owner email</span><strong>${escapeHtml(notificationStatus)}</strong></div>
         <p>${escapeHtml(selected.notificationError || (selected.notificationStatus ? "Notification result returned by the quote endpoint." : "No delivery status was recorded for this lead."))}</p>
@@ -2004,24 +2124,64 @@ document.addEventListener("click", async (event) => {
   await selectCar(editButton.dataset.editDashboardCar);
 });
 
+async function updateQuoteRecord(id, databasePatch, localPatch, successMessage = "Quote updated.") {
+  if (!isDatabaseId(id) || !supabase) {
+    setStatus(quotePageStatus, "This lead must be saved to Supabase before workflow changes can sync across devices.", "error");
+    return false;
+  }
+  const { error } = await supabase.from("quote_requests").update(databasePatch).eq("id", id);
+  if (error) {
+    setStatus(quotePageStatus, friendlyError(error), "error");
+    return false;
+  }
+  requests = requests.map((request) => String(request.id) === String(id)
+    ? { ...request, ...localPatch, updatedAt: new Date().toISOString() }
+    : request);
+  writeJson(REQUESTS_KEY, requests);
+  renderCrm();
+  setStatus(quotePageStatus, successMessage, "success");
+  return true;
+}
+
+async function addQuoteActivity(quoteRequestId, type, body, metadata = {}) {
+  if (!isDatabaseId(quoteRequestId) || !supabase) return false;
+  const { data, error } = await supabase.from("quote_activities").insert({
+    quote_request_id: quoteRequestId,
+    activity_type: type,
+    body,
+    metadata,
+  }).select().single();
+  if (error) {
+    setStatus(quotePageStatus, friendlyError(error), "error");
+    return false;
+  }
+  quoteActivities.unshift({
+    id: data.id,
+    quoteRequestId: data.quote_request_id,
+    type: data.activity_type,
+    body: data.body,
+    metadata: data.metadata || {},
+    createdAt: data.created_at,
+  });
+  renderRequests();
+  return true;
+}
+
 async function updateRequestStatus(id, nextStatus) {
   const existing = requests.find((request) => String(request.id) === String(id));
   if (!existing || existing.status === nextStatus) return;
-  const previous = existing.status;
   const updatedAt = new Date().toISOString();
-  requests = requests.map((request) => String(request.id) === String(id) ? { ...request, status: nextStatus, updatedAt } : request);
-  writeJson(REQUESTS_KEY, requests);
-  renderCrm();
   if (isDatabaseId(id) && supabase) {
     const { error } = await supabase.from("quote_requests").update({ status: nextStatus, updated_at: updatedAt }).eq("id", id);
     if (error) {
-      requests = requests.map((request) => String(request.id) === String(id) ? { ...request, status: previous } : request);
-      writeJson(REQUESTS_KEY, requests);
-      renderCrm();
       setStatus(quotePageStatus, friendlyError(error), "error");
       return;
     }
   }
+  requests = requests.map((request) => String(request.id) === String(id) ? { ...request, status: nextStatus, updatedAt } : request);
+  writeJson(REQUESTS_KEY, requests);
+  renderCrm();
+  await addQuoteActivity(id, "status", `Moved from ${requestStatusLabel(existing.status)} to ${requestStatusLabel(nextStatus)}.`);
   setStatus(quotePageStatus, `Moved to ${requestStatusLabel(nextStatus)}.`, "success");
   if (nextStatus === "booked") {
     const existingBooking = salesBookings.find((booking) => String(booking.quote_request_id) === String(id));
@@ -2035,7 +2195,77 @@ requestPipeline?.addEventListener("change", async (event) => {
   await updateRequestStatus(select.dataset.requestStatus, select.value);
 });
 
-requestPipeline?.addEventListener("click", (event) => {
+requestPipeline?.addEventListener("input", (event) => {
+  const form = event.target.closest("[data-quote-pricing-form]");
+  if (!form) return;
+  const values = Object.fromEntries(new FormData(form));
+  const total = Math.max(0,
+    Number(values.quote_daily_rate || 0) * Math.max(1, Number(values.quote_days || 1))
+    + Number(values.quote_delivery_fee || 0)
+    + Number(values.quote_addons_total || 0)
+    - Number(values.quote_discount || 0));
+  form.closest(".quote-pricing-section")?.querySelector("[data-quote-total]")?.replaceChildren(document.createTextNode(formatMoney(total)));
+});
+
+requestPipeline?.addEventListener("submit", async (event) => {
+  const followUpForm = event.target.closest("[data-follow-up-form]");
+  const pricingForm = event.target.closest("[data-quote-pricing-form]");
+  const noteForm = event.target.closest("[data-quote-note-form]");
+  if (!followUpForm && !pricingForm && !noteForm) return;
+  event.preventDefault();
+
+  if (followUpForm) {
+    const id = followUpForm.dataset.followUpForm;
+    const localValue = new FormData(followUpForm).get("follow_up_at");
+    const followUpAt = new Date(localValue).toISOString();
+    const saved = await updateQuoteRecord(id, { follow_up_at: followUpAt }, { followUpAt }, "Follow-up reminder saved.");
+    if (saved) await addQuoteActivity(id, "follow_up", `Follow-up scheduled for ${formatDateTime(followUpAt)}.`);
+    return;
+  }
+
+  if (pricingForm) {
+    const id = pricingForm.dataset.quotePricingForm;
+    const values = Object.fromEntries(new FormData(pricingForm));
+    const localPatch = {
+      quoteDailyRate: Math.max(0, Number(values.quote_daily_rate || 0)),
+      quoteDays: Math.max(1, Number(values.quote_days || 1)),
+      quoteDeliveryFee: Math.max(0, Number(values.quote_delivery_fee || 0)),
+      quoteAddonsTotal: Math.max(0, Number(values.quote_addons_total || 0)),
+      quoteDiscount: Math.max(0, Number(values.quote_discount || 0)),
+      quoteDeposit: Math.max(0, Number(values.quote_deposit || 0)),
+      quoteExpiresAt: values.quote_expires_at || "",
+    };
+    localPatch.quoteTotal = calculateQuoteTotal(localPatch);
+    const saved = await updateQuoteRecord(id, {
+      quote_daily_rate: localPatch.quoteDailyRate,
+      quote_days: localPatch.quoteDays,
+      quote_delivery_fee: localPatch.quoteDeliveryFee,
+      quote_addons_total: localPatch.quoteAddonsTotal,
+      quote_discount: localPatch.quoteDiscount,
+      quote_deposit: localPatch.quoteDeposit,
+      quote_total: localPatch.quoteTotal,
+      quote_expires_at: localPatch.quoteExpiresAt || null,
+    }, localPatch, "Estimate saved.");
+    if (saved) await addQuoteActivity(id, "pricing", `Estimate updated to ${formatMoney(localPatch.quoteTotal)} with a ${formatMoney(localPatch.quoteDeposit)} deposit.`, localPatch);
+    return;
+  }
+
+  const id = noteForm.dataset.quoteNoteForm;
+  const values = Object.fromEntries(new FormData(noteForm));
+  if (await addQuoteActivity(id, values.activity_type || "note", String(values.body || "").trim())) {
+    noteForm.reset();
+    setStatus(quotePageStatus, "Activity added.", "success");
+  }
+});
+
+requestPipeline?.addEventListener("click", async (event) => {
+  const clearReminder = event.target.closest("[data-clear-follow-up]");
+  if (clearReminder) {
+    const id = clearReminder.dataset.clearFollowUp;
+    const saved = await updateQuoteRecord(id, { follow_up_at: null }, { followUpAt: "" }, "Reminder cleared.");
+    if (saved) await addQuoteActivity(id, "follow_up", "Follow-up reminder cleared.");
+    return;
+  }
   const requestButton = event.target.closest("[data-select-request]");
   if (requestButton) {
     selectedRequestId = requestButton.dataset.selectRequest;

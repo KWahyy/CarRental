@@ -16134,6 +16134,17 @@ details p {
   background: #2b2518;
 }
 
+.admin-page .quote-reminder-flag {
+  width: fit-content;
+  color: #aaa79e;
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.admin-page .quote-reminder-flag.due {
+  color: #f0b8bb;
+}
+
 .admin-page .quote-detail-panel {
   display: grid;
   align-content: start;
@@ -16255,6 +16266,190 @@ details p {
   color: #c3c0b7;
   font-size: 0.84rem;
   line-height: 1.55;
+}
+
+.admin-page .quote-workflow-alert {
+  margin-top: 17px;
+  padding: 12px 14px;
+  border: 1px solid #735035;
+  border-radius: 6px;
+  background: #241b14;
+  color: #e4c3a9;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.admin-page .quote-workflow-grid {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.76fr) minmax(0, 1.24fr);
+  gap: 12px;
+  margin-top: 17px;
+}
+
+.admin-page .quote-workflow-section {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #302f2b;
+  border-radius: 6px;
+  background: #121210;
+}
+
+.admin-page .quote-workflow-section > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.admin-page .quote-workflow-section > header span {
+  color: #85837c;
+  font-size: 0.62rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.admin-page .quote-workflow-section > header h4 {
+  margin: 4px 0 0;
+  color: #f7f5ef;
+  font-size: 0.98rem;
+  letter-spacing: 0;
+}
+
+.admin-page .quote-workflow-section > header em,
+.admin-page .quote-workflow-section > header small {
+  color: #aaa79e;
+  font-size: 0.66rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.admin-page .quote-workflow-section > header em.due {
+  color: #f0b8bb;
+}
+
+.admin-page .quote-workflow-section > header strong {
+  color: #d9b862;
+  font-size: 1.25rem;
+}
+
+.admin-page .quote-workflow-section label {
+  display: grid;
+  gap: 6px;
+  color: #8f8c84;
+  font-size: 0.64rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.admin-page .quote-workflow-section input,
+.admin-page .quote-workflow-section select,
+.admin-page .quote-workflow-section textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 11px;
+  border: 1px solid #393833;
+  border-radius: 5px;
+  background: #0b0b09;
+  color: #f7f5ef;
+  font: inherit;
+  font-size: 0.82rem;
+  text-transform: none;
+}
+
+.admin-page .quote-follow-up-section form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 9px;
+}
+
+.admin-page .quote-text-button {
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: #aaa79e;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-page .quote-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.admin-page .quote-pricing-section form > .primary-button,
+.admin-page .quote-follow-up-section .primary-button {
+  min-height: 44px;
+  padding: 0 15px;
+}
+
+.admin-page .quote-follow-up-section .primary-button {
+  width: 100%;
+}
+
+.admin-page .quote-activity-section {
+  margin-top: 12px;
+}
+
+.admin-page .quote-activity-section form {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: stretch;
+}
+
+.admin-page .quote-activity-section textarea {
+  resize: vertical;
+}
+
+.admin-page .quote-activity-section .secondary-button {
+  min-height: 44px;
+  padding: 0 15px;
+}
+
+.admin-page .quote-activity-timeline {
+  margin-top: 15px;
+  border-top: 1px solid #302f2b;
+}
+
+.admin-page .quote-activity-item {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 13px;
+  padding: 13px 0;
+  border-bottom: 1px solid #292824;
+}
+
+.admin-page .quote-activity-item > span {
+  color: #d9b862;
+  font-size: 0.62rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.admin-page .quote-activity-item p,
+.admin-page .quote-activity-empty {
+  margin: 0;
+  color: #c3c0b7;
+  font-size: 0.79rem;
+  line-height: 1.5;
+}
+
+.admin-page .quote-activity-item time {
+  display: block;
+  margin-top: 4px;
+  color: #76746e;
+  font-size: 0.65rem;
+}
+
+.admin-page .quote-activity-empty {
+  padding: 15px 0 2px;
+  color: #85837c;
 }
 
 .admin-page .quote-notification {
@@ -16409,6 +16604,10 @@ details p {
   .admin-page .quote-list-item:nth-child(odd) {
     border-right: 1px solid #2b2a26;
   }
+
+  .admin-page .quote-workflow-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 700px) {
@@ -16471,6 +16670,19 @@ details p {
     width: 100%;
   }
 
+  .admin-page .quote-pricing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-page .quote-follow-up-section form,
+  .admin-page .quote-activity-section form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .quote-text-button {
+    width: fit-content;
+  }
+
   .quote-lead-grid .quote-form-wide {
     grid-column: auto;
   }
@@ -16483,6 +16695,18 @@ details p {
   .quote-dialog-footer .admin-status {
     grid-column: 1 / -1;
     margin: 0;
+  }
+}
+
+@media (max-width: 460px) {
+  .admin-page .quote-pricing-grid,
+  .admin-page .quote-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .quote-activity-item {
+    grid-template-columns: 1fr;
+    gap: 5px;
   }
 }
 
