@@ -1421,18 +1421,33 @@ function renderRequests() {
         <p>${escapeHtml(selected.message || "No message was included with this request.")}</p>
         ${selected.addons?.length ? `<div class="crm-request-tags">${selected.addons.map((addon) => `<em>${escapeHtml(addon)}</em>`).join("")}</div>` : ""}
       </div>
-      ${quoteWorkflowError ? `<div class="quote-workflow-alert">${escapeHtml(quoteWorkflowError)}</div>` : ""}
-      <div class="quote-workflow-grid">
-        <section class="quote-workflow-section quote-follow-up-section">
-          <header><div><span>Next action</span><h4>Follow-up reminder</h4></div>${selected.followUpAt ? `<em class="${followUpState(selected)}">${followUpState(selected) === "due" ? "Due now" : "Scheduled"}</em>` : ""}</header>
+      <section class="quote-workspace" aria-label="Lead workspace">
+        <header class="quote-workspace-head">
+          <div><span>Lead workspace</span><h4>Next steps</h4></div>
+          <div class="quote-workspace-summary">
+            <span><small>Estimate</small><strong data-quote-total>${formatMoney(pricingTotal)}</strong></span>
+            <span><small>Activity</small><strong>${activities.length}</strong></span>
+          </div>
+        </header>
+        ${quoteWorkflowError ? `<div class="quote-workflow-alert"><strong>Cloud setup required</strong><span>Run supabase/quote-workflow.sql in Supabase, then reload.</span></div>` : ""}
+        <section class="quote-follow-up-section quote-action-panel">
+          <header>
+            <div><span>Next action</span><h4>Schedule a follow-up</h4></div>
+            ${selected.followUpAt ? `<em class="${followUpState(selected)}">${followUpState(selected) === "due" ? "Due now" : escapeHtml(formatDateTime(selected.followUpAt))}</em>` : `<em>Not scheduled</em>`}
+          </header>
           <form data-follow-up-form="${escapeHtml(selected.id)}">
-            <label>Remind me<input name="follow_up_at" type="datetime-local" value="${escapeHtml(toDateTimeLocal(selected.followUpAt))}" required /></label>
-            <button class="primary-button compact" type="submit">Save reminder</button>
-            ${selected.followUpAt ? `<button class="quote-text-button" type="button" data-clear-follow-up="${escapeHtml(selected.id)}">Clear</button>` : ""}
+            <label><span>Reminder date and time</span><input name="follow_up_at" type="datetime-local" value="${escapeHtml(toDateTimeLocal(selected.followUpAt))}" required /></label>
+            <div class="quote-inline-actions">
+              <button class="primary-button compact" type="submit">Save reminder</button>
+              ${selected.followUpAt ? `<button class="quote-text-button" type="button" data-clear-follow-up="${escapeHtml(selected.id)}">Clear</button>` : ""}
+            </div>
           </form>
         </section>
-        <section class="quote-workflow-section quote-pricing-section">
-          <header><div><span>Estimate</span><h4>Pricing builder</h4></div><strong data-quote-total>${formatMoney(pricingTotal)}</strong></header>
+        <details class="quote-workflow-disclosure quote-pricing-section">
+          <summary>
+            <span><small>Estimate</small><strong>Build customer pricing</strong></span>
+            <span class="quote-disclosure-meta"><b data-quote-total>${formatMoney(pricingTotal)}</b><em>Edit</em></span>
+          </summary>
           <form data-quote-pricing-form="${escapeHtml(selected.id)}">
             <div class="quote-pricing-grid">
               <label>Daily rate<input name="quote_daily_rate" type="number" min="0" step="1" value="${selected.quoteDailyRate}" /></label>
@@ -1445,16 +1460,21 @@ function renderRequests() {
             </div>
             <button class="primary-button compact" type="submit">Save estimate</button>
           </form>
-        </section>
-      </div>
-      <section class="quote-workflow-section quote-activity-section">
-        <header><div><span>History</span><h4>Activity & notes</h4></div><small>${activities.length} ${activities.length === 1 ? "entry" : "entries"}</small></header>
-        <form data-quote-note-form="${escapeHtml(selected.id)}">
-          <select name="activity_type" aria-label="Activity type"><option value="note">Note</option><option value="call">Call</option><option value="email">Email</option></select>
-          <textarea name="body" rows="2" placeholder="Add an internal note..." aria-label="Internal note" required></textarea>
-          <button class="secondary-button compact" type="submit">Add note</button>
-        </form>
-        <div class="quote-activity-timeline">${activityTimeline}</div>
+        </details>
+        <details class="quote-workflow-disclosure quote-activity-section">
+          <summary>
+            <span><small>History</small><strong>Activity & internal notes</strong></span>
+            <span class="quote-disclosure-meta"><b>${activities.length}</b><em>View</em></span>
+          </summary>
+          <div class="quote-activity-body">
+            <form data-quote-note-form="${escapeHtml(selected.id)}">
+              <select name="activity_type" aria-label="Activity type"><option value="note">Note</option><option value="call">Call</option><option value="email">Email</option></select>
+              <textarea name="body" rows="2" placeholder="Add an internal note..." aria-label="Internal note" required></textarea>
+              <button class="secondary-button compact" type="submit">Add note</button>
+            </form>
+            <div class="quote-activity-timeline">${activityTimeline}</div>
+          </div>
+        </details>
       </section>
       <div class="quote-notification ${notificationFailed ? "failed" : ""}">
         <div><span>Owner email</span><strong>${escapeHtml(notificationStatus)}</strong></div>
@@ -2204,7 +2224,9 @@ requestPipeline?.addEventListener("input", (event) => {
     + Number(values.quote_delivery_fee || 0)
     + Number(values.quote_addons_total || 0)
     - Number(values.quote_discount || 0));
-  form.closest(".quote-pricing-section")?.querySelector("[data-quote-total]")?.replaceChildren(document.createTextNode(formatMoney(total)));
+  form.closest(".quote-workspace")?.querySelectorAll("[data-quote-total]").forEach((node) => {
+    node.replaceChildren(document.createTextNode(formatMoney(total)));
+  });
 });
 
 requestPipeline?.addEventListener("submit", async (event) => {
