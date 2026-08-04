@@ -1,4 +1,4 @@
-# KD's Exotics Supabase Setup
+# Prestiege Luxor Supabase Setup
 
 1. Open your Supabase project.
 2. Go to SQL Editor and run `supabase/schema.sql`.

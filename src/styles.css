@@ -6125,6 +6125,30 @@ details p {
   filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.18));
 }
 
+/* Prestiege Luxor wordmark sizing */
+.site-header .brand-logo-wide[src*="prestiege-luxor-logo"],
+.admin-topbar .brand-logo-wide[src*="prestiege-luxor-logo"] {
+  width: clamp(172px, 14vw, 236px);
+  height: auto;
+  max-height: 46px;
+  object-fit: contain;
+}
+
+.footer-logo-frame .brand-logo-wide[src*="prestiege-luxor-logo"] {
+  width: min(260px, 74vw);
+  height: auto;
+  max-height: 58px;
+  object-fit: contain;
+}
+
+@media (max-width: 760px) {
+  .site-header .brand-logo-wide[src*="prestiege-luxor-logo"],
+  .admin-topbar .brand-logo-wide[src*="prestiege-luxor-logo"] {
+    width: 148px;
+    max-height: 36px;
+  }
+}
+
 .footer-main p {
   max-width: 440px;
   margin: 0;
@@ -21428,7 +21452,7 @@ body.availability-open {
   .vehicle-private-page .related-grid { grid-template-columns:1fr; }
 }
 
-/* Original KD's vehicle masthead: cinematic image, editorial identity band, curated filmstrip. */
+/* Original Prestiege Luxor's vehicle masthead: cinematic image, editorial identity band, curated filmstrip. */
 .vehicle-private-hero {
   width:100%;
   max-width:none;
@@ -22705,7 +22729,7 @@ body.availability-open {
 }
 
 /*
- * KD's Exotics public-site theme
+ * Prestiege Luxor public-site theme
  *
  * The homepage is the visual source of truth. New public pages should add
  * `site-theme` to the body and compose the primitives below. Campaign and
@@ -25550,5 +25574,38 @@ body.site-theme {
     grid-column: 2;
     padding: 0 24px 0 0;
     font-size: 0.94rem;
+  }
+}
+
+/* Final brand lockup overrides. Keep the supplied wordmark crisp on every dark surface. */
+.site-header .brand-logo-wide[src*="prestiege-luxor-logo-light"],
+.admin-page .admin-topbar .brand-logo-wide[src*="prestiege-luxor-logo-light"],
+.footer-logo-frame .brand-logo-wide[src*="prestiege-luxor-logo-light"] {
+  height: auto;
+  object-fit: contain;
+  filter: none;
+}
+
+.site-header .brand-logo-wide[src*="prestiege-luxor-logo-light"] {
+  width: clamp(172px, 14vw, 236px);
+  max-height: 46px;
+}
+
+.admin-page .admin-topbar .brand-logo-wide[src*="prestiege-luxor-logo-light"] {
+  width: clamp(156px, 13vw, 214px);
+  max-height: 42px;
+}
+
+.footer-logo-frame .brand-logo-wide[src*="prestiege-luxor-logo-light"] {
+  width: min(260px, 74vw);
+  max-height: 58px;
+  opacity: 1;
+}
+
+@media (max-width: 760px) {
+  .site-header .brand-logo-wide[src*="prestiege-luxor-logo-light"],
+  .admin-page .admin-topbar .brand-logo-wide[src*="prestiege-luxor-logo-light"] {
+    width: 148px;
+    max-height: 36px;
   }
 }

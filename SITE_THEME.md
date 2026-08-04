@@ -1,6 +1,6 @@
-# KD's Exotics Public Site Theme
+# Prestiege Luxor Public Site Theme
 
-The homepage is the visual source of truth for KD's Exotics customer-facing pages.
+The homepage is the visual source of truth for Prestiege Luxor customer-facing pages.
 The campaign landing page and admin CRM remain intentionally independent.
 
 ## Theme Contract
@@ -40,4 +40,4 @@ The campaign landing page and admin CRM remain intentionally independent.
 ```
 
 Shared tokens and components live at the end of `src/styles.css` under
-`KD's Exotics public-site theme`.
+`Prestiege Luxor public-site theme`.

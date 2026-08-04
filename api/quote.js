@@ -1,6 +1,6 @@
 const MAX_TEXT_LENGTH = 3000;
 const QUOTE_NOTIFICATION_EMAIL = "Khaled@kdssales.com";
-const DEFAULT_RESEND_FROM = "KD's Exotics <onboarding@resend.dev>";
+const DEFAULT_RESEND_FROM = "Prestiege Luxor <onboarding@resend.dev>";
 
 function json(res, status, body) {
   res.status(status).setHeader("Content-Type", "application/json");
@@ -186,7 +186,7 @@ function quoteEmailHtml(payload) {
                         <tr>
                           <td valign="middle">
                             <a href="https://www.kdsexotics.com" style="text-decoration:none;">
-                              <img src="https://www.kdsexotics.com/assets/kds-logo-wide.png" width="148" alt="KD's Exotics" style="display:block;width:148px;height:auto;border:0;">
+                              <img src="https://www.kdsexotics.com/assets/prestiege-luxor-logo-light.png" width="1684" alt="Prestiege Luxor" style="display:block;width:148px;height:auto;border:0;">
                             </a>
                           </td>
                           <td align="right" valign="middle" style="font-family:Arial,Helvetica,sans-serif;color:#d9b866;font-size:11px;line-height:16px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;">
@@ -273,7 +273,7 @@ function quoteEmailHtml(payload) {
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                         <tr>
                           <td style="font-family:Arial,Helvetica,sans-serif;color:#777168;font-size:11px;line-height:17px;">
-                            ${escapeHtml(source)} lead &nbsp;&middot;&nbsp; KD's Exotics
+                            ${escapeHtml(source)} lead &nbsp;&middot;&nbsp; Prestiege Luxor
                           </td>
                           <td align="right" style="font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:17px;">
                             <a href="${pageLink}" style="color:#d9b866;text-decoration:none;">View source page</a>
@@ -296,7 +296,7 @@ function quoteEmailText(payload) {
   const isAvailability = payload.requestType === "availability";
   const isPartner = payload.requestType === "partner";
   return [
-    isPartner ? "New KD's Exotics owner application" : isAvailability ? "New KD's Exotics availability check" : "New KD's Exotics quote request",
+    isPartner ? "New Prestiege Luxor owner application" : isAvailability ? "New Prestiege Luxor availability check" : "New Prestiege Luxor quote request",
     `Request type: ${isPartner ? "Owner vehicle review" : isAvailability ? "Manual availability check" : "Full quote"}`,
     `Name: ${payload.name}`,
     `Phone: ${payload.phone}`,

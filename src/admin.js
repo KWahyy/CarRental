@@ -1383,7 +1383,7 @@ function renderRequests() {
     .join("");
 
   const phoneHref = selected.phone ? `tel:${String(selected.phone).replace(/[^+\d]/g, "")}` : "";
-  const emailHref = selected.email ? `mailto:${encodeURIComponent(selected.email)}?subject=${encodeURIComponent(`KD's Exotics quote: ${selected.vehicle || "vehicle request"}`)}` : "";
+  const emailHref = selected.email ? `mailto:${encodeURIComponent(selected.email)}?subject=${encodeURIComponent(`Prestiege Luxor quote: ${selected.vehicle || "vehicle request"}`)}` : "";
   const notificationStatus = selected.notificationStatus || "not recorded";
   const notificationFailed = /fail|error/i.test(notificationStatus) || Boolean(selected.notificationError);
   const activities = requestActivities(selected.id);
