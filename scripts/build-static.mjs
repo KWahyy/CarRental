@@ -145,9 +145,9 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
     <meta property="og:image" content="${siteUrl}/assets/kds-hero.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${escapeJson(schema)}</script>
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/prestiege-luxor-favicon-32.png?v=prestiege-luxor-20260804" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/prestiege-luxor-favicon-16.png?v=prestiege-luxor-20260804" />
-    <link rel="apple-touch-icon" href="/assets/prestiege-luxor-apple-touch-icon.png?v=prestiege-luxor-20260804" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/prestiege-luxor-favicon-32.png?v=prestiege-luxor-20260806" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/prestiege-luxor-favicon-16.png?v=prestiege-luxor-20260806" />
+    <link rel="apple-touch-icon" href="/assets/prestiege-luxor-apple-touch-icon.png?v=prestiege-luxor-20260806" />
     <link rel="stylesheet" href="/src/styles.css?v=site-theme-20260719" />
   </head>
   <body class="site-theme site-content-page">
@@ -245,9 +245,9 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
     <meta property="og:image" content="${heroImage.startsWith("http") ? heroImage : `${siteUrl}${heroImage}`}" />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${escapeJson(schema)}</script>
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/prestiege-luxor-favicon-32.png?v=prestiege-luxor-20260804" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/prestiege-luxor-favicon-16.png?v=prestiege-luxor-20260804" />
-    <link rel="apple-touch-icon" href="/assets/prestiege-luxor-apple-touch-icon.png?v=prestiege-luxor-20260804" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/prestiege-luxor-favicon-32.png?v=prestiege-luxor-20260806" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/prestiege-luxor-favicon-16.png?v=prestiege-luxor-20260806" />
+    <link rel="apple-touch-icon" href="/assets/prestiege-luxor-apple-touch-icon.png?v=prestiege-luxor-20260806" />
   <link rel="stylesheet" href="/src/styles.css?v=site-theme-20260719" />
   </head>
   <body class="site-theme fleet-page oc-location-page">
