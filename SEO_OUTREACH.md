@@ -36,7 +36,7 @@ Your work with [specific detail about their business] looks closely aligned with
 If that sounds relevant, I’d be happy to share the fleet and discuss a simple arrangement.
 
 Prestiege Luxor
-(213) 264-2967
+(949) 620-0024
 reservations@kdsexotics.com
 https://www.kdsexotics.com
 

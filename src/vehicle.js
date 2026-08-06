@@ -99,7 +99,7 @@ function ensureVehicleShell() {
             <button type="submit">Request This Vehicle <span aria-hidden="true">↗</span></button>
             <p data-vehicle-request-status role="status">No charge today. We will verify availability and contact you personally.</p>
           </form>
-          <a class="vehicle-request-call" href="tel:+12132642967">Prefer to speak privately? Call (213) 264-2967</a>
+          <a class="vehicle-request-call" href="tel:+19496200024">Prefer to speak privately? Call (949) 620-0024</a>
         </aside>
       </section>
 

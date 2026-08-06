@@ -33,8 +33,8 @@ for (const path of pathsToCopy) {
 
 const siteUrl = "https://www.kdsexotics.com";
 const carDir = join(outDir, "cars");
-const phoneHref = "+12132642967";
-const phoneLabel = "(213) 264-2967";
+const phoneHref = "+19496200024";
+const phoneLabel = "(949) 620-0024";
 
 async function loadActiveInventory() {
   if (!SUPABASE_URL?.startsWith("https://") || !SUPABASE_PUBLISHABLE_KEY) {
