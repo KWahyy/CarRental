@@ -1594,7 +1594,11 @@ function renderCarList({ refreshCrm = true } = {}) {
   renderCarMakeOptions();
   const visibleCars = filteredCars();
   const hasFilters = Boolean(carSearchTerm.trim() || carMakeFilter !== "all" || carViewFilter !== "all" || carSort !== "name");
-  if (carResults) carResults.textContent = `Showing ${visibleCars.length} of ${cars.length}`;
+  if (carResults) {
+    carResults.textContent = hasFilters
+      ? `${visibleCars.length} of ${cars.length} vehicles`
+      : `${cars.length} ${cars.length === 1 ? "vehicle" : "vehicles"}`;
+  }
   if (clearCarFiltersButton) clearCarFiltersButton.hidden = !hasFilters;
   carList.innerHTML = visibleCars.length
     ? visibleCars.map(

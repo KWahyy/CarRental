@@ -25624,7 +25624,9 @@ body.site-theme {
 
 .admin-inventory-search {
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 8px;
   align-items: center;
   width: 100%;
   min-width: 0;
@@ -25651,21 +25653,33 @@ body.site-theme {
   stroke-linecap: round;
 }
 
-.admin-inventory-search input {
+.admin-page [data-section-panel="vehicles"] .admin-inventory-search input[type="search"] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
   width: 100%;
   min-width: 0;
   height: 100%;
-  padding: 0 8px;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: #f6f2e9;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #f6f2e9 !important;
   font: inherit;
   font-size: 0.82rem;
   letter-spacing: 0;
 }
 
-.admin-inventory-search input::placeholder {
+.admin-page [data-section-panel="vehicles"] .admin-inventory-search input[type="search"]::-webkit-search-cancel-button,
+.admin-page [data-section-panel="vehicles"] .admin-inventory-search input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+.admin-page [data-section-panel="vehicles"] .admin-inventory-search input[type="search"]::placeholder {
   color: #77736b;
 }
 
