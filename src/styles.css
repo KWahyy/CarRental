@@ -25609,3 +25609,225 @@ body.site-theme {
     max-height: 36px;
   }
 }
+
+/* Fleet finder: keep large inventories fast to scan without crowding the editor. */
+.admin-page [data-section-panel="vehicles"] .admin-list-panel {
+  overflow: hidden;
+}
+
+.admin-inventory-finder {
+  display: grid;
+  gap: 10px;
+  padding: 0 12px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.admin-inventory-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding: 0 10px 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: #0b0b0b;
+  color: #a8a39a;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.admin-inventory-search:focus-within {
+  border-color: rgba(224, 187, 99, 0.8);
+  background: #0e0e0d;
+  box-shadow: 0 0 0 3px rgba(224, 187, 99, 0.12);
+}
+
+.admin-inventory-search svg {
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.admin-inventory-search input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0 8px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #f6f2e9;
+  font: inherit;
+  font-size: 0.82rem;
+  letter-spacing: 0;
+}
+
+.admin-inventory-search input::placeholder {
+  color: #77736b;
+}
+
+.admin-inventory-search kbd {
+  display: grid;
+  place-items: center;
+  flex: 0 0 23px;
+  width: 23px;
+  height: 23px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  color: #8f8a81;
+  font: 700 0.68rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.admin-inventory-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.admin-inventory-filters label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.admin-inventory-filters label:last-child {
+  grid-column: 1 / -1;
+}
+
+.admin-inventory-filters label > span {
+  color: #8c877e;
+  font-size: 0.61rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-inventory-filters select {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 0 30px 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 7px;
+  background-color: #11110f;
+  color: #eee9df;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+.admin-inventory-filters select:focus-visible {
+  outline: 2px solid #dfbb66;
+  outline-offset: 2px;
+}
+
+.admin-inventory-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 20px;
+  color: #8c877e;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.admin-inventory-summary button,
+.admin-inventory-empty button {
+  min-height: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #dfbb66;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-inventory-summary button:hover,
+.admin-inventory-empty button:hover {
+  color: #f2d690;
+}
+
+.admin-page [data-section-panel="vehicles"] .admin-car-list {
+  gap: 6px !important;
+  padding: 10px !important;
+  scrollbar-gutter: stable;
+}
+
+.admin-page [data-section-panel="vehicles"] .admin-car-button {
+  min-height: 72px !important;
+  grid-template-columns: 54px minmax(0, 1fr) !important;
+  grid-template-rows: auto minmax(1rem, auto) auto !important;
+  column-gap: 10px !important;
+  row-gap: 2px !important;
+  padding: 8px !important;
+  border-radius: 8px !important;
+}
+
+.admin-page [data-section-panel="vehicles"] .admin-car-thumb {
+  width: 54px !important;
+  height: 54px !important;
+  border-radius: 6px !important;
+}
+
+.admin-page [data-section-panel="vehicles"] .admin-car-button span {
+  font-size: 0.59rem !important;
+  letter-spacing: 0.05em !important;
+}
+
+.admin-page [data-section-panel="vehicles"] .admin-car-button strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #f5f1e9;
+  font-size: 0.83rem !important;
+  line-height: 1.2 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-page [data-section-panel="vehicles"] .admin-car-button small {
+  font-size: 0.69rem !important;
+}
+
+.admin-inventory-empty {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  min-height: 190px;
+  padding: 24px;
+  color: #8c877e;
+  text-align: center;
+}
+
+.admin-inventory-empty strong {
+  margin-bottom: 4px;
+  color: #f5f1e9;
+  font-size: 0.9rem;
+}
+
+.admin-inventory-empty span {
+  max-width: 24ch;
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+@media (min-width: 560px) and (max-width: 1420px) {
+  .admin-inventory-filters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-inventory-filters label:last-child {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 559px) {
+  .admin-inventory-search kbd {
+    display: none;
+  }
+}

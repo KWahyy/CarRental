@@ -21,6 +21,12 @@ const newDashboardCarButton = document.querySelector("[data-new-dashboard-car]")
 const deleteCarButton = document.querySelector("[data-delete-car]");
 const carList = document.querySelector("[data-car-list]");
 const carCount = document.querySelector("[data-car-count]");
+const carSearchInput = document.querySelector("[data-car-search]");
+const carMakeFilterSelect = document.querySelector("[data-car-make-filter]");
+const carViewFilterSelect = document.querySelector("[data-car-view-filter]");
+const carSortSelect = document.querySelector("[data-car-sort]");
+const carResults = document.querySelector("[data-car-results]");
+const clearCarFiltersButton = document.querySelector("[data-clear-car-filters]");
 const carForm = document.querySelector("[data-car-form]");
 const editorTitle = document.querySelector("[data-editor-title]");
 const editorPreview = document.querySelector("[data-editor-preview]");
@@ -111,6 +117,10 @@ const MAX_LISTING_PHOTOS = 3;
 
 let cars = [];
 let selectedCarId = null;
+let carSearchTerm = "";
+let carMakeFilter = "all";
+let carViewFilter = "all";
+let carSort = "name";
 let photos = [];
 let availableDates = [];
 let draggedPhotoIndex = null;
@@ -1522,28 +1532,84 @@ function renderCrm() {
   renderSalesSystem();
 }
 
-function renderCarList() {
+function vehicleYear(car) {
+  return Number(String(car?.name || "").match(/\b(19|20)\d{2}\b/)?.[0] || 0);
+}
+
+function filteredCars() {
+  const query = carSearchTerm.trim().toLowerCase();
+  const filtered = cars.filter((car) => {
+    const searchText = [car.name, car.make, car.model, car.category_label, car.color, car.slug, vehicleYear(car)]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    const matchesSearch = !query || searchText.includes(query);
+    const matchesMake = carMakeFilter === "all" || String(car.make || "").toLowerCase() === carMakeFilter;
+    const featured = car.is_featured !== false;
+    const matchesView = carViewFilter === "all" || (carViewFilter === "featured" ? featured : !featured);
+    return matchesSearch && matchesMake && matchesView;
+  });
+
+  return filtered.sort((a, b) => {
+    if (carSort === "price-desc") return Number(b.price || 0) - Number(a.price || 0);
+    if (carSort === "price-asc") return Number(a.price || 0) - Number(b.price || 0);
+    if (carSort === "year-desc") return vehicleYear(b) - vehicleYear(a) || String(a.name).localeCompare(String(b.name));
+    return String(a.name || "").localeCompare(String(b.name || ""), undefined, { numeric: true });
+  });
+}
+
+function renderCarMakeOptions() {
+  if (!carMakeFilterSelect) return;
+  const makes = [...new Set(cars.map((car) => String(car.make || "").trim()).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b));
+  carMakeFilterSelect.innerHTML = [
+    '<option value="all">All brands</option>',
+    ...makes.map((make) => `<option value="${escapeHtml(make.toLowerCase())}">${escapeHtml(make)}</option>`),
+  ].join("");
+  carMakeFilterSelect.value = makes.some((make) => make.toLowerCase() === carMakeFilter) ? carMakeFilter : "all";
+  carMakeFilter = carMakeFilterSelect.value;
+}
+
+function clearCarFilters() {
+  carSearchTerm = "";
+  carMakeFilter = "all";
+  carViewFilter = "all";
+  carSort = "name";
+  if (carSearchInput) carSearchInput.value = "";
+  if (carMakeFilterSelect) carMakeFilterSelect.value = "all";
+  if (carViewFilterSelect) carViewFilterSelect.value = "all";
+  if (carSortSelect) carSortSelect.value = "name";
+  renderCarList({ refreshCrm: false });
+}
+
+function renderCarList({ refreshCrm = true } = {}) {
   const localCount = cars.filter((car) => isLocalCarId(car.id)).length;
   const countText = localCount
     ? `${cars.length} website ${cars.length === 1 ? "car" : "cars"}`
     : `${cars.length} ${cars.length === 1 ? "car" : "cars"}`;
-  carCount.textContent = countText;
+  if (carCount) carCount.textContent = countText;
   carCountDisplays.forEach((node) => {
     node.textContent = countText;
   });
-  carList.innerHTML = cars
-    .map(
+  renderCarMakeOptions();
+  const visibleCars = filteredCars();
+  const hasFilters = Boolean(carSearchTerm.trim() || carMakeFilter !== "all" || carViewFilter !== "all" || carSort !== "name");
+  if (carResults) carResults.textContent = `Showing ${visibleCars.length} of ${cars.length}`;
+  if (clearCarFiltersButton) clearCarFiltersButton.hidden = !hasFilters;
+  carList.innerHTML = visibleCars.length
+    ? visibleCars.map(
       (car) => `
-        <button class="admin-car-button ${String(car.id) === String(selectedCarId) ? "active" : ""}" type="button" data-car-id="${car.id}">
-          <img class="admin-car-thumb" src="${carImage(car)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='/assets/kds-hero.png';" />
-          <span>${isLocalCarId(car.id) ? "Website fleet" : car.make || "Vehicle"}</span>
-          <strong>${car.name}</strong>
+        <button class="admin-car-button ${String(car.id) === String(selectedCarId) ? "active" : ""}" type="button" data-car-id="${escapeHtml(car.id)}">
+          <img class="admin-car-thumb" src="${escapeHtml(carImage(car))}" alt="" loading="lazy" onerror="this.onerror=null;this.src='/assets/kds-hero.png';" />
+          <span>${escapeHtml(car.make || (isLocalCarId(car.id) ? "Website fleet" : "Vehicle"))}</span>
+          <strong title="${escapeHtml(car.name)}">${escapeHtml(car.name)}</strong>
           <small>$${Number(car.price || 0).toLocaleString()}/day</small>
         </button>
       `,
     )
-    .join("");
-  renderCrm();
+    .join("")
+    : `<div class="admin-inventory-empty"><strong>No vehicles found</strong><span>Try another brand or search term.</span><button type="button" data-clear-car-filters>Clear filters</button></div>`;
+  if (refreshCrm) renderCrm();
 }
 
 function renderMonthlySpecialPicker() {
@@ -2445,8 +2511,46 @@ newCarButton.addEventListener("click", () => {
 newDashboardCarButton?.addEventListener("click", () => newCarButton.click());
 
 carList.addEventListener("click", (event) => {
+  const clearButton = event.target.closest("[data-clear-car-filters]");
+  if (clearButton) {
+    clearCarFilters();
+    carSearchInput?.focus();
+    return;
+  }
   const button = event.target.closest("[data-car-id]");
   if (button) selectCar(button.dataset.carId);
+});
+
+carSearchInput?.addEventListener("input", () => {
+  carSearchTerm = carSearchInput.value;
+  renderCarList({ refreshCrm: false });
+});
+
+carMakeFilterSelect?.addEventListener("change", () => {
+  carMakeFilter = carMakeFilterSelect.value;
+  renderCarList({ refreshCrm: false });
+});
+
+carViewFilterSelect?.addEventListener("change", () => {
+  carViewFilter = carViewFilterSelect.value;
+  renderCarList({ refreshCrm: false });
+});
+
+carSortSelect?.addEventListener("change", () => {
+  carSort = carSortSelect.value;
+  renderCarList({ refreshCrm: false });
+});
+
+clearCarFiltersButton?.addEventListener("click", clearCarFilters);
+
+document.addEventListener("keydown", (event) => {
+  const vehiclePanel = document.querySelector('[data-section-panel="vehicles"]');
+  const target = event.target;
+  const typing = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement;
+  if (event.key === "/" && !typing && vehiclePanel && !vehiclePanel.hidden) {
+    event.preventDefault();
+    carSearchInput?.focus();
+  }
 });
 
 carForm.elements.name.addEventListener("input", () => {
