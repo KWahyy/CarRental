@@ -1,5 +1,5 @@
 const MAX_TEXT_LENGTH = 3000;
-const QUOTE_NOTIFICATION_EMAIL = "Khaled@kdssales.com";
+const QUOTE_NOTIFICATION_EMAIL = "Contact@prestigeluxor.com";
 const DEFAULT_RESEND_FROM = "Prestiege Luxor <onboarding@resend.dev>";
 
 function json(res, status, body) {

@@ -141,8 +141,8 @@ let contentDraft = readJson(CONTENT_KEY, {
 });
 let businessSettings = readJson(SETTINGS_KEY, {
   phone: "",
-  email: "",
-  instagram: "",
+  email: "Contact@prestigeluxor.com",
+  instagram: "@Prestige.Luxor",
   responseTarget: "Under 15 minutes",
   bookingNotes: "",
 });
