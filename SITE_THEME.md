@@ -1,6 +1,6 @@
-# Prestiege Luxor Public Site Theme
+# Prestige Luxor Public Site Theme
 
-The homepage is the visual source of truth for Prestiege Luxor customer-facing pages.
+The homepage is the visual source of truth for Prestige Luxor customer-facing pages.
 The campaign landing page and admin CRM remain intentionally independent.
 
 ## Theme Contract
@@ -40,4 +40,4 @@ The campaign landing page and admin CRM remain intentionally independent.
 ```
 
 Shared tokens and components live at the end of `src/styles.css` under
-`Prestiege Luxor public-site theme`.
+`Prestige Luxor public-site theme`.

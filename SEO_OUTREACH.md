@@ -1,8 +1,8 @@
-# Prestiege Luxor Local SEO Outreach
+# Prestige Luxor Local SEO Outreach
 
 ## Goal
 
-Earn legitimate local mentions and links that help customers and search engines connect Prestiege Luxor with exotic car rentals in Los Angeles and Orange County.
+Earn legitimate local mentions and links that help customers and search engines connect Prestige Luxor with exotic car rentals in Los Angeles and Orange County.
 
 ## Best prospects to approach first
 
@@ -25,17 +25,17 @@ Earn legitimate local mentions and links that help customers and search engines 
 
 ## Initial outreach email
 
-Subject: Local luxury transportation partnership with Prestiege Luxor
+Subject: Local luxury transportation partnership with Prestige Luxor
 
 Hi [Name],
 
-I’m reaching out from Prestiege Luxor, an exotic and luxury car rental service working with clients across Los Angeles and Orange County. We help coordinate vehicles for private travel, hotel stays, events, weddings, productions, and brand content.
+I’m reaching out from Prestige Luxor, an exotic and luxury car rental service working with clients across Los Angeles and Orange County. We help coordinate vehicles for private travel, hotel stays, events, weddings, productions, and brand content.
 
 Your work with [specific detail about their business] looks closely aligned with the clients we serve. I’d like to explore a practical referral or content partnership—such as a dedicated booking contact, coordinated vehicle delivery, or a useful local feature for both audiences.
 
 If that sounds relevant, I’d be happy to share the fleet and discuss a simple arrangement.
 
-Prestiege Luxor
+Prestige Luxor
 (949) 620-0024
 Contact@prestigeluxor.com
 https://www.kdsexotics.com

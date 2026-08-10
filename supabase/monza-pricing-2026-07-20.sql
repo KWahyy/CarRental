@@ -1,4 +1,4 @@
--- Match Prestiege Luxor rates to Monza's advertised rates for defensible model matches.
+-- Match Prestige Luxor rates to Monza's advertised rates for defensible model matches.
 with pricing(slug, price, competitor_model) as (
   values
     ('2021-bmw-m3-comp', 495, 'BMW M3 G80'),

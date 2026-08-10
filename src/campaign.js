@@ -76,7 +76,7 @@ async function hydrateCampaignCar(card) {
     await loadDecodedImage(photoUrl);
 
     image.src = photoUrl;
-    image.alt = `${car.name} available from Prestiege Luxor`;
+    image.alt = `${car.name} available from Prestige Luxor`;
     card.querySelectorAll("[data-campaign-car-link]").forEach((link) => {
       link.setAttribute("href", `/cars/${car.slug}.html`);
       if (link.classList.contains("campaign-car-media")) link.setAttribute("aria-label", `View the ${car.name}`);

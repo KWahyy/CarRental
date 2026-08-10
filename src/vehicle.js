@@ -118,7 +118,7 @@ function ensureVehicleShell() {
         <div class="vehicle-private-faq-list">
           <details><summary>How do I qualify to rent this vehicle?<span>+</span></summary><p>Approval is vehicle-specific. You may need a valid driver’s license, proof of insurance, an acceptable driving history, identity verification, and an approved security deposit.</p></details>
           <details><summary>How many miles are included?<span>+</span></summary><p>The included daily mileage is shown above when available. Your confirmed quote will state the total allowance and the additional-mileage rate.</p></details>
-          <details><summary>Can you deliver the car to me?<span>+</span></summary><p>Yes. Prestiege Luxor operates as a delivery-only service. We confirm timing, access, and any delivery fee for your hotel, residence, airport-area meeting point, or approved address.</p></details>
+          <details><summary>Can you deliver the car to me?<span>+</span></summary><p>Yes. Prestige Luxor operates as a delivery-only service. We confirm timing, access, and any delivery fee for your hotel, residence, airport-area meeting point, or approved address.</p></details>
           <details><summary>What payment methods are accepted?<span>+</span></summary><p>Accepted payment methods may vary by vehicle and booking. Your concierge will explain the approved payment arrangement before confirmation.</p></details>
           <details><summary>How much is the security deposit?<span>+</span></summary><p>Deposits vary by vehicle, dates, coverage, and driver profile. The exact amount is disclosed before you approve the reservation.</p></details>
           <details><summary>Can an international visitor rent?<span>+</span></summary><p>Possibly. International licenses, passports, coverage, age, and additional verification are reviewed individually before approval.</p></details>
@@ -365,7 +365,7 @@ function renderVehicle() {
     return;
   }
 
-  document.title = `${car.name} | Prestiege Luxor`;
+  document.title = `${car.name} | Prestige Luxor`;
   setText("[data-vehicle-year]", vehicleYear(car));
   setText("[data-vehicle-category]", car.categoryLabel);
   const vehicleTitle = car.name.replace(/^\d{4}\s+/, "");
