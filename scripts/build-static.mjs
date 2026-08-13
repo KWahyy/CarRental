@@ -14,6 +14,7 @@ const pathsToCopy = [
   "faq.html",
   "fleet.html",
   "partner.html",
+  "quote.html",
   "wedding.html",
   "admin",
   "assets",
@@ -31,7 +32,7 @@ for (const path of pathsToCopy) {
   }
 }
 
-const siteUrl = "https://www.kdsexotics.com";
+const siteUrl = "https://www.prestigeluxor.com";
 const carDir = join(outDir, "cars");
 const phoneHref = "+19496200024";
 const phoneLabel = "(949) 620-0024";
@@ -44,7 +45,7 @@ async function loadActiveInventory() {
   const endpoint = new URL("/rest/v1/cars", SUPABASE_URL);
   endpoint.searchParams.set(
     "select",
-    "slug,name,make,model,category,category_label,price,mileage,seats,color,summary,image_url,tags,details,updated_at,car_photos(position,url)",
+    "id,slug,name,make,model,category,category_label,price,mileage,seats,color,summary,image_url,tags,details,updated_at,car_photos(position,url)",
   );
   endpoint.searchParams.set("is_active", "eq.true");
   endpoint.searchParams.set("order", "name.asc");
@@ -70,8 +71,9 @@ const activeInventoryBySlug = new Map(activeInventory.map((car) => [car.slug, ca
 const publicFleetSnapshot = activeInventory.map((car) => {
   const photos = [...(car.car_photos || [])].sort((a, b) => Number(a.position) - Number(b.position));
   const gallery = photos.map((photo) => photo.url).filter(Boolean).slice(0, 3);
-  const image = gallery[0] || car.image_url || "/assets/kds-hero.png";
+  const image = gallery[0] || car.image_url || "/assets/prestige-luxor-hero.png";
   return {
+    id: car.id,
     slug: car.slug,
     name: car.name,
     make: car.make,
@@ -142,7 +144,7 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
     <meta property="og:title" content="${title}" />
     <meta property="og:description" content="${description}" />
     <meta property="og:url" content="${canonical}" />
-    <meta property="og:image" content="${siteUrl}/assets/kds-hero.png" />
+    <meta property="og:image" content="${siteUrl}/assets/prestige-luxor-hero.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${escapeJson(schema)}</script>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/prestige-luxor-favicon-32.png?v=prestige-luxor-20260806" />
@@ -200,10 +202,10 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
 
   const getCarImage = (car) => {
     const photos = [...(car.car_photos || [])].sort((a, b) => Number(a.position) - Number(b.position));
-    return photos.find((photo) => photo.url)?.url || car.image_url || "/assets/kds-hero.png";
+    return photos.find((photo) => photo.url)?.url || car.image_url || "/assets/prestige-luxor-hero.png";
   };
   const heroCar = featuredCars[0];
-  const heroImage = heroCar ? getCarImage(heroCar) : "/assets/kds-hero.png";
+  const heroImage = heroCar ? getCarImage(heroCar) : "/assets/prestige-luxor-hero.png";
   const fleetCards = featuredCars.map((car) => `
           <article class="oc-showroom-card">
             <a class="oc-showroom-media" href="/cars/${car.slug}" aria-label="View ${car.make} ${car.model}">
@@ -414,7 +416,7 @@ if (existsSync(carDir)) {
     const title = html.match(/<title>(.*?)<\/title>/)?.[1] || "Exotic Car Rental | Prestige Luxor";
     const description = html.match(/<meta name="description" content="([^"]*)"/i)?.[1] || "View this exotic rental car from Prestige Luxor in Los Angeles and Orange County.";
     const imagePath = `assets/fleet/${slug}.jpg`;
-    const imageUrl = existsSync(join(root, imagePath)) ? `${siteUrl}/${imagePath}` : `${siteUrl}/assets/kds-hero.png`;
+    const imageUrl = existsSync(join(root, imagePath)) ? `${siteUrl}/${imagePath}` : `${siteUrl}/assets/prestige-luxor-hero.png`;
     const isActive = activeInventoryBySlug.has(slug);
     html = html
       .replace(/\/src\/vehicle\.js\?v=[^\"]+/g, "/src/vehicle.js?v=lead-conversion-20260720")

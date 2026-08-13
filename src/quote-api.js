@@ -1,5 +1,5 @@
 const LOCAL_PREVIEW_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0"]);
-const PRODUCTION_QUOTE_ENDPOINT = "https://www.kdsexotics.com/api/quote";
+const PRODUCTION_QUOTE_ENDPOINT = "https://www.prestigeluxor.com/api/quote";
 const QUOTE_REQUEST_TIMEOUT_MS = 20000;
 
 export function quoteEndpoint() {

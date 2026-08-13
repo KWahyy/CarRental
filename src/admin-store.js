@@ -1,6 +1,6 @@
-const DRAFT_KEY = "kds_exotics_admin_car_drafts";
-const DELETED_KEY = "kds_exotics_admin_deleted_car_slugs";
-const REFRESH_KEY = "kds_exotics_fleet_refresh";
+const DRAFT_KEY = "prestige_luxor_admin_car_drafts";
+const DELETED_KEY = "prestige_luxor_admin_deleted_car_slugs";
+const REFRESH_KEY = "prestige_luxor_fleet_refresh";
 const MAX_LISTING_PHOTOS = 3;
 
 export const ADMIN_CAR_DRAFTS_KEY = DRAFT_KEY;
@@ -62,7 +62,7 @@ export function deleteCarDraft(slugValue) {
 
 export function toPublicCar(car) {
   const gallery = (car.gallery?.length ? car.gallery : [car.image_url || car.image].filter(Boolean)).slice(0, MAX_LISTING_PHOTOS);
-  const image = gallery[0] || car.image_url || car.image || "/assets/kds-hero.png";
+  const image = gallery[0] || car.image_url || car.image || "/assets/prestige-luxor-hero.png";
 
   return {
     ...car,

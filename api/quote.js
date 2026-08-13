@@ -10,8 +10,8 @@ function json(res, status, body) {
 function setCors(req, res) {
   const origin = cleanString(req.headers.origin, 240);
   const allowedOrigins = new Set([
-    "https://www.kdsexotics.com",
-    "https://kdsexotics.com",
+    "https://www.prestigeluxor.com",
+    "https://prestigeluxor.com",
     "http://localhost:4173",
     "http://127.0.0.1:4173",
   ]);
@@ -52,7 +52,7 @@ function phoneHref(value) {
   return `${prefix}${phone.replace(/\D/g, "")}`;
 }
 
-function safeWebUrl(value, fallback = "https://www.kdsexotics.com") {
+function safeWebUrl(value, fallback = "https://www.prestigeluxor.com") {
   try {
     const url = new URL(cleanString(value, 600));
     return ["http:", "https:"].includes(url.protocol) ? escapeHtml(url.href) : fallback;
@@ -185,8 +185,8 @@ function quoteEmailHtml(payload) {
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                         <tr>
                           <td valign="middle">
-                            <a href="https://www.kdsexotics.com" style="text-decoration:none;">
-                              <img src="https://www.kdsexotics.com/assets/prestige-luxor-logo-light.png" width="1684" alt="Prestige Luxor" style="display:block;width:148px;height:auto;border:0;">
+                            <a href="https://www.prestigeluxor.com" style="text-decoration:none;">
+                              <img src="https://www.prestigeluxor.com/assets/prestige-luxor-logo-light.png" width="1684" alt="Prestige Luxor" style="display:block;width:148px;height:auto;border:0;">
                             </a>
                           </td>
                           <td align="right" valign="middle" style="font-family:Arial,Helvetica,sans-serif;color:#d9b866;font-size:11px;line-height:16px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;">

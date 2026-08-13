@@ -102,7 +102,7 @@ let fleet = [
     category: "suv luxury",
     price: 250,
     mileage: "100 miles/day",
-    image: "/assets/kds-hero.png",
+    image: "/assets/prestige-luxor-hero.png",
     tags: ["Shelter Green / Level kit + wheels...", "$200.00 3-5 days", "$175.00 6-7 days"],
   },
   {
@@ -110,7 +110,7 @@ let fleet = [
     category: "suv luxury",
     price: 750,
     mileage: "100 miles/day",
-    image: "/assets/kds-hero.png",
+    image: "/assets/prestige-luxor-hero.png",
     tags: ["Matte Black with orange interior /...", "$700.00 3-5 days", "$650.00 6-7 days"],
   },
   {
@@ -127,7 +127,7 @@ let fleet = [
     category: "supercar",
     price: 250,
     mileage: "100 miles/day",
-    image: "/assets/kds-hero.png",
+    image: "/assets/prestige-luxor-hero.png",
     tags: ["Torch Red / exhaust / splitter", "$225.00 3-5 days", "$200.00 6-7 days"],
   },
 ];
@@ -161,7 +161,7 @@ const quoteTyping = document.querySelector("[data-quote-typing]");
 const quoteProgressText = document.querySelector("[data-quote-progress-text]");
 const quoteProgressPercent = document.querySelector("[data-quote-progress-percent]");
 const quoteProgressBar = document.querySelector("[data-quote-progress-bar]");
-const CRM_REQUESTS_KEY = "kds-crm-requests";
+const CRM_REQUESTS_KEY = "prestige-luxor-crm-requests";
 const diaText = document.querySelector("[data-dia-words]");
 const CLOUD_FLEET_TIMEOUT_MS = 3500;
 const BEST_FAN_LIMIT = 9;
@@ -407,15 +407,15 @@ function vehicleLabel(car) {
 }
 
 function primaryImageFor(car) {
-  if (!car) return "/assets/kds-hero.png";
-  const image = car.image || car.gallery?.[0] || "/assets/kds-hero.png";
+  if (!car) return "/assets/prestige-luxor-hero.png";
+  const image = car.image || car.gallery?.[0] || "/assets/prestige-luxor-hero.png";
   return cacheSafeFleetImageUrl(image, car.updatedAt || car.updated_at);
 }
 
 function isUsableFanCar(car) {
   if (!car) return false;
   const image = primaryImageFor(car);
-  return car?.name && vehicleSlug(car) && image && !image.includes("kds-hero");
+  return car?.name && vehicleSlug(car) && image && !image.includes("prestige-luxor-hero");
 }
 
 function isPremiumFanCandidate(car) {
@@ -521,7 +521,7 @@ function renderFanCarousel() {
     .map(
       (car) => `
         <a class="fan-card" href="/cars/${vehicleSlug(car)}.html" aria-label="View ${car.name}">
-          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" data-fan-image="${car.image}" alt="${car.name}" loading="lazy" decoding="async" width="500" height="375" onerror="this.onerror=null;this.src='/assets/kds-hero.png';" />
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" data-fan-image="${car.image}" alt="${car.name}" loading="lazy" decoding="async" width="500" height="375" onerror="this.onerror=null;this.src='/assets/prestige-luxor-hero.png';" />
           <span>${vehicleLabel(car)}</span>
         </a>
       `,

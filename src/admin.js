@@ -96,9 +96,9 @@ const specialsStatus = document.querySelector("[data-specials-status]");
 const competitorRecommendation = document.querySelector("[data-competitor-recommendation]");
 const applyCompetitivePriceButton = document.querySelector("[data-apply-competitive-price]");
 
-const REQUESTS_KEY = "kds-crm-requests";
-const CONTENT_KEY = "kds-crm-content";
-const SETTINGS_KEY = "kds-crm-settings";
+const REQUESTS_KEY = "prestige-luxor-crm-requests";
+const CONTENT_KEY = "prestige-luxor-crm-content";
+const SETTINGS_KEY = "prestige-luxor-crm-settings";
 
 const requestStatuses = [
   { id: "new", label: "New request" },
@@ -106,13 +106,14 @@ const requestStatuses = [
   { id: "available", label: "Available / quote ready" },
   { id: "alternative", label: "Alternative offered" },
   { id: "approved", label: "Deposit pending" },
-  { id: "booked", label: "Booked" },
+  { id: "booked", label: "Confirmed rental" },
 ];
 
 const defaultRequests = [];
 
 const configured = Boolean(SUPABASE_URL && SUPABASE_URL.startsWith("https://"));
 const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
+window.prestigeLuxorSupabase = supabase;
 const MAX_LISTING_PHOTOS = 3;
 
 let cars = [];
@@ -277,8 +278,14 @@ function switchSection(section, activeButton = null) {
   });
   sectionPanels.forEach((panel) => {
     const active = panel.dataset.sectionPanel === section;
+    panel.classList.remove("crm-page-enter");
     panel.hidden = !active;
     panel.classList.toggle("active", active);
+    if (active) {
+      window.requestAnimationFrame(() => {
+        if (!panel.hidden && panel.classList.contains("active")) panel.classList.add("crm-page-enter");
+      });
+    }
   });
 }
 
@@ -490,11 +497,11 @@ function selectedCar() {
 }
 
 function carImage(car) {
-  return car?.image_url || car?.gallery?.[0] || "/assets/kds-hero.png";
+  return car?.image_url || car?.gallery?.[0] || "/assets/prestige-luxor-hero.png";
 }
 
 function previewUrl(photo) {
-  return photo?.previewUrl || photo?.url || "/assets/kds-hero.png";
+  return photo?.previewUrl || photo?.url || "/assets/prestige-luxor-hero.png";
 }
 
 function readFileAsDataUrl(file) {
@@ -546,21 +553,13 @@ function renderCrmStats() {
   const newInquiries = requests.filter((request) => request.status === "new").length;
   const partnerChecks = requests.filter((request) => request.status === "checking").length;
   const quotesReady = requests.filter((request) => ["available", "alternative"].includes(request.status)).length;
-  const monthKey = new Date().toISOString().slice(0, 7);
-  const monthlySales = salesBookings.filter((booking) => String(booking.booked_on || "").startsWith(monthKey));
-  const monthlyBookings = monthlySales.length
-    ? monthlySales
-    : requests.filter((request) => request.status === "booked" && String(request.date || request.createdAt || "").startsWith(monthKey));
-  const bookedRevenue = monthlySales.length
-    ? monthlySales.reduce((total, booking) => total + bookingTotal(booking), 0)
-    : monthlyBookings.reduce((total, request) => total + requestValue(request, fleetCars), 0);
+  const activeFleet = fleetCars.filter((car) => car.is_active !== false).length;
 
   overviewStats.innerHTML = [
     ["New inquiries", `${newInquiries}`, "Need first response"],
     ["Partner checks", `${partnerChecks}`, "Waiting for availability"],
     ["Quotes ready", `${quotesReady}`, "Customer follow-up"],
-    ["Bookings", `${monthlyBookings.length}`, "This month"],
-    ["Booked revenue", formatMoney(bookedRevenue), monthlySales.length ? "Recorded sales this month" : "Starting daily value"],
+    ["Active fleet", `${activeFleet}`, "Ready to quote"],
   ]
     .map(
       ([label, value, note]) => `
@@ -953,9 +952,8 @@ function isDatabaseId(value) {
 
 async function loadCloudCrmData() {
   if (!supabase) return;
-  const [quoteResult, salesResult, activityResult] = await Promise.all([
+  const [quoteResult, activityResult] = await Promise.all([
     supabase.from("quote_requests").select("*").order("created_at", { ascending: false }),
-    supabase.from("booking_sales").select("*").order("booked_on", { ascending: false }),
     supabase.from("quote_activities").select("*").order("created_at", { ascending: false }),
   ]);
 
@@ -997,13 +995,6 @@ async function loadCloudCrmData() {
     writeJson(REQUESTS_KEY, requests);
   }
 
-  if (salesResult.error) {
-    salesBookings = [];
-    errors.push("booking sales");
-  } else {
-    salesBookings = salesResult.data || [];
-  }
-
   if (activityResult.error) {
     quoteActivities = [];
     quoteWorkflowError = friendlyError(activityResult.error);
@@ -1019,9 +1010,6 @@ async function loadCloudCrmData() {
     quoteWorkflowError = "";
   }
 
-  salesDataError = errors.length
-    ? `Sales cloud setup is incomplete (${errors.join(" and ")}). Run the latest supabase/schema.sql, then refresh.`
-    : "";
   renderCrm();
 }
 
@@ -1492,7 +1480,6 @@ function renderRequests() {
       </div>
       <div class="quote-detail-footer">
         <label>Sales stage<select data-request-status="${escapeHtml(selected.id)}">${requestStatuses.map((option) => `<option value="${option.id}" ${option.id === selected.status ? "selected" : ""}>${escapeHtml(option.label)}</option>`).join("")}</select></label>
-        <button class="secondary-button compact" type="button" data-create-booking="${escapeHtml(selected.id)}">${selected.status === "booked" ? "Open booking" : "Create booking"}</button>
       </div>
     </section>
   `;
@@ -1528,8 +1515,6 @@ function renderCrm() {
   renderOverviewDetails();
   renderMiniLists();
   renderRequests();
-  renderCalendar();
-  renderSalesSystem();
 }
 
 function vehicleYear(car) {
@@ -1604,7 +1589,7 @@ function renderCarList({ refreshCrm = true } = {}) {
     ? visibleCars.map(
       (car) => `
         <button class="admin-car-button ${String(car.id) === String(selectedCarId) ? "active" : ""}" type="button" data-car-id="${escapeHtml(car.id)}">
-          <img class="admin-car-thumb" src="${escapeHtml(carImage(car))}" alt="" loading="lazy" onerror="this.onerror=null;this.src='/assets/kds-hero.png';" />
+          <img class="admin-car-thumb" src="${escapeHtml(carImage(car))}" alt="" loading="lazy" onerror="this.onerror=null;this.src='/assets/prestige-luxor-hero.png';" />
           <span>${escapeHtml(car.make || (isLocalCarId(car.id) ? "Website fleet" : "Vehicle"))}</span>
           <strong title="${escapeHtml(car.name)}">${escapeHtml(car.name)}</strong>
           <small>$${Number(car.price || 0).toLocaleString()}/day</small>
@@ -1692,7 +1677,7 @@ function renderPhotos() {
       (photo, index) => `
         <article class="photo-editor-row" data-photo-index="${index}" draggable="true">
           <div class="photo-card-preview">
-            <img src="${previewUrl(photo)}" alt="" onerror="this.onerror=null;this.src='/assets/kds-hero.png';" />
+            <img src="${previewUrl(photo)}" alt="" onerror="this.onerror=null;this.src='/assets/prestige-luxor-hero.png';" />
             <div class="photo-card-badge">${index === 0 ? "Main" : `Photo ${index + 1}`}</div>
             <button class="photo-drag-handle" type="button" aria-label="Drag photo ${index + 1} to reorder">
               <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 6h8M8 12h8M8 18h8" /></svg>
@@ -1912,8 +1897,8 @@ function buildCarPayloadFromForm() {
     tags: linesToArray(formData.get("tags")),
     details: linesToArray(formData.get("details")),
     gallery: currentPhotoUrls(),
-    image: currentPhotoUrls()[0] || "/assets/kds-hero.png",
-    image_url: currentPhotoUrls()[0] || "/assets/kds-hero.png",
+    image: currentPhotoUrls()[0] || "/assets/prestige-luxor-hero.png",
+    image_url: currentPhotoUrls()[0] || "/assets/prestige-luxor-hero.png",
     is_active: true,
     is_featured: true,
     competitor_price: Number(formData.get("competitor_price")) || null,
@@ -2060,13 +2045,6 @@ async function init() {
 
   const { data } = await supabase.auth.getSession();
   showAdmin(Boolean(data.session));
-  if (data.session) {
-    await loadCars();
-    await loadCloudCrmData();
-    await loadTrafficAnalytics();
-    specialMonthInput.value = currentMonthValue();
-    await loadMonthlySpecialAdmin();
-  }
   renderCrm();
 }
 
@@ -2091,11 +2069,6 @@ loginForm.addEventListener("submit", async (event) => {
 
   setStatus(loginStatus, "");
   showAdmin(true);
-  await loadCars();
-  await loadCloudCrmData();
-  await loadTrafficAnalytics();
-  specialMonthInput.value = currentMonthValue();
-  await loadMonthlySpecialAdmin();
 });
 
 specialMonthInput?.addEventListener("change", loadMonthlySpecialAdmin);
@@ -2123,6 +2096,20 @@ signOutButton.addEventListener("click", async () => {
 
 sectionButtons.forEach((button) => {
   button.addEventListener("click", () => switchSection(button.dataset.crmSection, button));
+});
+
+let specialsLoaded = false;
+document.querySelector('[data-crm-section="specials"]')?.addEventListener("click", async () => {
+  if (specialsLoaded) return;
+  specialsLoaded = true;
+  try {
+    await loadCars();
+    specialMonthInput.value = currentMonthValue();
+    await loadMonthlySpecialAdmin();
+  } catch (error) {
+    specialsLoaded = false;
+    setStatus(adminStatus, friendlyError(error), "error");
+  }
 });
 
 jumpSectionButtons.forEach((button) => {
@@ -2273,10 +2260,6 @@ async function updateRequestStatus(id, nextStatus) {
   renderCrm();
   await addQuoteActivity(id, "status", `Moved from ${requestStatusLabel(existing.status)} to ${requestStatusLabel(nextStatus)}.`);
   setStatus(quotePageStatus, `Moved to ${requestStatusLabel(nextStatus)}.`, "success");
-  if (nextStatus === "booked") {
-    const existingBooking = salesBookings.find((booking) => String(booking.quote_request_id) === String(id));
-    openBookingEditor(existingBooking?.id || "", id);
-  }
 }
 
 requestPipeline?.addEventListener("change", async (event) => {
@@ -2364,11 +2347,6 @@ requestPipeline?.addEventListener("click", async (event) => {
     renderRequests();
     return;
   }
-  const bookingButton = event.target.closest("[data-create-booking]");
-  if (!bookingButton) return;
-  const quoteId = bookingButton.dataset.createBooking;
-  const existingBooking = salesBookings.find((booking) => String(booking.quote_request_id) === String(quoteId));
-  openBookingEditor(existingBooking?.id || "", quoteId);
 });
 
 requestSearchInput?.addEventListener("input", () => {
