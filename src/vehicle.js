@@ -14,7 +14,7 @@ const menuToggle = document.querySelector("[data-menu-toggle]");
 const mobileMenu = document.querySelector("[data-mobile-menu]");
 const CLOUD_VEHICLE_TIMEOUT_MS = 3500;
 const MAX_LISTING_PHOTOS = 3;
-const CRM_REQUESTS_KEY = "kds-crm-requests";
+const CRM_REQUESTS_KEY = "prestige-luxor-crm-requests";
 
 function escapeHtml(value) {
   return String(value ?? "")

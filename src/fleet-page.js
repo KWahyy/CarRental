@@ -41,7 +41,7 @@ const seenCardImpressions = new Set();
 let cardImpressionObserver = null;
 let cloudFleetRefreshPromise = null;
 const CLOUD_FLEET_TIMEOUT_MS = 3500;
-const CRM_REQUESTS_KEY = "kds-crm-requests";
+const CRM_REQUESTS_KEY = "prestige-luxor-crm-requests";
 const POPULAR_VEHICLE_SLUGS = [
   "2021-bmw-m3-comp",
   "2022-porsche-911-carrera",
@@ -82,7 +82,7 @@ function escapeHtml(value) {
 function trackFleetEvent(eventName, detail = {}) {
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({ event: eventName, ...detail });
-  window.dispatchEvent(new CustomEvent(`kds:${eventName}`, { detail }));
+  window.dispatchEvent(new CustomEvent(`prestige-luxor:${eventName}`, { detail }));
   document.documentElement.dataset.fleetEventCount = String(Number(document.documentElement.dataset.fleetEventCount || 0) + 1);
   document.documentElement.dataset.lastFleetEvent = eventName;
 
@@ -264,7 +264,7 @@ function sortedCars(source) {
 }
 
 function carImage(car) {
-  const image = car.image || car.image_url || car.gallery?.[0] || "/assets/kds-hero.png";
+  const image = car.image || car.image_url || car.gallery?.[0] || "/assets/prestige-luxor-hero.png";
   return cacheSafeFleetImageUrl(image, car.updatedAt || car.updated_at);
 }
 
@@ -325,7 +325,7 @@ function cardMarkup(car, variant = "collection") {
   return `
     <article class="showroom-card showroom-card-${variant}" data-vehicle-slug="${escapeHtml(slug)}" data-vehicle="${escapeHtml(car.name)}">
       <a class="showroom-card-media" href="/cars/${escapeHtml(slug)}.html" aria-label="View ${escapeHtml(car.name)}" style="${mediaBackgroundStyle(car)}" data-fleet-card-link data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${escapeHtml(slug)}">
-        <img src="${escapeHtml(carImage(car))}" alt="${escapeHtml(car.name)}" width="900" height="675" loading="lazy" onerror="this.onerror=null;this.src='/assets/kds-hero.png';" />
+        <img src="${escapeHtml(carImage(car))}" alt="${escapeHtml(car.name)}" width="900" height="675" loading="lazy" onerror="this.onerror=null;this.src='/assets/prestige-luxor-hero.png';" />
       </a>
       <div class="showroom-card-body">
         <div class="showroom-card-title">

@@ -3,7 +3,7 @@ import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./supabase-config.js";
 const configured = Boolean(SUPABASE_URL && SUPABASE_URL.startsWith("https://"));
 let supabasePromise = null;
 const MAX_LISTING_PHOTOS = 3;
-const ANALYTICS_SESSION_KEY = "kds_fleet_analytics_session";
+const ANALYTICS_SESSION_KEY = "prestige_luxor_fleet_analytics_session";
 
 export const isSupabaseFleetConfigured = configured;
 
@@ -23,7 +23,7 @@ async function getSupabase() {
 function mapCar(row) {
   const photos = [...(row.car_photos || [])].sort((a, b) => Number(a.position) - Number(b.position));
   const gallery = photos.map((photo) => photo.url).filter(Boolean).slice(0, MAX_LISTING_PHOTOS);
-  const image = gallery[0] || row.image_url || "/assets/kds-hero.png";
+  const image = gallery[0] || row.image_url || "/assets/prestige-luxor-hero.png";
 
   return {
     slug: row.slug,
