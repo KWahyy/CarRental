@@ -434,7 +434,7 @@
               <i aria-hidden="true"></i>
             </span>
             <div class="quote-completion" aria-label="Quote form completion">
-              <span data-quote-progress-text>0 of 5 details complete</span>
+              <span data-quote-progress-text>0 of 4 details complete</span>
               <strong data-quote-progress-percent>0%</strong>
               <i aria-hidden="true"><b data-quote-progress-bar></b></i>
             </div>
@@ -460,30 +460,7 @@
               <span>Vehicle</span>
               <select name="vehicle" data-vehicle-select required></select>
             </label>
-            <label class="quote-field-wide">
-              <span>Current Insurance Carrier</span>
-              <input
-                name="insuranceProvider"
-                type="text"
-                list="insurance-provider-options"
-                autocomplete="organization"
-                placeholder="Example: State Farm"
-                required
-              />
-              <small>Coverage is reviewed privately during approval.</small>
-            </label>
           </div>
-          <datalist id="insurance-provider-options">
-            <option value="State Farm"></option>
-            <option value="GEICO"></option>
-            <option value="Progressive"></option>
-            <option value="Allstate"></option>
-            <option value="Farmers"></option>
-            <option value="USAA"></option>
-            <option value="AAA"></option>
-            <option value="Mercury"></option>
-            <option value="Other"></option>
-          </datalist>
 
           <fieldset class="quote-addons">
             <legend>Enhance your arrival</legend>
@@ -502,7 +479,7 @@
           </label>
 
           <button class="quote-submit" type="submit">Send Private Request</button>
-          <p class="quote-status" data-quote-status role="status">Your request remains private. License, insurance, and deposit are confirmed before approval.</p>
+          <p class="quote-status" data-quote-status role="status">Your request remains private. License, eligibility, and deposit are confirmed before approval.</p>
         </form>
       </section>
 
@@ -580,7 +557,7 @@
           </details>
           <details name="rental-faq">
             <summary><span class="faq-index">03</span><span class="faq-question">Do I need my own auto insurance?</span></summary>
-            <p>Proof of active auto insurance is required for approval. Enter your insurance company in the quote form, and we will confirm whether your coverage meets the requirements for the vehicle you requested.</p>
+            <p>Proof of active auto insurance is reviewed later during rental approval. You do not need to provide insurance details when requesting an initial quote.</p>
           </details>
           <details name="rental-faq">
             <summary><span class="faq-index">04</span><span class="faq-question">How quickly will I receive a quote?</span></summary>
@@ -747,6 +724,6 @@
       </div>
     </footer>
 
-    <script type="module" src="/src/main.js?v=lead-conversion-20260720"></script>
+    <script type="module" src="/src/main.js?v=quote-no-insurance-20260818"></script>
   </body>
 </html>
