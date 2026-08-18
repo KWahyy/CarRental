@@ -12,6 +12,7 @@ const filterNote = document.querySelector("[data-fleet-filter-note]");
 const filterControl = document.querySelector("[data-filter-control]");
 const filterToggle = document.querySelector("[data-filter-toggle]");
 const filterPanel = document.querySelector("[data-filter-panel]");
+const filterBackdrop = document.querySelector("[data-filter-backdrop]");
 const activeFilterLabel = document.querySelector("[data-active-filter]");
 const typeFilters = document.querySelector("[data-type-filters]");
 const brandFilters = document.querySelector("[data-brand-filters]");
@@ -28,9 +29,14 @@ const availabilityVehicle = document.querySelector("[data-availability-vehicle]"
 const availabilityStatus = document.querySelector("[data-availability-status]");
 const availabilityCloseButtons = [...document.querySelectorAll("[data-availability-close]")];
 
+// Keep the filter sheet out of the toolbar's backdrop-filter containing block.
+// This makes fixed positioning reliable on mobile and short desktop viewports.
+document.body.append(filterBackdrop, filterPanel);
+
 let baseFleet = websiteFleet.slice();
 let cars = baseFleet.slice();
-let activeFilter = "all";
+let activeType = "all";
+let activeBrand = "all";
 let quickFilter = "all";
 let searchQuery = "";
 let sortMode = "featured";
@@ -187,11 +193,9 @@ function bodyTypeFor(car) {
   return "Coupe";
 }
 
-function filterLabel(filter) {
-  if (filter === "all") return "All cars";
-  if (filter.startsWith("brand:")) return filter.replace("brand:", "");
-  if (filter.startsWith("type:")) return filter.replace("type:", "");
-  return filter;
+function filterLabel() {
+  const parts = [activeBrand !== "all" ? activeBrand : "", activeType !== "all" ? activeType : ""].filter(Boolean);
+  return parts.join(" · ") || "All cars";
 }
 
 function vehicleDisplay(car) {
@@ -202,10 +206,9 @@ function vehicleDisplay(car) {
 }
 
 function matchesFilter(car) {
-  if (activeFilter === "all") return true;
-  if (activeFilter.startsWith("brand:")) return brandFor(car) === activeFilter.replace("brand:", "");
-  if (activeFilter.startsWith("type:")) return bodyTypeFor(car) === activeFilter.replace("type:", "");
-  return true;
+  const matchesType = activeType === "all" || bodyTypeFor(car) === activeType;
+  const matchesBrand = activeBrand === "all" || brandFor(car) === activeBrand;
+  return matchesType && matchesBrand;
 }
 
 function quickFilterLabel(filter) {
@@ -247,7 +250,9 @@ function searchableText(car) {
 }
 
 function matchesSearch(car) {
-  return !searchQuery || searchableText(car).includes(searchQuery);
+  if (!searchQuery) return true;
+  const haystack = searchableText(car);
+  return searchQuery.split(/\s+/).filter(Boolean).every((token) => haystack.includes(token));
 }
 
 function sortedCars(source) {
@@ -282,26 +287,26 @@ function renderFilterButtons() {
 
   typeFilters.innerHTML = [
     { value: "all", label: "All" },
-    ...types.map((type) => ({ value: `type:${type}`, label: type })),
+    ...types.map((type) => ({ value: type, label: type })),
   ]
     .map((item) => {
       const count = item.value === "all" ? cars.length : cars.filter((car) => bodyTypeFor(car) === item.label).length;
-      return `<button class="${activeFilter === item.value ? "active" : ""}" type="button" data-filter="${item.value}">${item.label}<small>${count}</small></button>`;
+      return `<button class="${activeType === item.value ? "active" : ""}" type="button" data-filter-type="${item.value}" aria-pressed="${activeType === item.value}">${item.label}<small>${count}</small></button>`;
     })
     .join("");
 
-  brandFilters.innerHTML = brands
-    .map((brand) => {
+  brandFilters.innerHTML = [
+    `<button class="${activeBrand === "all" ? "active" : ""}" type="button" data-filter-brand="all" aria-pressed="${activeBrand === "all"}">All brands<small>${cars.length}</small></button>`,
+    ...brands.map((brand) => {
       const count = cars.filter((car) => brandFor(car) === brand).length;
-      const value = `brand:${brand}`;
-      return `<button class="${activeFilter === value ? "active" : ""}" type="button" data-filter="${value}">${brand}<small>${count}</small></button>`;
-    })
-    .join("");
+      return `<button class="${activeBrand === brand ? "active" : ""}" type="button" data-filter-brand="${escapeHtml(brand)}" aria-pressed="${activeBrand === brand}">${escapeHtml(brand)}<small>${count}</small></button>`;
+    }),
+  ].join("");
 
   if (brandRail) {
     brandRail.innerHTML = brands.map((brand) => {
       const count = cars.filter((car) => brandFor(car) === brand).length;
-      const isActive = activeFilter === `brand:${brand}`;
+      const isActive = activeBrand === brand;
       return `
         <button class="${isActive ? "active" : ""}" type="button" data-brand-shortcut="${escapeHtml(brand)}" aria-label="Show ${count} ${escapeHtml(brandDisplayName(brand))} cars" aria-pressed="${isActive}">
           <span class="fleet-brand-mark">${brandLogoMarkup(brand)}</span>
@@ -357,7 +362,7 @@ function renderPopularCars() {
 
 function renderCards() {
   const visibleCars = sortedCars(cars.filter(matchesFilter).filter(matchesQuickFilter).filter(matchesSearch));
-  const label = filterLabel(activeFilter);
+  const label = filterLabel();
   const quickLabel = quickFilterLabel(quickFilter);
   const resultContext = [quickFilter !== "all" ? quickLabel : "", label !== "All cars" ? label : "", searchInput.value.trim() ? `Search: “${searchInput.value.trim()}”` : ""]
     .filter(Boolean)
@@ -400,14 +405,16 @@ function renderFleet() {
   cars = baseFleet.slice();
   const activeSlugs = new Set(cars.map(vehicleSlug));
   popularSlugs = new Set(POPULAR_VEHICLE_SLUGS.filter((slug) => activeSlugs.has(slug)).slice(0, 6));
-  if (activeFilter !== "all" && !cars.some(matchesFilter)) activeFilter = "all";
+  if (activeType !== "all" && !cars.some((car) => bodyTypeFor(car) === activeType)) activeType = "all";
+  if (activeBrand !== "all" && !cars.some((car) => brandFor(car) === activeBrand)) activeBrand = "all";
   renderFilterButtons();
   renderPopularCars();
   renderCards();
 }
 
 function renderFleetLoading() {
-  activeFilter = "all";
+  activeType = "all";
+  activeBrand = "all";
   countLabel.textContent = "Loading fleet";
   filterNote.textContent = "Cloud fleet";
   activeFilterLabel.textContent = "Loading";
@@ -557,14 +564,20 @@ availabilityForm?.addEventListener("submit", async (event) => {
   }
 });
 
-function closeFilters() {
+function closeFilters({ returnFocus = false } = {}) {
   filterPanel.hidden = true;
+  filterBackdrop.hidden = true;
   filterToggle.setAttribute("aria-expanded", "false");
+  document.body.classList.remove("fleet-filters-open");
+  if (returnFocus) filterToggle.focus();
 }
 
 function openFilters() {
   filterPanel.hidden = false;
+  filterBackdrop.hidden = false;
   filterToggle.setAttribute("aria-expanded", "true");
+  document.body.classList.add("fleet-filters-open");
+  window.requestAnimationFrame(() => filterPanel.querySelector("button.active")?.focus());
 }
 
 filterToggle.addEventListener("click", () => {
@@ -573,12 +586,27 @@ filterToggle.addEventListener("click", () => {
 });
 
 filterPanel.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-filter]");
+  event.stopPropagation();
+  if (event.target.closest("[data-filter-close]")) {
+    closeFilters({ returnFocus: true });
+    return;
+  }
+  if (event.target.closest("[data-filter-clear]")) {
+    activeType = "all";
+    activeBrand = "all";
+    renderFleet();
+    trackFleetEvent("fleet_filter", { type: activeType, brand: activeBrand });
+    return;
+  }
+  const button = event.target.closest("[data-filter-type], [data-filter-brand]");
   if (!button) return;
-  activeFilter = button.dataset.filter;
+  if (button.dataset.filterType) activeType = button.dataset.filterType;
+  if (button.dataset.filterBrand) activeBrand = button.dataset.filterBrand;
   renderFleet();
-  closeFilters();
+  trackFleetEvent("fleet_filter", { type: activeType, brand: activeBrand });
 });
+
+filterBackdrop.addEventListener("click", () => closeFilters({ returnFocus: true }));
 
 function syncFleetSearch() {
   searchQuery = searchInput.value
@@ -599,6 +627,13 @@ clearSearchButton.addEventListener("click", () => {
   renderCards();
 });
 
+searchInput.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape" || !searchInput.value) return;
+  searchInput.value = "";
+  searchQuery = "";
+  renderCards();
+});
+
 sortSelect.addEventListener("change", () => {
   sortMode = sortSelect.value;
   renderCards();
@@ -607,7 +642,8 @@ sortSelect.addEventListener("change", () => {
 quickFilterButtons.forEach((button) => {
   button.addEventListener("click", () => {
     quickFilter = button.dataset.quickFilter || "all";
-    activeFilter = "all";
+    activeType = "all";
+    activeBrand = "all";
     renderCards();
     trackFleetEvent("fleet_quick_filter", { filter: quickFilter });
   });
@@ -636,7 +672,8 @@ function handleFleetCardClick(event) {
   }
 
   if (event.target.closest("[data-reset-fleet]")) {
-    activeFilter = "all";
+    activeType = "all";
+    activeBrand = "all";
     quickFilter = "all";
     searchInput.value = "";
     searchQuery = "";
@@ -652,7 +689,8 @@ popularGrid?.addEventListener("click", handleFleetCardClick);
 brandRail?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-brand-shortcut]");
   if (!button) return;
-  activeFilter = `brand:${button.dataset.brandShortcut}`;
+  activeBrand = button.dataset.brandShortcut;
+  activeType = "all";
   quickFilter = "all";
   renderFleet();
   document.querySelector(".fleet-showroom")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -690,7 +728,8 @@ brandRail?.addEventListener("scroll", () => {
 }, { passive: true });
 
 document.querySelector("[data-show-popular]")?.addEventListener("click", () => {
-  activeFilter = "all";
+  activeType = "all";
+  activeBrand = "all";
   quickFilter = "popular";
   renderCards();
   document.querySelector(".fleet-showroom")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -703,7 +742,7 @@ document.addEventListener("click", (event) => {
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
-    closeFilters();
+    closeFilters({ returnFocus: !filterPanel.hidden });
     closeAvailabilityDrawer();
     return;
   }

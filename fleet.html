@@ -25,6 +25,7 @@
     <link rel="apple-touch-icon" href="/assets/prestige-luxor-apple-touch-icon.png?v=prestige-luxor-20260806" />
     <link rel="preload" href="/src/styles.css?v=site-theme-20260719" as="style" />
     <link rel="stylesheet" href="/src/styles.css?v=site-theme-20260719" />
+    <link rel="stylesheet" href="/src/fleet-controls.css?v=fleet-controls-20260818" />
   </head>
   <body class="site-theme fleet-page">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -144,7 +145,14 @@
               <strong data-active-filter>All cars</strong>
             </button>
 
-            <div id="fleet-filter-panel" class="fleet-filter-panel" hidden data-filter-panel>
+            <div id="fleet-filter-panel" class="fleet-filter-panel" role="dialog" aria-modal="false" aria-labelledby="fleet-filter-title" hidden data-filter-panel>
+              <div class="fleet-filter-panel-head">
+                <div>
+                  <span>Refine collection</span>
+                  <strong id="fleet-filter-title">Filter vehicles</strong>
+                </div>
+                <button type="button" aria-label="Close vehicle filters" data-filter-close>&times;</button>
+              </div>
               <div class="fleet-filter-group">
                 <span>Type</span>
                 <div data-type-filters></div>
@@ -153,7 +161,12 @@
                 <span>Brand</span>
                 <div data-brand-filters></div>
               </div>
+              <div class="fleet-filter-panel-actions">
+                <button type="button" data-filter-clear>Clear filters</button>
+                <button type="button" data-filter-close>Show results</button>
+              </div>
             </div>
+            <button class="fleet-filter-backdrop" type="button" aria-label="Close vehicle filters" hidden data-filter-backdrop></button>
           </div>
         </div>
 
@@ -284,6 +297,6 @@
       </div>
     </footer>
 
-    <script type="module" src="/src/fleet-page.js?v=fleet-images-20260818"></script>
+    <script type="module" src="/src/fleet-page.js?v=fleet-controls-20260818"></script>
   </body>
 </html>
