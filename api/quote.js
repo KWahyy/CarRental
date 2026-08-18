@@ -1,3 +1,5 @@
+import { db } from "./_invoice-core.js";
+
 const MAX_TEXT_LENGTH = 3000;
 const QUOTE_NOTIFICATION_EMAIL = "Contact@prestigeluxor.com";
 const DEFAULT_RESEND_FROM = "Prestige Luxor <onboarding@resend.dev>";
@@ -72,22 +74,9 @@ async function readBody(req) {
 }
 
 async function insertQuote(payload, req) {
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_SERVICE_KEY ||
-    process.env.SUPABASE_SECRET_KEY;
-
-  if (!supabaseUrl || !serviceKey) {
-    throw new Error("Supabase server credentials are missing.");
-  }
-
-  const response = await fetch(`${supabaseUrl.replace(/\/$/, "")}/rest/v1/quote_requests`, {
+  const rows = await db("quote_requests", {
     method: "POST",
     headers: {
-      apikey: serviceKey,
-      Authorization: `Bearer ${serviceKey}`,
-      "Content-Type": "application/json",
       Prefer: "return=representation",
     },
     body: JSON.stringify({
@@ -111,29 +100,16 @@ async function insertQuote(payload, req) {
       notification_status: "pending",
     }),
   });
-
-  const data = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(data?.message || data?.hint || "Could not save quote request.");
-  }
-
-  return Array.isArray(data) ? data[0] : data;
+  const quote = Array.isArray(rows) ? rows[0] : rows;
+  if (!quote?.id) throw new Error("The CRM did not return a saved quote request.");
+  return quote;
 }
 
 async function updateQuoteNotification(id, status, errorMessage = "") {
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_SERVICE_KEY ||
-    process.env.SUPABASE_SECRET_KEY;
-  if (!supabaseUrl || !serviceKey || !id) return;
-
-  await fetch(`${supabaseUrl.replace(/\/$/, "")}/rest/v1/quote_requests?id=eq.${encodeURIComponent(id)}`, {
+  if (!id) return;
+  await db(`quote_requests?id=eq.${encodeURIComponent(id)}`, {
     method: "PATCH",
     headers: {
-      apikey: serviceKey,
-      Authorization: `Bearer ${serviceKey}`,
-      "Content-Type": "application/json",
       Prefer: "return=minimal",
     },
     body: JSON.stringify({
@@ -412,10 +388,10 @@ export default async function handler(req, res) {
       );
     }
 
-    if (!quote && !emailSent) {
+    if (!quote) {
       return json(res, 503, {
         ok: false,
-        message: "We could not send this request. Please call or text us directly.",
+        message: "We could not save this request in the CRM. Please try again or call or text us directly.",
       });
     }
 
