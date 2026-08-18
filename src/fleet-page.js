@@ -322,14 +322,15 @@ function vehicleYear(car) {
   return String(car.year || car.name.match(/^(\d{4})/)?.[1] || "Exclusive");
 }
 
-function cardMarkup(car, variant = "collection") {
+function cardMarkup(car, variant = "collection", highPriority = false) {
   const slug = vehicleSlug(car);
   const { brand, model } = vehicleDisplay(car);
   const originalImage = originalCarImage(car);
+  const isPopular = variant === "popular";
   return `
     <article class="showroom-card showroom-card-${variant}" data-vehicle-slug="${escapeHtml(slug)}" data-vehicle="${escapeHtml(car.name)}">
       <a class="showroom-card-media" href="/cars/${escapeHtml(slug)}.html" aria-label="View ${escapeHtml(car.name)}" data-fleet-card-link data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${escapeHtml(slug)}">
-        <img src="${escapeHtml(carImage(car))}" alt="${escapeHtml(car.name)}" width="900" height="675" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${escapeHtml(originalImage)}';" />
+        <img src="${escapeHtml(carImage(car))}" alt="${escapeHtml(car.name)}" width="900" height="675" loading="${isPopular ? "eager" : "lazy"}" decoding="async"${highPriority ? ' fetchpriority="high"' : ""} onerror="this.onerror=null;this.src='${escapeHtml(originalImage)}';" />
       </a>
       <div class="showroom-card-body">
         <div class="showroom-card-title">
@@ -351,7 +352,7 @@ function renderPopularCars() {
     .filter(Boolean)
     .slice(0, 3);
   const fallback = selected.length === 3 ? selected : sortedCars(cars).slice(0, 3);
-  popularGrid.innerHTML = fallback.map((car) => cardMarkup(car, "popular")).join("");
+  popularGrid.innerHTML = fallback.map((car, index) => cardMarkup(car, "popular", index === 0)).join("");
 }
 
 function renderCards() {
