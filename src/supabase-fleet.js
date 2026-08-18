@@ -62,6 +62,36 @@ export function cacheSafeFleetImageUrl(url, updatedAt = "") {
   }
 }
 
+export function optimizedFleetImageUrl(url, { width = 900, height = 675, quality = 78, updatedAt = "" } = {}) {
+  const source = cacheSafeFleetImageUrl(url, updatedAt);
+  if (!source) return source;
+
+  if (source.includes("/storage/v1/object/public/")) {
+    try {
+      const parsed = new URL(source, window.location.origin);
+      parsed.pathname = parsed.pathname.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
+      parsed.searchParams.set("width", String(width));
+      parsed.searchParams.set("height", String(height));
+      parsed.searchParams.set("resize", "cover");
+      parsed.searchParams.set("quality", String(quality));
+      return parsed.href;
+    } catch {
+      return source;
+    }
+  }
+
+  const [path, query = ""] = source.split("?");
+  let optimized = "";
+  if (/^\/assets\/fleet\/[^/]+\.(jpe?g|png)$/i.test(path)) {
+    optimized = path.replace("/assets/fleet/", "/assets/fleet-optimized/").replace(/\.(jpe?g|png)$/i, ".webp");
+  } else if (/^\/assets\/fleet-galleries\/.+\.(jpe?g|png)$/i.test(path)) {
+    optimized = path.replace("/assets/fleet-galleries/", "/assets/fleet-galleries-optimized/").replace(/\.(jpe?g|png)$/i, ".webp");
+  } else if (path === "/assets/prestige-luxor-hero.png") {
+    optimized = "/assets/optimized/prestige-luxor-hero.webp";
+  }
+  return optimized ? `${optimized}${query ? `?${query}` : ""}` : source;
+}
+
 function analyticsSessionId() {
   try {
     let id = window.sessionStorage.getItem(ANALYTICS_SESSION_KEY);
