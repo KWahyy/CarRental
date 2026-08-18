@@ -123,7 +123,8 @@ function quoteEmailHtml(payload) {
   const addons = payload.addons.length ? payload.addons.join(", ") : "None selected";
   const isAvailability = payload.requestType === "availability";
   const isPartner = payload.requestType === "partner";
-  const requestLabel = isPartner ? "New owner application" : isAvailability ? "Vehicle availability check" : "New private quote";
+  const isWedding = payload.requestType === "wedding";
+  const requestLabel = isPartner ? "New owner application" : isAvailability ? "Vehicle availability check" : isWedding ? "New wedding inquiry" : "New private quote";
   const phoneLink = phoneHref(payload.phone);
   const emailLink = payload.email ? `mailto:${escapeHtml(payload.email)}` : "";
   const pageLink = safeWebUrl(payload.pageUrl);
@@ -226,7 +227,7 @@ function quoteEmailHtml(payload) {
                         <tr>
                           <td class="detail-column detail-column-left" width="50%" valign="top" style="padding:12px 22px 22px;">
                             <div style="font-family:Arial,Helvetica,sans-serif;color:#8f887d;font-size:10px;line-height:15px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;">Insurance</div>
-                            <div style="margin-top:5px;font-family:Arial,Helvetica,sans-serif;color:#fffdf8;font-size:16px;line-height:23px;font-weight:700;">${escapeHtml(isAvailability ? "Availability request" : isPartner ? "Owner application" : payload.insuranceProvider || "Not provided")}</div>
+                            <div style="margin-top:5px;font-family:Arial,Helvetica,sans-serif;color:#fffdf8;font-size:16px;line-height:23px;font-weight:700;">${escapeHtml(isAvailability ? "Availability request" : isPartner ? "Owner application" : isWedding ? payload.insuranceProvider || "Chauffeur / not required" : payload.insuranceProvider || "Not provided")}</div>
                           </td>
                           <td class="detail-column detail-column-right" width="50%" valign="top" style="padding:12px 22px 22px;">
                             <div style="font-family:Arial,Helvetica,sans-serif;color:#8f887d;font-size:10px;line-height:15px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;">Add-ons</div>
@@ -271,15 +272,16 @@ function quoteEmailHtml(payload) {
 function quoteEmailText(payload) {
   const isAvailability = payload.requestType === "availability";
   const isPartner = payload.requestType === "partner";
+  const isWedding = payload.requestType === "wedding";
   return [
-    isPartner ? "New Prestige Luxor owner application" : isAvailability ? "New Prestige Luxor availability check" : "New Prestige Luxor quote request",
-    `Request type: ${isPartner ? "Owner vehicle review" : isAvailability ? "Manual availability check" : "Full quote"}`,
+    isPartner ? "New Prestige Luxor owner application" : isAvailability ? "New Prestige Luxor availability check" : isWedding ? "New Prestige Luxor wedding inquiry" : "New Prestige Luxor quote request",
+    `Request type: ${isPartner ? "Owner vehicle review" : isAvailability ? "Manual availability check" : isWedding ? "Wedding transportation inquiry" : "Full quote"}`,
     `Name: ${payload.name}`,
     `Phone: ${payload.phone}`,
     `Email: ${payload.email || "Not provided"}`,
     `Vehicle: ${payload.vehicle || "Vehicle TBD"}`,
     `Rental date: ${payload.date || "Date TBD"}`,
-    ...(isAvailability || isPartner ? [] : [`Insurance provider: ${payload.insuranceProvider || "Not provided"}`]),
+    ...(isAvailability || isPartner ? [] : [`Insurance provider: ${payload.insuranceProvider || (isWedding ? "Chauffeur / not required" : "Not provided")}`]),
     `Add-ons: ${payload.addons.length ? payload.addons.join(", ") : "None selected"}`,
     `Message: ${payload.message || "No message included."}`,
   ].join("\n");
@@ -304,7 +306,7 @@ async function sendOwnerEmail(payload) {
       from,
       to,
       reply_to: payload.email || undefined,
-      subject: `${payload.requestType === "partner" ? "Owner application" : payload.requestType === "availability" ? "Availability check" : "New quote request"}: ${payload.vehicle || "Vehicle TBD"}`,
+      subject: `${payload.requestType === "partner" ? "Owner application" : payload.requestType === "availability" ? "Availability check" : payload.requestType === "wedding" ? "Wedding inquiry" : "New quote request"}: ${payload.vehicle || "Vehicle TBD"}`,
       html: quoteEmailHtml(payload),
       text: quoteEmailText(payload),
     }),
@@ -337,7 +339,7 @@ export default async function handler(req, res) {
 
     const requestedType = cleanString(body.requestType, 40);
     const payload = {
-      requestType: ["availability", "partner"].includes(requestedType) ? requestedType : "quote",
+      requestType: ["availability", "partner", "wedding"].includes(requestedType) ? requestedType : "quote",
       source: cleanString(body.source, 80),
       name: cleanString(body.name, 120),
       phone: cleanString(body.phone, 80),
@@ -356,6 +358,10 @@ export default async function handler(req, res) {
 
     if (payload.requestType === "quote" && payload.source !== "google-ads-landing-page" && !payload.insuranceProvider) {
       return json(res, 400, { ok: false, message: "Insurance provider is required." });
+    }
+
+    if (payload.requestType === "wedding" && payload.addons.some((item) => /self-drive/i.test(item)) && !payload.insuranceProvider) {
+      return json(res, 400, { ok: false, message: "Insurance provider is required for a self-drive wedding rental." });
     }
 
     if (payload.source === "google-ads-landing-page" && !payload.email) {
