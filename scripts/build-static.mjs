@@ -13,6 +13,7 @@ const pathsToCopy = [
   "exotic-car-rental.html",
   "faq.html",
   "fleet.html",
+  "lamborghini.html",
   "partner.html",
   "quote.html",
   "wedding.html",
@@ -526,6 +527,7 @@ writeFileSync(
 const sitemapPages = [
   "",
   "fleet",
+  "lamborghini",
   "exotic-car-rental",
   "faq",
   "partner",
