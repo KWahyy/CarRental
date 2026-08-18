@@ -226,8 +226,8 @@ function quoteEmailHtml(payload) {
                         </tr>
                         <tr>
                           <td class="detail-column detail-column-left" width="50%" valign="top" style="padding:12px 22px 22px;">
-                            <div style="font-family:Arial,Helvetica,sans-serif;color:#8f887d;font-size:10px;line-height:15px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;">Insurance</div>
-                            <div style="margin-top:5px;font-family:Arial,Helvetica,sans-serif;color:#fffdf8;font-size:16px;line-height:23px;font-weight:700;">${escapeHtml(isAvailability ? "Availability request" : isPartner ? "Owner application" : isWedding ? payload.insuranceProvider || "Chauffeur / not required" : payload.insuranceProvider || "Not provided")}</div>
+                            <div style="font-family:Arial,Helvetica,sans-serif;color:#8f887d;font-size:10px;line-height:15px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;">${isWedding ? "Insurance" : "Request type"}</div>
+                            <div style="margin-top:5px;font-family:Arial,Helvetica,sans-serif;color:#fffdf8;font-size:16px;line-height:23px;font-weight:700;">${escapeHtml(isWedding ? payload.insuranceProvider || "Chauffeur / not required" : isAvailability ? "Availability request" : isPartner ? "Owner application" : "Private quote")}</div>
                           </td>
                           <td class="detail-column detail-column-right" width="50%" valign="top" style="padding:12px 22px 22px;">
                             <div style="font-family:Arial,Helvetica,sans-serif;color:#8f887d;font-size:10px;line-height:15px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;">Add-ons</div>
@@ -281,7 +281,7 @@ function quoteEmailText(payload) {
     `Email: ${payload.email || "Not provided"}`,
     `Vehicle: ${payload.vehicle || "Vehicle TBD"}`,
     `Rental date: ${payload.date || "Date TBD"}`,
-    ...(isAvailability || isPartner ? [] : [`Insurance provider: ${payload.insuranceProvider || (isWedding ? "Chauffeur / not required" : "Not provided")}`]),
+    ...(isWedding ? [`Insurance provider: ${payload.insuranceProvider || "Chauffeur / not required"}`] : []),
     `Add-ons: ${payload.addons.length ? payload.addons.join(", ") : "None selected"}`,
     `Message: ${payload.message || "No message included."}`,
   ].join("\n");
@@ -354,10 +354,6 @@ export default async function handler(req, res) {
 
     if (!payload.name || !payload.phone) {
       return json(res, 400, { ok: false, message: "Name and phone are required." });
-    }
-
-    if (payload.requestType === "quote" && payload.source !== "google-ads-landing-page" && !payload.insuranceProvider) {
-      return json(res, 400, { ok: false, message: "Insurance provider is required." });
     }
 
     if (payload.requestType === "wedding" && payload.addons.some((item) => /self-drive/i.test(item)) && !payload.insuranceProvider) {
