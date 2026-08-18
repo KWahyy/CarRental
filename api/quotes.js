@@ -83,11 +83,155 @@ async function preparedPayload(body, userId, token, current = {}) {
   };
 }
 
+function emailEscape(value, max = 5000) {
+  return clean(value, max)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function emailUrl(value) {
+  try {
+    const url = new URL(clean(value, 1000));
+    return ["http:", "https:"].includes(url.protocol) ? emailEscape(url.href, 1000) : "https://www.prestigeluxor.com";
+  } catch {
+    return "https://www.prestigeluxor.com";
+  }
+}
+
+function emailDate(value, options = {}) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "To be confirmed" : date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", ...options });
+}
+
+function emailMoney(value) {
+  return Number(value || 0).toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
+}
+
+export function quoteEmailHtml(quote, publicUrl) {
+  const firstName = emailEscape(quote.customer_first_name || "there", 100);
+  const quoteNumber = emailEscape(quote.quote_number || "Private quote", 80);
+  const vehicle = emailEscape(quote.vehicle_name || "Vehicle to be confirmed", 240);
+  const startDate = emailEscape(emailDate(quote.start_at), 80);
+  const endDate = emailEscape(emailDate(quote.end_at), 80);
+  const total = emailEscape(emailMoney(quote.rental_total), 80);
+  const amountRequired = Number(quote.amount_required || 0);
+  const requiredLabel = amountRequired > 0 ? emailEscape(emailMoney(amountRequired), 80) : "Confirmed on acceptance";
+  const secureUrl = emailUrl(publicUrl);
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="supported-color-schemes" content="dark">
+    <title>${quoteNumber} · Prestige Luxor</title>
+    <style>
+      @media only screen and (max-width:620px) {
+        .email-shell { padding:0 !important; }
+        .email-card { border-left:0 !important; border-right:0 !important; }
+        .email-pad { padding-left:22px !important; padding-right:22px !important; }
+        .email-title { font-size:32px !important; line-height:37px !important; }
+        .detail-cell { display:block !important; width:100% !important; padding:0 0 18px !important; }
+        .summary-label, .summary-value { display:block !important; width:100% !important; text-align:left !important; }
+        .summary-value { padding-top:5px !important; }
+      }
+    </style>
+  </head>
+  <body style="margin:0;padding:0;background:#070707;color:#ffffff;-webkit-text-size-adjust:100%;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">Your ${vehicle} quote is ready to review.</div>
+    <div class="email-shell" style="background:#070707;padding:32px 14px;font-family:Arial,Helvetica,sans-serif;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse:collapse;">
+        <tr><td align="center">
+          <table class="email-card" role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:660px;border-collapse:separate;background:#111111;border:1px solid #343434;">
+            <tr>
+              <td class="email-pad" style="padding:24px 32px;border-bottom:1px solid #343434;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                  <tr>
+                    <td valign="middle"><a href="https://www.prestigeluxor.com" style="text-decoration:none;"><img src="https://www.prestigeluxor.com/assets/prestige-luxor-logo-light.png" width="1684" alt="Prestige Luxor" style="display:block;width:158px;height:auto;border:0;"></a></td>
+                    <td align="right" valign="middle"><span style="display:inline-block;border:1px solid #5a5a5a;padding:8px 11px;color:#ffffff;font-size:10px;line-height:12px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;">${quoteNumber}</span></td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td class="email-pad" style="padding:46px 32px 38px;">
+                <div style="color:#a7a7a7;font-size:11px;line-height:16px;font-weight:800;letter-spacing:2px;text-transform:uppercase;">Private rental proposal</div>
+                <h1 class="email-title" style="margin:13px 0 0;color:#ffffff;font-size:42px;line-height:47px;letter-spacing:-1px;">${firstName}, your quote<br>is ready.</h1>
+                <p style="margin:18px 0 0;max-width:520px;color:#b8b8b8;font-size:16px;line-height:26px;">Review the vehicle, rental details, pricing, and reservation terms prepared for you by Prestige Luxor.</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="email-pad" style="padding:0 32px 28px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#191919;border:1px solid #3b3b3b;">
+                  <tr><td style="padding:24px 24px 22px;">
+                    <div style="color:#929292;font-size:10px;line-height:15px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;">Selected vehicle</div>
+                    <div style="margin-top:7px;color:#ffffff;font-size:25px;line-height:31px;font-weight:800;">${vehicle}</div>
+                  </td></tr>
+                  <tr><td style="padding:0 24px;"><div style="height:1px;background:#3b3b3b;"></div></td></tr>
+                  <tr><td style="padding:22px 24px 5px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td class="detail-cell" width="50%" valign="top" style="padding:0 12px 18px 0;"><div style="color:#929292;font-size:10px;line-height:15px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;">Rental starts</div><div style="margin-top:5px;color:#ffffff;font-size:16px;line-height:23px;font-weight:700;">${startDate}</div></td>
+                        <td class="detail-cell" width="50%" valign="top" style="padding:0 0 18px 12px;"><div style="color:#929292;font-size:10px;line-height:15px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;">Rental ends</div><div style="margin-top:5px;color:#ffffff;font-size:16px;line-height:23px;font-weight:700;">${endDate}</div></td>
+                      </tr>
+                    </table>
+                  </td></tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td class="email-pad" style="padding:0 32px 32px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-top:1px solid #3b3b3b;border-bottom:1px solid #3b3b3b;">
+                  <tr><td class="summary-label" width="50%" style="padding:20px 0;color:#a5a5a5;font-size:12px;line-height:18px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;">Rental total</td><td class="summary-value" width="50%" align="right" style="padding:20px 0;color:#ffffff;font-size:27px;line-height:32px;font-weight:800;">${total}</td></tr>
+                  <tr><td class="summary-label" width="50%" style="padding:0 0 20px;color:#a5a5a5;font-size:12px;line-height:18px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;">Required to reserve</td><td class="summary-value" width="50%" align="right" style="padding:0 0 20px;color:#ffffff;font-size:15px;line-height:22px;font-weight:700;">${requiredLabel}</td></tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td class="email-pad" style="padding:0 32px 42px;">
+                <a href="${secureUrl}" style="display:block;background:#ffffff;border:1px solid #ffffff;padding:17px 20px;color:#080808;font-size:13px;line-height:18px;font-weight:900;letter-spacing:1px;text-align:center;text-decoration:none;text-transform:uppercase;">Review &amp; accept quote</a>
+                <p style="margin:18px 0 0;color:#868686;font-size:12px;line-height:19px;text-align:center;">This private link is unique to your quote. Vehicle availability is confirmed when the required reservation payment is received.</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="email-pad" style="padding:22px 32px;background:#0a0a0a;border-top:1px solid #343434;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                  <tr><td style="color:#777777;font-size:11px;line-height:18px;">Prestige Luxor · Los Angeles &amp; Orange County</td><td align="right" style="font-size:11px;line-height:18px;"><a href="tel:+19496200024" style="color:#ffffff;text-decoration:none;">(949) 620-0024</a></td></tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td></tr>
+      </table>
+    </div>
+  </body>
+</html>`;
+}
+
+export function quoteEmailText(quote, publicUrl) {
+  return [
+    `Prestige Luxor private quote · ${clean(quote.quote_number, 80)}`,
+    "",
+    `${clean(quote.customer_first_name, 100) || "Your quote"}, your quote is ready.`,
+    `Vehicle: ${clean(quote.vehicle_name, 240) || "To be confirmed"}`,
+    `Rental dates: ${emailDate(quote.start_at)} – ${emailDate(quote.end_at)}`,
+    `Rental total: ${emailMoney(quote.rental_total)}`,
+    `Required to reserve: ${Number(quote.amount_required || 0) > 0 ? emailMoney(quote.amount_required) : "Confirmed on acceptance"}`,
+    "",
+    `Review and accept your quote: ${clean(publicUrl, 1000)}`,
+    "",
+    "This private link is unique to your quote. Vehicle availability is confirmed when the required reservation payment is received.",
+    "Prestige Luxor · (949) 620-0024",
+  ].join("\n");
+}
+
 async function sendQuoteEmail(quote, publicUrl) {
   if (!quote.customer_email) return { delivered: false, reason: "No customer email; copy the secure link to send manually." };
   const key = process.env.RESEND_API_KEY;
   if (!key) return { delivered: false, reason: "Email delivery is not configured; copy the secure link to send manually." };
-  const name = [quote.customer_first_name, quote.customer_last_name].filter(Boolean).join(" ") || "there";
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
@@ -95,7 +239,8 @@ async function sendQuoteEmail(quote, publicUrl) {
       from: process.env.QUOTE_FROM_EMAIL || "Prestige Luxor <onboarding@resend.dev>",
       to: [quote.customer_email],
       subject: `${quote.quote_number} · Your Prestige Luxor quote`,
-      html: `<div style="background:#090807;padding:28px;font-family:Arial,sans-serif;color:#f7f2e8"><div style="max-width:620px;margin:auto;border:1px solid #3a3020;background:#151310;padding:30px"><p style="color:#d7b46a;text-transform:uppercase;letter-spacing:1.5px;font-size:12px">Prestige Luxor private quote</p><h1 style="font-size:30px">${clean(name, 200)}, your quote is ready.</h1><p style="color:#bbb1a3;line-height:1.6">${clean(quote.vehicle_name, 240)} · ${new Date(quote.start_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${new Date(quote.end_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p><p style="font-size:28px;color:#fff">$${Number(quote.rental_total || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}</p><a href="${publicUrl}" style="display:inline-block;margin-top:16px;background:#d7b46a;color:#100d08;padding:15px 22px;text-decoration:none;font-weight:800">View & accept quote</a><p style="margin-top:24px;color:#877f74;font-size:12px">This secure link is unique to your quote. Vehicle availability is not guaranteed until the reservation payment is received.</p></div></div>`,
+      html: quoteEmailHtml(quote, publicUrl),
+      text: quoteEmailText(quote, publicUrl),
     }),
   });
   const data = await response.json().catch(() => ({}));
