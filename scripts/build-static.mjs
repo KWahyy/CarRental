@@ -419,7 +419,7 @@ if (existsSync(carDir)) {
     const imageUrl = existsSync(join(root, imagePath)) ? `${siteUrl}/${imagePath}` : `${siteUrl}/assets/prestige-luxor-hero.png`;
     const isActive = activeInventoryBySlug.has(slug);
     html = html
-      .replace(/\/src\/vehicle\.js\?v=[^\"]+/g, "/src/vehicle.js?v=lead-conversion-20260720")
+      .replace(/\/src\/vehicle\.js\?v=[^\"]+/g, "/src/vehicle.js?v=fleet-images-20260818")
       .replace(/\/src\/styles\.css\?v=[^\"]+/g, "/src/styles.css?v=site-theme-20260719")
       .replace(/<body class="(?!site-theme )/, '<body class="site-theme ');
     const metadata = `

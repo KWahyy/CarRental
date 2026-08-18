@@ -1,6 +1,6 @@
 import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=fleet-consistency-20260715";
 import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=fleet-consistency-20260715";
-import { cacheSafeFleetImageUrl, isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase, recordFleetEvent } from "./supabase-fleet.js?v=fleet-consistency-20260715";
+import { isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase, optimizedFleetImageUrl, recordFleetEvent } from "./supabase-fleet.js?v=fleet-images-20260818";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
 
 const grid = document.querySelector("[data-fleet-grid]");
@@ -263,9 +263,12 @@ function sortedCars(source) {
   });
 }
 
+function originalCarImage(car) {
+  return car.image || car.image_url || car.gallery?.[0] || "/assets/prestige-luxor-hero.png";
+}
+
 function carImage(car) {
-  const image = car.image || car.image_url || car.gallery?.[0] || "/assets/prestige-luxor-hero.png";
-  return cacheSafeFleetImageUrl(image, car.updatedAt || car.updated_at);
+  return optimizedFleetImageUrl(originalCarImage(car), { width: 900, height: 675, quality: 76, updatedAt: car.updatedAt || car.updated_at });
 }
 
 function mediaBackgroundStyle(car) {
@@ -319,13 +322,15 @@ function vehicleYear(car) {
   return String(car.year || car.name.match(/^(\d{4})/)?.[1] || "Exclusive");
 }
 
-function cardMarkup(car, variant = "collection") {
+function cardMarkup(car, variant = "collection", highPriority = false) {
   const slug = vehicleSlug(car);
   const { brand, model } = vehicleDisplay(car);
+  const originalImage = originalCarImage(car);
+  const isPopular = variant === "popular";
   return `
     <article class="showroom-card showroom-card-${variant}" data-vehicle-slug="${escapeHtml(slug)}" data-vehicle="${escapeHtml(car.name)}">
-      <a class="showroom-card-media" href="/cars/${escapeHtml(slug)}.html" aria-label="View ${escapeHtml(car.name)}" style="${mediaBackgroundStyle(car)}" data-fleet-card-link data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${escapeHtml(slug)}">
-        <img src="${escapeHtml(carImage(car))}" alt="${escapeHtml(car.name)}" width="900" height="675" loading="lazy" onerror="this.onerror=null;this.src='/assets/prestige-luxor-hero.png';" />
+      <a class="showroom-card-media" href="/cars/${escapeHtml(slug)}.html" aria-label="View ${escapeHtml(car.name)}" data-fleet-card-link data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${escapeHtml(slug)}">
+        <img src="${escapeHtml(carImage(car))}" alt="${escapeHtml(car.name)}" width="900" height="675" loading="${isPopular ? "eager" : "lazy"}" decoding="async"${highPriority ? ' fetchpriority="high"' : ""} onerror="this.onerror=null;this.src='${escapeHtml(originalImage)}';" />
       </a>
       <div class="showroom-card-body">
         <div class="showroom-card-title">
@@ -347,7 +352,7 @@ function renderPopularCars() {
     .filter(Boolean)
     .slice(0, 3);
   const fallback = selected.length === 3 ? selected : sortedCars(cars).slice(0, 3);
-  popularGrid.innerHTML = fallback.map((car) => cardMarkup(car, "popular")).join("");
+  popularGrid.innerHTML = fallback.map((car, index) => cardMarkup(car, "popular", index === 0)).join("");
 }
 
 function renderCards() {

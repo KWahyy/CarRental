@@ -1,6 +1,6 @@
 import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=fleet-consistency-20260715";
 import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=fleet-consistency-20260715";
-import { cacheSafeFleetImageUrl, isSupabaseFleetConfigured, loadVehicleFromSupabase, recordFleetEvent } from "./supabase-fleet.js?v=fleet-consistency-20260715";
+import { cacheSafeFleetImageUrl, isSupabaseFleetConfigured, loadVehicleFromSupabase, optimizedFleetImageUrl, recordFleetEvent } from "./supabase-fleet.js?v=fleet-images-20260818";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
 
 document.body.classList.add("site-theme");
@@ -46,7 +46,7 @@ function ensureVehicleShell() {
         </div>
         <div class="vehicle-gallery-stage">
           <button class="vehicle-gallery-nav vehicle-gallery-nav-prev" type="button" aria-label="Previous photo" data-gallery-prev><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></button>
-          <img data-gallery-main alt="" width="1600" height="1100" />
+          <img data-gallery-main alt="" width="1600" height="1100" fetchpriority="high" decoding="async" />
           <button class="vehicle-gallery-nav vehicle-gallery-nav-next" type="button" aria-label="Next photo" data-gallery-next><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
         </div>
       </section>
@@ -245,7 +245,13 @@ function renderGallery(gallery) {
   function setActiveImage(index) {
     if (!gallery.length || !mainImage) return;
     activeIndex = (index + gallery.length) % gallery.length;
-    mainImage.src = gallery[activeIndex];
+    const originalImage = gallery[activeIndex];
+    const optimizedImage = optimizedFleetImageUrl(originalImage, { width: 1600, height: 1100, quality: 82, updatedAt: car.updatedAt || car.updated_at });
+    mainImage.onerror = () => {
+      mainImage.onerror = null;
+      if (mainImage.src !== originalImage) mainImage.src = originalImage;
+    };
+    mainImage.src = optimizedImage;
     mainImage.alt = `${car.name} photo ${activeIndex + 1}`;
     document.querySelectorAll("[data-gallery-image]").forEach((button) => {
       button.classList.toggle("active", Number(button.dataset.galleryIndex) === activeIndex);
@@ -262,7 +268,7 @@ function renderGallery(gallery) {
       .map(
         (image, index) => `
           <button class="vehicle-side-thumb ${index === 0 ? "active" : ""}" type="button" data-gallery-image="${image}" data-gallery-index="${index}" aria-label="Show photo ${index + 1} of ${car.name}">
-            <img src="${image}" alt="" loading="lazy" width="460" height="300" />
+            <img src="${optimizedFleetImageUrl(image, { width: 460, height: 300, quality: 72, updatedAt: car.updatedAt || car.updated_at })}" alt="" loading="lazy" decoding="async" width="460" height="300" onerror="this.onerror=null;this.src='${image}'" />
           </button>
         `,
       )
@@ -441,7 +447,7 @@ function renderVehicle() {
         (item, index) => `
           <a class="related-car" href="/cars/${item.slug}.html">
             <div class="related-car-media">
-              <img src="${item.image}" alt="${escapeHtml(item.name)}" loading="lazy" width="720" height="540" />
+              <img src="${optimizedFleetImageUrl(item.image, { width: 720, height: 540, quality: 76, updatedAt: item.updatedAt || item.updated_at })}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async" width="720" height="540" onerror="this.onerror=null;this.src='${item.image}'" />
               <span aria-hidden="true">0${index + 1}</span>
             </div>
             <div class="related-car-meta">
