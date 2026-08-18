@@ -1,0 +1,76 @@
+/* Fleet search + filter interaction guard. Loaded after the legacy site cascade. */
+.fleet-page .fleet-filter-panel {
+  position: fixed;
+  z-index: 102;
+  inset: 96px 24px 24px auto;
+  width: min(390px, calc(100vw - 48px));
+  max-height: calc(100svh - 120px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  grid-template-rows: auto minmax(0, auto) minmax(0, 1fr) auto;
+}
+
+.fleet-filter-panel-head,
+.fleet-filter-panel-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.fleet-filter-panel-head {
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+
+.fleet-filter-panel-head > div { display: grid; gap: 4px; }
+.fleet-filter-panel-head span { color: rgba(240,238,232,.48); font-size: .62rem; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+.fleet-filter-panel-head strong { color: #f0eee8; font-size: 1rem; }
+.fleet-filter-panel-head > button { width: 38px; height: 38px; border: 1px solid rgba(255,255,255,.14); border-radius: 50%; background: rgba(255,255,255,.05); color: #f0eee8; font-size: 1.35rem; cursor: pointer; }
+
+.fleet-filter-panel-actions {
+  position: sticky;
+  bottom: -18px;
+  margin: 0 -18px -18px;
+  padding-top: 14px;
+  padding: 14px 18px 18px;
+  border-top: 1px solid rgba(255,255,255,.12);
+  background: #151515;
+}
+
+.fleet-filter-panel-actions button { min-height: 44px; border: 1px solid rgba(255,255,255,.16); border-radius: 0; padding: 0 16px; background: transparent; color: #f0eee8; font: inherit; font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.fleet-filter-panel-actions button:last-child { border-color: #f0eee8; background: #f0eee8; color: #111; }
+.fleet-filter-backdrop { display: none; }
+
+@media (max-width: 760px) {
+  body.fleet-filters-open { overflow: hidden; }
+  .fleet-page .fleet-filter-panel {
+    position: fixed;
+    z-index: 102;
+    inset: auto 10px 10px;
+    width: auto;
+    max-height: min(76svh, 680px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid rgba(255,255,255,.18);
+    background: #111;
+    padding: 18px;
+    box-shadow: 0 26px 90px rgba(0,0,0,.72);
+  }
+  .fleet-page .fleet-filter-backdrop:not([hidden]) {
+    position: fixed;
+    z-index: 101;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: 0;
+    background: rgba(0,0,0,.7);
+    padding: 0;
+    backdrop-filter: blur(4px);
+  }
+  .fleet-filter-panel-actions { background: #111; }
+  .fleet-filter-panel-actions button { flex: 1; }
+  .fleet-page .fleet-showroom,
+  .fleet-page .fleet-showroom-toolbar-minimal { overflow: visible; }
+}
