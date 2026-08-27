@@ -17,7 +17,7 @@ export async function submitQuoteRequest(payload) {
     response = await fetch(quoteEndpoint(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, attribution: window.prestigeAttribution?.() || {} }),
       signal: controller.signal,
     });
   } catch (error) {
@@ -32,12 +32,14 @@ export async function submitQuoteRequest(payload) {
   const result = await response.json().catch(() => ({}));
 
   if (!response.ok || !result.ok) {
+    window.prestigeTrack?.("quote_submit_failed", { form_type: payload.source || payload.requestType || "website_quote", response_status: response.status });
     throw new Error(result.message || "Your request could not be sent.");
   }
 
   if (typeof window.gtag_report_conversion === "function") {
     window.gtag_report_conversion();
   }
+  window.prestigeTrack?.("quote_submitted", { form_type: payload.source || payload.requestType || "website_quote", vehicle: payload.vehicle || "Vehicle TBD" });
 
   return result;
 }

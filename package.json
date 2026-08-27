@@ -13,5 +13,9 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "pdf-lib": "^1.17.1"
+  },
+  "devDependencies": {
+    "lightningcss": "^1.33.0",
+    "purgecss": "^8.0.0"
   }
 }

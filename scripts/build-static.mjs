@@ -1,5 +1,7 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { PurgeCSS } from "purgecss";
+import { transform } from "lightningcss";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "../src/supabase-config.js";
 
 const root = process.cwd();
@@ -34,10 +36,49 @@ for (const path of pathsToCopy) {
   }
 }
 
+async function buildHomepageStyles() {
+  const homepageContent = [
+    "index.html",
+    "src/main.js",
+    "src/admin-store.js",
+    "src/fleet-data.js",
+    "src/supabase-fleet.js",
+    "src/quote-api.js",
+  ].map((path) => join(root, path));
+  const [{ css = "" } = {}] = await new PurgeCSS().purge({
+    content: homepageContent,
+    css: [join(root, "src/styles.css")],
+    fontFace: true,
+    keyframes: true,
+    safelist: {
+      standard: ["reveal", "revealed", "active", "selected", "hidden", "visible"],
+      greedy: [/(^|-)is-/, /(^|-)has-/, /(^|-)open/, /(^|-)loading/, /(^|-)loaded/, /(^|-)success/, /(^|-)error/],
+    },
+  });
+
+  const optimized = transform({
+    filename: "styles-home.css",
+    code: Buffer.from(css),
+    minify: true,
+  }).code;
+  writeFileSync(join(outDir, "src", "styles-home.css"), optimized);
+
+  const homepagePath = join(outDir, "index.html");
+  const optimizedCss = Buffer.from(optimized).toString("utf8");
+  const homepage = readFileSync(homepagePath, "utf8").replace(
+    /<link rel="stylesheet" href="\/src\/styles\.css\?v=[^"]+" \/>/,
+    `<style data-home-critical>${optimizedCss}</style>`,
+  );
+  writeFileSync(homepagePath, homepage);
+}
+
+await buildHomepageStyles();
+
 const siteUrl = "https://www.prestigeluxor.com";
 const carDir = join(outDir, "cars");
 const phoneHref = "+19496200024";
 const phoneLabel = "(949) 620-0024";
+const retiredVehicleSlugs = new Set(["porschepanamera"]);
 
 async function loadActiveInventory() {
   if (!SUPABASE_URL?.startsWith("https://") || !SUPABASE_PUBLISHABLE_KEY) {
@@ -64,7 +105,7 @@ async function loadActiveInventory() {
   }
 
   const rows = await response.json();
-  return rows.filter((row) => /^[a-z0-9][a-z0-9-]*$/.test(row.slug));
+  return rows.filter((row) => /^[a-z0-9][a-z0-9-]*$/.test(row.slug) && !retiredVehicleSlugs.has(row.slug));
 }
 
 const activeInventory = await loadActiveInventory();
@@ -120,17 +161,120 @@ export function getVehicle(slug) {
 writeFileSync(join(outDir, "src", "fleet-data.js"), fleetSnapshotModule);
 
 const escapeJson = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
+const escapeHtml = (value) => String(value ?? "")
+  .replaceAll("&", "&amp;")
+  .replaceAll("<", "&lt;")
+  .replaceAll(">", "&gt;")
+  .replaceAll('"', "&quot;")
+  .replaceAll("'", "&#039;");
 
-function pageShell({ title, description, path, eyebrow, heading, lead, content, schemaType = "WebPage" }) {
+function optimizedPublicImageUrl(value, { width = 900, height = 675, quality = 78 } = {}) {
+  const source = String(value || "");
+  if (!source) return "/assets/optimized/prestige-luxor-hero.webp";
+  if (source.includes("/storage/v1/object/public/")) {
+    const url = new URL(source);
+    url.pathname = url.pathname.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
+    url.searchParams.set("width", String(width));
+    url.searchParams.set("height", String(height));
+    url.searchParams.set("resize", "cover");
+    url.searchParams.set("quality", String(quality));
+    return url.href;
+  }
+  if (/^\/assets\/fleet\/[^/]+\.(jpe?g|png)$/i.test(source)) {
+    return source.replace("/assets/fleet/", "/assets/fleet-optimized/").replace(/\.(jpe?g|png)$/i, ".webp");
+  }
+  return source;
+}
+
+function publicCarImage(car, options) {
+  const photos = [...(car?.car_photos || [])].sort((a, b) => Number(a.position) - Number(b.position));
+  return optimizedPublicImageUrl(photos.find(({ url }) => url)?.url || car?.image_url, options);
+}
+
+function locationFeaturedCars() {
+  const preferredSlugs = ["2022-lamborghini-huracan", "ferrari-f8", "rolls-royce-cullinan-white"];
+  const selected = preferredSlugs.map((slug) => activeInventoryBySlug.get(slug)).filter(Boolean);
+  for (const car of activeInventory) {
+    if (selected.length >= 3) break;
+    if (!selected.some(({ slug }) => slug === car.slug)) selected.push(car);
+  }
+  return selected;
+}
+
+function locationEnhancements({ slug, area }, { includeFleet = true } = {}) {
+  const featuredCars = locationFeaturedCars();
+  const fleetCards = includeFleet ? featuredCars.map((car) => `
+        <article class="location-vehicle-card">
+          <a class="location-vehicle-image" href="/cars/${escapeHtml(car.slug)}">
+            <img src="${escapeHtml(publicCarImage(car))}" alt="${escapeHtml(`${car.name} available for ${area} delivery`)}" width="900" height="675" loading="lazy" decoding="async" />
+          </a>
+          <div><p>${escapeHtml(car.make)}</p><h3>${escapeHtml(car.model)}</h3><span>From $${Number(car.price).toLocaleString("en-US")}/day</span></div>
+          <a href="/cars/${escapeHtml(car.slug)}">View vehicle <span aria-hidden="true">&#8599;</span></a>
+        </article>`).join("") : "";
+  const vehicleOptions = activeInventory
+    .slice()
+    .sort((a, b) => String(a.name).localeCompare(String(b.name)))
+    .map((car) => `<option value="${escapeHtml(car.name)}">${escapeHtml(car.name)} — from $${Number(car.price).toLocaleString("en-US")}/day</option>`)
+    .join("");
+
+  return `
+      ${includeFleet ? `<section class="location-vehicles" aria-labelledby="location-fleet-${slug}">
+        <div class="location-section-heading"><div><p>Popular in ${escapeHtml(area)}</p><h2 id="location-fleet-${slug}">Choose the car first.</h2></div><a href="/fleet">View all vehicles</a></div>
+        <div class="location-vehicle-grid">${fleetCards}</div>
+      </section>` : ""}
+      <section class="location-faq" aria-labelledby="location-faq-${slug}">
+        <div class="location-section-heading"><div><p>${escapeHtml(area)} rental details</p><h2 id="location-faq-${slug}">Know before you request.</h2></div></div>
+        <div class="location-faq-list">
+          <details><summary>Where can the vehicle be delivered in ${escapeHtml(area)}?</summary><p>We confirm an eligible hotel, residence, event venue, or agreed meeting location after reviewing access, timing, distance, and the selected vehicle.</p></details>
+          <details><summary>Is the online daily rate the final total?</summary><p>The displayed rate is a starting daily rate. Your private quote confirms dates, rental length, mileage, delivery, deposit, and any requested add-ons before you approve anything.</p></details>
+          <details><summary>What is required to reserve a vehicle?</summary><p>Start with the form below. License, insurance, eligibility, security deposit, agreement, and payment details are reviewed later during approval.</p></details>
+        </div>
+      </section>
+      <section class="location-quote-section" id="location-quote" aria-labelledby="location-quote-${slug}">
+        <div class="location-quote-copy"><p>Private availability check</p><h2 id="location-quote-${slug}">Request ${escapeHtml(area)} delivery.</h2><span>No payment is collected here. A concierge verifies the exact vehicle, dates, and total with you.</span></div>
+        <form class="location-quote-form" data-location-quote data-location-slug="${escapeHtml(slug)}" data-location-name="${escapeHtml(area)}">
+          <div class="location-form-grid">
+            <label><span>Name</span><input name="name" type="text" autocomplete="name" required /></label>
+            <label><span>Phone</span><input name="phone" type="tel" autocomplete="tel" required /></label>
+            <label><span>Email</span><input name="email" type="email" autocomplete="email" /></label>
+            <label><span>Pickup date</span><input name="date" type="date" required /></label>
+            <label><span>Return date</span><input name="returnDate" type="date" /></label>
+            <label><span>Delivery city or ZIP</span><input name="deliveryLocation" type="text" autocomplete="postal-code" required /></label>
+            <label class="location-form-wide"><span>Vehicle</span><select name="vehicle" required><option value="">Choose a vehicle</option><option value="Vehicle recommendation requested">Help me choose</option>${vehicleOptions}</select></label>
+            <label class="location-form-wide"><span>Notes</span><textarea name="message" rows="4" placeholder="Share timing, occasion, passengers, or questions."></textarea></label>
+            <label class="quote-honeypot" aria-hidden="true"><span>Company</span><input name="company" type="text" tabindex="-1" autocomplete="off" /></label>
+          </div>
+          <button type="submit">Check availability</button>
+          <p class="location-quote-status" data-location-quote-status role="status">Your request goes directly to the Prestige Luxor booking desk.</p>
+        </form>
+      </section>`;
+}
+
+function pageShell({ title, description, path, eyebrow, heading, lead, content, schemaType = "WebPage", area = "" }) {
   const canonical = `${siteUrl}/${path}`;
-  const schema = {
-    "@context": "https://schema.org",
+  const isLocationPage = path.startsWith("locations/");
+  const pageEntity = {
     "@type": schemaType,
     name: heading,
     description,
     url: canonical,
-    provider: { "@id": `${siteUrl}/#business` }
+    provider: { "@id": `${siteUrl}/#business` },
+    ...(isLocationPage ? { serviceType: "Exotic and luxury car rental delivery", areaServed: { "@type": "AdministrativeArea", name: area } } : {}),
   };
+  const schema = isLocationPage ? {
+    "@context": "https://schema.org",
+    "@graph": [
+      pageEntity,
+      {
+        "@type": "FAQPage",
+        mainEntity: [
+          { "@type": "Question", name: `Where can the vehicle be delivered in ${area}?`, acceptedAnswer: { "@type": "Answer", text: "Prestige Luxor confirms an eligible hotel, residence, event venue, or agreed meeting location after reviewing access, timing, distance, and the selected vehicle." } },
+          { "@type": "Question", name: "Is the online daily rate the final total?", acceptedAnswer: { "@type": "Answer", text: "The displayed rate is a starting daily rate. The private quote confirms dates, rental length, mileage, delivery, deposit, and requested add-ons before approval." } },
+          { "@type": "Question", name: "What is required to reserve a vehicle?", acceptedAnswer: { "@type": "Answer", text: "The initial request needs contact information, dates, preferred vehicle, and delivery area. License, insurance, eligibility, security deposit, agreement, and payment details are reviewed later during approval." } },
+        ],
+      },
+    ],
+  } : { "@context": "https://schema.org", ...pageEntity };
 
   return `<!doctype html>
 <html lang="en">
@@ -138,6 +282,7 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="${description}" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="theme-color" content="#070606" />
     <title>${title}</title>
     <link rel="canonical" href="${canonical}" />
@@ -146,11 +291,12 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
     <meta property="og:title" content="${title}" />
     <meta property="og:description" content="${description}" />
     <meta property="og:url" content="${canonical}" />
-    <meta property="og:image" content="${siteUrl}/assets/prestige-luxor-hero.png" />
+    <meta property="og:image" content="${siteUrl}/assets/prestige-luxor-search-preview.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${escapeJson(schema)}</script>
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/prestige-luxor-favicon-32.png?v=prestige-luxor-20260806" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/prestige-luxor-favicon-16.png?v=prestige-luxor-20260806" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/prestige-luxor-favicon-48.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/prestige-luxor-favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/prestige-luxor-favicon-16.png" />
     <link rel="apple-touch-icon" href="/assets/prestige-luxor-apple-touch-icon.png?v=prestige-luxor-20260806" />
     <link rel="stylesheet" href="/src/styles.css?v=site-theme-20260719" />
   </head>
@@ -159,10 +305,10 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
     <header class="site-header scrolled" data-header>
       <a class="brand" href="/" aria-label="Prestige Luxor home"><img class="brand-logo brand-logo-wide" src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" /></a>
       <nav class="desktop-nav" aria-label="Primary navigation"><a href="/fleet.html">Fleet</a><a href="/partner.html">Partner</a><a href="/faq">FAQ</a></nav>
-      <div class="header-actions"><a class="ghost-button" href="tel:${phoneHref}">Call</a><a class="primary-button compact" href="/#quote">Reserve</a></div>
+      <div class="header-actions"><a class="ghost-button" href="tel:${phoneHref}">Call</a><a class="primary-button compact" href="${isLocationPage ? "#location-quote" : "/#quote"}">Reserve</a></div>
       <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-toggle><span></span><span></span></button>
     </header>
-    <div class="mobile-menu" data-mobile-menu><a href="/fleet.html">Fleet</a><a href="/partner.html">Partner</a><a href="/faq">FAQ</a><a href="tel:${phoneHref}">Call</a><a href="/#quote">Reserve</a></div>
+    <div class="mobile-menu" data-mobile-menu><a href="/fleet.html">Fleet</a><a href="/partner.html">Partner</a><a href="/faq">FAQ</a><a href="tel:${phoneHref}">Call</a><a href="${isLocationPage ? "#location-quote" : "/#quote"}">Reserve</a></div>
     <main id="main" class="seo-page-main">
       <header class="seo-page-hero">
         <p class="eyebrow">${eyebrow}</p>
@@ -175,13 +321,14 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
     <footer class="site-footer">
       <div class="footer-main"><a class="brand footer-brand" href="/" aria-label="Prestige Luxor home"><span class="footer-logo-frame"><img class="brand-logo-wide" src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" loading="lazy" /></span></a><p>Exotic and luxury car rentals with concierge delivery across Los Angeles and Orange County.</p><div class="footer-contact"><a href="tel:${phoneHref}">Call ${phoneLabel}</a><a href="sms:${phoneHref}">Text concierge</a><a href="mailto:Contact@prestigeluxor.com">Email</a></div></div>
       <div class="footer-columns">
-        <nav class="footer-links" aria-label="Explore"><h3>Explore</h3><a href="/fleet">Fleet</a><a href="/partner">Become a Partner</a><a href="/#quote">Request Quote</a></nav>
+        <nav class="footer-links" aria-label="Explore"><h3>Explore</h3><a href="/fleet">Fleet</a><a href="/partner">Become a Partner</a><a href="${isLocationPage ? "#location-quote" : "/#quote"}">Request Quote</a></nav>
         <nav class="footer-links" aria-label="Locations"><h3>Locations</h3><a href="/locations/los-angeles-exotic-car-rental">Los Angeles</a><a href="/locations/orange-county-exotic-car-rental">Orange County</a><a href="/locations/lax-exotic-car-delivery">LAX Delivery</a><a href="/locations/sna-exotic-car-delivery">SNA Delivery</a></nav>
         <nav class="footer-links" aria-label="Company"><h3>Company</h3><a href="/about">About</a><a href="/rental-policies">Rental Policies</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/admin/" rel="nofollow">Admin Login</a></nav>
       </div>
       <div class="footer-bottom"><span>© 2026 Prestige Luxor. All rights reserved.</span><span>Rental approval required. Rates subject to availability.</span></div>
     </footer>
     <script type="module" src="/src/partner.js?v=public-nav-20260713"></script>
+    ${isLocationPage ? '<script type="module" src="/src/location-page.js?v=location-leads-20260823"></script>' : ""}
   </body>
 </html>`;
 }
@@ -203,15 +350,24 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
   }
 
   const getCarImage = (car) => {
-    const photos = [...(car.car_photos || [])].sort((a, b) => Number(a.position) - Number(b.position));
-    return photos.find((photo) => photo.url)?.url || car.image_url || "/assets/prestige-luxor-hero.png";
+    return publicCarImage(car);
   };
   const heroCar = featuredCars[0];
-  const heroImage = heroCar ? getCarImage(heroCar) : "/assets/prestige-luxor-hero.png";
+  const heroImage = heroCar ? publicCarImage(heroCar, { width: 960, height: 640, quality: 80 }) : "/assets/optimized/prestige-luxor-hero.webp";
+  const heroImageSrcset = heroCar
+    ? [
+        [640, 427, 76],
+        [960, 640, 80],
+        [1600, 1067, 82],
+      ].map(([width, height, quality]) => `${publicCarImage(heroCar, { width, height, quality })} ${width}w`).join(", ")
+    : "";
+  const heroImagePreconnect = heroImage.startsWith("https://")
+    ? `<link rel="preconnect" href="${new URL(heroImage).origin}" crossorigin />`
+    : "";
   const fleetCards = featuredCars.map((car) => `
           <article class="oc-showroom-card">
             <a class="oc-showroom-media" href="/cars/${car.slug}" aria-label="View ${car.make} ${car.model}">
-              <img src="${getCarImage(car)}" alt="${car.make} ${car.model} available from Prestige Luxor" width="1200" height="900" loading="eager" decoding="async" />
+              <img src="${getCarImage(car)}" alt="${car.make} ${car.model} available from Prestige Luxor" width="1200" height="900" loading="lazy" decoding="async" />
             </a>
             <div class="oc-showroom-card-copy">
               <div>
@@ -224,12 +380,14 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
           </article>`).join("");
   const schema = {
     "@context": "https://schema.org",
-    "@type": "Service",
-    name: heading,
-    description,
-    url: canonical,
-    areaServed: ["Orange County", "Newport Beach", "Irvine", "Anaheim"],
-    provider: { "@id": `${siteUrl}/#business` },
+    "@graph": [
+      { "@type": "Service", name: heading, description, url: canonical, serviceType: "Exotic and luxury car rental delivery", areaServed: ["Orange County", "Newport Beach", "Irvine", "Anaheim"], provider: { "@id": `${siteUrl}/#business` } },
+      { "@type": "FAQPage", mainEntity: [
+        { "@type": "Question", name: "Where can the vehicle be delivered in Orange County?", acceptedAnswer: { "@type": "Answer", text: "Prestige Luxor confirms an eligible hotel, residence, event venue, or agreed meeting location after reviewing access, timing, distance, and the selected vehicle." } },
+        { "@type": "Question", name: "Is the online daily rate the final total?", acceptedAnswer: { "@type": "Answer", text: "The displayed rate is a starting daily rate. The private quote confirms dates, rental length, mileage, delivery, deposit, and requested add-ons before approval." } },
+        { "@type": "Question", name: "What is required to reserve a vehicle?", acceptedAnswer: { "@type": "Answer", text: "The initial request needs contact information, dates, preferred vehicle, and delivery area. License, insurance, eligibility, security deposit, agreement, and payment details are reviewed later during approval." } },
+      ] },
+    ],
   };
 
   return `<!doctype html>
@@ -238,7 +396,9 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="${description}" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="theme-color" content="#080808" />
+    ${heroImagePreconnect}
     <title>${title}</title>
     <link rel="canonical" href="${canonical}" />
     <meta property="og:type" content="website" />
@@ -249,8 +409,9 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
     <meta property="og:image" content="${heroImage.startsWith("http") ? heroImage : `${siteUrl}${heroImage}`}" />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${escapeJson(schema)}</script>
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/prestige-luxor-favicon-32.png?v=prestige-luxor-20260806" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/prestige-luxor-favicon-16.png?v=prestige-luxor-20260806" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/prestige-luxor-favicon-48.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/prestige-luxor-favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/prestige-luxor-favicon-16.png" />
     <link rel="apple-touch-icon" href="/assets/prestige-luxor-apple-touch-icon.png?v=prestige-luxor-20260806" />
   <link rel="stylesheet" href="/src/styles.css?v=site-theme-20260719" />
   </head>
@@ -259,14 +420,14 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
     <header class="site-header scrolled" data-header>
       <a class="brand" href="/" aria-label="Prestige Luxor home"><img class="brand-logo brand-logo-wide" src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" /></a>
       <nav class="desktop-nav" aria-label="Primary navigation"><a href="/fleet.html">Fleet</a><a href="/partner.html">Partner</a><a href="/faq">FAQ</a></nav>
-      <div class="header-actions"><a class="ghost-button" href="tel:${phoneHref}">Call</a><a class="primary-button compact" href="/#quote">Reserve</a></div>
+      <div class="header-actions"><a class="ghost-button" href="tel:${phoneHref}">Call</a><a class="primary-button compact" href="#location-quote">Reserve</a></div>
       <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-toggle><span></span><span></span></button>
     </header>
-    <div class="mobile-menu" data-mobile-menu><a href="/fleet.html">Fleet</a><a href="/partner.html">Partner</a><a href="/faq">FAQ</a><a href="tel:${phoneHref}">Call</a><a href="/#quote">Reserve</a></div>
+    <div class="mobile-menu" data-mobile-menu><a href="/fleet.html">Fleet</a><a href="/partner.html">Partner</a><a href="/faq">FAQ</a><a href="tel:${phoneHref}">Call</a><a href="#location-quote">Reserve</a></div>
 
     <main id="main" class="oc-location-main">
       <section class="oc-location-hero" aria-labelledby="oc-location-title">
-        <img class="oc-location-hero-media" src="${heroImage}" alt="${heroCar ? `${heroCar.make} ${heroCar.model}` : "Exotic car"} available for Orange County delivery" width="1800" height="1200" fetchpriority="high" decoding="async" />
+        <img class="oc-location-hero-media" src="${heroImage}"${heroImageSrcset ? ` srcset="${heroImageSrcset}" sizes="100vw"` : ""} alt="${heroCar ? `${heroCar.make} ${heroCar.model}` : "Exotic car"} available for Orange County delivery" width="1600" height="1067" fetchpriority="high" decoding="async" />
         <div class="oc-location-hero-scrim" aria-hidden="true"></div>
         <div class="oc-location-hero-content">
           <p class="oc-location-kicker">Orange County exotic car rental</p>
@@ -279,7 +440,7 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
           </div>
           <div class="oc-location-actions">
             <a class="oc-location-primary" href="#orange-county-fleet">Explore the fleet</a>
-            <a class="oc-location-secondary" href="/#quote">Request a quote <span aria-hidden="true">&#8594;</span></a>
+            <a class="oc-location-secondary" href="#location-quote">Request a quote <span aria-hidden="true">&#8594;</span></a>
           </div>
         </div>
         ${heroCar ? `<a class="oc-location-featured" href="/cars/${heroCar.slug}"><span>Featured vehicle</span><strong>${heroCar.make} ${heroCar.model}</strong><small>From $${Number(heroCar.price).toLocaleString("en-US")}/day <b aria-hidden="true">&#8599;</b></small></a>` : ""}
@@ -318,10 +479,12 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
         </dl>
       </section>
 
+      ${locationEnhancements({ slug: "orange-county-exotic-car-rental", area: "Orange County" }, { includeFleet: false })}
+
       <section class="oc-location-final" aria-labelledby="oc-final-title">
         <p>10% off for first-time clients</p>
         <h2 id="oc-final-title">Make the first one count.</h2>
-        <div><a class="oc-location-primary" href="/#quote">Request a quote</a><a class="oc-location-secondary" href="tel:${phoneHref}">Call ${phoneLabel}</a></div>
+        <div><a class="oc-location-primary" href="#location-quote">Request a quote</a><a class="oc-location-secondary" href="tel:${phoneHref}">Call ${phoneLabel}</a></div>
       </section>
     </main>
 
@@ -335,6 +498,7 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
       <div class="footer-bottom"><span>© 2026 Prestige Luxor. All rights reserved.</span><span>Rental approval required. Rates subject to availability.</span></div>
     </footer>
     <script type="module" src="/src/partner.js?v=public-nav-20260713"></script>
+    <script type="module" src="/src/location-page.js?v=location-leads-20260823"></script>
   </body>
 </html>`;
 }
@@ -342,6 +506,7 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
 const locationPages = [
   {
     slug: "los-angeles-exotic-car-rental",
+    area: "Los Angeles",
     title: "Exotic Car Rental Los Angeles | Prestige Luxor",
     description: "Rent an exotic or luxury car in Los Angeles with concierge delivery, flexible booking, and a curated fleet from Prestige Luxor.",
     heading: "Exotic car rental in Los Angeles.",
@@ -350,6 +515,7 @@ const locationPages = [
   },
   {
     slug: "orange-county-exotic-car-rental",
+    area: "Orange County",
     title: "Exotic Car Rental Orange County | Prestige Luxor",
     description: "Explore exotic and luxury car rentals in Orange County with delivery options for Newport Beach, Irvine, Anaheim, and surrounding communities.",
     heading: "Exotic car rental in Orange County.",
@@ -358,6 +524,7 @@ const locationPages = [
   },
   {
     slug: "beverly-hills-luxury-car-rental",
+    area: "Beverly Hills",
     title: "Luxury Car Rental Beverly Hills | Prestige Luxor",
     description: "Reserve a luxury or exotic car in Beverly Hills with discreet concierge coordination and delivery from Prestige Luxor.",
     heading: "Luxury car rental in Beverly Hills.",
@@ -366,6 +533,7 @@ const locationPages = [
   },
   {
     slug: "newport-beach-exotic-car-rental",
+    area: "Newport Beach",
     title: "Exotic Car Rental Newport Beach | Prestige Luxor",
     description: "Book an exotic car rental in Newport Beach for coastal drives, celebrations, hotels, and private events with Prestige Luxor.",
     heading: "Exotic car rental in Newport Beach.",
@@ -374,6 +542,7 @@ const locationPages = [
   },
   {
     slug: "lax-exotic-car-delivery",
+    area: "LAX and Los Angeles",
     title: "LAX Exotic Car Delivery | Prestige Luxor",
     description: "Plan exotic or luxury car delivery near LAX with flight-aware arrival coordination from Prestige Luxor.",
     heading: "Exotic car delivery for LAX arrivals.",
@@ -382,6 +551,7 @@ const locationPages = [
   },
   {
     slug: "sna-exotic-car-delivery",
+    area: "SNA and Orange County",
     title: "SNA Exotic Car Delivery | Prestige Luxor",
     description: "Arrange exotic or luxury car delivery near John Wayne Airport for Newport Beach, Irvine, and Orange County travel.",
     heading: "Exotic car delivery for SNA arrivals.",
@@ -400,7 +570,11 @@ const companyPages = [
 const locationsDir = join(outDir, "locations");
 mkdirSync(locationsDir, { recursive: true });
 for (const page of locationPages) {
-  const pageOptions = { ...page, path: `locations/${page.slug}` };
+  const pageOptions = {
+    ...page,
+    path: `locations/${page.slug}`,
+    content: `${page.content}${locationEnhancements(page, { includeFleet: page.slug !== "orange-county-exotic-car-rental" })}`,
+  };
   const html = page.slug === "orange-county-exotic-car-rental"
     ? orangeCountyPage(pageOptions)
     : pageShell({ ...pageOptions, eyebrow: "Prestige Luxor Service Area", schemaType: "Service" });
@@ -418,8 +592,65 @@ if (existsSync(carDir)) {
     const title = html.match(/<title>(.*?)<\/title>/)?.[1] || "Exotic Car Rental | Prestige Luxor";
     const description = html.match(/<meta name="description" content="([^"]*)"/i)?.[1] || "View this exotic rental car from Prestige Luxor in Los Angeles and Orange County.";
     const imagePath = `assets/fleet/${slug}.jpg`;
-    const imageUrl = existsSync(join(root, imagePath)) ? `${siteUrl}/${imagePath}` : `${siteUrl}/assets/prestige-luxor-hero.png`;
-    const isActive = activeInventoryBySlug.has(slug);
+    const activeCar = activeInventoryBySlug.get(slug);
+    const isActive = Boolean(activeCar);
+    const absoluteUrl = (value) => {
+      if (!value) return "";
+      if (/^https?:\/\//i.test(value)) return value;
+      return `${siteUrl}/${String(value).replace(/^\//, "")}`;
+    };
+    const vehicleImages = isActive
+      ? [...new Set([...(activeCar.car_photos || []).sort((a, b) => Number(a.position) - Number(b.position)).map(({ url }) => absoluteUrl(url)), absoluteUrl(activeCar.image_url)].filter(Boolean))]
+      : [];
+    const imageUrl = vehicleImages[0] || (existsSync(join(root, imagePath)) ? `${siteUrl}/${imagePath}` : `${siteUrl}/assets/prestige-luxor-hero.png`);
+    const vehicleYear = String(activeCar?.name || "").match(/^\d{4}/)?.[0] || "";
+    const vehicleSchema = isActive ? {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": ["Product", "Vehicle"],
+          "@id": `${siteUrl}/cars/${slug}#vehicle`,
+          name: activeCar.name,
+          description: activeCar.summary || description,
+          url: `${siteUrl}/cars/${slug}`,
+          image: vehicleImages.length ? vehicleImages : [imageUrl],
+          sku: activeCar.id || slug,
+          brand: { "@type": "Brand", name: activeCar.make },
+          model: activeCar.model,
+          category: activeCar.category_label || activeCar.category,
+          ...(vehicleYear ? { vehicleModelDate: vehicleYear } : {}),
+          ...(activeCar.color ? { color: activeCar.color } : {}),
+          ...(activeCar.seats ? { vehicleSeatingCapacity: Number(activeCar.seats) } : {}),
+          additionalProperty: [
+            ...(activeCar.mileage ? [{ "@type": "PropertyValue", name: "Included mileage", value: activeCar.mileage }] : []),
+            { "@type": "PropertyValue", name: "Service area", value: "Los Angeles and Orange County" },
+          ],
+          offers: {
+            "@type": "Offer",
+            url: `${siteUrl}/cars/${slug}`,
+            price: Number(activeCar.price),
+            priceCurrency: "USD",
+            availability: "https://schema.org/InStock",
+            businessFunction: "http://purl.org/goodrelations/v1#LeaseOut",
+            seller: { "@id": `${siteUrl}/#business` },
+            priceSpecification: {
+              "@type": "UnitPriceSpecification",
+              price: Number(activeCar.price),
+              priceCurrency: "USD",
+              unitText: "DAY",
+            },
+          },
+        },
+        {
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: `${siteUrl}/` },
+            { "@type": "ListItem", position: 2, name: "Fleet", item: `${siteUrl}/fleet` },
+            { "@type": "ListItem", position: 3, name: activeCar.name, item: `${siteUrl}/cars/${slug}` },
+          ],
+        },
+      ],
+    } : null;
     html = html
       .replace(/\/src\/vehicle\.js\?v=[^\"]+/g, "/src/vehicle.js?v=fleet-images-20260818")
       .replace(/\/src\/styles\.css\?v=[^\"]+/g, "/src/styles.css?v=site-theme-20260719")
@@ -433,57 +664,26 @@ if (existsSync(carDir)) {
     <meta property="og:description" content="${description}" />
     <meta property="og:url" content="${siteUrl}/cars/${slug}" />
     <meta property="og:image" content="${imageUrl}" />
-    <meta name="twitter:card" content="summary_large_image" />`;
+    <meta name="twitter:card" content="summary_large_image" />
+    ${vehicleSchema ? `<script type="application/ld+json">${escapeJson(vehicleSchema)}</script>` : ""}`;
     html = html.replace("</head>", `${metadata}\n  </head>`);
     writeFileSync(filePath, html);
   }
 }
 
 const vercelObservability = `
+    <script type="module" src="/src/site-analytics.js?v=conversion-tracking-20260823"></script>
     <script defer src="/_vercel/insights/script.js" data-sdkn="@vercel/analytics"></script>
     <script defer src="/_vercel/speed-insights/script.js" data-sdkn="@vercel/speed-insights"></script>`;
 
 const googleAdsTag = `    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17965450187"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18413260632"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
 
-      gtag('config', 'AW-17965450187');
-    </script>
-    <!-- Google tag (gtag.js) event - delayed navigation helper -->
-    <script>
-      // Helper function to delay opening a URL until a gtag event is sent.
-      // Call it in response to an action that should navigate to a URL.
-      function gtagSendEvent(url) {
-        var callback = function () {
-          if (typeof url === 'string') {
-            window.location = url;
-          }
-        };
-        gtag('event', 'ads_conversion_Contact_Us_1', {
-          'event_callback': callback,
-          'event_timeout': 2000,
-          // <event_parameters>
-        });
-        return false;
-      }
-    </script>
-    <!-- Event snippet for Submit lead form conversion page -->
-    <script>
-      function gtag_report_conversion(url) {
-        var callback = function () {
-          if (typeof(url) != 'undefined') {
-            window.location = url;
-          }
-        };
-        gtag('event', 'conversion', {
-          'send_to': 'AW-17965450187/oJtrCN-pqoMcEMuHzPZC',
-          'event_callback': callback
-        });
-        return false;
-      }
+      gtag('config', 'AW-18413260632');
     </script>`;
 
 function injectGoogleAdsTag(directory) {
@@ -496,7 +696,7 @@ function injectGoogleAdsTag(directory) {
     if (!entry.name.endsWith(".html")) continue;
 
     const html = readFileSync(entryPath, "utf8");
-    if (html.includes("AW-17965450187")) continue;
+    if (html.includes("AW-18413260632")) continue;
     writeFileSync(entryPath, html.replace(/<head([^>]*)>/i, (head) => `${head}\n${googleAdsTag}`));
   }
 }
@@ -517,8 +717,78 @@ function injectVercelObservability(directory, relativePath = "") {
   }
 }
 
+function localModuleGraph(scriptPaths) {
+  const collected = new Set();
+  const visit = (filePath) => {
+    const normalized = resolve(filePath);
+    if (collected.has(normalized) || !normalized.startsWith(resolve(outDir)) || !existsSync(normalized)) return;
+    collected.add(normalized);
+    const source = readFileSync(normalized, "utf8");
+    for (const match of source.matchAll(/(?:from\s+|import\s*\(\s*)["']([^"']+)["']/g)) {
+      const specifier = match[1].split("?")[0];
+      if (!specifier.startsWith(".")) continue;
+      visit(resolve(dirname(normalized), specifier));
+    }
+  };
+  scriptPaths.forEach(visit);
+  return [...collected];
+}
+
+async function inlinePublicPageStyles(directory, relativePath = "", cache = new Map()) {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const entryRelativePath = join(relativePath, entry.name);
+    const entryPath = join(directory, entry.name);
+    if (entry.isDirectory()) {
+      if (entryRelativePath === "admin") continue;
+      await inlinePublicPageStyles(entryPath, entryRelativePath, cache);
+      continue;
+    }
+    if (!entry.name.endsWith(".html")) continue;
+
+    const html = readFileSync(entryPath, "utf8");
+    const stylesheetLinks = [...html.matchAll(/<link\s+rel="stylesheet"\s+href="(\/src\/[^"?]+\.css)(?:\?[^\"]*)?"\s*\/?>/g)];
+    if (!stylesheetLinks.length) continue;
+    const cssPaths = [...new Set(stylesheetLinks.map(([, href]) => join(outDir, href.replace(/^\//, ""))).filter(existsSync))];
+    const directScripts = [...html.matchAll(/<script\s+type="module"\s+src="(\/src\/[^"?]+\.js)(?:\?[^\"]*)?"[^>]*><\/script>/g)]
+      .map(([, href]) => join(outDir, href.replace(/^\//, "")))
+      .filter(existsSync);
+    const scriptPaths = localModuleGraph(directScripts);
+    const selectorSignature = [
+      ...html.matchAll(/(?:class|id)="([^"]+)"/g),
+    ].flatMap((match) => match[1].split(/\s+/)).filter(Boolean).sort().join("|");
+    const cacheKey = `${cssPaths.join("|")}::${scriptPaths.join("|")}::${selectorSignature}`;
+    let optimizedCss = cache.get(cacheKey);
+
+    if (!optimizedCss) {
+      const purged = await new PurgeCSS().purge({
+        content: [{ raw: html, extension: "html" }, ...scriptPaths],
+        css: cssPaths,
+        fontFace: true,
+        keyframes: true,
+        safelist: {
+          standard: ["reveal", "revealed", "active", "selected", "hidden", "visible"],
+          greedy: [/(^|-)is-/, /(^|-)has-/, /(^|-)open/, /(^|-)loading/, /(^|-)loaded/, /(^|-)success/, /(^|-)error/],
+        },
+      });
+      const combinedCss = purged.map(({ css }) => css).join("\n");
+      optimizedCss = Buffer.from(transform({ filename: entry.name, code: Buffer.from(combinedCss), minify: true }).code).toString("utf8");
+      cache.set(cacheKey, optimizedCss);
+    }
+
+    let inserted = false;
+    const withoutRedundantPreloads = html.replace(/\s*<link\s+rel="preload"\s+href="(\/src\/[^"?]+\.css)(?:\?[^\"]*)?"\s+as="style"\s*\/?>/g, "");
+    const optimizedHtml = withoutRedundantPreloads.replace(/<link\s+rel="stylesheet"\s+href="\/src\/[^"?]+\.css(?:\?[^\"]*)?"\s*\/?>/g, () => {
+      if (inserted) return "";
+      inserted = true;
+      return `<style data-page-styles>${optimizedCss}</style>`;
+    });
+    writeFileSync(entryPath, optimizedHtml);
+  }
+}
+
 injectGoogleAdsTag(outDir);
 injectVercelObservability(outDir);
+await inlinePublicPageStyles(outDir);
 
 writeFileSync(
   join(outDir, "robots.txt"),

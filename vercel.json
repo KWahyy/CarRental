@@ -5,6 +5,11 @@
   "trailingSlash": false,
   "redirects": [
     {
+      "source": "/cars/porschepanamera",
+      "destination": "/cars/porsche-panamera",
+      "permanent": true
+    },
+    {
       "source": "/wedding-car-rental",
       "destination": "/wedding",
       "permanent": true

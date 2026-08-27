@@ -4,6 +4,7 @@ const configured = Boolean(SUPABASE_URL && SUPABASE_URL.startsWith("https://"));
 let supabasePromise = null;
 const MAX_LISTING_PHOTOS = 3;
 const ANALYTICS_SESSION_KEY = "prestige_luxor_fleet_analytics_session";
+const VEHICLE_SLUG_ALIASES = Object.freeze({ porschepanamera: "porsche-panamera" });
 
 export const isSupabaseFleetConfigured = configured;
 
@@ -139,7 +140,7 @@ export async function loadFleetFromSupabase() {
     return null;
   }
 
-  return data.map(mapCar);
+  return data.filter((row) => !VEHICLE_SLUG_ALIASES[row.slug]).map(mapCar);
 }
 
 export async function loadVehicleFromSupabase(slug) {
@@ -149,7 +150,7 @@ export async function loadVehicleFromSupabase(slug) {
   const { data, error } = await supabase
     .from("cars")
     .select("*, car_photos(position, url)")
-    .eq("slug", slug)
+    .eq("slug", VEHICLE_SLUG_ALIASES[slug] || slug)
     .eq("is_active", true)
     .single();
 

@@ -48,6 +48,26 @@ function normalizeAddons(value) {
   return value.map((item) => cleanString(item, 80)).filter(Boolean).slice(0, 12);
 }
 
+function attributionSummary(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return "";
+  const labels = {
+    utm_source: "Source",
+    utm_medium: "Medium",
+    utm_campaign: "Campaign",
+    utm_content: "Content",
+    utm_term: "Keyword",
+    gclid: "GCLID",
+    gbraid: "GBRAID",
+    wbraid: "WBRAID",
+    landing_page: "Landing page",
+    first_referrer: "First referrer",
+  };
+  return Object.entries(labels)
+    .map(([key, label]) => value[key] ? `${label}: ${cleanString(value[key], 500)}` : "")
+    .filter(Boolean)
+    .join("\n");
+}
+
 function phoneHref(value) {
   const phone = cleanString(value, 80);
   const prefix = phone.startsWith("+") ? "+" : "";
@@ -86,7 +106,7 @@ async function insertQuote(payload, req) {
       vehicle: payload.vehicle || "Vehicle TBD",
       rental_date: payload.date || null,
       addons: payload.addons,
-      message: [payload.insuranceProvider ? `Insurance provider: ${payload.insuranceProvider}` : "", payload.message]
+      message: [payload.insuranceProvider ? `Insurance provider: ${payload.insuranceProvider}` : "", payload.message, attributionSummary(payload.attribution)]
         .filter(Boolean)
         .join("\n\n"),
       source:
