@@ -223,12 +223,14 @@ html { scroll-behavior: smooth; }
 .lambo-card-media { aspect-ratio: 4/3; display: block; overflow: hidden; background: #161612; }
 .lambo-card-media img { width: 100%; height: 100%; display: block; object-fit: cover; transform: scale(1.002); transition: transform 650ms cubic-bezier(.2,.75,.25,1); }
 .lambo-card:hover .lambo-card-media img { transform: scale(1.035); }
-.lambo-card-body { padding: 20px 0 14px; display: flex; align-items: end; justify-content: space-between; gap: 18px; }
+.lambo-card-body { padding: 20px 0 14px; display: grid; grid-template-columns: minmax(0, 1fr) max-content; align-items: end; gap: 24px; }
+.lambo-card-body > div { min-width: 0; }
 .lambo-card-body span { color: #77736b; font-size: .66rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
 .lambo-card-body h3 { margin: 5px 0 0; font-size: clamp(1.55rem, 2.3vw, 2.4rem); letter-spacing: -.05em; line-height: 1; }
-.lambo-card-body p { margin: 0; white-space: nowrap; font-size: .8rem; color: #68655e; }
-.lambo-card-body p strong { color: #0b0b09; font-size: clamp(1.5rem, 2.1vw, 2.25rem); letter-spacing: -.06em; }
-.lambo-card-body small { margin-left: 4px; font-size: .6rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.lambo-card-price { min-width: max-content; margin: 0; display: grid; grid-template-columns: auto auto; grid-template-areas: "label label" "amount unit"; align-items: baseline; justify-content: end; column-gap: 5px; row-gap: 3px; color: #68655e; text-align: right; white-space: nowrap; }
+.lambo-card-body .lambo-card-price > span { grid-area: label; color: #77736b; font-size: .62rem; letter-spacing: .1em; }
+.lambo-card-price strong { grid-area: amount; color: #0b0b09; font-size: clamp(1.5rem, 2.1vw, 2.25rem); line-height: .92; letter-spacing: -.06em; }
+.lambo-card-price small { grid-area: unit; margin: 0; font-size: .6rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .lambo-card > button { width: 100%; min-height: 50px; padding: 0; display: flex; align-items: center; justify-content: space-between; border: 0; border-top: 1px solid #8e8a81; background: transparent; color: #0b0b09; font: inherit; font-size: .7rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
 .lambo-card > button:hover span { transform: translate(3px, -3px); }
 .lambo-card > button span { transition: transform 180ms ease; }
@@ -302,7 +304,7 @@ html { scroll-behavior: smooth; }
   .lambo-proof-bar div:last-child { border-bottom: 0; }
   .lambo-section-head { align-items: start; flex-direction: column; gap: 24px; }
   .lambo-grid { grid-template-columns: 1fr; }
-  .lambo-card-body { align-items: start; }
+  .lambo-card-body { align-items: end; gap: 16px; }
   .lambo-process, .lambo-faq { gap: 46px; }
   .lambo-process-steps li { grid-template-columns: 44px 1fr; }
   .lambo-footer { padding-bottom: 116px; }

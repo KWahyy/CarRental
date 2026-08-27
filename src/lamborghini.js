@@ -85,7 +85,7 @@ function renderInventory(source) {
         </a>
         <div class="lambo-card-body">
           <div><span>${escapeHtml(year)} · ${escapeHtml(marque)}</span><h3>${escapeHtml(model)}</h3></div>
-          <p>From <strong>${escapeHtml(formatPrice(car.price))}</strong><small>/day</small></p>
+          <p class="lambo-card-price"><span>From</span><strong>${escapeHtml(formatPrice(car.price))}</strong><small>/day</small></p>
         </div>
         <button type="button" data-select-lamborghini="${escapeHtml(car.name)}">Check This Car <span aria-hidden="true">↗</span></button>
       </article>`;
