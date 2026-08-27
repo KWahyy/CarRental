@@ -7,6 +7,26 @@
   --lambo-muted: rgba(255, 255, 255, 0.64);
 }
 
+/* Lamborghini campaign page follows the homepage's black, ivory and white palette. */
+.lamborghini-page[data-marque="Lamborghini"] {
+  --lambo-gold: #f8f5ef;
+}
+
+.lamborghini-page[data-marque="Lamborghini"] .lambo-button:hover,
+.lamborghini-page[data-marque="Lamborghini"] .lambo-button:focus-visible {
+  background: #fff;
+}
+
+.lamborghini-page[data-marque="Lamborghini"] .lambo-lead-form input:focus,
+.lamborghini-page[data-marque="Lamborghini"] .lambo-lead-form select:focus {
+  box-shadow: 0 0 0 2px rgba(248, 245, 239, 0.2);
+}
+
+.lamborghini-page[data-marque="Lamborghini"] .lambo-section-head .lambo-kicker,
+.lamborghini-page[data-marque="Lamborghini"] .lambo-final-cta .lambo-kicker {
+  color: #57544d;
+}
+
 html { scroll-behavior: smooth; }
 
 .lamborghini-page {
