@@ -27,6 +27,59 @@
   color: #57544d;
 }
 
+/* Ferrari campaign page uses Rosso Corsa in place of the shared gold accent. */
+.lamborghini-page[data-marque="Ferrari"] {
+  --ferrari-red: #d40000;
+  --ferrari-red-bright: #ff6b6b;
+  --lambo-gold: var(--ferrari-red);
+}
+
+.lamborghini-page[data-marque="Ferrari"] .lambo-button {
+  color: #fff;
+}
+
+.lamborghini-page[data-marque="Ferrari"] .lambo-button:hover,
+.lamborghini-page[data-marque="Ferrari"] .lambo-button:focus-visible {
+  background: #ed1c24;
+}
+
+.lamborghini-page[data-marque="Ferrari"] .lambo-kicker,
+.lamborghini-page[data-marque="Ferrari"] .lambo-lead-head > p,
+.lamborghini-page[data-marque="Ferrari"] .lambo-trust-list li::before,
+.lamborghini-page[data-marque="Ferrari"] .lambo-proof-bar strong,
+.lamborghini-page[data-marque="Ferrari"] .lambo-process-steps li > span,
+.lamborghini-page[data-marque="Ferrari"] .lambo-faq summary span {
+  color: var(--ferrari-red-bright);
+}
+
+.lamborghini-page[data-marque="Ferrari"] .lambo-lead-form input:focus,
+.lamborghini-page[data-marque="Ferrari"] .lambo-lead-form select:focus {
+  box-shadow: 0 0 0 2px rgba(212, 0, 0, 0.24);
+}
+
+.lamborghini-page[data-marque="Ferrari"] .lambo-section-head .lambo-kicker {
+  color: #a80000;
+}
+
+.lamborghini-page[data-marque="Ferrari"] .lambo-final-cta {
+  color: #fff;
+}
+
+.lamborghini-page[data-marque="Ferrari"] .lambo-final-cta .lambo-kicker {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.lamborghini-page[data-marque="Ferrari"] .lambo-final-cta .lambo-button {
+  border-color: #080806;
+  background: #080806;
+  color: #fff;
+}
+
+.lamborghini-page[data-marque="Ferrari"] .lambo-mobile-cta a:last-child {
+  background: var(--ferrari-red);
+  color: #fff;
+}
+
 html { scroll-behavior: smooth; }
 
 .lamborghini-page {
