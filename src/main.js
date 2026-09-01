@@ -1,6 +1,6 @@
 import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=fleet-consistency-20260715";
 import { fleet as websiteFleet } from "./fleet-data.js?v=fleet-consistency-20260715";
-import { cacheSafeFleetImageUrl, isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase } from "./supabase-fleet.js?v=fleet-consistency-20260715";
+import { cacheSafeFleetImageUrl, isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase, optimizedFleetImageUrl } from "./supabase-fleet.js?v=fleet-consistency-20260715";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
 
 let fleet = [
@@ -406,10 +406,38 @@ function vehicleLabel(car) {
   return car.name.replace(/^\d{4}\s+/, "");
 }
 
-function primaryImageFor(car) {
+function originalImageFor(car) {
   if (!car) return "/assets/prestige-luxor-hero.png";
   const image = car.image || car.gallery?.[0] || "/assets/prestige-luxor-hero.png";
   return cacheSafeFleetImageUrl(image, car.updatedAt || car.updated_at);
+}
+
+function primaryImageFor(car) {
+  return optimizedFleetImageUrl(originalImageFor(car), {
+    width: 1200,
+    height: 900,
+    quality: 78,
+    updatedAt: car?.updatedAt || car?.updated_at || "",
+  });
+}
+
+function installFleetImageFallbacks(root) {
+  root.querySelectorAll("img[data-fallback-image]").forEach((image) => {
+    if (image.dataset.fallbackInstalled === "true") return;
+    image.dataset.fallbackInstalled = "true";
+    let usedOriginal = false;
+    const handleError = () => {
+      const fallback = image.dataset.fallbackImage;
+      if (!usedOriginal && fallback) {
+        usedOriginal = true;
+        image.src = fallback;
+        return;
+      }
+      image.removeEventListener("error", handleError);
+      image.src = "/assets/optimized/prestige-luxor-hero.webp";
+    };
+    image.addEventListener("error", handleError);
+  });
 }
 
 function isUsableFanCar(car) {
@@ -447,6 +475,7 @@ function getFeaturedFanCards(sourceFleet = fleet) {
     slug: vehicleSlug(car),
     name: car.name,
     image: primaryImageFor(car),
+    fallbackImage: originalImageFor(car),
   }));
 }
 
@@ -521,13 +550,14 @@ function renderFanCarousel() {
     .map(
       (car) => `
         <a class="fan-card" href="/cars/${vehicleSlug(car)}.html" aria-label="View ${car.name}">
-          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" data-fan-image="${car.image}" alt="${car.name}" loading="lazy" decoding="async" width="500" height="375" onerror="this.onerror=null;this.src='/assets/prestige-luxor-hero.png';" />
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" data-fan-image="${escapeHtml(car.image)}" data-fallback-image="${escapeHtml(car.fallbackImage)}" alt="${escapeHtml(car.name)}" loading="lazy" decoding="async" width="500" height="375" />
           <span>${vehicleLabel(car)}</span>
         </a>
       `,
     )
     .join("");
 
+  installFleetImageFallbacks(fanStage);
   fanDots.innerHTML = fanCards.map((_, index) => `<span class="${index === fanCenterIndex ? "active" : ""}"></span>`).join("");
   updateFanCarousel();
   observeFanImages();
@@ -748,7 +778,7 @@ async function renderMonthlySpecials() {
           const rate = monthlySpecialRate(car);
           return `
             <article class="special-card">
-              <img src="${escapeHtml(primaryImageFor(car))}" alt="${escapeHtml(car.name)} monthly rental special" width="1536" height="1024" loading="lazy" />
+              <img src="${escapeHtml(primaryImageFor(car))}" data-fallback-image="${escapeHtml(originalImageFor(car))}" alt="${escapeHtml(car.name)} monthly rental special" width="1200" height="900" loading="lazy" decoding="async" />
               <div class="special-card-copy">
                 <span>${escapeHtml(monthLabel)} feature</span>
                 <h3>${escapeHtml(car.name.replace(/^\s*(?:19|20)\d{2}\s+/, ""))}</h3>
@@ -761,6 +791,8 @@ async function renderMonthlySpecials() {
         })
         .join("")
     : `<div class="specials-empty"><strong>New monthly specials are coming soon.</strong><span>Call or text us for current availability.</span></div>`;
+
+  installFleetImageFallbacks(specialsRail);
 
   const hasMultiple = specialCars.length > 1;
   if (specialPrev) specialPrev.hidden = !hasMultiple;

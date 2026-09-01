@@ -7,7 +7,7 @@ export default function ContentExperienceSection() {
       <div
         className="absolute inset-0 -z-20 bg-cover bg-center bg-no-repeat motion-safe:scale-[1.03] motion-safe:animate-[contentExperienceDrift_18s_ease-in-out_infinite_alternate]"
         style={{
-          backgroundImage: "url('/images/content-experience-banner.jpg')",
+          backgroundImage: "url('/assets/optimized/content-experience-banner.webp')",
         }}
         aria-hidden="true"
       />

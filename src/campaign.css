@@ -529,7 +529,10 @@ a {
   transition: opacity 320ms ease, transform 500ms ease;
 }
 
-.campaign-car-card-cloud[data-cloud-state="ready"] [data-campaign-car-image] {
+.campaign-car-card-cloud[data-cloud-state="ready"] [data-campaign-car-image],
+.campaign-car-card-cloud[data-cloud-state="fallback"] [data-campaign-car-image],
+.campaign-car-card-cloud[data-cloud-state="error"] [data-campaign-car-image],
+.campaign-car-card-cloud[data-cloud-state="unavailable"] [data-campaign-car-image] {
   opacity: 1;
 }
 
@@ -1925,7 +1928,7 @@ body {
         rgba(4, 4, 4, 0.38) 62%,
         rgba(4, 4, 4, 0.2) 100%
       ),
-      url("/assets/campaign-exotic-lineup-hero.jpg");
+      url("/assets/optimized/campaign-exotic-lineup-hero.webp");
     background-position: center top, 52% top;
     background-repeat: no-repeat;
     background-size: 100% var(--campaign-mobile-hero-height), auto var(--campaign-mobile-hero-height);

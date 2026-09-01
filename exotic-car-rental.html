@@ -16,7 +16,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/prestige-luxor-favicon-32.png?v=prestige-luxor-20260806" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/prestige-luxor-favicon-16.png?v=prestige-luxor-20260806" />
     <link rel="apple-touch-icon" href="/assets/prestige-luxor-apple-touch-icon.png?v=prestige-luxor-20260806" />
-    <link rel="preload" as="image" href="/assets/campaign-exotic-lineup-hero.jpg" fetchpriority="high" />
+    <link rel="preload" as="image" href="/assets/optimized/campaign-exotic-lineup-hero.webp" type="image/webp" fetchpriority="high" />
     <link rel="stylesheet" href="/src/campaign.css?v=campaign-two-step-20260722" />
   </head>
   <body>
@@ -39,7 +39,7 @@
     <main id="campaign-main">
       <section class="campaign-hero campaign-hero-v2" aria-labelledby="campaign-title">
         <div class="campaign-hero-media" aria-hidden="true">
-          <img src="/assets/campaign-exotic-lineup-hero.jpg" alt="" width="1448" height="1086" fetchpriority="high" decoding="async" />
+          <img src="/assets/optimized/campaign-exotic-lineup-hero.webp" alt="" width="1448" height="1086" fetchpriority="high" decoding="async" data-fallback-src="/assets/campaign-exotic-lineup-hero.jpg" onerror="this.onerror=null;this.src=this.dataset.fallbackSrc;" />
         </div>
         <div class="campaign-hero-copy">
           <p class="campaign-eyebrow">Los Angeles + Orange County</p>
@@ -160,38 +160,37 @@
         <div class="campaign-car-grid">
           <article class="campaign-car-card">
             <a class="campaign-car-media" href="/cars/ferrari-f8.html" aria-label="View the Ferrari F8">
-              <img src="/assets/fleet/ferrari-f8.jpg" alt="Red Ferrari F8" width="1600" height="1067" loading="lazy" decoding="async" />
+              <img src="/assets/fleet-optimized/ferrari-f8.webp" alt="Red Ferrari F8" width="1200" height="800" loading="lazy" decoding="async" data-fallback-src="/assets/fleet/ferrari-f8.jpg" />
             </a>
             <div class="campaign-car-body"><p>Ferrari</p><h3><a href="/cars/ferrari-f8.html">F8</a></h3><span>From $849/day</span><button type="button" data-select-car="Ferrari F8" data-select-brand="Ferrari">Request this car</button></div>
           </article>
-          <article class="campaign-car-card campaign-car-card-cloud" data-campaign-car="2022-lamborghini-huracan" aria-busy="true">
+          <article class="campaign-car-card campaign-car-card-cloud" data-campaign-car="2022-lamborghini-huracan" data-cloud-state="fallback">
             <a class="campaign-car-media" href="/cars/2022-lamborghini-huracan.html" aria-label="View the Lamborghini Huracan" data-campaign-car-link>
-              <span class="campaign-car-loading" aria-hidden="true"></span>
-              <img alt="" width="1200" height="900" loading="lazy" decoding="async" data-campaign-car-image />
+              <img src="/assets/fleet-optimized/2022-lamborghini-huracan.webp" alt="Lamborghini Huracan available from Prestige Luxor" width="1200" height="900" loading="lazy" decoding="async" data-fallback-src="/assets/fleet/2022-lamborghini-huracan.jpg" data-campaign-car-image />
             </a>
             <div class="campaign-car-body"><p data-campaign-car-make>Lamborghini</p><h3><a href="/cars/2022-lamborghini-huracan.html" data-campaign-car-link data-campaign-car-name>Huracan</a></h3><span data-campaign-car-price>Checking live rate</span><button type="button" data-select-car="2022 Lamborghini Huracan" data-select-brand="Lamborghini">Request this car</button></div>
           </article>
           <article class="campaign-car-card">
             <a class="campaign-car-media" href="/cars/rolls-royce-cullinan-white.html" aria-label="View the Rolls-Royce Cullinan">
-              <img src="/assets/fleet/rolls-royce-cullinan-white.jpg" alt="White Rolls-Royce Cullinan" width="1600" height="1067" loading="lazy" decoding="async" />
+              <img src="/assets/fleet-optimized/rolls-royce-cullinan-white.webp" alt="White Rolls-Royce Cullinan" width="1200" height="800" loading="lazy" decoding="async" data-fallback-src="/assets/fleet/rolls-royce-cullinan-white.jpg" />
             </a>
             <div class="campaign-car-body"><p>Rolls-Royce</p><h3><a href="/cars/rolls-royce-cullinan-white.html">Cullinan</a></h3><span>From $1,200/day</span><button type="button" data-select-car="Rolls-Royce Cullinan" data-select-brand="Rolls-Royce">Request this car</button></div>
           </article>
           <article class="campaign-car-card">
             <a class="campaign-car-media" href="/cars/ferrari-488-spider-grey.html" aria-label="View the Ferrari 488 Spider">
-              <img src="/assets/fleet/ferrari-488-spider-grey.jpg" alt="Grey Ferrari 488 Spider" width="1600" height="1067" loading="lazy" decoding="async" />
+              <img src="/assets/fleet-optimized/ferrari-488-spider-grey.webp" alt="Grey Ferrari 488 Spider" width="1200" height="800" loading="lazy" decoding="async" data-fallback-src="/assets/fleet/ferrari-488-spider-grey.jpg" />
             </a>
             <div class="campaign-car-body"><p>Ferrari</p><h3><a href="/cars/ferrari-488-spider-grey.html">488 Spider</a></h3><span>From $750/day</span><button type="button" data-select-car="Ferrari 488 Spider" data-select-brand="Ferrari">Request this car</button></div>
           </article>
           <article class="campaign-car-card">
             <a class="campaign-car-media" href="/cars/mclaren-570s.html" aria-label="View the McLaren 570S">
-              <img src="/assets/fleet/mclaren-570s.jpg" alt="Black McLaren 570S" width="1600" height="1067" loading="lazy" decoding="async" />
+              <img src="/assets/fleet-optimized/mclaren-570s.webp" alt="Black McLaren 570S" width="1200" height="800" loading="lazy" decoding="async" data-fallback-src="/assets/fleet/mclaren-570s.jpg" />
             </a>
             <div class="campaign-car-body"><p>McLaren</p><h3><a href="/cars/mclaren-570s.html">570S</a></h3><span>From $750/day</span><button type="button" data-select-car="McLaren 570S" data-select-brand="McLaren">Request this car</button></div>
           </article>
           <article class="campaign-car-card">
             <a class="campaign-car-media" href="/cars/lamborghini-urus-white.html" aria-label="View the white Lamborghini Urus">
-              <img src="/assets/fleet/lamborghini-urus-white.jpg" alt="White Lamborghini Urus" width="1600" height="1067" loading="lazy" decoding="async" />
+              <img src="/assets/fleet-optimized/lamborghini-urus-white.webp" alt="White Lamborghini Urus" width="1200" height="800" loading="lazy" decoding="async" data-fallback-src="/assets/fleet/lamborghini-urus-white.jpg" />
             </a>
             <div class="campaign-car-body"><p>Lamborghini</p><h3><a href="/cars/lamborghini-urus-white.html">Urus</a></h3><span>From $800/day</span><button type="button" data-select-car="Lamborghini Urus" data-select-brand="Lamborghini">Request this car</button></div>
           </article>

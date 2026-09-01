@@ -1,7 +1,7 @@
 import {
-  cacheSafeFleetImageUrl,
   isSupabaseFleetConfigured,
   loadVehicleFromSupabase,
+  optimizedFleetImageUrl,
 } from "./supabase-fleet.js?v=campaign-cloud-fleet-20260718";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
 
@@ -62,7 +62,7 @@ async function hydrateCampaignCar(card) {
   const slug = card.dataset.campaignCar;
   const image = card.querySelector("[data-campaign-car-image]");
   if (!slug || !image || !isSupabaseFleetConfigured) {
-    card.dataset.cloudState = "unavailable";
+    card.dataset.cloudState = "fallback";
     card.removeAttribute("aria-busy");
     return;
   }
@@ -72,7 +72,12 @@ async function hydrateCampaignCar(card) {
     const primaryPhoto = car?.gallery?.[0] || car?.image;
     if (!car || !primaryPhoto) throw new Error("The current vehicle record has no primary photo.");
 
-    const photoUrl = cacheSafeFleetImageUrl(primaryPhoto, car.updatedAt);
+    const photoUrl = optimizedFleetImageUrl(primaryPhoto, {
+      width: 1200,
+      height: 900,
+      quality: 78,
+      updatedAt: car.updatedAt,
+    });
     await loadDecodedImage(photoUrl);
 
     image.src = photoUrl;
@@ -93,12 +98,22 @@ async function hydrateCampaignCar(card) {
     card.dataset.cloudState = "ready";
   } catch (error) {
     console.error("Unable to hydrate campaign vehicle from Supabase:", error);
-    card.dataset.cloudState = "error";
-    card.querySelector("[data-campaign-car-price]").textContent = "Call for live availability";
+    card.dataset.cloudState = "fallback";
   } finally {
     card.removeAttribute("aria-busy");
   }
 }
+
+function installImageFallback(image) {
+  const fallback = image.dataset.fallbackSrc;
+  if (!fallback) return;
+  image.addEventListener("error", () => {
+    if (image.src.endsWith(fallback)) return;
+    image.src = fallback;
+  }, { once: true });
+}
+
+document.querySelectorAll("img[data-fallback-src]").forEach(installImageFallback);
 
 document.querySelectorAll("[data-campaign-car]").forEach((card) => {
   void hydrateCampaignCar(card);
