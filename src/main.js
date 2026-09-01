@@ -278,7 +278,7 @@ function brandMark(brand) {
 }
 
 function bodyTypeFor(car) {
-  const name = car.name.toLowerCase();
+  const name = String(car?.name || "").toLowerCase();
   const feature = cleanFeature(car).toLowerCase();
 
   if (feature.includes("convertible") || name.includes("spider")) return "Convertible";
@@ -608,7 +608,8 @@ function seatsFor(car) {
 }
 
 function cleanFeature(car) {
-  return car.tags[0].replace("...", "").replace(/\s+/g, " ");
+  const firstTag = Array.isArray(car?.tags) ? car.tags.find((tag) => typeof tag === "string" && tag.trim()) : "";
+  return String(firstTag || "").replace("...", "").replace(/\s+/g, " ").trim();
 }
 
 function renderSpec(label, value) {
