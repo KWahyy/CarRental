@@ -1,6 +1,25 @@
 import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=fleet-consistency-20260715";
-import { cacheSafeFleetImageUrl, fleetImageSources, fleetPictureMarkup, recordFleetEvent } from "./supabase-fleet.js?v=native-picture-flow-20260901";
+import {
+  cacheSafeFleetImageUrl,
+  fleetImageSources,
+  fleetPictureMarkup,
+  isSupabaseFleetConfigured,
+  loadMonthlySpecialFromSupabase,
+  recordFleetEvent,
+} from "./supabase-fleet.js?v=product-image-quality-20260901";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
+import {
+  accelerationForVehicle,
+  bodyTypeForVehicle,
+  engineForVehicle,
+  publicVehicleDetails,
+  publicVehicleSummary,
+  seatsForVehicle,
+  vehicleSeoDescription,
+  vehicleSeoSectionMarkup,
+  vehicleSeoTitle,
+  vehicleYear,
+} from "./vehicle-content.js?v=vehicle-seo-20260901";
 
 document.body.classList.add("site-theme");
 
@@ -22,13 +41,58 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-function vehicleYear(vehicle) {
-  return String(vehicle?.year || vehicle?.name?.match(/^(\d{4})/)?.[1] || "Private collection");
+function currentSpecialMonth() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function monthlyFallbackSlugs(source, month) {
+  if (!source.length) return [];
+  const seed = Number(month.replace("-", ""));
+  const start = seed % source.length;
+  return Array.from({ length: Math.min(2, source.length) }, (_, index) => source[(start + index) % source.length].slug);
+}
+
+async function hydrateMonthlySpecialPrice() {
+  if (!car) return;
+  const month = currentSpecialMonth();
+  let configuredSpecial = null;
+  try {
+    configuredSpecial = isSupabaseFleetConfigured ? await loadMonthlySpecialFromSupabase(month) : null;
+  } catch (error) {
+    console.warn("Could not hydrate vehicle monthly-special pricing:", error);
+  }
+  const activeSlugs = new Set(vehicleFleet.map((vehicle) => vehicle.slug));
+  const configuredSlugs = Array.isArray(configuredSpecial?.car_slugs)
+    ? configuredSpecial.car_slugs.filter((vehicleSlug) => activeSlugs.has(vehicleSlug)).slice(0, 2)
+    : [];
+  const specialSlugs = configuredSlugs.length ? configuredSlugs : monthlyFallbackSlugs(vehicleFleet, month);
+  if (!specialSlugs.includes(slug)) return;
+
+  const originalRate = Math.max(Number(car.price || 0), 0);
+  const discountedRate = Math.round(originalRate * 0.9);
+  const monthLabel = new Intl.DateTimeFormat("en-US", { month: "long" }).format(new Date(`${month}-02T12:00:00`));
+
+  document.querySelectorAll("[data-vehicle-price]").forEach((price) => {
+    price.classList.add("vehicle-special-price");
+    price.setAttribute("aria-label", `${monthLabel} special: 10% off, ${formatPrice(discountedRate)} per day, regularly ${formatPrice(originalRate)} per day`);
+    price.innerHTML = `
+      <span class="vehicle-special-label">${escapeHtml(monthLabel)} special · 10% off</span>
+      <span class="vehicle-special-values" aria-hidden="true">
+        <del>${escapeHtml(formatPrice(originalRate))}</del>
+        <b>${escapeHtml(formatPrice(discountedRate))}</b>
+        <small>/day</small>
+      </span>
+    `;
+  });
 }
 
 function ensureVehicleShell() {
   const page = document.querySelector("[data-vehicle-page]");
   if (!page || page.querySelector(".vehicle-private-page")) return;
+  const staticSeo = page.querySelector("[data-vehicle-seo]");
+  const hasStaticSeo = Boolean(staticSeo);
+  staticSeo?.remove();
   page.innerHTML = `
     <div class="vehicle-private-page">
       <a class="vehicle-private-back" href="/fleet.html"><span aria-hidden="true">←</span> Return to collection</a>
@@ -100,33 +164,17 @@ function ensureVehicleShell() {
         </aside>
       </section>
 
-      <section class="vehicle-private-essentials" aria-labelledby="vehicle-essentials-title">
-        <header><p class="eyebrow">Before you request</p><h2 id="vehicle-essentials-title">The essentials.</h2></header>
-        <div>
-          <article><span>01</span><h3>Driver approval</h3><p>A valid driver’s license, approved age and driving history, and identity verification may be required.</p></article>
-          <article><span>02</span><h3>Insurance</h3><p>Proof of active insurance or another approved coverage arrangement is reviewed for the exact vehicle.</p></article>
-          <article><span>03</span><h3>Security deposit</h3><p>The amount and release timing vary by vehicle, dates, coverage, and driver profile.</p></article>
-          <article><span>04</span><h3>Concierge delivery</h3><p>Delivery timing, access, mileage, and any applicable fee are confirmed for your requested address.</p></article>
-        </div>
-      </section>
-
-      <section class="vehicle-private-faq" aria-labelledby="vehicle-faq-title">
-        <header><p class="eyebrow">Private rental desk</p><h2 id="vehicle-faq-title">Questions,<br /><em>answered.</em></h2></header>
-        <div class="vehicle-private-faq-list">
-          <details><summary>How do I qualify to rent this vehicle?<span>+</span></summary><p>Approval is vehicle-specific. You may need a valid driver’s license, proof of insurance, an acceptable driving history, identity verification, and an approved security deposit.</p></details>
-          <details><summary>How many miles are included?<span>+</span></summary><p>The included daily mileage is shown above when available. Your confirmed quote will state the total allowance and the additional-mileage rate.</p></details>
-          <details><summary>Can you deliver the car to me?<span>+</span></summary><p>Yes. Prestige Luxor operates as a delivery-only service. We confirm timing, access, and any delivery fee for your hotel, residence, airport-area meeting point, or approved address.</p></details>
-          <details><summary>What payment methods are accepted?<span>+</span></summary><p>Accepted payment methods may vary by vehicle and booking. Your concierge will explain the approved payment arrangement before confirmation.</p></details>
-          <details><summary>How much is the security deposit?<span>+</span></summary><p>Deposits vary by vehicle, dates, coverage, and driver profile. The exact amount is disclosed before you approve the reservation.</p></details>
-          <details><summary>Can an international visitor rent?<span>+</span></summary><p>Possibly. International licenses, passports, coverage, age, and additional verification are reviewed individually before approval.</p></details>
-        </div>
-      </section>
+      ${hasStaticSeo ? "" : vehicleSeoMarkup(car)}
 
       <section class="related-section vehicle-product-related" aria-label="Related vehicles">
         <div class="section-heading compact-heading"><p class="eyebrow">Continue exploring</p><h2>Similar vehicles</h2><p>Three considered alternatives from the active collection.</p></div>
         <div class="related-grid" data-related></div>
       </section>
     </div>`;
+  if (staticSeo) {
+    const relatedSection = page.querySelector(".vehicle-product-related");
+    relatedSection?.before(staticSeo);
+  }
 }
 
 function setVehicleIndexing(isActive) {
@@ -156,7 +204,7 @@ function setAttr(selector, attribute, value) {
 }
 
 function rateFromTag(tag, basePrice) {
-  const match = tag.match(/\$([\d,]+)(?:\.00)?\s+(.+)/);
+  const match = String(tag || "").match(/^\$([\d,]+)(?:\.00)?\s+([^$]+)$/);
   if (!match) return null;
   const multiDayPrice = Number(match[1].replaceAll(",", ""));
   const dailyPrice = Number(basePrice);
@@ -168,50 +216,8 @@ function rateFromTag(tag, basePrice) {
   };
 }
 
-function seatsForVehicle(vehicle) {
-  const joined = `${vehicle.name} ${vehicle.category} ${vehicle.categoryLabel}`.toLowerCase();
-  if (joined.includes("suv") || joined.includes("g-wagon") || joined.includes("g wagon") || joined.includes("gls") || joined.includes("gle") || joined.includes("g63") || joined.includes("escalade") || joined.includes("urus") || joined.includes("defender") || joined.includes("range rover") || joined.includes("cullinan") || joined.includes("macan") || joined.includes("cybertruck")) return "5 seats";
-  if (joined.includes("panamera") || joined.includes("model s") || joined.includes("m3") || joined.includes("m5") || joined.includes("c63") || joined.includes("s63")) return "5 seats";
-  if (joined.includes("m4")) return "4 seats";
-  return "2 seats";
-}
-
-function engineForVehicle(vehicle) {
-  const name = vehicle.name.toLowerCase();
-  const make = vehicle.make.toLowerCase();
-  if (name.includes("huracan") || name.includes("r8")) return "V10";
-  if (name.includes("cybertruck") || name.includes("tesla")) return "Electric";
-  if (name.includes("corvette")) return "V8";
-  if (name.includes("urus") || name.includes("g63") || name.includes("g-wagon") || name.includes("g wagon") || name.includes("gls") || name.includes("gle") || name.includes("escalade") || name.includes("cullinan") || name.includes("defender") || name.includes("range rover")) return "V8 / SUV";
-  if (make.includes("rolls") || make.includes("bentley")) return "Twin-turbo V8";
-  if (make.includes("ferrari") || make.includes("mclaren")) return "Twin-turbo V8";
-  if (make.includes("lotus")) return "Supercharged V6";
-  if (make.includes("bmw")) return "Twin-turbo I6";
-  if (make.includes("porsche")) return "Turbo flat-six";
-  if (make.includes("ford")) return "Twin-turbo V6";
-  return "Performance";
-}
-
-function accelerationForVehicle(vehicle) {
-  const name = vehicle.name.toLowerCase();
-  const make = vehicle.make.toLowerCase();
-  if (name.includes("huracan")) return "2.9 sec";
-  if (make.includes("ferrari") || make.includes("mclaren") || name.includes("r8") || name.includes("corvette")) return "3.1 sec";
-  if (name.includes("urus")) return "3.6 sec";
-  if (name.includes("tesla") || name.includes("plaid")) return "2.1 sec";
-  if (make.includes("bmw")) return "3.8 sec";
-  if (name.includes("g63") || name.includes("g-wagon") || name.includes("g wagon") || name.includes("gle") || name.includes("gls") || name.includes("escalade") || name.includes("range rover") || name.includes("defender")) return "4.5 sec";
-  return "Fast";
-}
-
-function typeForVehicle(vehicle) {
-  const label = vehicle.categoryLabel || vehicle.category;
-  const joined = `${vehicle.name} ${vehicle.category} ${vehicle.summary}`.toLowerCase();
-  if (joined.includes("convertible") || joined.includes("spyder") || joined.includes("spider") || joined.includes("gtc") || joined.includes("dawn") || joined.includes("portofino") || joined.includes("open-air")) return "Convertible";
-  if (joined.includes("cybertruck") || joined.includes("f150")) return "Truck";
-  if (joined.includes("suv") || joined.includes("g63") || joined.includes("g-wagon") || joined.includes("g wagon") || joined.includes("gle") || joined.includes("gls") || joined.includes("escalade") || joined.includes("urus") || joined.includes("defender") || joined.includes("range rover") || joined.includes("cullinan") || joined.includes("macan")) return "SUV";
-  if (joined.includes("sedan") || joined.includes("m3") || joined.includes("m5") || joined.includes("c63") || joined.includes("s63") || joined.includes("panamera") || joined.includes("model s")) return "Sedan";
-  return label;
+function vehicleSeoMarkup(vehicle) {
+  return vehicleSeoSectionMarkup(vehicle, { formatPrice, escapeHtml });
 }
 
 function listingGallery(vehicle) {
@@ -232,10 +238,12 @@ function renderGallery(gallery) {
     if (!gallery.length || !mainImage) return;
     activeIndex = (index + gallery.length) % gallery.length;
     const originalImage = gallery[activeIndex];
-    const { optimized, fallback } = fleetImageSources(originalImage, { width: 1600, height: 1100, quality: 82, updatedAt: car.updatedAt || car.updated_at });
+    const { optimized, fallback } = fleetImageSources(originalImage, { width: 2000, height: 1400, quality: 90, updatedAt: car.updatedAt || car.updated_at });
+    const isLocalGallery = /^\/assets\/fleet-galleries\//i.test(fallback.split("?")[0]);
+    const displaySource = isLocalGallery ? fallback : optimized;
     if (mainSource) {
-      mainSource.srcset = optimized;
-      if (/\.webp(?:\?|$)/i.test(optimized)) mainSource.type = "image/webp";
+      mainSource.srcset = displaySource;
+      if (/\.webp(?:\?|$)/i.test(displaySource)) mainSource.type = "image/webp";
       else mainSource.removeAttribute("type");
     }
     mainImage.src = fallback;
@@ -255,7 +263,7 @@ function renderGallery(gallery) {
       .map(
         (image, index) => `
           <button class="vehicle-side-thumb ${index === 0 ? "active" : ""}" type="button" data-gallery-image="${image}" data-gallery-index="${index}" aria-label="Show photo ${index + 1} of ${car.name}">
-            ${fleetPictureMarkup(image, { alt: "", width: 460, height: 300, quality: 72, updatedAt: car.updatedAt || car.updated_at, loading: "lazy" })}
+            ${fleetPictureMarkup(image, { alt: "", width: 1000, height: 660, quality: 88, updatedAt: car.updatedAt || car.updated_at, loading: "lazy", preferOriginalLocal: true })}
           </button>
         `,
       )
@@ -358,7 +366,9 @@ function renderVehicle() {
     return;
   }
 
-  document.title = `${car.name} | Prestige Luxor`;
+  document.title = vehicleSeoTitle(car);
+  const metaDescription = document.querySelector('meta[name="description"]');
+  if (metaDescription) metaDescription.content = vehicleSeoDescription(car, formatPrice);
   setText("[data-vehicle-year]", vehicleYear(car));
   setText("[data-vehicle-category]", car.categoryLabel);
   const vehicleTitle = car.name.replace(/^\d{4}\s+/, "");
@@ -368,7 +378,7 @@ function renderVehicle() {
     vehicleTitleNode.classList.toggle("vehicle-title-long", vehicleTitle.length > 18);
     vehicleTitleNode.classList.toggle("vehicle-title-extra-long", vehicleTitle.length > 28);
   }
-  setText("[data-vehicle-summary]", car.summary);
+  setText("[data-vehicle-summary]", publicVehicleSummary(car));
   setTextAll("[data-vehicle-price]", `${formatPrice(car.price)}/day`);
   setText("[data-vehicle-mileage]", car.mileage);
   setText("[data-vehicle-color]", car.color);
@@ -377,7 +387,7 @@ function renderVehicle() {
   setText("[data-vehicle-engine]", engineForVehicle(car));
   setText("[data-vehicle-seats]", seatsForVehicle(car));
   setText("[data-vehicle-acceleration]", accelerationForVehicle(car));
-  setText("[data-vehicle-type]", typeForVehicle(car));
+  setText("[data-vehicle-type]", bodyTypeForVehicle(car));
   setAttr("[data-booking-link]", "href", `/?vehicle=${encodeURIComponent(car.name)}#booking`);
   const requestForm = document.querySelector("[data-vehicle-request-form]");
   if (requestForm) requestForm.elements.vehicle.value = car.name;
@@ -387,7 +397,7 @@ function renderVehicle() {
   renderGallery(gallery);
 
   const rates = car.tags.map((tag) => rateFromTag(tag, car.price)).filter(Boolean);
-  const featureTags = car.tags.filter((tag) => !rateFromTag(tag, car.price));
+  const featureTags = publicVehicleDetails(car).slice(0, 4);
   const tagsNode = document.querySelector("[data-vehicle-tags]");
   if (tagsNode) {
     tagsNode.innerHTML = `
@@ -410,7 +420,7 @@ function renderVehicle() {
   }
   const detailsNode = document.querySelector("[data-vehicle-details]");
   if (detailsNode) {
-    detailsNode.innerHTML = car.details
+    detailsNode.innerHTML = publicVehicleDetails(car)
       .map(
         (detail) => `
           <li>
@@ -479,6 +489,7 @@ window.addEventListener(
 function initVehicle() {
   renderVehicle();
   document.body.classList.remove("is-loading-vehicle");
+  void hydrateMonthlySpecialPrice();
   setVehicleIndexing(Boolean(car));
   void recordFleetEvent("vehicle_detail_view", {
     carSlug: slug,

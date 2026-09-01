@@ -117,14 +117,17 @@ export function fleetPictureMarkup(url, {
   fetchPriority = "",
   pictureClass = "",
   imageClass = "",
+  preferOriginalLocal = false,
 } = {}) {
   const { optimized, fallback } = fleetImageSources(url, { width, height, quality, updatedAt });
-  const sourceType = /\.webp(?:\?|$)/i.test(optimized) ? ' type="image/webp"' : "";
+  const isLocalGallery = /^\/assets\/fleet-galleries\//i.test(fallback.split("?")[0]);
+  const displaySource = preferOriginalLocal && isLocalGallery ? fallback : optimized;
+  const sourceType = /\.webp(?:\?|$)/i.test(displaySource) ? ' type="image/webp"' : "";
   const loadingAttribute = loading === "eager" || loading === "lazy" ? ` loading="${loading}"` : "";
   const priorityAttribute = ["high", "low", "auto"].includes(fetchPriority) ? ` fetchpriority="${fetchPriority}"` : "";
   const pictureClassAttribute = pictureClass ? ` class="${escapeImageAttribute(pictureClass)}"` : "";
   const imageClassAttribute = imageClass ? ` class="${escapeImageAttribute(imageClass)}"` : "";
-  return `<picture${pictureClassAttribute}><source srcset="${escapeImageAttribute(optimized)}"${sourceType} /><img${imageClassAttribute} src="${escapeImageAttribute(fallback)}" alt="${escapeImageAttribute(alt)}" width="${Number(width)}" height="${Number(height)}"${loadingAttribute} decoding="async"${priorityAttribute} /></picture>`;
+  return `<picture${pictureClassAttribute}><source srcset="${escapeImageAttribute(displaySource)}"${sourceType} /><img${imageClassAttribute} src="${escapeImageAttribute(fallback)}" alt="${escapeImageAttribute(alt)}" width="${Number(width)}" height="${Number(height)}"${loadingAttribute} decoding="async"${priorityAttribute} /></picture>`;
 }
 
 function analyticsSessionId() {

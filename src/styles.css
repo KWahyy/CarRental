@@ -22067,6 +22067,26 @@ body.availability-open {
 .vehicle-private-request form > p[data-tone="error"] { color:#efaaaa; }
 .vehicle-request-call { display:block; margin-top:22px; border-top:1px solid rgba(255,255,255,.18); color:#f0eee8; padding-top:18px; font-size:.7rem; letter-spacing:.06em; }
 
+.vehicle-seo-details { padding:clamp(90px,10vw,160px) max(5vw,32px); color:#111; background:#efede7; }
+.vehicle-seo-intro { display:grid; grid-template-columns:minmax(0,.72fr) minmax(0,1.28fr); gap:22px clamp(44px,8vw,130px); align-items:start; }
+.vehicle-seo-intro .eyebrow { grid-column:1/-1; margin:0; color:rgba(17,17,17,.5); font-size:.65rem; font-weight:750; letter-spacing:.17em; text-transform:uppercase; }
+.vehicle-seo-intro h2 { max-width:820px; margin:0; font-size:clamp(2.8rem,5.8vw,6.3rem); font-weight:580; line-height:.9; letter-spacing:-.065em; text-transform:uppercase; text-wrap:balance; }
+.vehicle-seo-intro > p:last-child { max-width:720px; margin:4px 0 0; color:rgba(17,17,17,.64); font-size:clamp(1.05rem,1.4vw,1.28rem); line-height:1.72; }
+.vehicle-seo-facts { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); margin-top:clamp(54px,7vw,92px); border-top:1px solid rgba(17,17,17,.28); border-left:1px solid rgba(17,17,17,.28); }
+.vehicle-seo-facts div { min-height:138px; display:grid; align-content:space-between; gap:18px; border-right:1px solid rgba(17,17,17,.28); border-bottom:1px solid rgba(17,17,17,.28); padding:22px; }
+.vehicle-seo-facts span { color:rgba(17,17,17,.5); font-size:.62rem; font-weight:750; letter-spacing:.12em; text-transform:uppercase; }
+.vehicle-seo-facts strong { max-width:24ch; font-size:clamp(.92rem,1.2vw,1.08rem); font-weight:600; line-height:1.45; }
+.vehicle-seo-planning { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:2px; margin-top:2px; background:#efede7; }
+.vehicle-seo-planning article { min-height:360px; display:grid; align-content:end; border:1px solid rgba(255,255,255,.14); background:#101010; color:#f0eee8; padding:clamp(30px,4vw,58px); }
+.vehicle-seo-planning .eyebrow { margin:0 0 24px; color:rgba(240,238,232,.48); font-size:.64rem; font-weight:750; letter-spacing:.16em; text-transform:uppercase; }
+.vehicle-seo-planning h3 { max-width:13ch; margin:0; font-family:Georgia,"Times New Roman",serif; font-size:clamp(2.2rem,4vw,4.6rem); font-weight:400; line-height:.94; letter-spacing:-.045em; }
+.vehicle-seo-planning article > p:last-of-type { max-width:600px; margin:25px 0 0; color:rgba(240,238,232,.62); line-height:1.7; }
+.vehicle-seo-planning a { width:max-content; display:flex; gap:36px; margin-top:30px; border-bottom:1px solid rgba(240,238,232,.7); color:#f0eee8; padding-bottom:9px; font-size:.68rem; font-weight:750; letter-spacing:.1em; text-transform:uppercase; }
+.vehicle-seo-links { display:flex; flex-wrap:wrap; gap:10px; padding:32px 0; border-bottom:1px solid rgba(17,17,17,.28); }
+.vehicle-seo-links a { min-height:44px; display:inline-flex; align-items:center; border:1px solid rgba(17,17,17,.25); color:#111; padding:0 16px; font-size:.7rem; font-weight:750; letter-spacing:.08em; text-transform:uppercase; transition:background 180ms ease,color 180ms ease; }
+.vehicle-seo-links a:hover { background:#111; color:#efede7; }
+.vehicle-seo-details > .vehicle-private-faq { margin:clamp(70px,9vw,130px) 0 0; padding:0; background:transparent; }
+
 .vehicle-private-essentials { display:grid; grid-template-columns:.7fr 1.3fr; gap:clamp(50px,8vw,130px); padding:clamp(90px,11vw,170px) max(5vw,32px); background:#0d0d0d; }
 .vehicle-private-essentials header h2 { margin:0; font-size:clamp(3.4rem,7vw,7.2rem); font-weight:580; line-height:.86; letter-spacing:-.075em; text-transform:uppercase; }
 .vehicle-private-essentials > div { border-top:1px solid rgba(255,255,255,.2); }
@@ -22099,6 +22119,9 @@ body.availability-open {
   .vehicle-private-information,
   .vehicle-private-essentials,
   .vehicle-private-faq { grid-template-columns:1fr; }
+  .vehicle-seo-intro { grid-template-columns:1fr; }
+  .vehicle-seo-intro .eyebrow { grid-column:auto; }
+  .vehicle-seo-facts { grid-template-columns:repeat(3,minmax(0,1fr)); }
   .vehicle-private-request { position:relative; top:auto; }
 }
 
@@ -22117,6 +22140,15 @@ body.availability-open {
   .vehicle-private-information,
   .vehicle-private-essentials,
   .vehicle-private-faq { padding:82px 20px; }
+  .vehicle-seo-details { padding:82px 20px; }
+  .vehicle-seo-intro h2 { font-size:clamp(2.55rem,12vw,4rem); }
+  .vehicle-seo-facts { grid-template-columns:repeat(2,minmax(0,1fr)); margin-top:52px; }
+  .vehicle-seo-facts div { min-height:124px; padding:17px; }
+  .vehicle-seo-planning { grid-template-columns:1fr; }
+  .vehicle-seo-planning article { min-height:330px; }
+  .vehicle-seo-links { display:grid; grid-template-columns:1fr; }
+  .vehicle-seo-links a { width:100%; }
+  .vehicle-seo-details > .vehicle-private-faq { padding:0; }
   .vehicle-private-overview > h2,
   .vehicle-private-essentials header h2,
   .vehicle-private-faq h2 { max-width:100%; font-size:clamp(2.8rem,13vw,4rem); white-space:normal; overflow-wrap:normal; }
@@ -22203,6 +22235,91 @@ body.availability-open {
   justify-self:end;
   color:#111;
   font-size:clamp(1.9rem,3vw,3.1rem);
+}
+
+/* Use the same live monthly-special pricing treatment on featured vehicle pages. */
+.vehicle-private-page .vehicle-special-price {
+  display:grid;
+  gap:9px;
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-variant-numeric:tabular-nums;
+}
+
+.vehicle-private-page .vehicle-special-label {
+  width:max-content;
+  max-width:100%;
+  border:1px solid currentColor;
+  padding:7px 10px;
+  color:inherit;
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size:.62rem;
+  font-weight:750;
+  line-height:1;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+}
+
+.vehicle-private-page .vehicle-special-values {
+  display:flex;
+  align-items:baseline;
+  gap:9px;
+  color:inherit;
+}
+
+.vehicle-private-page .vehicle-special-values del {
+  color:rgba(17,17,17,.48);
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size:.82rem;
+  font-weight:500;
+}
+
+.vehicle-private-page .vehicle-special-values b {
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:inherit;
+  font-weight:400;
+  line-height:1;
+}
+
+.vehicle-private-page .vehicle-special-values small {
+  color:rgba(17,17,17,.54);
+  font-size:.6rem;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+.vehicle-private-request .vehicle-request-rate > span:first-child {
+  flex:0 0 auto;
+}
+
+.vehicle-private-request .vehicle-special-price {
+  justify-items:end;
+  color:#f4f2ed;
+  text-align:right;
+}
+
+.vehicle-private-request .vehicle-special-label {
+  color:#f4f2ed;
+}
+
+.vehicle-private-request .vehicle-special-values del,
+.vehicle-private-request .vehicle-special-values small {
+  color:rgba(240,238,232,.5);
+}
+
+@media (max-width:480px) {
+  .vehicle-private-request .vehicle-request-rate {
+    align-items:start;
+  }
+
+  .vehicle-private-request .vehicle-special-price {
+    gap:8px;
+  }
+
+  .vehicle-private-page .vehicle-special-label {
+    font-size:.56rem;
+    letter-spacing:.08em;
+  }
 }
 
 .vehicle-private-title-card > a {

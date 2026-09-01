@@ -1,11 +1,25 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { PurgeCSS } from "purgecss";
-import { transform } from "lightningcss";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "../src/supabase-config.js";
+import {
+  publicVehicleDetails,
+  publicVehicleSummary,
+  publicVehicleTags,
+  vehicleFaqItems,
+  vehicleSeoDescription,
+  vehicleSeoSectionMarkup,
+  vehicleSeoTitle,
+} from "../src/vehicle-content.js";
 
 const root = process.cwd();
 const outDir = join(root, "dist");
+let transformCss = ({ code }) => ({ code });
+try {
+  ({ transform: transformCss } = await import("lightningcss"));
+} catch (error) {
+  console.warn(`Lightning CSS unavailable; continuing without CSS minification (${error.code || error.message}).`);
+}
 
 rmSync(outDir, { recursive: true, force: true });
 mkdirSync(outDir, { recursive: true });
@@ -57,7 +71,7 @@ async function buildHomepageStyles() {
     },
   });
 
-  const optimized = transform({
+  const optimized = transformCss({
     filename: "styles-home.css",
     code: Buffer.from(css),
     minify: true,
@@ -129,12 +143,12 @@ const publicFleetSnapshot = activeInventory.map((car) => {
     mileage: car.mileage,
     seats: car.seats,
     color: car.color,
-    summary: car.summary,
+    summary: publicVehicleSummary(car),
     image,
     image_url: image,
     gallery: gallery.length ? gallery : [image],
-    tags: Array.isArray(car.tags) ? car.tags : [],
-    details: Array.isArray(car.details) ? car.details : [],
+    tags: publicVehicleTags(car),
+    details: publicVehicleDetails(car),
     competitorPrice: null,
     competitorName: "",
     competitorUrl: "",
@@ -168,6 +182,11 @@ const escapeHtml = (value) => String(value ?? "")
   .replaceAll(">", "&gt;")
   .replaceAll('"', "&quot;")
   .replaceAll("'", "&#039;");
+const formatUsd = (value) => new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+}).format(Number(value) || 0);
 
 function optimizedPublicImageUrl(value, { width = 900, height = 675, quality = 78 } = {}) {
   const source = String(value || "");
@@ -304,8 +323,8 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
     <link rel="canonical" href="${canonical}" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Prestige Luxor" />
-    <meta property="og:title" content="${title}" />
-    <meta property="og:description" content="${description}" />
+    <meta property="og:title" content="${escapeHtml(title)}" />
+    <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:url" content="${canonical}" />
     <meta property="og:image" content="${siteUrl}/assets/prestige-luxor-search-preview.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -602,11 +621,13 @@ if (existsSync(carDir)) {
     const filePath = join(carDir, file);
     const slug = file.replace(/\.html$/, "");
     let html = readFileSync(filePath, "utf8");
-    const title = html.match(/<title>(.*?)<\/title>/)?.[1] || "Exotic Car Rental | Prestige Luxor";
-    const description = html.match(/<meta name="description" content="([^"]*)"/i)?.[1] || "View this exotic rental car from Prestige Luxor in Los Angeles and Orange County.";
+    const sourceTitle = html.match(/<title>(.*?)<\/title>/)?.[1] || "Exotic Car Rental | Prestige Luxor";
+    const sourceDescription = html.match(/<meta name="description" content="([^"]*)"/i)?.[1] || "View this exotic rental car from Prestige Luxor in Los Angeles and Orange County.";
     const imagePath = `assets/fleet/${slug}.jpg`;
     const activeCar = activeInventoryBySlug.get(slug);
     const isActive = Boolean(activeCar);
+    const title = isActive ? vehicleSeoTitle(activeCar) : sourceTitle;
+    const description = isActive ? vehicleSeoDescription(activeCar, formatUsd) : sourceDescription;
     const absoluteUrl = (value) => {
       if (!value) return "";
       if (/^https?:\/\//i.test(value)) return value;
@@ -624,7 +645,7 @@ if (existsSync(carDir)) {
           "@type": ["Product", "Vehicle"],
           "@id": `${siteUrl}/cars/${slug}#vehicle`,
           name: activeCar.name,
-          description: activeCar.summary || description,
+          description: publicVehicleSummary(activeCar),
           url: `${siteUrl}/cars/${slug}`,
           image: vehicleImages.length ? vehicleImages : [imageUrl],
           sku: activeCar.id || slug,
@@ -636,6 +657,9 @@ if (existsSync(carDir)) {
           ...(activeCar.seats ? { vehicleSeatingCapacity: Number(activeCar.seats) } : {}),
           additionalProperty: [
             ...(activeCar.mileage ? [{ "@type": "PropertyValue", name: "Included mileage", value: activeCar.mileage }] : []),
+            { "@type": "PropertyValue", name: "Minimum driver age", value: "18+, subject to vehicle-specific approval" },
+            { "@type": "PropertyValue", name: "Insurance requirement", value: "Valid driver license and proof of active auto insurance required" },
+            { "@type": "PropertyValue", name: "Security deposit", value: "Vehicle- and driver-specific refundable hold disclosed before payment" },
             { "@type": "PropertyValue", name: "Service area", value: "Los Angeles and Orange County" },
           ],
           offers: {
@@ -662,12 +686,27 @@ if (existsSync(carDir)) {
             { "@type": "ListItem", position: 3, name: activeCar.name, item: `${siteUrl}/cars/${slug}` },
           ],
         },
+        {
+          "@type": "FAQPage",
+          "@id": `${siteUrl}/cars/${slug}#faq`,
+          mainEntity: vehicleFaqItems(activeCar, formatUsd).map(({ question, answer }) => ({
+            "@type": "Question",
+            name: question,
+            acceptedAnswer: { "@type": "Answer", text: answer },
+          })),
+        },
       ],
     } : null;
     html = html
-      .replace(/\/src\/vehicle\.js\?v=[^\"]+/g, "/src/vehicle.js?v=fleet-images-20260818")
+      .replace(/<title>.*?<\/title>/, `<title>${escapeHtml(title)}</title>`)
+      .replace(/<meta name="description" content="[^"]*"\s*\/>/i, `<meta name="description" content="${escapeHtml(description)}" />`)
+      .replace(/\/src\/vehicle\.js\?v=[^\"]+/g, "/src/vehicle.js?v=product-images-20260901")
       .replace(/\/src\/styles\.css\?v=[^\"]+/g, "/src/styles.css?v=site-theme-20260719")
       .replace(/<body class="(?!site-theme )/, '<body class="site-theme ');
+    if (isActive && !html.includes("data-vehicle-seo")) {
+      const seoSection = vehicleSeoSectionMarkup(activeCar, { formatPrice: formatUsd, escapeHtml });
+      html = html.replace("</main>", `${seoSection}\n</main>`);
+    }
     const metadata = `
     <link rel="canonical" href="${siteUrl}/cars/${slug}" />
     <meta name="robots" content="${isActive ? "index, follow" : "noindex, follow"}" data-inventory-indexing />
@@ -784,7 +823,7 @@ async function inlinePublicPageStyles(directory, relativePath = "", cache = new 
         },
       });
       const combinedCss = purged.map(({ css }) => css).join("\n");
-      optimizedCss = Buffer.from(transform({ filename: entry.name, code: Buffer.from(combinedCss), minify: true }).code).toString("utf8");
+      optimizedCss = Buffer.from(transformCss({ filename: entry.name, code: Buffer.from(combinedCss), minify: true }).code).toString("utf8");
       cache.set(cacheKey, optimizedCss);
     }
 

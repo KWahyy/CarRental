@@ -45,6 +45,11 @@ let availabilityTrigger = null;
 const seenCardImpressions = new Set();
 let cardImpressionObserver = null;
 const CRM_REQUESTS_KEY = "prestige-luxor-crm-requests";
+const initialFleetSearch = new URLSearchParams(window.location.search).get("search")?.trim() || "";
+if (initialFleetSearch) {
+  searchQuery = initialFleetSearch.toLowerCase();
+  if (searchInput) searchInput.value = initialFleetSearch;
+}
 const POPULAR_VEHICLE_SLUGS = [
   "2021-bmw-m3-comp",
   "2022-porsche-911-carrera",
