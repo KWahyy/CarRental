@@ -24839,7 +24839,18 @@ body.site-theme {
   object-fit: cover;
   object-position: 56% center;
   filter: grayscale(1) contrast(1.12) brightness(0.82);
-  animation: wedding-image-arrive 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  opacity: 0;
+  transform: scale(1.015);
+  transition: opacity 420ms ease, transform 1.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wedding-hero-media.is-playing {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.wedding-hero.video-unavailable {
+  background: #090909 url("/assets/optimized/wedding-experience-banner.webp") center / cover no-repeat;
 }
 
 .wedding-hero-shade {
@@ -26440,6 +26451,7 @@ body.site-theme {
 
   .wedding-hero-media {
     object-position: 56% center;
+    transition: none;
   }
 }
 

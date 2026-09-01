@@ -5,9 +5,26 @@ const mobileMenu = document.querySelector("[data-mobile-menu]");
 const form = document.querySelector("[data-wedding-form]");
 const status = document.querySelector("[data-wedding-status]");
 const reveals = document.querySelectorAll(".reveal");
+const heroVideo = document.querySelector(".wedding-hero-media");
 const driverPreference = form?.querySelector("[data-wedding-driver]");
 const insuranceSection = form?.querySelector("[data-wedding-insurance]");
 const insuranceFields = insuranceSection ? [...insuranceSection.querySelectorAll("input")] : [];
+
+if (heroVideo) {
+  const revealHeroVideo = () => heroVideo.classList.add("is-playing");
+  const showFallback = () => heroVideo.closest(".wedding-hero")?.classList.add("video-unavailable");
+
+  heroVideo.addEventListener("playing", revealHeroVideo, { once: true });
+  heroVideo.addEventListener("error", showFallback, { once: true });
+
+  if (!heroVideo.paused && heroVideo.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+    revealHeroVideo();
+  } else {
+    heroVideo.play().then(revealHeroVideo).catch(() => {
+      if (heroVideo.error) showFallback();
+    });
+  }
+}
 
 if (menuToggle && mobileMenu) {
   menuToggle.addEventListener("click", () => {
