@@ -38,7 +38,7 @@ If that sounds relevant, I’d be happy to share the fleet and discuss a simple 
 Prestige Luxor
 (949) 620-0024
 Contact@prestigeluxor.com
-https://www.kdsexotics.com
+https://www.prestigeluxor.com
 
 ## Follow-up message
 
