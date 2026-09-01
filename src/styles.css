@@ -19912,6 +19912,10 @@ body.availability-open {
   transition: none;
 }
 
+.home-page .hero-content {
+  width: min(1240px, calc(100% - 48px));
+}
+
 .home-page .hero-private-label {
   position: relative;
   width: fit-content;
@@ -19947,7 +19951,7 @@ body.availability-open {
 
 .home-page .hero h1,
 .home-page .hero h1.reveal {
-  max-width: min(1100px, 100%);
+  max-width: min(1200px, 100%);
   color: #fff;
   animation: none;
   opacity: 1;
@@ -19985,6 +19989,7 @@ body.availability-open {
 }
 
 .home-page .hero .hero-title-line-muted > span {
+  font-size: clamp(2.15rem, 3.75vw, 4.15rem);
   background:
     linear-gradient(108deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.7) 38%, #fff 49%, rgba(255, 255, 255, 0.7) 60%, rgba(255, 255, 255, 0.7) 100%);
   background-size: 240% 100%;
@@ -20181,6 +20186,13 @@ body.availability-open {
       letter-spacing: 0.24em;
       transform: translateY(0);
     }
+  }
+}
+
+@media (min-width: 641px) and (max-width: 900px) {
+  .home-page .hero .hero-title-line-muted > span {
+    font-size: clamp(2.05rem, 5.2vw, 2.75rem);
+    letter-spacing: 0.04em;
   }
 }
 
