@@ -93,6 +93,40 @@ export function optimizedFleetImageUrl(url, { width = 900, height = 675, quality
   return optimized ? `${optimized}${query ? `?${query}` : ""}` : source;
 }
 
+function escapeImageAttribute(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+export function fleetImageSources(url, options = {}) {
+  const fallback = cacheSafeFleetImageUrl(url, options.updatedAt || "") || "/assets/prestige-luxor-hero.png";
+  const optimized = optimizedFleetImageUrl(fallback, options) || fallback;
+  return { optimized, fallback };
+}
+
+export function fleetPictureMarkup(url, {
+  alt = "",
+  width = 900,
+  height = 675,
+  quality = 78,
+  updatedAt = "",
+  loading = "lazy",
+  fetchPriority = "",
+  pictureClass = "",
+  imageClass = "",
+} = {}) {
+  const { optimized, fallback } = fleetImageSources(url, { width, height, quality, updatedAt });
+  const sourceType = /\.webp(?:\?|$)/i.test(optimized) ? ' type="image/webp"' : "";
+  const loadingAttribute = loading === "eager" || loading === "lazy" ? ` loading="${loading}"` : "";
+  const priorityAttribute = ["high", "low", "auto"].includes(fetchPriority) ? ` fetchpriority="${fetchPriority}"` : "";
+  const pictureClassAttribute = pictureClass ? ` class="${escapeImageAttribute(pictureClass)}"` : "";
+  const imageClassAttribute = imageClass ? ` class="${escapeImageAttribute(imageClass)}"` : "";
+  return `<picture${pictureClassAttribute}><source srcset="${escapeImageAttribute(optimized)}"${sourceType} /><img${imageClassAttribute} src="${escapeImageAttribute(fallback)}" alt="${escapeImageAttribute(alt)}" width="${Number(width)}" height="${Number(height)}"${loadingAttribute} decoding="async"${priorityAttribute} /></picture>`;
+}
+
 function analyticsSessionId() {
   try {
     let id = window.sessionStorage.getItem(ANALYTICS_SESSION_KEY);

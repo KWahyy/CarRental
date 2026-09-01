@@ -1,5 +1,5 @@
 import { fleet as bundledFleet, formatPrice } from "./fleet-data.js?v=fleet-consistency-20260715";
-import { isSupabaseFleetConfigured, loadFleetFromSupabase, optimizedFleetImageUrl, recordFleetEvent } from "./supabase-fleet.js?v=fleet-images-20260818";
+import { fleetPictureMarkup, recordFleetEvent } from "./supabase-fleet.js?v=native-picture-flow-20260901";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
 
 const grid = document.querySelector("[data-lamborghini-grid]");
@@ -35,15 +35,6 @@ function originalImage(car) {
   return car.image || car.image_url || car.gallery?.[0] || "/assets/optimized/prestige-luxor-hero.webp";
 }
 
-function optimizedImage(car) {
-  return optimizedFleetImageUrl(originalImage(car), {
-    width: 900,
-    height: 675,
-    quality: 76,
-    updatedAt: car.updatedAt || car.updated_at,
-  });
-}
-
 function displayModel(car) {
   const prefix = new RegExp(`^\\d{4}\\s+${marque}\\s+`, "i");
   const makeOnly = new RegExp(`^${marque}\\s+`, "i");
@@ -75,13 +66,12 @@ function renderInventory(source) {
   }
 
   grid.innerHTML = cars.map((car, index) => {
-    const original = originalImage(car);
     const model = displayModel(car);
     const year = String(car.name || "").match(/^\d{4}/)?.[0] || "Available";
     return `
       <article class="lambo-card">
         <a class="lambo-card-media" href="/cars/${escapeHtml(slugFor(car))}" aria-label="View ${escapeHtml(car.name)}">
-          <img src="${escapeHtml(optimizedImage(car))}" alt="${escapeHtml(car.name)} available for rent from Prestige Luxor" width="900" height="675" loading="${index < 3 ? "eager" : "lazy"}" decoding="async"${index === 0 ? ' fetchpriority="high"' : ""} onerror="this.onerror=null;this.src='${escapeHtml(original)}'" />
+          ${fleetPictureMarkup(originalImage(car), { alt: `${car.name} available for rent from Prestige Luxor`, width: 900, height: 675, quality: 76, updatedAt: car.updatedAt || car.updated_at, loading: index < 3 ? "eager" : "lazy", fetchPriority: index === 0 ? "high" : "" })}
         </a>
         <div class="lambo-card-body">
           <div><span>${escapeHtml(year)} · ${escapeHtml(marque)}</span><h3>${escapeHtml(model)}</h3></div>
@@ -93,15 +83,8 @@ function renderInventory(source) {
   inventoryNote.textContent = `${cars.length} ${marque} ${cars.length === 1 ? "vehicle" : "vehicles"} currently listed. Rates and availability are verified for your dates.`;
 }
 
-async function hydrateInventory() {
+function hydrateInventory() {
   renderInventory(bundledFleet);
-  if (!isSupabaseFleetConfigured) return;
-  try {
-    const cloudFleet = await loadFleetFromSupabase();
-    if (Array.isArray(cloudFleet)) renderInventory(cloudFleet);
-  } catch (error) {
-    console.warn(`Could not refresh ${marque} inventory:`, error);
-  }
 }
 
 function localDateValue(date = new Date()) {

@@ -1,18 +1,15 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=fleet-consistency-20260715";
 import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=fleet-consistency-20260715";
-import { cacheSafeFleetImageUrl, isSupabaseFleetConfigured, loadVehicleFromSupabase, optimizedFleetImageUrl, recordFleetEvent } from "./supabase-fleet.js?v=fleet-images-20260818";
+import { cacheSafeFleetImageUrl, fleetImageSources, fleetPictureMarkup, recordFleetEvent } from "./supabase-fleet.js?v=native-picture-flow-20260901";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
 
 document.body.classList.add("site-theme");
 
 const slug = document.body.dataset.vehicleSlug;
-let baseVehicleFleet = fleet;
-let vehicleFleet = baseVehicleFleet.slice();
-let car = vehicleFleet.find((item) => item.slug === slug) || getVehicle(slug);
+const vehicleFleet = fleet.slice();
+const car = vehicleFleet.find((item) => item.slug === slug) || getVehicle(slug);
 const header = document.querySelector("[data-header]");
 const menuToggle = document.querySelector("[data-menu-toggle]");
 const mobileMenu = document.querySelector("[data-mobile-menu]");
-const CLOUD_VEHICLE_TIMEOUT_MS = 3500;
 const MAX_LISTING_PHOTOS = 3;
 const CRM_REQUESTS_KEY = "prestige-luxor-crm-requests";
 
@@ -46,7 +43,7 @@ function ensureVehicleShell() {
         </div>
         <div class="vehicle-gallery-stage">
           <button class="vehicle-gallery-nav vehicle-gallery-nav-prev" type="button" aria-label="Previous photo" data-gallery-prev><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></button>
-          <img data-gallery-main alt="" width="1600" height="1100" fetchpriority="high" decoding="async" />
+          <picture data-gallery-picture><source data-gallery-source /><img data-gallery-main alt="" width="1600" height="1100" fetchpriority="high" decoding="async" /></picture>
           <button class="vehicle-gallery-nav vehicle-gallery-nav-next" type="button" aria-label="Next photo" data-gallery-next><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
         </div>
       </section>
@@ -142,18 +139,6 @@ function setVehicleIndexing(isActive) {
   robots.content = isActive ? "index, follow" : "noindex, follow";
 }
 
-function withTimeout(promise, ms, fallback = null) {
-  let timeoutId;
-  const timeout = new Promise((resolve) => {
-    timeoutId = window.setTimeout(() => resolve(fallback), ms);
-  });
-
-  return Promise.race([
-    promise.finally(() => window.clearTimeout(timeoutId)),
-    timeout,
-  ]);
-}
-
 function setText(selector, value) {
   const node = document.querySelector(selector);
   if (node) node.textContent = value;
@@ -237,6 +222,7 @@ function listingGallery(vehicle) {
 
 function renderGallery(gallery) {
   const mainImage = document.querySelector("[data-gallery-main]");
+  const mainSource = document.querySelector("[data-gallery-source]");
   const galleryThumbs = document.querySelector("[data-gallery-thumbs]");
   const previousButton = document.querySelector("[data-gallery-prev]");
   const nextButton = document.querySelector("[data-gallery-next]");
@@ -246,12 +232,13 @@ function renderGallery(gallery) {
     if (!gallery.length || !mainImage) return;
     activeIndex = (index + gallery.length) % gallery.length;
     const originalImage = gallery[activeIndex];
-    const optimizedImage = optimizedFleetImageUrl(originalImage, { width: 1600, height: 1100, quality: 82, updatedAt: car.updatedAt || car.updated_at });
-    mainImage.onerror = () => {
-      mainImage.onerror = null;
-      if (mainImage.src !== originalImage) mainImage.src = originalImage;
-    };
-    mainImage.src = optimizedImage;
+    const { optimized, fallback } = fleetImageSources(originalImage, { width: 1600, height: 1100, quality: 82, updatedAt: car.updatedAt || car.updated_at });
+    if (mainSource) {
+      mainSource.srcset = optimized;
+      if (/\.webp(?:\?|$)/i.test(optimized)) mainSource.type = "image/webp";
+      else mainSource.removeAttribute("type");
+    }
+    mainImage.src = fallback;
     mainImage.alt = `${car.name} photo ${activeIndex + 1}`;
     document.querySelectorAll("[data-gallery-image]").forEach((button) => {
       button.classList.toggle("active", Number(button.dataset.galleryIndex) === activeIndex);
@@ -268,7 +255,7 @@ function renderGallery(gallery) {
       .map(
         (image, index) => `
           <button class="vehicle-side-thumb ${index === 0 ? "active" : ""}" type="button" data-gallery-image="${image}" data-gallery-index="${index}" aria-label="Show photo ${index + 1} of ${car.name}">
-            <img src="${optimizedFleetImageUrl(image, { width: 460, height: 300, quality: 72, updatedAt: car.updatedAt || car.updated_at })}" alt="" loading="lazy" decoding="async" width="460" height="300" onerror="this.onerror=null;this.src='${image}'" />
+            ${fleetPictureMarkup(image, { alt: "", width: 460, height: 300, quality: 72, updatedAt: car.updatedAt || car.updated_at, loading: "lazy" })}
           </button>
         `,
       )
@@ -447,7 +434,7 @@ function renderVehicle() {
         (item, index) => `
           <a class="related-car" href="/cars/${item.slug}.html">
             <div class="related-car-media">
-              <img src="${optimizedFleetImageUrl(item.image, { width: 720, height: 540, quality: 76, updatedAt: item.updatedAt || item.updated_at })}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async" width="720" height="540" onerror="this.onerror=null;this.src='${item.image}'" />
+              ${fleetPictureMarkup(item.image, { alt: item.name, width: 720, height: 540, quality: 76, updatedAt: item.updatedAt || item.updated_at, loading: "lazy" })}
               <span aria-hidden="true">0${index + 1}</span>
             </div>
             <div class="related-car-meta">
@@ -489,63 +476,10 @@ window.addEventListener(
   { passive: true },
 );
 
-function refreshVehicleFromBase({ allowStaticFallback = true } = {}) {
-  vehicleFleet = baseVehicleFleet.slice();
-  car = vehicleFleet.find((item) => item.slug === slug) || (allowStaticFallback ? getVehicle(slug) : null);
-  renderVehicle();
-}
-
-async function hydrateRemoteVehicle() {
-  const remoteCar = await withTimeout(loadVehicleFromSupabase(slug), CLOUD_VEHICLE_TIMEOUT_MS, null);
-  if (!remoteCar) {
-    setVehicleIndexing(false);
-    return false;
-  }
-
-  const bundledCar = baseVehicleFleet.find((item) => item.slug === remoteCar.slug);
-  const bundledPricingIsNewer = Boolean(
-    bundledCar?.competitorCheckedAt &&
-    (!remoteCar.competitorCheckedAt || bundledCar.competitorCheckedAt >= remoteCar.competitorCheckedAt),
-  );
-  const publicCar = {
-    ...remoteCar,
-    ...(!remoteCar.gallery?.length && bundledCar?.gallery?.length ? { image: bundledCar.image, gallery: bundledCar.gallery } : {}),
-    ...(bundledPricingIsNewer
-      ? {
-          price: bundledCar.price,
-          competitorPrice: bundledCar.competitorPrice,
-          competitorName: bundledCar.competitorName,
-          competitorUrl: bundledCar.competitorUrl,
-          competitorCheckedAt: bundledCar.competitorCheckedAt,
-        }
-      : {}),
-  };
-
-  baseVehicleFleet = baseVehicleFleet.some((item) => item.slug === publicCar.slug)
-    ? baseVehicleFleet.map((item) => (item.slug === publicCar.slug ? publicCar : item))
-    : [...baseVehicleFleet, publicCar];
-  refreshVehicleFromBase({ allowStaticFallback: false });
-  setVehicleIndexing(true);
-  return true;
-}
-
-async function initVehicle() {
+function initVehicle() {
   renderVehicle();
   document.body.classList.remove("is-loading-vehicle");
-  if (!isSupabaseFleetConfigured) setVehicleIndexing(Boolean(car));
-  let hydrated = false;
-  if (isSupabaseFleetConfigured) {
-    try {
-      hydrated = await hydrateRemoteVehicle();
-    } catch (error) {
-      console.warn("Could not initialize cloud vehicle:", error);
-    }
-  }
-
-  if (!hydrated) {
-    refreshVehicleFromBase({ allowStaticFallback: !isSupabaseFleetConfigured });
-  }
-  document.body.classList.remove("is-loading-vehicle");
+  setVehicleIndexing(Boolean(car));
   void recordFleetEvent("vehicle_detail_view", {
     carSlug: slug,
     metadata: { vehicle: car?.name || slug },
@@ -553,33 +487,3 @@ async function initVehicle() {
 }
 
 initVehicle();
-
-function refreshCloudVehicle() {
-  if (!isSupabaseFleetConfigured) return;
-  document.body.classList.add("is-loading-vehicle");
-  hydrateRemoteVehicle()
-    .then((hydrated) => {
-      if (hydrated) return;
-      refreshVehicleFromBase({ allowStaticFallback: !isSupabaseFleetConfigured });
-    })
-    .catch((error) => {
-      console.warn("Could not refresh cloud vehicle:", error);
-      refreshVehicleFromBase({ allowStaticFallback: !isSupabaseFleetConfigured });
-    })
-    .finally(() => {
-      document.body.classList.remove("is-loading-vehicle");
-    });
-}
-
-window.addEventListener("storage", (event) => {
-  if (event.key !== ADMIN_FLEET_REFRESH_KEY) return;
-  refreshCloudVehicle();
-});
-
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") refreshCloudVehicle();
-});
-
-window.addEventListener("pageshow", (event) => {
-  if (event.persisted) refreshCloudVehicle();
-});

@@ -1,8 +1,3 @@
-import {
-  isSupabaseFleetConfigured,
-  loadVehicleFromSupabase,
-  optimizedFleetImageUrl,
-} from "./supabase-fleet.js?v=campaign-cloud-fleet-20260718";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
 
 const form = document.querySelector("[data-campaign-form]");
@@ -48,76 +43,6 @@ function showFormStep(stepNumber) {
   if (stepLabel) stepLabel.textContent = stepNumber === 1 ? "Brand and date" : "Your contact details";
   form.dataset.currentStep = String(stepNumber);
 }
-
-function loadDecodedImage(url) {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(url);
-    image.onerror = () => reject(new Error("The current vehicle photo could not be loaded."));
-    image.src = url;
-  });
-}
-
-async function hydrateCampaignCar(card) {
-  const slug = card.dataset.campaignCar;
-  const image = card.querySelector("[data-campaign-car-image]");
-  if (!slug || !image || !isSupabaseFleetConfigured) {
-    card.dataset.cloudState = "fallback";
-    card.removeAttribute("aria-busy");
-    return;
-  }
-
-  try {
-    const car = await loadVehicleFromSupabase(slug);
-    const primaryPhoto = car?.gallery?.[0] || car?.image;
-    if (!car || !primaryPhoto) throw new Error("The current vehicle record has no primary photo.");
-
-    const photoUrl = optimizedFleetImageUrl(primaryPhoto, {
-      width: 1200,
-      height: 900,
-      quality: 78,
-      updatedAt: car.updatedAt,
-    });
-    await loadDecodedImage(photoUrl);
-
-    image.src = photoUrl;
-    image.alt = `${car.name} available from Prestige Luxor`;
-    card.querySelectorAll("[data-campaign-car-link]").forEach((link) => {
-      link.setAttribute("href", `/cars/${car.slug}.html`);
-      if (link.classList.contains("campaign-car-media")) link.setAttribute("aria-label", `View the ${car.name}`);
-    });
-    card.querySelector("[data-campaign-car-make]").textContent = car.make || "Lamborghini";
-    card.querySelector("[data-campaign-car-name]").textContent = String(car.name || car.model || "Huracan").replace(/^\d{4}\s+/, "");
-    card.querySelector("[data-campaign-car-price]").textContent = car.price
-      ? `From $${Number(car.price).toLocaleString()}/day`
-      : "Pricing by request";
-
-    const requestButton = card.querySelector("[data-select-car]");
-    if (requestButton) requestButton.dataset.selectCar = car.name;
-
-    card.dataset.cloudState = "ready";
-  } catch (error) {
-    console.error("Unable to hydrate campaign vehicle from Supabase:", error);
-    card.dataset.cloudState = "fallback";
-  } finally {
-    card.removeAttribute("aria-busy");
-  }
-}
-
-function installImageFallback(image) {
-  const fallback = image.dataset.fallbackSrc;
-  if (!fallback) return;
-  image.addEventListener("error", () => {
-    if (image.src.endsWith(fallback)) return;
-    image.src = fallback;
-  }, { once: true });
-}
-
-document.querySelectorAll("img[data-fallback-src]").forEach(installImageFallback);
-
-document.querySelectorAll("[data-campaign-car]").forEach((card) => {
-  void hydrateCampaignCar(card);
-});
 
 if (form) {
   const rentalDate = form.elements.date;

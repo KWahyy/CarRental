@@ -160,6 +160,12 @@ a {
   overflow: hidden;
 }
 
+.campaign-hero-media picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .campaign-hero-media img {
   width: 100%;
   height: 100%;
@@ -518,46 +524,10 @@ a {
   transition: transform 300ms ease;
 }
 
-.campaign-car-card-cloud .campaign-car-media {
-  position: relative;
-  overflow: hidden;
-  background: #e6e2db;
-}
-
-.campaign-car-card-cloud [data-campaign-car-image] {
-  opacity: 0;
-  transition: opacity 320ms ease, transform 500ms ease;
-}
-
-.campaign-car-card-cloud[data-cloud-state="ready"] [data-campaign-car-image],
-.campaign-car-card-cloud[data-cloud-state="fallback"] [data-campaign-car-image],
-.campaign-car-card-cloud[data-cloud-state="error"] [data-campaign-car-image],
-.campaign-car-card-cloud[data-cloud-state="unavailable"] [data-campaign-car-image] {
-  opacity: 1;
-}
-
-.campaign-car-loading {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(100deg, #e3dfd7 20%, #f1eee8 40%, #e3dfd7 60%);
-  background-size: 220% 100%;
-  animation: campaign-car-loading 1.4s ease-in-out infinite;
-}
-
-.campaign-car-card-cloud[data-cloud-state="ready"] .campaign-car-loading {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 220ms ease;
-}
-
-.campaign-car-card-cloud[data-cloud-state="error"] .campaign-car-loading,
-.campaign-car-card-cloud[data-cloud-state="unavailable"] .campaign-car-loading {
-  animation: none;
-  background: #dedad2;
-}
-
-@keyframes campaign-car-loading {
-  to { background-position: -220% 0; }
+.campaign-car-media picture {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .campaign-car-card:hover img {
@@ -750,7 +720,10 @@ a {
   padding: 80px 24px;
   background:
     linear-gradient(rgba(7, 6, 5, 0.67), rgba(7, 6, 5, 0.88)),
-    url("/assets/fleet/mclaren-720s-turquoise.jpg") center 54% / cover no-repeat;
+    image-set(
+      url("/assets/fleet-optimized/mclaren-720s-turquoise.webp") type("image/webp"),
+      url("/assets/fleet/mclaren-720s-turquoise.jpg") type("image/jpeg")
+    ) center 54% / cover no-repeat;
   text-align: center;
 }
 

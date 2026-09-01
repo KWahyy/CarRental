@@ -1,6 +1,5 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=fleet-consistency-20260715";
 import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=fleet-consistency-20260715";
-import { isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase, optimizedFleetImageUrl, recordFleetEvent } from "./supabase-fleet.js?v=fleet-images-20260818";
+import { fleetPictureMarkup, isSupabaseFleetConfigured, loadMonthlySpecialFromSupabase, optimizedFleetImageUrl, recordFleetEvent } from "./supabase-fleet.js?v=native-picture-flow-20260901";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
 
 const grid = document.querySelector("[data-fleet-grid]");
@@ -45,8 +44,6 @@ let popularSlugs = new Set();
 let availabilityTrigger = null;
 const seenCardImpressions = new Set();
 let cardImpressionObserver = null;
-let cloudFleetRefreshPromise = null;
-const CLOUD_FLEET_TIMEOUT_MS = 3500;
 const CRM_REQUESTS_KEY = "prestige-luxor-crm-requests";
 const POPULAR_VEHICLE_SLUGS = [
   "2021-bmw-m3-comp",
@@ -56,18 +53,6 @@ const POPULAR_VEHICLE_SLUGS = [
   "2022-lamborghini-huracan",
   "2016-ferrari-488-gtb",
 ];
-
-function withTimeout(promise, ms, fallback = null) {
-  let timeoutId;
-  const timeout = new Promise((resolve) => {
-    timeoutId = window.setTimeout(() => resolve(fallback), ms);
-  });
-
-  return Promise.race([
-    promise.finally(() => window.clearTimeout(timeoutId)),
-    timeout,
-  ]);
-}
 
 function slugify(value) {
   return String(value || "")
@@ -330,12 +315,11 @@ function vehicleYear(car) {
 function cardMarkup(car, variant = "collection", highPriority = false) {
   const slug = vehicleSlug(car);
   const { brand, model } = vehicleDisplay(car);
-  const originalImage = originalCarImage(car);
   const isPopular = variant === "popular";
   return `
     <article class="showroom-card showroom-card-${variant}" data-vehicle-slug="${escapeHtml(slug)}" data-vehicle="${escapeHtml(car.name)}">
       <a class="showroom-card-media" href="/cars/${escapeHtml(slug)}.html" aria-label="View ${escapeHtml(car.name)}" data-fleet-card-link data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${escapeHtml(slug)}">
-        <img src="${escapeHtml(carImage(car))}" alt="${escapeHtml(car.name)}" width="900" height="675" loading="${isPopular ? "eager" : "lazy"}" decoding="async"${highPriority ? ' fetchpriority="high"' : ""} onerror="this.onerror=null;this.src='${escapeHtml(originalImage)}';" />
+        ${fleetPictureMarkup(originalCarImage(car), { alt: car.name, width: 900, height: 675, quality: 76, updatedAt: car.updatedAt || car.updated_at, loading: isPopular ? "eager" : "lazy", fetchPriority: highPriority ? "high" : "" })}
       </a>
       <div class="showroom-card-body">
         <div class="showroom-card-title">
@@ -784,50 +768,6 @@ window.addEventListener(
   { passive: true },
 );
 
-window.addEventListener("storage", (event) => {
-  if (event.key !== ADMIN_FLEET_REFRESH_KEY) return;
-  void refreshVisibleFleetFromCloud();
-});
-
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") void refreshVisibleFleetFromCloud();
-});
-
-window.addEventListener("pageshow", (event) => {
-  if (event.persisted) void refreshVisibleFleetFromCloud();
-});
-
-async function hydrateSupabaseFleet() {
-  const remoteFleet = await withTimeout(loadFleetFromSupabase(), CLOUD_FLEET_TIMEOUT_MS, null);
-  if (!Array.isArray(remoteFleet)) return false;
-  // Supabase is the inventory source of truth. Bundled data only supplies
-  // media for matching inventory records; it never adds extra vehicles.
-  const bundledBySlug = new Map(websiteFleet.map((car) => [car.slug || slugify(car.name), car]));
-  baseFleet = remoteFleet.map((car) => {
-    const bundled = bundledBySlug.get(car.slug || slugify(car.name));
-    if (!bundled) return car;
-    const bundledPricingIsNewer = Boolean(
-      bundled.competitorCheckedAt &&
-      (!car.competitorCheckedAt || bundled.competitorCheckedAt >= car.competitorCheckedAt),
-    );
-    return {
-      ...car,
-      ...(!car.gallery?.length && bundled.gallery?.length ? { image: bundled.image, gallery: bundled.gallery } : {}),
-      ...(bundledPricingIsNewer
-        ? {
-            price: bundled.price,
-            competitorPrice: bundled.competitorPrice,
-            competitorName: bundled.competitorName,
-            competitorUrl: bundled.competitorUrl,
-            competitorCheckedAt: bundled.competitorCheckedAt,
-          }
-        : {}),
-    };
-  });
-  renderFleet();
-  return true;
-}
-
 function currentSpecialMonth() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -850,42 +790,10 @@ async function hydrateMonthlyDeals() {
   monthlySpecialSlugs = new Set(configuredSlugs.length ? configuredSlugs : monthlyFallbackSlugs(baseFleet, month));
 }
 
-async function refreshVisibleFleetFromCloud() {
-  if (!isSupabaseFleetConfigured) return false;
-  if (cloudFleetRefreshPromise) return cloudFleetRefreshPromise;
-
-  cloudFleetRefreshPromise = (async () => {
-    const hydrated = await hydrateSupabaseFleet();
-    if (!hydrated) return false;
-    await hydrateMonthlyDeals();
-    renderFleet();
-    return true;
-  })().finally(() => {
-    cloudFleetRefreshPromise = null;
-  });
-
-  return cloudFleetRefreshPromise;
-}
-
 async function initFleetPage() {
   renderFleet();
   trackFleetEvent("view_item_list", { vehicle_count: baseFleet.length });
-
-  if (!isSupabaseFleetConfigured) {
-    await hydrateMonthlyDeals();
-    renderFleet();
-    return;
-  }
-
-  try {
-    const hydrated = await hydrateSupabaseFleet();
-    if (!hydrated) return;
-    await hydrateMonthlyDeals();
-    renderFleet();
-    trackFleetEvent("view_item_list", { vehicle_count: baseFleet.length });
-  } catch (error) {
-    console.warn("Could not initialize cloud fleet:", error);
-  }
+  await hydrateMonthlyDeals();
 }
 
 initFleetPage();

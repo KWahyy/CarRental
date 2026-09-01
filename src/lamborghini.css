@@ -7,6 +7,8 @@
   --lambo-muted: rgba(255, 255, 255, 0.64);
 }
 
+picture.native-picture { display: contents; }
+
 /* Lamborghini campaign page follows the homepage's black, ivory and white palette. */
 .lamborghini-page[data-marque="Lamborghini"] {
   --lambo-gold: #f8f5ef;
@@ -274,6 +276,7 @@ html { scroll-behavior: smooth; }
 .lambo-grid { max-width: 1580px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(28px, 3vw, 50px); }
 .lambo-card { min-width: 0; }
 .lambo-card-media { aspect-ratio: 4/3; display: block; overflow: hidden; background: #161612; }
+.lambo-card-media picture { display: block; width: 100%; height: 100%; }
 .lambo-card-media img { width: 100%; height: 100%; display: block; object-fit: cover; transform: scale(1.002); transition: transform 650ms cubic-bezier(.2,.75,.25,1); }
 .lambo-card:hover .lambo-card-media img { transform: scale(1.035); }
 .lambo-card-body { padding: 20px 0 14px; display: grid; grid-template-columns: minmax(0, 1fr) max-content; align-items: end; gap: 24px; }

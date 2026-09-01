@@ -184,12 +184,27 @@ function optimizedPublicImageUrl(value, { width = 900, height = 675, quality = 7
   if (/^\/assets\/fleet\/[^/]+\.(jpe?g|png)$/i.test(source)) {
     return source.replace("/assets/fleet/", "/assets/fleet-optimized/").replace(/\.(jpe?g|png)$/i, ".webp");
   }
+  if (/^\/assets\/fleet-galleries\/.+\.(jpe?g|png)$/i.test(source)) {
+    return source.replace("/assets/fleet-galleries/", "/assets/fleet-galleries-optimized/").replace(/\.(jpe?g|png)$/i, ".webp");
+  }
   return source;
 }
 
 function publicCarImage(car, options) {
   const photos = [...(car?.car_photos || [])].sort((a, b) => Number(a.position) - Number(b.position));
   return optimizedPublicImageUrl(photos.find(({ url }) => url)?.url || car?.image_url, options);
+}
+
+function publicCarOriginalImage(car) {
+  const photos = [...(car?.car_photos || [])].sort((a, b) => Number(a.position) - Number(b.position));
+  return photos.find(({ url }) => url)?.url || car?.image_url || "/assets/prestige-luxor-hero.png";
+}
+
+function publicCarPicture(car, { alt = "", width = 900, height = 675, quality = 78, loading = "lazy", fetchPriority = "" } = {}) {
+  const optimized = publicCarImage(car, { width, height, quality });
+  const fallback = publicCarOriginalImage(car);
+  const sourceType = /\.webp(?:\?|$)/i.test(optimized) ? ' type="image/webp"' : "";
+  return `<picture><source srcset="${escapeHtml(optimized)}"${sourceType} /><img src="${escapeHtml(fallback)}" alt="${escapeHtml(alt)}" width="${width}" height="${height}" loading="${loading}" decoding="async"${fetchPriority ? ` fetchpriority="${fetchPriority}"` : ""} /></picture>`;
 }
 
 function locationFeaturedCars() {
@@ -207,7 +222,7 @@ function locationEnhancements({ slug, area }, { includeFleet = true } = {}) {
   const fleetCards = includeFleet ? featuredCars.map((car) => `
         <article class="location-vehicle-card">
           <a class="location-vehicle-image" href="/cars/${escapeHtml(car.slug)}">
-            <img src="${escapeHtml(publicCarImage(car))}" alt="${escapeHtml(`${car.name} available for ${area} delivery`)}" width="900" height="675" loading="lazy" decoding="async" />
+            ${publicCarPicture(car, { alt: `${car.name} available for ${area} delivery` })}
           </a>
           <div><p>${escapeHtml(car.make)}</p><h3>${escapeHtml(car.model)}</h3><span>From $${Number(car.price).toLocaleString("en-US")}/day</span></div>
           <a href="/cars/${escapeHtml(car.slug)}">View vehicle <span aria-hidden="true">&#8599;</span></a>
@@ -350,9 +365,6 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
     if (!featuredCars.some((featured) => featured.slug === car.slug)) featuredCars.push(car);
   }
 
-  const getCarImage = (car) => {
-    return publicCarImage(car);
-  };
   const heroCar = featuredCars[0];
   const heroImage = heroCar ? publicCarImage(heroCar, { width: 960, height: 640, quality: 80 }) : "/assets/optimized/prestige-luxor-hero.webp";
   const heroImageSrcset = heroCar
@@ -368,7 +380,7 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
   const fleetCards = featuredCars.map((car) => `
           <article class="oc-showroom-card">
             <a class="oc-showroom-media" href="/cars/${car.slug}" aria-label="View ${car.make} ${car.model}">
-              <img src="${getCarImage(car)}" alt="${car.make} ${car.model} available from Prestige Luxor" width="1200" height="900" loading="lazy" decoding="async" />
+              ${publicCarPicture(car, { alt: `${car.make} ${car.model} available from Prestige Luxor`, width: 1200, height: 900 })}
             </a>
             <div class="oc-showroom-card-copy">
               <div>
@@ -428,7 +440,7 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
 
     <main id="main" class="oc-location-main">
       <section class="oc-location-hero" aria-labelledby="oc-location-title">
-        <img class="oc-location-hero-media" src="${heroImage}"${heroImageSrcset ? ` srcset="${heroImageSrcset}" sizes="100vw"` : ""} alt="${heroCar ? `${heroCar.make} ${heroCar.model}` : "Exotic car"} available for Orange County delivery" width="1600" height="1067" fetchpriority="high" decoding="async" />
+        <picture class="native-picture"><source srcset="${heroImageSrcset || heroImage}" sizes="100vw" /><img class="oc-location-hero-media" src="${escapeHtml(heroCar ? publicCarOriginalImage(heroCar) : "/assets/prestige-luxor-hero.png")}" alt="${heroCar ? `${heroCar.make} ${heroCar.model}` : "Exotic car"} available for Orange County delivery" width="1600" height="1067" fetchpriority="high" decoding="async" /></picture>
         <div class="oc-location-hero-scrim" aria-hidden="true"></div>
         <div class="oc-location-hero-content">
           <p class="oc-location-kicker">Orange County exotic car rental</p>

@@ -1,6 +1,5 @@
-import { ADMIN_FLEET_REFRESH_KEY } from "./admin-store.js?v=fleet-consistency-20260715";
 import { fleet as websiteFleet } from "./fleet-data.js?v=fleet-consistency-20260715";
-import { cacheSafeFleetImageUrl, isSupabaseFleetConfigured, loadFleetFromSupabase, loadMonthlySpecialFromSupabase, optimizedFleetImageUrl } from "./supabase-fleet.js?v=fleet-consistency-20260715";
+import { cacheSafeFleetImageUrl, fleetPictureMarkup, isSupabaseFleetConfigured, loadMonthlySpecialFromSupabase, optimizedFleetImageUrl } from "./supabase-fleet.js?v=native-picture-flow-20260901";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
 
 let fleet = [
@@ -136,7 +135,6 @@ const fanStage = document.querySelector("[data-fan-stage]");
 const fanPrev = document.querySelector("[data-fan-prev]");
 const fanNext = document.querySelector("[data-fan-next]");
 const fanDots = document.querySelector("[data-fan-dots]");
-let fanImageObserver;
 const brandGrid = document.querySelector("[data-brand-grid]");
 const brandDots = document.querySelector("[data-brand-dots]");
 const typeGrid = document.querySelector("[data-type-grid]");
@@ -163,10 +161,8 @@ const quoteProgressPercent = document.querySelector("[data-quote-progress-percen
 const quoteProgressBar = document.querySelector("[data-quote-progress-bar]");
 const CRM_REQUESTS_KEY = "prestige-luxor-crm-requests";
 const diaText = document.querySelector("[data-dia-words]");
-const CLOUD_FLEET_TIMEOUT_MS = 3500;
 const BEST_FAN_LIMIT = 9;
 let monthlySpecialRenderVersion = 0;
-let cloudHomeRefreshPromise = null;
 const BEST_FAN_SLUGS = [
   "2022-lamborghini-huracan",
   "lamborghini-huracan-blue",
@@ -188,18 +184,6 @@ const BEST_FAN_SLUGS = [
 ];
 
 fleet = websiteFleet.slice();
-
-function withTimeout(promise, ms, fallback = null) {
-  let timeoutId;
-  const timeout = new Promise((resolve) => {
-    timeoutId = window.setTimeout(() => resolve(fallback), ms);
-  });
-
-  return Promise.race([
-    promise.finally(() => window.clearTimeout(timeoutId)),
-    timeout,
-  ]);
-}
 
 let fanCards = getFeaturedFanCards(fleet);
 
@@ -421,25 +405,6 @@ function primaryImageFor(car) {
   });
 }
 
-function installFleetImageFallbacks(root) {
-  root.querySelectorAll("img[data-fallback-image]").forEach((image) => {
-    if (image.dataset.fallbackInstalled === "true") return;
-    image.dataset.fallbackInstalled = "true";
-    let usedOriginal = false;
-    const handleError = () => {
-      const fallback = image.dataset.fallbackImage;
-      if (!usedOriginal && fallback) {
-        usedOriginal = true;
-        image.src = fallback;
-        return;
-      }
-      image.removeEventListener("error", handleError);
-      image.src = "/assets/optimized/prestige-luxor-hero.webp";
-    };
-    image.addEventListener("error", handleError);
-  });
-}
-
 function isUsableFanCar(car) {
   if (!car) return false;
   const image = primaryImageFor(car);
@@ -474,8 +439,8 @@ function getFeaturedFanCards(sourceFleet = fleet) {
   return selected.slice(0, BEST_FAN_LIMIT).map((car) => ({
     slug: vehicleSlug(car),
     name: car.name,
-    image: primaryImageFor(car),
-    fallbackImage: originalImageFor(car),
+    source: originalImageFor(car),
+    updatedAt: car.updatedAt || car.updated_at || "",
   }));
 }
 
@@ -550,42 +515,15 @@ function renderFanCarousel() {
     .map(
       (car) => `
         <a class="fan-card" href="/cars/${vehicleSlug(car)}.html" aria-label="View ${car.name}">
-          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" data-fan-image="${escapeHtml(car.image)}" data-fallback-image="${escapeHtml(car.fallbackImage)}" alt="${escapeHtml(car.name)}" loading="lazy" decoding="async" width="500" height="375" />
+          ${fleetPictureMarkup(car.source, { alt: car.name, width: 500, height: 375, quality: 74, updatedAt: car.updatedAt, loading: "lazy" })}
           <span>${vehicleLabel(car)}</span>
         </a>
       `,
     )
     .join("");
 
-  installFleetImageFallbacks(fanStage);
   fanDots.innerHTML = fanCards.map((_, index) => `<span class="${index === fanCenterIndex ? "active" : ""}"></span>`).join("");
   updateFanCarousel();
-  observeFanImages();
-}
-
-function loadFanImages() {
-  fanStage.querySelectorAll("img[data-fan-image]").forEach((image) => {
-    image.src = image.dataset.fanImage;
-    image.removeAttribute("data-fan-image");
-  });
-}
-
-function observeFanImages() {
-  fanImageObserver?.disconnect();
-  if (!("IntersectionObserver" in window)) {
-    loadFanImages();
-    return;
-  }
-
-  fanImageObserver = new IntersectionObserver(
-    (entries, observer) => {
-      if (!entries.some((entry) => entry.isIntersecting)) return;
-      loadFanImages();
-      observer.disconnect();
-    },
-    { rootMargin: "240px 0px" },
-  );
-  fanImageObserver.observe(fanStage);
 }
 
 function activateLazyVideo(video) {
@@ -778,7 +716,7 @@ async function renderMonthlySpecials() {
           const rate = monthlySpecialRate(car);
           return `
             <article class="special-card">
-              <img src="${escapeHtml(primaryImageFor(car))}" data-fallback-image="${escapeHtml(originalImageFor(car))}" alt="${escapeHtml(car.name)} monthly rental special" width="1200" height="900" loading="lazy" decoding="async" />
+              ${fleetPictureMarkup(originalImageFor(car), { alt: `${car.name} monthly rental special`, width: 1200, height: 900, quality: 78, updatedAt: car.updatedAt || car.updated_at, loading: "lazy" })}
               <div class="special-card-copy">
                 <span>${escapeHtml(monthLabel)} feature</span>
                 <h3>${escapeHtml(car.name.replace(/^\s*(?:19|20)\d{2}\s+/, ""))}</h3>
@@ -792,7 +730,6 @@ async function renderMonthlySpecials() {
         .join("")
     : `<div class="specials-empty"><strong>New monthly specials are coming soon.</strong><span>Call or text us for current availability.</span></div>`;
 
-  installFleetImageFallbacks(specialsRail);
 
   const hasMultiple = specialCars.length > 1;
   if (specialPrev) specialPrev.hidden = !hasMultiple;
@@ -866,22 +803,6 @@ function hydrateDiaText() {
   }, 3000);
 }
 
-async function hydrateSupabaseFleet() {
-  const remoteFleet = await withTimeout(loadFleetFromSupabase(), CLOUD_FLEET_TIMEOUT_MS, null);
-  if (!Array.isArray(remoteFleet)) return false;
-
-  // Supabase is the inventory source of truth. Bundled data only supplies
-  // media for matching inventory records; it never adds extra vehicles.
-  const bundledBySlug = new Map(websiteFleet.map((car) => [car.slug || slugify(car.name), car]));
-  const fleetWithBundledMedia = remoteFleet.map((car) => {
-    const bundled = bundledBySlug.get(car.slug || slugify(car.name));
-    if (car.gallery?.length || !bundled?.gallery?.length) return car;
-    return { ...car, image: bundled.image, gallery: bundled.gallery };
-  });
-  refreshFleetFromBase(fleetWithBundledMedia);
-  return true;
-}
-
 function activeFleetFilter() {
   return document.querySelector("[data-shop-filter].active")?.dataset.shopFilter || "all";
 }
@@ -937,19 +858,6 @@ typeNext?.addEventListener("click", () => scrollTypeBrowser(1));
 specialPrev?.addEventListener("click", () => scrollSpecials(-1));
 specialNext?.addEventListener("click", () => scrollSpecials(1));
 window.addEventListener("resize", updateFanCarousel);
-window.addEventListener("storage", (event) => {
-  if (event.key !== ADMIN_FLEET_REFRESH_KEY) return;
-  void refreshHomeFleetFromCloud();
-});
-
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") void refreshHomeFleetFromCloud();
-});
-
-window.addEventListener("pageshow", (event) => {
-  if (event.persisted) void refreshHomeFleetFromCloud();
-});
-
 menuToggle.addEventListener("click", () => {
   const isOpen = menuToggle.getAttribute("aria-expanded") === "true";
   menuToggle.setAttribute("aria-expanded", String(!isOpen));
@@ -1169,33 +1077,10 @@ hydrateDiaText();
 observeReveals();
 initLazyMedia();
 
-async function initFleetSections() {
-  // Never hide usable inventory behind a cloud request. The bundled fleet is
-  // generated from the active website inventory and can render immediately;
-  // Supabase then refreshes it in place when the latest records arrive.
+function initFleetSections() {
+  // The production build snapshots active Supabase inventory so visitors get
+  // one stable image tree with no client-side replacement after first paint.
   refreshFleetFromBase();
-
-  if (!isSupabaseFleetConfigured) {
-    return;
-  }
-
-  await refreshHomeFleetFromCloud();
-}
-
-async function refreshHomeFleetFromCloud() {
-  if (!isSupabaseFleetConfigured) return false;
-  if (cloudHomeRefreshPromise) return cloudHomeRefreshPromise;
-
-  cloudHomeRefreshPromise = hydrateSupabaseFleet()
-    .catch((error) => {
-      console.warn("Could not refresh cloud fleet:", error);
-      return false;
-    })
-    .finally(() => {
-      cloudHomeRefreshPromise = null;
-    });
-
-  return cloudHomeRefreshPromise;
 }
 
 initFleetSections();
