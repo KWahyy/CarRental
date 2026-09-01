@@ -1,11 +1,11 @@
 :root {
-  --campaign-black: #080706;
-  --campaign-surface: #12100e;
-  --campaign-surface-soft: #1a1713;
-  --campaign-cream: #f5f0e7;
-  --campaign-muted: #b7aea2;
-  --campaign-gold: #ddb962;
-  --campaign-gold-dark: #a88335;
+  --campaign-black: #050505;
+  --campaign-surface: #111111;
+  --campaign-surface-soft: #1a1a1a;
+  --campaign-cream: #f4f1eb;
+  --campaign-muted: #b8b8b4;
+  --campaign-gold: #f4f1eb;
+  --campaign-gold-dark: #9a9a96;
   --campaign-line: rgba(245, 240, 231, 0.14);
   --campaign-danger: #ff9d95;
   --campaign-success: #b9e6bd;
@@ -54,7 +54,7 @@ a {
   padding: 12px 16px;
   transform: translateY(-160%);
   background: var(--campaign-gold);
-  color: #090806;
+  color: #050505;
   font-weight: 800;
 }
 
@@ -130,7 +130,7 @@ a {
 .campaign-call:hover,
 .campaign-call:focus-visible {
   border-color: var(--campaign-gold);
-  background: rgba(221, 185, 98, 0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .campaign-call svg {
@@ -249,7 +249,7 @@ a {
   width: 19px;
   height: 19px;
   padding: 3px;
-  border: 1px solid rgba(221, 185, 98, 0.56);
+  border: 1px solid rgba(255, 255, 255, 0.56);
   border-radius: 50%;
   fill: none;
   stroke: var(--campaign-gold);
@@ -336,7 +336,7 @@ a {
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 5px;
   outline: 0;
-  background: #090806;
+  background: #050505;
   color: var(--campaign-cream);
   font-size: 16px;
   transition: border-color 160ms ease, box-shadow 160ms ease;
@@ -349,7 +349,7 @@ a {
 .campaign-form-card input:focus,
 .campaign-form-card select:focus {
   border-color: var(--campaign-gold);
-  box-shadow: 0 0 0 3px rgba(221, 185, 98, 0.16);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.16);
 }
 
 .campaign-form-card [aria-invalid="true"] {
@@ -367,7 +367,7 @@ a {
   border: 0;
   border-radius: 5px;
   background: var(--campaign-gold);
-  color: #090806;
+  color: #050505;
   cursor: pointer;
   font-weight: 800;
   transition: background 180ms ease, transform 180ms ease;
@@ -375,7 +375,7 @@ a {
 
 .campaign-form-card button[type="submit"]:hover,
 .campaign-form-card button[type="submit"]:focus-visible {
-  background: #e8c875;
+  background: #f4f1eb;
   transform: translateY(-1px);
 }
 
@@ -606,7 +606,7 @@ a {
   grid-column: 1 / -1;
   min-height: 48px;
   margin-top: 16px;
-  border: 1px solid rgba(221, 185, 98, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.52);
   border-radius: 5px;
   background: transparent;
   color: var(--campaign-cream);
@@ -618,7 +618,7 @@ a {
 .campaign-car-card button:hover,
 .campaign-car-card button:focus-visible {
   background: var(--campaign-gold);
-  color: #090806;
+  color: #050505;
 }
 
 .campaign-requirements {
@@ -764,7 +764,7 @@ a {
   margin-top: 32px;
   border-radius: 5px;
   background: var(--campaign-gold);
-  color: #090806;
+  color: #050505;
   font-weight: 800;
   text-decoration: none;
 }
@@ -809,7 +809,7 @@ a {
 }
 
 :focus-visible {
-  outline: 3px solid rgba(221, 185, 98, 0.58);
+  outline: 3px solid rgba(255, 255, 255, 0.58);
   outline-offset: 3px;
 }
 
@@ -948,7 +948,7 @@ a {
     padding: 0 22px;
     border-radius: 5px;
     background: var(--campaign-gold);
-    color: #090806;
+    color: #050505;
     font-size: 14px;
     font-weight: 800;
     text-decoration: none;
@@ -958,7 +958,7 @@ a {
     position: relative;
     z-index: 2;
     margin-top: 12px;
-    border-color: rgba(221, 185, 98, 0.34);
+    border-color: rgba(255, 255, 255, 0.34);
     background: #11100e;
     box-shadow: 0 16px 44px rgba(0, 0, 0, 0.42);
     backdrop-filter: none;
@@ -1093,7 +1093,7 @@ a {
   .campaign-mobile-bar a:last-child {
     border-color: var(--campaign-gold);
     background: var(--campaign-gold);
-    color: #090806;
+    color: #050505;
   }
 }
 
@@ -1121,7 +1121,7 @@ a {
   width: fit-content;
   margin: 0 0 18px;
   padding: 8px 11px;
-  border: 1px solid rgba(221, 185, 98, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.65);
   background: rgba(9, 8, 6, 0.5);
   color: var(--campaign-gold);
   font-size: 11px;
@@ -1337,8 +1337,8 @@ a {
   --campaign-surface-soft: #191919;
   --campaign-cream: #f0eee8;
   --campaign-muted: #aaa69d;
-  --campaign-gold: #d8b765;
-  --campaign-gold-dark: #9a7a34;
+  --campaign-gold: #f4f1eb;
+  --campaign-gold-dark: #8f8f8a;
   --campaign-line: rgba(240, 238, 232, 0.2);
   --campaign-radius: 0;
   --campaign-container: 1580px;
@@ -1983,7 +1983,7 @@ body {
     margin-top: 24px;
     border: 1px solid var(--campaign-gold);
     background: var(--campaign-gold);
-    color: #090806;
+    color: #050505;
     letter-spacing: 0.02em;
   }
 
@@ -2341,7 +2341,7 @@ body {
     padding: 0 18px 0 20px;
     border: 1px solid var(--campaign-gold);
     background: var(--campaign-gold);
-    color: #090806;
+    color: #050505;
     font-size: 14px;
     font-weight: 800;
     text-decoration: none;
@@ -2356,7 +2356,7 @@ body {
     width: calc(100% - 24px);
     min-width: 0;
     margin: 12px auto 0;
-    border: 1px solid rgba(221, 185, 98, 0.26);
+    border: 1px solid rgba(255, 255, 255, 0.26);
     border-radius: 8px;
     background: var(--campaign-cream);
     color: #111;

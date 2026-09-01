@@ -719,6 +719,11 @@ function monthlyFallbackCars(cars, month) {
   return Array.from({ length: Math.min(2, cars.length) }, (_, index) => cars[(start + index) % cars.length]);
 }
 
+function monthlySpecialRate(car) {
+  const original = Math.max(Number(car?.price || 0), 0);
+  return { original, discounted: Math.round(original * 0.9) };
+}
+
 async function renderMonthlySpecials() {
   if (!specialsRail || !specialsTitle || !specialsDescription) return;
   const renderVersion = ++monthlySpecialRenderVersion;
@@ -739,19 +744,21 @@ async function renderMonthlySpecials() {
 
   specialsRail.innerHTML = specialCars.length
     ? specialCars
-        .map(
-          (car) => `
+        .map((car) => {
+          const rate = monthlySpecialRate(car);
+          return `
             <article class="special-card">
               <img src="${escapeHtml(primaryImageFor(car))}" alt="${escapeHtml(car.name)} monthly rental special" width="1536" height="1024" loading="lazy" />
               <div class="special-card-copy">
                 <span>${escapeHtml(monthLabel)} feature</span>
                 <h3>${escapeHtml(car.name.replace(/^\s*(?:19|20)\d{2}\s+/, ""))}</h3>
                 <p>${escapeHtml(car.color || car.categoryLabel || car.category || "Delivery available in LA & OC")}</p>
+                <div class="special-card-offer"><b>10% off</b><div><del>$${rate.original.toLocaleString()}</del><strong>$${rate.discounted.toLocaleString()}</strong><small>/day</small></div></div>
                 <a href="/cars/${escapeHtml(vehicleSlug(car))}.html">View special</a>
               </div>
             </article>
-          `,
-        )
+          `;
+        })
         .join("")
     : `<div class="specials-empty"><strong>New monthly specials are coming soon.</strong><span>Call or text us for current availability.</span></div>`;
 

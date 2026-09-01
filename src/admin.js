@@ -93,12 +93,26 @@ const specialMonthInput = document.querySelector("[data-special-month]");
 const specialCarGrid = document.querySelector("[data-special-car-grid]");
 const specialSelectionCount = document.querySelector("[data-special-selection-count]");
 const specialsStatus = document.querySelector("[data-specials-status]");
+const specialSearchInput = document.querySelector("[data-special-search]");
+const specialHeadlineCount = document.querySelector("[data-special-headline-count]");
+const specialDescriptionCount = document.querySelector("[data-special-description-count]");
+const specialPreview = document.querySelector("[data-special-preview]");
+const specialPreviewMonth = document.querySelector("[data-special-preview-month]");
+const specialPreviewMode = document.querySelector("[data-special-preview-mode]");
+const specialLiveState = document.querySelector("[data-special-live-state]");
+const specialUnsaved = document.querySelector("[data-special-unsaved]");
+const saveMonthlySpecialButton = document.querySelector("[data-save-monthly-special]");
+const resetMonthlySpecialButton = document.querySelector("[data-reset-monthly-special]");
+const copyMonthlySpecialButton = document.querySelector("[data-copy-monthly-special]");
+const specialModeButtons = [...document.querySelectorAll("[data-special-mode]")];
+const specialMonthShiftButtons = [...document.querySelectorAll("[data-special-month-shift]")];
 const competitorRecommendation = document.querySelector("[data-competitor-recommendation]");
 const applyCompetitivePriceButton = document.querySelector("[data-apply-competitive-price]");
 
 const REQUESTS_KEY = "prestige-luxor-crm-requests";
 const CONTENT_KEY = "prestige-luxor-crm-content";
 const SETTINGS_KEY = "prestige-luxor-crm-settings";
+const ACTIVE_SECTION_KEY = "prestige-luxor-crm-active-section";
 
 const requestStatuses = [
   { id: "new", label: "New request" },
@@ -149,6 +163,11 @@ let businessSettings = readJson(SETTINGS_KEY, {
 });
 let selectedSpecialSlugs = [];
 const MAX_MONTHLY_SPECIAL_CARS = 2;
+let specialSearchTerm = "";
+let specialSelectionMode = "automatic";
+let loadedSpecialDraft = null;
+let specialIsDirty = false;
+let specialHasPublishedRecord = false;
 let trafficEvents = [];
 let trafficAnalyticsError = "";
 let salesBookings = [];
@@ -158,6 +177,22 @@ let selectedSalesYear = new Date().getFullYear();
 function currentMonthValue() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function shiftMonthValue(value, amount) {
+  const [year, month] = String(value || currentMonthValue()).split("-").map(Number);
+  const date = new Date(year, Math.max(0, month - 1) + amount, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function specialMonthLabel(value) {
+  const [year, month] = String(value || currentMonthValue()).split("-").map(Number);
+  const date = new Date(year, Math.max(0, month - 1), 1);
+  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+
+function monthlySpecialDiscountPrice(value) {
+  return Math.round(Math.max(Number(value || 0), 0) * 0.9);
 }
 
 function readJson(key, fallback) {
@@ -272,12 +307,14 @@ function clampPercent(value) {
 }
 
 function switchSection(section, activeButton = null) {
-  const selectedButton = activeButton || sectionButtons.find((button) => button.dataset.crmSection === section);
+  const requestedButton = activeButton || sectionButtons.find((button) => button.dataset.crmSection === section);
+  const selectedButton = requestedButton || sectionButtons.find((button) => button.dataset.crmSection === "overview");
+  const selectedSection = selectedButton?.dataset.crmSection || "overview";
   sectionButtons.forEach((button) => {
     button.classList.toggle("active", button === selectedButton);
   });
   sectionPanels.forEach((panel) => {
-    const active = panel.dataset.sectionPanel === section;
+    const active = panel.dataset.sectionPanel === selectedSection;
     panel.classList.remove("crm-page-enter");
     panel.hidden = !active;
     panel.classList.toggle("active", active);
@@ -287,6 +324,11 @@ function switchSection(section, activeButton = null) {
       });
     }
   });
+  try {
+    localStorage.setItem(ACTIVE_SECTION_KEY, selectedSection);
+  } catch {
+    // The CRM still works when browser storage is unavailable.
+  }
 }
 
 function fillStoredForms() {
@@ -546,6 +588,18 @@ async function runQuery(query) {
 function showAdmin(isAdmin) {
   loginView.hidden = isAdmin;
   adminView.hidden = !isAdmin;
+  if (!isAdmin) return;
+  window.requestAnimationFrame(() => {
+    let savedSection = "overview";
+    try {
+      savedSection = localStorage.getItem(ACTIVE_SECTION_KEY) || "overview";
+    } catch {
+      savedSection = "overview";
+    }
+    const savedButton = sectionButtons.find((button) => button.dataset.crmSection === savedSection)
+      || sectionButtons.find((button) => button.dataset.crmSection === "overview");
+    savedButton?.click();
+  });
 }
 
 function renderCrmStats() {
@@ -1601,27 +1655,88 @@ function renderCarList({ refreshCrm = true } = {}) {
   if (refreshCrm) renderCrm();
 }
 
+function currentMonthlySpecialDraft() {
+  if (!monthlySpecialForm) return null;
+  return {
+    month: specialMonthInput.value || currentMonthValue(),
+    headline: String(monthlySpecialForm.elements.headline.value || "").trim(),
+    description: String(monthlySpecialForm.elements.description.value || "").trim(),
+    car_slugs: specialSelectionMode === "curated" ? selectedSpecialSlugs.slice(0, MAX_MONTHLY_SPECIAL_CARS) : [],
+  };
+}
+
+function setMonthlySpecialDirty(value = true) {
+  specialIsDirty = value;
+  if (specialUnsaved) {
+    specialUnsaved.textContent = value ? "Unpublished changes" : specialHasPublishedRecord ? "Published" : "Not published";
+    specialUnsaved.classList.toggle("dirty", value);
+  }
+  if (saveMonthlySpecialButton) saveMonthlySpecialButton.textContent = value ? "Publish changes" : specialHasPublishedRecord ? "Published" : "Publish special";
+}
+
+function updateMonthlySpecialMeta() {
+  if (!monthlySpecialForm) return;
+  const headlineLength = monthlySpecialForm.elements.headline.value.length;
+  const descriptionLength = monthlySpecialForm.elements.description.value.length;
+  if (specialHeadlineCount) specialHeadlineCount.textContent = `${headlineLength} / 80`;
+  if (specialDescriptionCount) specialDescriptionCount.textContent = `${descriptionLength} / 240`;
+  if (specialSelectionCount) specialSelectionCount.textContent = `${selectedSpecialSlugs.length} of ${MAX_MONTHLY_SPECIAL_CARS} selected`;
+  specialModeButtons.forEach((button) => {
+    const active = button.dataset.specialMode === specialSelectionMode;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  const state = specialSelectionMode === "curated" ? `${selectedSpecialSlugs.length} featured vehicle${selectedSpecialSlugs.length === 1 ? "" : "s"}` : "Automatic rotation";
+  if (specialLiveState) specialLiveState.textContent = state;
+  if (specialPreviewMode) specialPreviewMode.textContent = specialSelectionMode === "curated" ? "Curated" : "Automatic";
+  if (specialPreviewMonth) specialPreviewMonth.textContent = specialMonthLabel(specialMonthInput.value);
+}
+
+function renderMonthlySpecialPreview() {
+  if (!specialPreview || !monthlySpecialForm) return;
+  const month = specialMonthLabel(specialMonthInput.value);
+  const headline = monthlySpecialForm.elements.headline.value.trim() || `${month} private selection`;
+  const description = monthlySpecialForm.elements.description.value.trim() || "Featured active inventory available for private delivery across Los Angeles and Orange County.";
+  const selectedCars = selectedSpecialSlugs.map((slug) => cars.find((car) => car.slug === slug)).filter(Boolean);
+  const previewCars = specialSelectionMode === "curated" ? selectedCars : cars.filter((car) => car.is_active !== false).slice(0, 2);
+
+  specialPreview.innerHTML = `
+    <div class="special-preview-copy"><span>Monthly collection · ${escapeHtml(month)}</span><h3>${escapeHtml(headline)}</h3><p>${escapeHtml(description)}</p></div>
+    <div class="special-preview-vehicles">
+      ${previewCars.length ? previewCars.map((car, index) => `<article><div><img src="${escapeHtml(carImage(car))}" alt="" onerror="this.onerror=null;this.src='/assets/prestige-luxor-hero.png';" /><b>0${index + 1}</b></div><span>${escapeHtml(car.make || "Prestige Luxor")}</span><strong>${escapeHtml(car.name)}</strong><div class="special-preview-price"><em>10% off</em><del>$${Number(car.price || 0).toLocaleString()}</del><b>$${monthlySpecialDiscountPrice(car.price).toLocaleString()}<small>/day</small></b></div></article>`).join("") : `<div class="special-preview-empty"><strong>Select your featured vehicles</strong><span>Choose up to two active cars from the fleet.</span></div>`}
+    </div>`;
+}
+
 function renderMonthlySpecialPicker() {
   if (!specialCarGrid) return;
-  const activeCars = cars.filter((car) => car.is_active !== false);
+  const activeCars = cars.filter((car) => car.is_active !== false && car.slug);
   const activeSlugs = new Set(activeCars.map((car) => car.slug));
   selectedSpecialSlugs = selectedSpecialSlugs.filter((slug) => activeSlugs.has(slug)).slice(0, MAX_MONTHLY_SPECIAL_CARS);
-  specialSelectionCount.textContent = `${selectedSpecialSlugs.length} of ${MAX_MONTHLY_SPECIAL_CARS} selected`;
+  const search = specialSearchTerm.trim().toLowerCase();
+  const visibleCars = activeCars
+    .filter((car) => !search || `${car.make || ""} ${car.name || ""}`.toLowerCase().includes(search))
+    .sort((a, b) => {
+      const aIndex = selectedSpecialSlugs.indexOf(a.slug);
+      const bIndex = selectedSpecialSlugs.indexOf(b.slug);
+      if (aIndex >= 0 || bIndex >= 0) return (aIndex < 0 ? 99 : aIndex) - (bIndex < 0 ? 99 : bIndex);
+      return String(a.name || "").localeCompare(String(b.name || ""));
+    });
 
-  specialCarGrid.innerHTML = activeCars.length
-    ? activeCars
-        .map((car) => {
-          const selected = selectedSpecialSlugs.includes(car.slug);
-          return `
-            <label class="monthly-special-car ${selected ? "selected" : ""}">
-              <input type="checkbox" value="${escapeHtml(car.slug)}" ${selected ? "checked" : ""} />
-              <img src="${escapeHtml(carImage(car))}" alt="" width="180" height="120" loading="lazy" />
-              <span><strong>${escapeHtml(car.name)}</strong><small>$${Number(car.price || 0).toLocaleString()}/day</small></span>
-            </label>
-          `;
-        })
-        .join("")
-    : `<p class="admin-empty">Add active inventory cars before choosing a monthly special.</p>`;
+  updateMonthlySpecialMeta();
+  specialCarGrid.innerHTML = visibleCars.length
+    ? visibleCars.map((car) => {
+      const selectedIndex = selectedSpecialSlugs.indexOf(car.slug);
+      const selected = selectedIndex >= 0;
+      const disabled = !selected && selectedSpecialSlugs.length >= MAX_MONTHLY_SPECIAL_CARS;
+      return `
+        <label class="monthly-special-car ${selected ? "selected" : ""} ${disabled ? "disabled" : ""}">
+          <input type="checkbox" value="${escapeHtml(car.slug)}" ${selected ? "checked" : ""} ${disabled ? "disabled" : ""} />
+          <div class="monthly-special-car-media"><img src="${escapeHtml(carImage(car))}" alt="" width="360" height="240" loading="lazy" onerror="this.onerror=null;this.src='/assets/prestige-luxor-hero.png';" />${selected ? `<b>Featured 0${selectedIndex + 1}</b>` : ""}</div>
+          <span><small>${escapeHtml(car.make || "Prestige Luxor")}</small><strong>${escapeHtml(car.name)}</strong><em>$${Number(car.price || 0).toLocaleString()} / day</em></span>
+        </label>`;
+    }).join("")
+    : `<div class="monthly-special-picker-empty"><strong>${activeCars.length ? "No vehicles match your search." : "No active fleet vehicles yet."}</strong><span>${activeCars.length ? "Try a different make or model." : "Add or activate a vehicle in Fleet before curating a special."}</span></div>`;
+  renderMonthlySpecialPreview();
 }
 
 async function loadMonthlySpecialAdmin() {
@@ -1636,12 +1751,22 @@ async function loadMonthlySpecialAdmin() {
     );
     monthlySpecialForm.elements.headline.value = record?.headline || "";
     monthlySpecialForm.elements.description.value = record?.description || "";
+    specialHasPublishedRecord = Boolean(record);
     selectedSpecialSlugs = Array.isArray(record?.car_slugs) ? record.car_slugs.slice(0, MAX_MONTHLY_SPECIAL_CARS) : [];
+    specialSelectionMode = selectedSpecialSlugs.length ? "curated" : "automatic";
+    specialSearchTerm = "";
+    if (specialSearchInput) specialSearchInput.value = "";
+    loadedSpecialDraft = currentMonthlySpecialDraft();
     renderMonthlySpecialPicker();
+    setMonthlySpecialDirty(false);
     setStatus(specialsStatus, record ? "Saved selection loaded." : "No saved selection. The website will rotate active cars automatically.");
   } catch (error) {
     selectedSpecialSlugs = [];
+    specialSelectionMode = "automatic";
+    specialHasPublishedRecord = false;
+    loadedSpecialDraft = currentMonthlySpecialDraft();
     renderMonthlySpecialPicker();
+    setMonthlySpecialDirty(false);
     setStatus(specialsStatus, friendlyError(error), "error");
   }
 }
@@ -1650,22 +1775,32 @@ async function saveMonthlySpecial(event) {
   event.preventDefault();
   if (!requireConfig()) return;
 
-  const formData = new FormData(monthlySpecialForm);
-  const payload = {
-    month: formData.get("month"),
-    headline: String(formData.get("headline") || "").trim(),
-    description: String(formData.get("description") || "").trim(),
-    car_slugs: selectedSpecialSlugs.slice(0, MAX_MONTHLY_SPECIAL_CARS),
-    updated_at: new Date().toISOString(),
-  };
+  const draft = currentMonthlySpecialDraft();
+  if (!draft?.month) {
+    setStatus(specialsStatus, "Choose a promotion month before publishing.", "error");
+    specialMonthInput.focus();
+    return;
+  }
+  if (specialSelectionMode === "curated" && !selectedSpecialSlugs.length) {
+    setStatus(specialsStatus, "Select at least one vehicle or switch to automatic rotation.", "error");
+    specialSearchInput?.focus();
+    return;
+  }
+  const payload = { ...draft, updated_at: new Date().toISOString() };
 
   try {
+    if (saveMonthlySpecialButton) saveMonthlySpecialButton.disabled = true;
     setStatus(specialsStatus, "Publishing monthly special...");
     await runQuery(supabase.from("monthly_specials").upsert(payload, { onConflict: "month" }));
     signalFleetRefresh();
+    specialHasPublishedRecord = true;
+    loadedSpecialDraft = currentMonthlySpecialDraft();
+    setMonthlySpecialDirty(false);
     setStatus(specialsStatus, "Monthly special published to the website.", "success");
   } catch (error) {
     setStatus(specialsStatus, friendlyError(error), "error");
+  } finally {
+    if (saveMonthlySpecialButton) saveMonthlySpecialButton.disabled = false;
   }
 }
 
@@ -2073,6 +2208,30 @@ loginForm.addEventListener("submit", async (event) => {
 
 specialMonthInput?.addEventListener("change", loadMonthlySpecialAdmin);
 
+specialMonthShiftButtons.forEach((button) => {
+  button.addEventListener("click", async () => {
+    specialMonthInput.value = shiftMonthValue(specialMonthInput.value, Number(button.dataset.specialMonthShift || 0));
+    await loadMonthlySpecialAdmin();
+  });
+});
+
+specialSearchInput?.addEventListener("input", (event) => {
+  specialSearchTerm = event.target.value;
+  renderMonthlySpecialPicker();
+});
+
+specialModeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const nextMode = button.dataset.specialMode;
+    if (nextMode === specialSelectionMode) return;
+    specialSelectionMode = nextMode;
+    if (nextMode === "automatic") selectedSpecialSlugs = [];
+    setMonthlySpecialDirty();
+    renderMonthlySpecialPicker();
+    setStatus(specialsStatus, nextMode === "automatic" ? "The website will rotate active inventory for this month." : "Choose one or two vehicles for the curated collection.");
+  });
+});
+
 specialCarGrid?.addEventListener("change", (event) => {
   const checkbox = event.target.closest("input[type='checkbox']");
   if (!checkbox) return;
@@ -2084,7 +2243,38 @@ specialCarGrid?.addEventListener("change", (event) => {
   selectedSpecialSlugs = checkbox.checked
     ? [...selectedSpecialSlugs, checkbox.value]
     : selectedSpecialSlugs.filter((slug) => slug !== checkbox.value);
+  specialSelectionMode = "curated";
+  setMonthlySpecialDirty();
   renderMonthlySpecialPicker();
+});
+
+monthlySpecialForm?.addEventListener("input", (event) => {
+  if (event.target.matches("[data-special-search], [data-special-month]")) return;
+  setMonthlySpecialDirty();
+  updateMonthlySpecialMeta();
+  renderMonthlySpecialPreview();
+});
+
+resetMonthlySpecialButton?.addEventListener("click", () => {
+  if (!loadedSpecialDraft) return;
+  specialMonthInput.value = loadedSpecialDraft.month;
+  monthlySpecialForm.elements.headline.value = loadedSpecialDraft.headline;
+  monthlySpecialForm.elements.description.value = loadedSpecialDraft.description;
+  selectedSpecialSlugs = [...loadedSpecialDraft.car_slugs];
+  specialSelectionMode = selectedSpecialSlugs.length ? "curated" : "automatic";
+  specialSearchTerm = "";
+  if (specialSearchInput) specialSearchInput.value = "";
+  setMonthlySpecialDirty(false);
+  renderMonthlySpecialPicker();
+  setStatus(specialsStatus, "Changes reset to the last published version.");
+});
+
+copyMonthlySpecialButton?.addEventListener("click", () => {
+  specialMonthInput.value = shiftMonthValue(specialMonthInput.value, 1);
+  setMonthlySpecialDirty();
+  updateMonthlySpecialMeta();
+  renderMonthlySpecialPreview();
+  setStatus(specialsStatus, `Draft copied to ${specialMonthLabel(specialMonthInput.value)}. Review it, then publish.`);
 });
 
 monthlySpecialForm?.addEventListener("submit", saveMonthlySpecial);

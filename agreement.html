@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#080808" />
+    <title>Rental Agreement | Prestige Luxor</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/prestige-luxor-favicon-32.png" />
+    <link rel="stylesheet" href="/src/agreement-sign.css?v=prestige-agreement-sign-v1" />
+  </head>
+  <body class="agreement-sign-page">
+    <a class="agreement-skip" href="#agreement-main">Skip to agreement</a>
+    <header class="agreement-public-header">
+      <img src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" />
+      <span>Private rental agreement</span>
+    </header>
+    <main id="agreement-main" class="agreement-public-main">
+      <div class="agreement-public-loading" data-sign-loading>Opening your secure agreement…</div>
+      <section class="agreement-public-error" data-sign-error hidden>
+        <p>Agreement unavailable</p><h1>We couldn’t open this agreement.</h1><span data-sign-error-message></span><a href="tel:+19496200024">Call Prestige Luxor</a>
+      </section>
+      <div data-sign-app hidden>
+        <header class="agreement-sign-intro">
+          <p data-sign-number>Rental agreement</p>
+          <h1>Review. Initial. Sign.</h1>
+          <span>This secure agreement usually takes a few minutes.</span>
+        </header>
+        <ol class="agreement-sign-progress" aria-label="Signing progress" data-sign-progress>
+          <li><b>1</b><span>Review Rental</span></li><li><b>2</b><span>Initial Terms</span></li><li><b>3</b><span>Accept</span></li><li><b>4</b><span>Sign</span></li><li><b>5</b><span>Done</span></li>
+        </ol>
+        <section class="agreement-sign-step" data-sign-step="0">
+          <div class="agreement-summary" data-sign-summary></div>
+          <article class="agreement-document-card">
+            <div><p>Rental agreement</p><h2>Read the complete agreement</h2><span>The highlighted terms will require initials on the next screen.</span></div>
+            <div class="agreement-document-copy" data-sign-terms></div>
+          </article>
+        </section>
+        <section class="agreement-sign-step" data-sign-step="1" hidden>
+          <header class="agreement-step-head"><p>Required initials</p><h2>Initial each important term</h2><span>Use the renter’s initials in every box.</span></header>
+          <div class="agreement-initial-list" data-initial-list></div>
+        </section>
+        <section class="agreement-sign-step" data-sign-step="2" hidden>
+          <header class="agreement-step-head"><p>Electronic consent</p><h2>Confirm before signing</h2><span>All three statements are required.</span></header>
+          <div class="agreement-consent-list">
+            <label><input type="checkbox" data-consent="reviewed" /><span>I have reviewed and agree to the rental agreement.</span></label>
+            <label><input type="checkbox" data-consent="electronic" /><span>I consent to signing this agreement electronically.</span></label>
+            <label><input type="checkbox" data-consent="intent" /><span>I understand that my electronic signature has the same intent as signing a paper agreement.</span></label>
+          </div>
+        </section>
+        <section class="agreement-sign-step" data-sign-step="3" hidden>
+          <header class="agreement-step-head"><p>Renter signature</p><h2>Sign below</h2><span>Use a finger or Apple Pencil. Clear and redraw if needed.</span></header>
+          <label class="agreement-printed-name">Printed renter name<input type="text" autocomplete="name" data-printed-name /></label>
+          <div class="agreement-signature-wrap"><canvas width="1200" height="380" data-public-signature aria-label="Draw renter signature"></canvas><span>Sign inside this box</span></div>
+          <div class="agreement-signature-meta"><button type="button" data-clear-public-signature>Clear &amp; redo</button><span data-sign-date></span></div>
+        </section>
+        <section class="agreement-sign-step agreement-complete" data-sign-step="4" hidden>
+          <span class="agreement-complete-mark" aria-hidden="true">✓</span><p>Agreement complete</p><h2>Signed and securely saved.</h2><span>A locked PDF and audit record have been added to this rental.</span>
+          <a class="agreement-download-button" data-public-download>Download signed PDF</a>
+        </section>
+        <p class="agreement-sign-status" role="status" aria-live="polite" data-sign-status></p>
+        <nav class="agreement-sign-actions" data-sign-actions>
+          <button class="agreement-back-button" type="button" data-sign-back hidden>Back</button>
+          <button class="agreement-next-button" type="button" data-sign-next>Continue</button>
+          <button class="agreement-next-button" type="button" data-sign-submit hidden>Sign agreement</button>
+        </nav>
+      </div>
+    </main>
+    <footer class="agreement-public-footer">Prestige Luxor · Private automotive concierge · (949) 620-0024</footer>
+    <script type="module" src="/src/agreement-sign.js?v=prestige-agreement-sign-v2"></script>
+  </body>
+</html>

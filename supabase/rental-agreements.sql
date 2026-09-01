@@ -66,6 +66,36 @@ create index if not exists rental_agreements_status_idx on public.rental_agreeme
 create index if not exists rental_agreements_created_idx on public.rental_agreements(created_at desc);
 create index if not exists rental_agreement_events_idx on public.rental_agreement_events(agreement_id, created_at desc);
 
+-- Simple e-signature workflow. These additions preserve every existing agreement.
+alter table public.rental_agreements add column if not exists access_token text;
+alter table public.rental_agreements add column if not exists template_version integer not null default 1;
+alter table public.rental_agreements add column if not exists important_terms jsonb not null default '[]'::jsonb;
+alter table public.rental_agreements add column if not exists initials jsonb not null default '{}'::jsonb;
+alter table public.rental_agreements add column if not exists electronic_consents jsonb not null default '{}'::jsonb;
+alter table public.rental_agreements add column if not exists opened_at timestamptz;
+alter table public.rental_agreements add column if not exists signed_pdf_path text;
+alter table public.rental_agreements add column if not exists signed_ip text;
+alter table public.rental_agreements add column if not exists signed_user_agent text;
+create unique index if not exists rental_agreements_access_token_unique on public.rental_agreements(access_token) where access_token is not null;
+
+alter table public.rental_agreement_events add column if not exists metadata jsonb not null default '{}'::jsonb;
+
+create table if not exists public.agreement_templates (
+  template_key text primary key default 'master',
+  title text not null default 'Prestige Luxor Rental Agreement',
+  body text not null default '',
+  important_terms jsonb not null default '[]'::jsonb,
+  version integer not null default 1,
+  updated_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.agreement_templates enable row level security;
+drop policy if exists "Employees manage agreement templates" on public.agreement_templates;
+create policy "Employees manage agreement templates" on public.agreement_templates for all to authenticated
+using (public.is_invoice_employee()) with check (public.is_invoice_employee());
+
 alter table public.rental_agreements enable row level security;
 alter table public.rental_agreement_events enable row level security;
 
@@ -87,3 +117,6 @@ with check (bucket_id = 'rental-documents' and public.is_invoice_employee());
 drop policy if exists "Employees update rental documents" on storage.objects;
 create policy "Employees update rental documents" on storage.objects for update to authenticated
 using (bucket_id = 'rental-documents' and public.is_invoice_employee()) with check (bucket_id = 'rental-documents' and public.is_invoice_employee());
+drop policy if exists "Employees delete rental documents" on storage.objects;
+create policy "Employees delete rental documents" on storage.objects for delete to authenticated
+using (bucket_id = 'rental-documents' and public.is_invoice_employee());

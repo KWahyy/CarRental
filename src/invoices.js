@@ -1,5 +1,6 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./supabase-config.js?v=fleet-sync-20260714";
+import { clearDraft, draftData, restoreForm, scheduleDraft, serializeForm, writeDraft } from "./form-drafts.js";
 
 const DEFAULT_TERMS = "Full payment is due by the due date to confirm the reservation. The refundable security deposit is subject to inspection and deductions for excess mileage, fuel, tolls, late return, damage, or other charges permitted by the signed rental agreement. A valid driver license, proof of insurance, and driver approval are required. Changes and cancellations are governed by the signed rental agreement. This invoice does not replace the rental agreement.";
 const configured = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
@@ -31,6 +32,7 @@ const paymentButton = document.querySelector("[data-record-payment]");
 const releaseButton = document.querySelector("[data-release-hold]");
 const voidButton = document.querySelector("[data-void-invoice]");
 const deleteButton = document.querySelector("[data-delete-invoice]");
+const discardDraftButton = document.querySelector("[data-discard-invoice-draft]");
 const continueButton = document.querySelector("[data-continue-agreement]");
 
 let invoices = [];
@@ -38,6 +40,7 @@ let quotes = [];
 let currentInvoice = null;
 let employeeRole = "staff";
 let loaded = false;
+const INVOICE_DRAFT_KEY = "prestige-luxor:draft:new-invoice:v1";
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -233,6 +236,7 @@ function setFormLocked(locked) {
   releaseButton.hidden = !currentInvoice || !["owner", "manager"].includes(employeeRole) || currentInvoice?.deposit_method !== "authorization_hold" || currentInvoice?.deposit_hold_status === "released";
   voidButton.hidden = !currentInvoice || employeeRole !== "owner" || ["draft", "paid", "void"].includes(currentInvoice?.status);
   deleteButton.hidden = !currentInvoice || employeeRole !== "owner" || currentInvoice?.status !== "draft";
+  discardDraftButton.hidden = Boolean(currentInvoice);
   continueButton.hidden = !currentInvoice || currentInvoice?.status === "void";
 }
 
@@ -254,8 +258,16 @@ function openInvoice(invoice = null) {
   Object.entries(defaults).forEach(([name, value]) => {
     if (form.elements[name]) form.elements[name].value = value ?? "";
   });
-  sourceType.value = defaults.source_type || "manual";
-  populateSources(defaults.source_id || "");
+  const savedFields = !invoice ? draftData(INVOICE_DRAFT_KEY)?.fields : null;
+  const savedSourceType = savedFields?.find((field) => field.name === "source_type")?.value;
+  const savedSourceId = savedFields?.find((field) => field.name === "source_id")?.value;
+  sourceType.value = savedSourceType || defaults.source_type || "manual";
+  populateSources(savedSourceId || defaults.source_id || "");
+  const restored = !invoice && restoreForm(form, savedFields);
+  if (restored) {
+    sourceType.value = form.elements.source_type?.value || "manual";
+    populateSources(form.elements.source_id?.value || "");
+  }
   title.textContent = invoice?.invoice_number || "New invoice";
   const state = invoice?.status || "draft";
   badge.textContent = state.replaceAll("_", " ");
@@ -266,6 +278,7 @@ function openInvoice(invoice = null) {
   syncRentalDays();
   renderTotals();
   renderList();
+  if (restored) setStatus("Your unsaved invoice was restored.", "success");
 }
 
 async function loadSourceRecords() {
@@ -284,9 +297,12 @@ async function loadInvoices(force = false) {
     if (currentInvoice) currentInvoice = invoices.find((item) => item.id === currentInvoice.id) || null;
     renderList();
     if (currentInvoice) openInvoice(currentInvoice);
-    setStatus(`${invoices.length} invoice${invoices.length === 1 ? "" : "s"} loaded.`, "success");
+    else if (draftData(INVOICE_DRAFT_KEY)) openInvoice();
+    if (!draftData(INVOICE_DRAFT_KEY) || currentInvoice) setStatus(`${invoices.length} invoice${invoices.length === 1 ? "" : "s"} loaded.`, "success");
   } catch (error) {
-    setStatus(error.message, "error");
+    const hasDraft = !currentInvoice && Boolean(draftData(INVOICE_DRAFT_KEY));
+    if (hasDraft) openInvoice();
+    setStatus(hasDraft ? `Draft restored. ${error.message}` : error.message, "error");
   }
 }
 
@@ -298,6 +314,7 @@ async function saveDraft() {
     ? await invoiceApi("invoices", { method: "PATCH", body: JSON.stringify(payload) })
     : await invoiceApi("invoices", { method: "POST", body: JSON.stringify(payload) });
   currentInvoice = data.invoice;
+  clearDraft(INVOICE_DRAFT_KEY);
   await loadInvoices(true);
   openInvoice(currentInvoice);
   return currentInvoice;
@@ -414,8 +431,27 @@ deleteButton?.addEventListener("click", async () => {
 });
 
 newButton?.addEventListener("click", () => openInvoice());
+discardDraftButton?.addEventListener("click", () => {
+  if (!window.confirm("Discard this unsaved invoice draft?")) return;
+  clearDraft(INVOICE_DRAFT_KEY);
+  currentInvoice = null;
+  form.reset();
+  form.hidden = true;
+  emptyState.hidden = false;
+  renderList();
+  setStatus("Unsaved invoice draft discarded.", "success");
+});
 search?.addEventListener("input", renderList);
 form?.addEventListener("input", renderTotals);
+form?.addEventListener("input", () => {
+  if (!currentInvoice) scheduleDraft(INVOICE_DRAFT_KEY, () => ({ fields: serializeForm(form) }));
+});
+form?.addEventListener("change", () => {
+  if (!currentInvoice) scheduleDraft(INVOICE_DRAFT_KEY, () => ({ fields: serializeForm(form) }));
+});
+window.addEventListener("pagehide", () => {
+  if (!currentInvoice && form && !form.hidden) writeDraft(INVOICE_DRAFT_KEY, { fields: serializeForm(form) });
+});
 depositMethod?.addEventListener("change", renderTotals);
 rentalStartInput?.addEventListener("input", syncRentalDays);
 rentalEndInput?.addEventListener("input", syncRentalDays);

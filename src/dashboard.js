@@ -135,7 +135,23 @@ function chartSvg(data, metric) {
   const max = Math.max(...values, 1); const width = 760; const height = 220; const pad = 24;
   const points = values.map((value, index) => `${pad + (index * (width - pad * 2)) / Math.max(values.length - 1, 1)},${height - pad - (value / max) * (height - pad * 2)}`);
   const area = `${pad},${height - pad} ${points.join(" ")} ${width - pad},${height - pad}`;
-  return `<svg class="executive-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="${titleCase(metric)} performance chart"><defs><linearGradient id="dashboardGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d7b46a" stop-opacity=".42"/><stop offset="1" stop-color="#d7b46a" stop-opacity="0"/></linearGradient></defs><line x1="${pad}" y1="${height-pad}" x2="${width-pad}" y2="${height-pad}"/><polygon points="${area}" fill="url(#dashboardGold)"/><polyline points="${points.join(" ")}"/><g>${points.map((point, index) => { const [x,y]=point.split(","); return `<circle cx="${x}" cy="${y}" r="4"><title>${data[index].label}: ${metric === "bookings" ? values[index] : money(values[index])}</title></circle>`; }).join("")}</g></svg><div class="executive-chart-labels">${data.map((item) => `<span>${escapeHtml(item.label)}</span>`).join("")}</div>`;
+  return `<svg class="executive-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="${titleCase(metric)} performance chart"><defs><linearGradient id="dashboardOxblood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a43b4c" stop-opacity=".4"/><stop offset="1" stop-color="#721e2b" stop-opacity="0"/></linearGradient></defs><line x1="${pad}" y1="${height-pad}" x2="${width-pad}" y2="${height-pad}"/><polygon points="${area}" fill="url(#dashboardOxblood)"/><polyline points="${points.join(" ")}"/><g>${points.map((point, index) => { const [x,y]=point.split(","); return `<circle cx="${x}" cy="${y}" r="4"><title>${data[index].label}: ${metric === "bookings" ? values[index] : money(values[index])}</title></circle>`; }).join("")}</g></svg><div class="executive-chart-labels">${data.map((item) => `<span>${escapeHtml(item.label)}</span>`).join("")}</div>`;
+}
+
+function emptyPerformance() {
+  return `<div class="executive-empty-performance">
+    <div class="executive-empty-copy">
+      <span>Invoice-first workflow</span>
+      <h3>Your command center starts with an invoice.</h3>
+      <p>Create the client invoice first. From there, Prestige Luxor routes the rental into the agreement and handoff process.</p>
+      <button type="button" class="executive-action-primary" data-dashboard-create="invoice">Create first invoice <span aria-hidden="true">→</span></button>
+    </div>
+    <ol class="executive-workflow" aria-label="Rental workflow">
+      <li><span>01</span><div><strong>Create invoice</strong><small>Client, vehicle, dates, and rate</small></div></li>
+      <li><span>02</span><div><strong>Complete agreement</strong><small>Terms, documents, and signature</small></div></li>
+      <li><span>03</span><div><strong>Manage rental</strong><small>Pickup, return, and deposit</small></div></li>
+    </ol>
+  </div>`;
 }
 
 function statusForReservation(item, invoice) {
@@ -186,23 +202,9 @@ function render() {
   const rawName = model.profile?.display_name || model.session?.user?.user_metadata?.full_name || model.session?.user?.email?.split("@")[0] || "there";
   const normalizedName = String(rawName).split("@")[0].replace(/\d+$/g, "");
   const displayName = /^khaled/i.test(normalizedName) ? "Khaled" : normalizedName.split(/[._-]/).filter(Boolean).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
-
-  root.innerHTML = `
-    <header class="executive-head crm-page-header"><div><p class="eyebrow">Executive command center</p><h2>Good ${new Date().getHours()<12?"morning":new Date().getHours()<18?"afternoon":"evening"}, ${escapeHtml(displayName)}</h2><p>Here’s what’s happening at Prestige Luxor.</p></div><div class="executive-date-control crm-page-actions"><label><span>Date range</span><select data-dashboard-range><option value="today">Today</option><option value="this_week">This Week</option><option value="this_month">This Month</option><option value="last_month">Last Month</option><option value="ytd">YTD</option><option value="custom">Custom</option></select></label><div class="executive-custom-dates" ${rangeKey==="custom"?"":"hidden"}><input type="date" value="${escapeHtml(customStart)}" data-dashboard-start aria-label="Custom start date"><input type="date" value="${escapeHtml(customEnd)}" data-dashboard-end aria-label="Custom end date"></div></div></header>
-    <section class="executive-kpis">
-      ${kpi("Revenue",money(current.revenue),`${delta(current.revenue,previous.revenue)} vs previous period`)}
-      ${kpi("Net Profit",money(current.netProfit),"Revenue minus recorded costs")}
-      ${kpi("Bookings",current.bookings.length,`${current.completed} completed · ${current.upcoming} upcoming`)}
-      ${kpi("Average Booking Value",money(current.bookings.length?current.revenue/current.bookings.length:0),"Revenue ÷ bookings")}
-      ${kpi("Outstanding Balance",money(current.outstanding),"Rental money still owed")}
-      ${kpi("Deposits Held",money(current.depositsHeld),"Refundable · excluded from revenue")}
-    </section>
-    <section class="executive-card executive-performance"><div class="executive-card-head"><div><h3>Performance</h3><p>${dateLabel(range.start)} – ${dateLabel(range.end)}</p></div>${toggle("chart",["revenue","profit","bookings"],chartMetric)}</div>${chartSvg(chart,chartMetric)}</section>
-    <section class="executive-section"><div class="executive-section-title"><h3>Today’s Operations</h3><span>${dateLabel(today)}</span></div><div class="operations-strip">${operation("Pickups Today",pickups.length,"agreements")}${operation("Returns Today",returns.length,"agreements")}${operation("Deliveries Today",0,"agreements","No delivery schedule field yet")}${operation("Payments Due",paymentsDue.length,"invoices")}${operation("Missing Documents",missingDocs.length,"agreements")}</div></section>
-    <div class="executive-two-column">
-      <section class="executive-card executive-wide"><div class="executive-card-head"><div><h3>Upcoming Reservations</h3><p>Next rentals in the agreement workflow.</p></div><button class="text-button" data-dashboard-section="agreements">View All</button></div>${reservationTable(upcoming,invoiceById)}</section>
-      <section class="executive-card"><div class="executive-card-head"><div><h3>Sales Pipeline</h3><p>Active lead movement and value.</p></div><button class="text-button" data-dashboard-section="requests">Open Quotes</button></div><div class="pipeline-grid">${pipelineCell("New Leads",pipeline.new)}${pipelineCell("Contacted",pipeline.contacted)}${pipelineCell("Quotes Sent",pipeline.sent)}${pipelineCell("Follow-Ups Due",pipeline.followup)}${pipelineCell("Booked",pipeline.booked)}${pipelineCell("Lost",pipeline.lost)}</div><div class="pipeline-summary"><span>Lead → Booking Conversion<strong>${conversion.toFixed(1)}%</strong></span><span>Open Pipeline Value<strong>${money(pipelineValue)}</strong></span></div></section>
-    </div>
+  const activeRentals = model.agreements.filter((item) => !["completed", "cancelled"].includes(item.status)).length;
+  const hasBusinessData = Boolean(model.invoices.length || model.agreements.length || model.quotes.length || model.bookings.length);
+  const secondaryAnalytics = hasBusinessData ? `
     <div class="executive-two-column executive-balanced">
       <section class="executive-card"><div class="executive-card-head"><div><h3>Top Performing Vehicles</h3><p>Owned and partner inventory.</p></div>${toggle("vehicle",["revenue","profit","bookings"],vehicleMetric)}</div><div class="vehicle-performance-list">${vehicles.length?vehicles.map((item,index)=>vehicleRow(item,index,carByName,partnerCarIds)).join(""):`<p class="admin-empty">Vehicle performance will appear after agreements are created.</p>`}</div></section>
       <section class="executive-card"><div class="executive-card-head"><div><h3>Financial Breakdown</h3><p>Deposits are excluded from revenue.</p></div></div>${financialBreakdown(current)}</section>
@@ -214,17 +216,39 @@ function render() {
     <div class="executive-two-column executive-bottom-grid">
       <section class="executive-card"><div class="executive-card-head"><div><h3>Needs Attention</h3><p>Urgent operational risks first.</p></div></div><div class="attention-list">${attention.length?attention.slice(0,10).map(attentionRow).join(""):`<p class="admin-empty">No current issues found.</p>`}</div></section>
       <section class="executive-card"><div class="executive-card-head"><div><h3>Recent Activity</h3><p>Latest activity across billing, rentals, and sales.</p></div></div><div class="activity-list">${activity.length?activity.slice(0,10).map(activityRow).join(""):`<p class="admin-empty">Activity will appear as your team works in the CRM.</p>`}</div></section>
-    </div>`;
+    </div>` : "";
+
+  root.innerHTML = `
+    <header class="executive-head executive-command-hero crm-page-header">
+      <div class="executive-command-copy"><p class="eyebrow">Prestige Luxor command</p><h2>Good ${new Date().getHours()<12?"morning":new Date().getHours()<18?"afternoon":"evening"}, ${escapeHtml(displayName)}</h2><p>Start with the invoice. The rental workflow continues from there.</p><div class="executive-route" aria-label="Prestige Luxor rental workflow"><span>Invoice</span><i aria-hidden="true"></i><span>Agreement</span><i aria-hidden="true"></i><span>Rental</span></div></div>
+      <div class="executive-command-tools">
+        <div class="executive-primary-actions" aria-label="Dashboard quick actions"><button type="button" class="executive-action-primary" data-dashboard-create="invoice">New invoice <span aria-hidden="true">→</span></button><button type="button" class="executive-action-secondary" data-dashboard-create="quote">New quote</button><button type="button" class="executive-action-secondary" data-dashboard-create="vehicle">Add vehicle</button></div>
+        <div class="executive-date-control crm-page-actions"><label><span>Date range</span><select data-dashboard-range><option value="today">Today</option><option value="this_week">This Week</option><option value="this_month">This Month</option><option value="last_month">Last Month</option><option value="ytd">YTD</option><option value="custom">Custom</option></select></label><div class="executive-custom-dates" ${rangeKey==="custom"?"":"hidden"}><input type="date" value="${escapeHtml(customStart)}" data-dashboard-start aria-label="Custom start date"><input type="date" value="${escapeHtml(customEnd)}" data-dashboard-end aria-label="Custom end date"></div></div>
+      </div>
+    </header>
+    <section class="executive-kpis">
+      ${kpi("Revenue",money(current.revenue),`${delta(current.revenue,previous.revenue)} vs previous period`,"01",true)}
+      ${kpi("Active Rentals",activeRentals,activeRentals?"Currently in the agreement workflow":"No active rentals","02")}
+      ${kpi("Outstanding",money(current.outstanding),"Rental balance still owed","03")}
+      ${kpi("Open Quotes",openQuotes.length,openQuotes.length?`${pipeline.followup} follow-up${pipeline.followup===1?"":"s"} due`:"No open opportunities","04")}
+    </section>
+    <section class="executive-card executive-performance ${hasBusinessData?"":"is-empty"}">${hasBusinessData?`<div class="executive-card-head"><div><h3>Performance</h3><p>${dateLabel(range.start)} – ${dateLabel(range.end)}</p></div>${toggle("chart",["revenue","profit","bookings"],chartMetric)}</div>${chartSvg(chart,chartMetric)}`:emptyPerformance()}</section>
+    <section class="executive-section executive-operations"><div class="executive-section-title"><div><span>Live desk</span><h3>Today’s Operations</h3></div><time>${dateLabel(today)}</time></div><div class="operations-strip">${operation("Pickups",pickups.length,"agreements")}${operation("Returns",returns.length,"agreements")}${operation("Payments Due",paymentsDue.length,"invoices")}${operation("Missing Documents",missingDocs.length,"agreements")}</div></section>
+    <div class="executive-two-column">
+      <section class="executive-card executive-wide"><div class="executive-card-head"><div><h3>Upcoming Reservations</h3><p>Next rentals in the agreement workflow.</p></div><button class="text-button" data-dashboard-section="agreements">View All</button></div>${reservationTable(upcoming,invoiceById)}</section>
+      <section class="executive-card"><div class="executive-card-head"><div><h3>Sales Pipeline</h3><p>Active lead movement and value.</p></div><button class="text-button" data-dashboard-section="requests">Open Quotes</button></div><div class="pipeline-grid">${pipelineCell("New Leads",pipeline.new)}${pipelineCell("Contacted",pipeline.contacted)}${pipelineCell("Quotes Sent",pipeline.sent)}${pipelineCell("Follow-Ups Due",pipeline.followup)}${pipelineCell("Booked",pipeline.booked)}${pipelineCell("Lost",pipeline.lost)}</div><div class="pipeline-summary"><span>Lead → Booking Conversion<strong>${conversion.toFixed(1)}%</strong></span><span>Open Pipeline Value<strong>${money(pipelineValue)}</strong></span></div></section>
+    </div>
+    ${secondaryAnalytics}`;
   root.querySelector("[data-dashboard-range]").value = rangeKey;
   bindDashboard();
 }
 
-function kpi(label,value,note){return `<article><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`;}
+function kpi(label,value,note,index,featured=false){return `<article class="${featured?"featured":""}"><div><span>${escapeHtml(label)}</span><b>${escapeHtml(index)}</b></div><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`;}
 function toggle(group,items,active){return `<div class="executive-toggle" role="group" aria-label="${titleCase(group)} metric">${items.map(item=>`<button type="button" class="${item===active?"active":""}" data-dashboard-toggle="${group}" data-value="${item}">${titleCase(item)}</button>`).join("")}</div>`;}
-function operation(label,value,section,note=""){return `<button type="button" data-dashboard-section="${section}" title="${escapeHtml(note)}"><strong>${value}</strong><span>${escapeHtml(label)}</span>${note?`<small>${escapeHtml(note)}</small>`:""}</button>`;}
+function operation(label,value,section,note=""){return `<button type="button" data-dashboard-section="${section}" title="${escapeHtml(note)}"><span>${escapeHtml(label)}</span><strong>${value}</strong><i aria-hidden="true">↗</i>${note?`<small>${escapeHtml(note)}</small>`:""}</button>`;}
 function pipelineCell(label,value){return `<button type="button" data-dashboard-section="requests"><span>${label}</span><strong>${value}</strong></button>`;}
 
-function reservationTable(rows,invoiceById){return rows.length?`<div class="executive-table-wrap crm-table-container"><table><thead><tr><th>Customer</th><th>Vehicle</th><th>Start</th><th>End</th><th>Total</th><th>Remaining</th><th>Status</th></tr></thead><tbody>${rows.map(item=>{const invoice=item.source_type==="invoice"?invoiceById.get(String(item.source_id)):null;const status=statusForReservation(item,invoice);return `<tr tabindex="0" role="button" data-dashboard-open="agreement" data-id="${item.id}"><td><strong>${escapeHtml(item.customer_name)}</strong></td><td>${escapeHtml(item.vehicle_name)}</td><td>${dateLabel(item.rental_start)}</td><td>${dateLabel(item.rental_end)}</td><td>${money(invoice?.subtotal||item.rental_total)}</td><td>${money(invoice?rentalBalance(invoice):0)}</td><td><span class="executive-status">${status}</span></td></tr>`;}).join("")}</tbody></table></div>`:`<p class="admin-empty">No upcoming agreements yet. Start with an invoice and continue to agreement.</p>`;}
+function reservationTable(rows,invoiceById){return rows.length?`<div class="executive-table-wrap crm-table-container"><table><thead><tr><th>Customer</th><th>Vehicle</th><th>Start</th><th>End</th><th>Total</th><th>Remaining</th><th>Status</th></tr></thead><tbody>${rows.map(item=>{const invoice=item.source_type==="invoice"?invoiceById.get(String(item.source_id)):null;const status=statusForReservation(item,invoice);return `<tr tabindex="0" role="button" data-dashboard-open="agreement" data-id="${item.id}"><td><strong>${escapeHtml(item.customer_name)}</strong></td><td>${escapeHtml(item.vehicle_name)}</td><td>${dateLabel(item.rental_start)}</td><td>${dateLabel(item.rental_end)}</td><td>${money(invoice?.subtotal||item.rental_total)}</td><td>${money(invoice?rentalBalance(invoice):0)}</td><td><span class="executive-status">${status}</span></td></tr>`;}).join("")}</tbody></table></div>`:`<div class="executive-reservation-empty"><span>Clear road ahead</span><strong>No upcoming rentals.</strong><p>Create an invoice to begin a new client rental.</p><button type="button" data-dashboard-create="invoice">Create invoice <span aria-hidden="true">→</span></button></div>`;}
 function vehicleRow(item,index,carByName,partnerCarIds){const car=carByName.get(item.name.toLowerCase());const partner=car&&partnerCarIds.has(String(car.id));return `<article><span class="vehicle-rank">${index+1}</span>${car?.image_url?`<img src="${escapeHtml(car.image_url)}" alt="" loading="lazy">`:`<span class="vehicle-placeholder">PL</span>`}<div><strong>${escapeHtml(item.name)}</strong><small>${partner?"Partner vehicle":"Prestige-owned or unassigned"}</small></div><span><b>${item.bookings}</b><small>Bookings</small></span><span><b>${money(item.revenue)}</b><small>Revenue</small></span><span><b>${money(item.profit)}</b><small>Profit</small></span></article>`;}
 function financialBreakdown(data){const revenueRows=[["Rental Revenue",data.earned.reduce((s,i)=>s+number(i.daily_rate)*Math.max(number(i.rental_days),1),0)],["Delivery Fees",data.earned.reduce((s,i)=>s+number(i.delivery_fee),0)],["Mileage Charges",data.earned.reduce((s,i)=>s+number(i.mileage_fee),0)],["Late Fees",0],["Other Revenue",data.earned.reduce((s,i)=>s+number(i.addons_total)+number(i.insurance_fee)+number(i.fuel_fee)+number(i.tolls_fee)+number(i.damage_fee)+number(i.other_fee),0)]];const costs=[["Discounts",data.costs.discounts],["Refunds",data.costs.refunds],["Partner Payouts",data.costs.partnerPayouts],["Processing Fees",0],["Delivery Costs",0],["Detailing",0],["Fuel",0],["Other Expenses",0]];return `<div class="financial-columns"><div><h4>Revenue</h4>${revenueRows.map(([l,v])=>`<p><span>${l}</span><b>${money(v)}</b></p>`).join("")}</div><div><h4>Costs & deductions</h4>${costs.map(([l,v])=>`<p><span>${l}</span><b>${money(v)}</b></p>`).join("")}</div></div><div class="financial-net"><span>Net Profit</span><strong>${money(data.netProfit)}</strong></div>`;}
 function leadSourceTable(rows){return rows.length?`<div class="executive-table-wrap crm-table-container"><table><thead><tr><th>Source</th><th>Leads</th><th>Bookings</th><th>Conversion</th><th>Revenue</th></tr></thead><tbody>${rows.sort((a,b)=>b.leads-a.leads).map(row=>`<tr><td><strong>${escapeHtml(row.label)}</strong></td><td>${row.leads}</td><td>${row.bookings}</td><td>${row.leads?((row.bookings/row.leads)*100).toFixed(1):"0.0"}%</td><td>${money(row.revenue)}</td></tr>`).join("")}</tbody></table></div><p class="executive-data-note">Spend and ROAS are hidden because ad-spend data is not stored in the CRM.</p>`:`<p class="admin-empty">Lead sources will appear when quote requests exist.</p>`;}
@@ -241,6 +265,13 @@ function bindDashboard(){
   root.querySelector("[data-dashboard-end]")?.addEventListener("change",(event)=>{customEnd=event.target.value;if(customStart&&customEnd)render();});
   root.querySelectorAll("[data-dashboard-toggle]").forEach(button=>button.addEventListener("click",()=>{if(button.dataset.dashboardToggle==="chart")chartMetric=button.dataset.value;else vehicleMetric=button.dataset.value;render();}));
   root.querySelectorAll("[data-dashboard-section]").forEach(button=>button.addEventListener("click",()=>document.querySelector(`[data-crm-section="${button.dataset.dashboardSection}"]`)?.click()));
+  root.querySelectorAll("[data-dashboard-create]").forEach(button=>button.addEventListener("click",()=>{
+    const type=button.dataset.dashboardCreate;
+    const section=type==="invoice"?"invoices":type==="quote"?"requests":"vehicles";
+    const trigger=type==="invoice"?"[data-new-invoice]":type==="quote"?"[data-new-quote]":"[data-new-car]";
+    document.querySelector(`[data-crm-section="${section}"]`)?.click();
+    setTimeout(()=>document.querySelector(trigger)?.click(),120);
+  }));
   root.querySelectorAll("[data-dashboard-open]").forEach(button=>{const open=()=>openRecord(button.dataset.dashboardOpen,button.dataset.id);button.addEventListener("click",open);button.addEventListener("keydown",event=>{if(["Enter"," "].includes(event.key)){event.preventDefault();open();}});});
 }
 

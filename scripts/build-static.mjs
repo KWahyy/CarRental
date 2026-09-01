@@ -19,6 +19,7 @@ const pathsToCopy = [
   "ferrari.html",
   "partner.html",
   "quote.html",
+  "agreement.html",
   "wedding.html",
   "admin",
   "assets",

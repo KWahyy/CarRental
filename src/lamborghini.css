@@ -1,8 +1,8 @@
 :root {
-  --lambo-black: #080806;
-  --lambo-panel: #11110e;
+  --lambo-black: #050505;
+  --lambo-panel: #111111;
   --lambo-ivory: #f1efe8;
-  --lambo-gold: #d7b45f;
+  --lambo-gold: #f8f5ef;
   --lambo-line: rgba(255, 255, 255, 0.16);
   --lambo-muted: rgba(255, 255, 255, 0.64);
 }
@@ -70,8 +70,8 @@
 }
 
 .lamborghini-page[data-marque="Ferrari"] .lambo-final-cta .lambo-button {
-  border-color: #080806;
-  background: #080806;
+  border-color: #050505;
+  background: #050505;
   color: #fff;
 }
 
@@ -238,7 +238,7 @@ html { scroll-behavior: smooth; }
 }
 
 .lambo-lead-form input:focus,
-.lambo-lead-form select:focus { border-color: var(--lambo-gold); box-shadow: 0 0 0 2px rgba(215,180,95,.16); }
+.lambo-lead-form select:focus { border-color: var(--lambo-gold); box-shadow: 0 0 0 2px rgba(255,255,255,.16); }
 .lambo-consent { margin: 17px 0; display: flex; align-items: flex-start; gap: 10px; }
 .lambo-consent input { width: 17px; min-height: 17px; margin: 1px 0 0; accent-color: var(--lambo-gold); }
 .lambo-consent > span { margin: 0 !important; color: rgba(255,255,255,.68) !important; font-size: .72rem !important; line-height: 1.45; letter-spacing: 0 !important; text-transform: none !important; }
@@ -364,7 +364,7 @@ html { scroll-behavior: smooth; }
   .lambo-footer > div { flex-wrap: wrap; }
   .lambo-mobile-cta { position: fixed; z-index: 50; left: 12px; right: 12px; bottom: 12px; padding: 6px; display: grid; grid-template-columns: .65fr 1.35fr; gap: 6px; border: 1px solid rgba(255,255,255,.16); background: rgba(8,8,6,.94); box-shadow: 0 12px 45px rgba(0,0,0,.4); backdrop-filter: blur(16px); }
   .lambo-mobile-cta a { min-height: 48px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .72rem; font-weight: 820; letter-spacing: .06em; text-decoration: none; text-transform: uppercase; }
-  .lambo-mobile-cta a:last-child { background: var(--lambo-gold); color: #090806; }
+  .lambo-mobile-cta a:last-child { background: var(--lambo-gold); color: #050505; }
 }
 
 @media (prefers-reduced-motion: reduce) {

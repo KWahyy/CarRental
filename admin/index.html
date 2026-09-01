@@ -68,8 +68,10 @@
               <button type="button" data-crm-section="vehicles">Fleet</button>
               <button type="button" data-crm-section="specials">Monthly Special</button>
               <button type="button" data-crm-section="requests">Quotes</button>
+              <button type="button" data-crm-section="customers">Customers</button>
               <button type="button" data-crm-section="invoices">Invoices</button>
               <button type="button" data-crm-section="agreements">Agreements</button>
+              <button type="button" data-crm-section="settings">Settings</button>
             </nav>
             <div class="admin-crm-sidebar-card">
               <small>Today's fleet check</small>
@@ -417,6 +419,20 @@
               </div>
             </section>
 
+            <section class="admin-section crm-page-container customer-workspace" data-section-panel="customers" hidden>
+              <div class="admin-section-head crm-page-header">
+                <div>
+                  <p class="eyebrow">Client directory</p>
+                  <h2>Customers</h2>
+                  <p>One simple view of every customer's contact details, quotes, invoices, agreements, and signed PDFs.</p>
+                </div>
+                <button class="secondary-button compact" type="button" data-refresh-customers>Refresh</button>
+              </div>
+              <div class="customers-app" data-customers-app aria-live="polite">
+                <div class="crm-loading-state">Loading customers…</div>
+              </div>
+            </section>
+
             <section class="admin-section crm-page-container invoice-workspace" data-section-panel="invoices" hidden>
               <div class="admin-section-head invoice-section-head crm-page-header">
                 <div>
@@ -552,6 +568,7 @@
 
                     <div class="invoice-total-card" data-invoice-total></div>
                     <div class="invoice-actions">
+                      <button class="secondary-button" type="button" data-discard-invoice-draft hidden>Discard unsaved draft</button>
                       <button class="danger-button invoice-delete-button" type="button" data-delete-invoice hidden>Delete invoice</button>
                       <button class="danger-button" type="button" data-void-invoice hidden>Void invoice</button>
                       <button class="secondary-button" type="button" data-release-hold hidden>Release hold</button>
@@ -567,60 +584,47 @@
 
             <section class="admin-section crm-page-container agreement-workspace" data-section-panel="agreements" hidden>
               <div class="admin-section-head invoice-section-head crm-page-header">
-                <div><p class="eyebrow">Rental operations</p><h2>Agreements &amp; Handoffs</h2><p>Continue from an invoice, capture the customer signature, document pickup, and close the return.</p></div>
-                <button class="secondary-button compact" type="button" data-new-agreement>Manual agreement</button>
+                <div><p class="eyebrow">Simple e-signature</p><h2>Rental Agreements</h2><p>Create from existing rental data, send a private link, and keep the signed PDF with the customer record.</p></div>
+                <button class="primary-button compact" type="button" data-new-agreement>New agreement</button>
               </div>
               <div class="agreement-kpis invoice-kpis" data-agreement-kpis></div>
               <p class="admin-status" role="status" data-agreement-status></p>
-              <div class="invoice-layout">
+              <div class="invoice-layout agreement-simple-layout">
                 <aside class="admin-panel invoice-list-panel">
-                  <label class="invoice-search"><span>Search agreements</span><input type="search" placeholder="Number, customer, or vehicle" data-agreement-search /></label>
+                  <label class="invoice-search"><span>Search agreements</span><input type="search" placeholder="Number, renter, or vehicle" data-agreement-search /></label>
                   <div class="invoice-list" data-agreement-list></div>
                 </aside>
-                <section class="admin-panel invoice-editor-panel">
-                  <div class="invoice-empty" data-agreement-empty><strong>Select an agreement or create a new one.</strong><span>The workflow will show only the steps relevant to the current rental stage.</span></div>
+                <section class="admin-panel invoice-editor-panel agreement-simple-editor">
+                  <div class="invoice-empty" data-agreement-empty><strong>Select an agreement or create a new one.</strong><span>Start with an invoice so rental details are filled automatically.</span></div>
                   <form class="invoice-form agreement-form" data-agreement-form hidden>
-                    <div class="invoice-editor-head"><div><p class="eyebrow">Rental agreement</p><h3 data-agreement-title>New agreement</h3><span>Editable throughout the rental lifecycle.</span></div><span class="invoice-status-badge draft" data-agreement-badge>Draft</span></div>
-                    <ol class="agreement-stepper" aria-label="Agreement progress">
-                      <li data-step="draft"><b>1</b><span>Agreement</span></li><li data-step="signed"><b>2</b><span>Signature</span></li><li data-step="vehicle_out"><b>3</b><span>Pickup</span></li><li data-step="returned"><b>4</b><span>Return</span></li><li data-step="completed"><b>5</b><span>Deposit</span></li>
-                    </ol>
-                    <div class="invoice-form-section">
-                      <h4>Agreement details</h4>
+                    <input type="hidden" name="id" />
+                    <div class="invoice-editor-head"><div><p class="eyebrow">Rental agreement</p><h3 data-agreement-title>New agreement</h3><span data-agreement-subtitle>Review the rental summary before sending it to the renter.</span></div><span class="invoice-status-badge draft" data-agreement-badge>Draft</span></div>
+                    <div class="agreement-admin-progress"><span class="active">1 · Create</span><span>2 · Send</span><span>3 · Renter initials</span><span>4 · Signature</span><span>5 · Signed PDF</span></div>
+                    <section class="invoice-form-section agreement-source-section" data-agreement-editable>
+                      <h4>Use existing rental data</h4>
+                      <p>Choose an invoice. Customer, vehicle, dates, payment, deposit, and mileage details are carried over automatically.</p>
                       <div class="invoice-form-grid">
-                        <label>Created from<select name="source_type" data-agreement-source-type><option value="invoice">Invoice</option><option value="manual">Manual</option><option value="quote">Quote</option></select></label>
-                        <label>Source record<select name="source_id" data-agreement-source><option value="">None selected</option></select></label>
-                        <label>Customer name<input name="customer_name" required /></label><label>Email<input name="customer_email" type="email" /></label>
-                        <label>Phone<input name="customer_phone" type="tel" /></label><label>Address<input name="customer_address" /></label>
-                        <label>Approved driver<input name="driver_name" required /></label><label>Driver license number<input name="license_number" /></label>
-                        <label>License state<input name="license_state" /></label><label>License expiration<input name="license_expiration" type="date" /></label>
-                        <label>Insurance provider<input name="insurance_provider" /></label><label>Policy number<input name="policy_number" /></label>
-                        <label>Insurance expiration<input name="insurance_expiration" type="date" /></label><label>License / insurance files<input name="driver_documents" type="file" accept="image/*,.pdf" multiple /></label>
+                        <label>Created from<select name="source_type" data-agreement-source-type><option value="invoice">Invoice</option><option value="quote">Quote</option><option value="manual">Manual entry</option></select></label>
+                        <label>Rental record<select name="source_id" data-agreement-source><option value="">Select a rental record</option></select></label>
                       </div>
-                    </div>
-                    <div class="invoice-form-section"><h4>Vehicle, dates &amp; money</h4><div class="invoice-form-grid">
-                      <label class="invoice-wide">Vehicle<input name="vehicle_name" required /></label><label>VIN<input name="vehicle_vin" /></label><label>License plate<input name="vehicle_plate" /></label>
-                      <label>Rental starts<input name="rental_start" type="date" /></label><label>Rental ends<input name="rental_end" type="date" /></label>
-                      <label>Rental days (auto)<input name="rental_days" type="number" min="1" value="1" required /><small class="invoice-field-help" data-agreement-days-help>Calculated from the dates.</small></label><label>Daily rate<input name="daily_rate" type="number" min="0" step=".01" value="0" /></label>
-                      <label>Mileage allowance<input name="mileage_allowance" value="100 miles/day" /></label><label>Extra-mile rate<input name="overage_rate" type="number" min="0" step=".01" value="0" /></label>
-                      <label>Refundable deposit<input name="refundable_deposit" type="number" min="0" step=".01" value="0" /></label><label>Deposit status<select name="deposit_status"><option value="pending">Pending</option><option value="held">Authorization held</option><option value="charged">Charged</option><option value="released">Released</option><option value="partially_deducted">Partially deducted</option><option value="deducted">Fully deducted</option><option value="not_required">Not required</option></select></label>
-                      <label>Payment status<select name="payment_status"><option value="unpaid">Unpaid</option><option value="partial">Partial</option><option value="paid">Paid</option><option value="refunded">Refunded</option></select></label><label>Amount paid<input name="amount_paid" type="number" min="0" step=".01" value="0" /></label>
-                      <label>Payment method<select name="payment_method"><option value="stripe">Stripe</option><option value="cash">Cash</option><option value="zelle">Zelle</option><option value="wire">Wire</option><option value="other">Other</option></select></label><label>Payment reference<input name="payment_reference" placeholder="Stripe payment or receipt ID" /></label>
-                    </div><div class="agreement-money" data-agreement-money></div></div>
-                    <div class="invoice-form-section"><h4>Terms</h4><label>Rental terms<textarea name="terms" rows="8"></textarea></label><p class="invoice-help">Operational template only. Have qualified California counsel approve the final language before customer use.</p></div>
-                    <section class="agreement-stage" data-agreement-stage="signature">
-                      <div class="invoice-form-section"><h4>Customer signature</h4><p>Have the customer review the terms, then sign on this device.</p><label>Signer full name<input name="signature_name" /></label><canvas class="signature-pad" width="760" height="190" data-signature-pad aria-label="Signature drawing area"></canvas><div class="agreement-inline-actions"><button class="secondary-button compact" type="button" data-clear-signature>Clear signature</button><button class="primary-button compact" type="button" data-sign-agreement>Accept &amp; sign</button></div></div>
                     </section>
-                    <section class="agreement-stage" data-agreement-stage="pickup">
-                      <div class="invoice-form-section"><h4>Pickup handoff</h4><div class="invoice-form-grid"><label>Odometer mileage<input name="pickup_mileage" type="number" min="0" /></label><label>Fuel level<select name="pickup_fuel"><option value="">Select</option><option>Full</option><option>3/4</option><option>1/2</option><option>1/4</option><option>Empty</option></select></label><label class="invoice-wide">Condition notes<textarea name="pickup_notes" rows="4" placeholder="Existing scratches, wheel condition, warning lights..."></textarea></label><label class="invoice-wide">Condition photos<input name="pickup_photos" type="file" accept="image/*" multiple /></label></div><button class="primary-button compact" type="button" data-complete-pickup>Release vehicle</button></div>
-                    </section>
-                    <section class="agreement-stage" data-agreement-stage="return">
-                      <div class="invoice-form-section"><h4>Vehicle return</h4><div class="invoice-form-grid"><label>Return mileage<input name="return_mileage" type="number" min="0" /></label><label>Return fuel<select name="return_fuel"><option value="">Select</option><option>Full</option><option>3/4</option><option>1/2</option><option>1/4</option><option>Empty</option></select></label><label class="invoice-wide">Return notes<textarea name="return_notes" rows="4"></textarea></label><label class="invoice-wide">Return photos<input name="return_photos" type="file" accept="image/*" multiple /></label><label>Mileage charge<input name="mileage_charge" type="number" min="0" step=".01" value="0" /></label><label>Fuel charge<input name="fuel_charge" type="number" min="0" step=".01" value="0" /></label><label>Tolls<input name="tolls_charge" type="number" min="0" step=".01" value="0" /></label><label>Damage<input name="damage_charge" type="number" min="0" step=".01" value="0" /></label><label>Other label<input name="other_charge_label" value="Other" /></label><label>Other charge<input name="other_charge" type="number" min="0" step=".01" value="0" /></label></div><button class="primary-button compact" type="button" data-complete-return>Record return</button></div>
-                    </section>
-                    <section class="agreement-stage" data-agreement-stage="deposit">
-                      <div class="invoice-form-section"><h4>Resolve refundable deposit</h4><div class="invoice-form-grid"><label>Deduction amount<input name="deposit_deduction" type="number" min="0" step=".01" value="0" /></label><label class="invoice-wide">Reason / resolution note<textarea name="deposit_resolution_note" rows="3"></textarea></label></div><p class="invoice-help">This records your decision. Release or refund the funds manually in Stripe, then complete this step.</p><button class="primary-button compact" type="button" data-resolve-deposit>Complete rental</button></div>
-                    </section>
-                    <div class="invoice-form-section"><h4>Internal notes</h4><label>Staff-only notes<textarea name="internal_notes" rows="3"></textarea></label></div>
-                    <div class="invoice-actions"><button class="danger-button invoice-delete-button" type="button" data-delete-agreement hidden>Delete draft</button><button class="secondary-button" type="button" data-download-agreement>Save &amp; Download PDF</button><button class="primary-button" type="submit">Save agreement</button></div>
+                    <section class="agreement-admin-summary" data-agreement-summary></section>
+                    <details class="agreement-missing-details" open data-agreement-editable>
+                      <summary>Renter and rental details</summary>
+                      <p>These fields are filled from the selected record. Only complete information that is missing.</p>
+                      <div class="invoice-form-grid">
+                        <label>Renter full name<input name="customer_name" autocomplete="name" required /></label><label>Phone<input name="customer_phone" type="tel" autocomplete="tel" /></label>
+                        <label>Email<input name="customer_email" type="email" autocomplete="email" /></label><label>Driver's license number<input name="license_number" autocomplete="off" /></label>
+                        <label>License state<input name="license_state" /></label><label>License expiration<input name="license_expiration" type="date" /></label>
+                        <label class="invoice-wide">Vehicle<input name="vehicle_name" required /></label>
+                        <label>Rental starts<input name="rental_start_at" type="datetime-local" /></label><label>Rental ends<input name="rental_end_at" type="datetime-local" /></label>
+                        <label>Rental amount<input name="quote_total" type="number" min="0" step=".01" /></label><label>Security deposit<input name="refundable_deposit" type="number" min="0" step=".01" /></label>
+                        <label>Mileage allowance<input name="mileage_allowance" /></label><label>Excess mileage rate<input name="overage_rate" type="number" min="0" step=".01" /></label>
+                      </div>
+                    </details>
+                    <section class="agreement-link-card" data-agreement-link-card hidden><div><p>Private signing link</p><strong data-agreement-link-status>Ready to send</strong><span>Renter flow: Review Rental → Initial Important Terms → Accept → Sign → Done</span></div><div><button class="secondary-button" type="button" data-copy-agreement-link>Copy link</button><button class="secondary-button" type="button" data-open-agreement-link>Open signing screen</button></div></section>
+                    <details class="agreement-audit" data-agreement-audit hidden><summary>Agreement Details &amp; Audit Log</summary><div data-agreement-audit-list></div></details>
+                    <div class="invoice-actions agreement-admin-actions"><button class="danger-button invoice-delete-button" type="button" data-delete-agreement hidden>Delete agreement</button><button class="secondary-button" type="button" data-download-agreement hidden>Download PDF</button><button class="secondary-button" type="button" data-resend-agreement hidden>Send by email</button><button class="primary-button" type="submit" data-save-agreement>Save &amp; create signing link</button></div>
                   </form>
                 </section>
               </div>
@@ -853,40 +857,61 @@
 
 
             <section class="admin-section crm-page-container" data-section-panel="specials" hidden>
-              <div class="admin-section-head crm-page-header">
+              <div class="admin-section-head crm-page-header monthly-special-page-head">
                 <div>
-                  <p class="eyebrow">Homepage promotion</p>
+                  <p class="eyebrow">Homepage promotion studio</p>
                   <h2>Monthly Special</h2>
-                  <p>Choose up to two active fleet cars for a specific month. If you do not save a selection, the website rotates active inventory automatically.</p>
+                  <p>Build the featured collection clients see on the homepage. Curate two vehicles or let Prestige Luxor rotate active inventory automatically.</p>
                 </div>
+                <div class="monthly-special-head-status"><span data-special-live-state>Automatic rotation</span><a class="secondary-button" href="/" target="_blank" rel="noreferrer">View homepage</a></div>
               </div>
 
               <form class="admin-panel monthly-special-admin" data-monthly-special-form>
-                <div class="admin-form-grid simple">
-                  <label>
-                    Special month
-                    <input name="month" type="month" required data-special-month />
-                  </label>
-                  <label>
-                    Headline
-                    <input name="headline" maxlength="80" placeholder="July rental specials" />
-                  </label>
-                </div>
-                <label>
-                  Description
-                  <textarea name="description" rows="3" maxlength="240" placeholder="Describe this month's offer and delivery availability."></textarea>
-                </label>
+                <div class="monthly-special-workspace">
+                  <div class="monthly-special-composer">
+                    <section class="monthly-special-block monthly-special-schedule">
+                      <div class="monthly-special-block-head"><div><span>01</span><div><h3>Schedule</h3><p>Choose the month this promotion should appear.</p></div></div><div class="special-month-nav"><button type="button" aria-label="Previous month" data-special-month-shift="-1">←</button><button type="button" aria-label="Next month" data-special-month-shift="1">→</button></div></div>
+                      <label class="special-month-field">Promotion month<input name="month" type="month" required data-special-month /></label>
+                    </section>
 
-                <fieldset class="monthly-special-picker">
-                  <legend>Featured cars <span data-special-selection-count>0 of 3 selected</span></legend>
-                  <p>Only active cars from the admin inventory can be selected.</p>
-                  <div class="monthly-special-car-grid" data-special-car-grid></div>
-                </fieldset>
+                    <section class="monthly-special-block monthly-special-message">
+                      <div class="monthly-special-block-head"><div><span>02</span><div><h3>Message</h3><p>Keep the copy short, clear, and date-specific.</p></div></div></div>
+                      <label>Headline <span class="special-character-count" data-special-headline-count>0 / 80</span><input name="headline" maxlength="80" placeholder="September private selection" /></label>
+                      <label>Description <span class="special-character-count" data-special-description-count>0 / 240</span><textarea name="description" rows="4" maxlength="240" placeholder="Featured vehicles available for private delivery across Los Angeles and Orange County."></textarea></label>
+                    </section>
+
+                    <fieldset class="monthly-special-picker monthly-special-block">
+                      <legend class="monthly-special-block-head"><span><b>03</b><span><strong>Featured vehicles</strong><small>Select up to two active cars, or use automatic rotation.</small></span></span><em data-special-selection-count>0 of 2 selected</em></legend>
+                      <div class="monthly-special-mode" role="group" aria-label="Vehicle selection mode"><button type="button" data-special-mode="automatic">Automatic rotation</button><button type="button" data-special-mode="curated">Curated selection</button></div>
+                      <label class="special-vehicle-search"><span>Search fleet</span><input type="search" placeholder="Search by make or model" autocomplete="off" data-special-search /></label>
+                      <div class="monthly-special-car-grid" data-special-car-grid></div>
+                    </fieldset>
+                  </div>
+
+                  <aside class="monthly-special-preview-panel">
+                    <div class="special-preview-head"><div><span>Live homepage preview</span><strong data-special-preview-month>Current month</strong></div><i data-special-preview-mode>Automatic</i></div>
+                    <div class="special-preview-canvas" data-special-preview></div>
+                    <div class="special-preview-note"><span></span><p>Changes appear on the homepage after publishing.</p></div>
+                  </aside>
+                </div>
 
                 <div class="monthly-special-actions">
-                  <p class="admin-status" role="status" data-specials-status></p>
-                  <button class="primary-button" type="submit" data-save-monthly-special>Save monthly special</button>
+                  <div><span class="special-unsaved-indicator" data-special-unsaved>Saved</span><p class="admin-status" role="status" data-specials-status></p></div>
+                  <div><button class="secondary-button" type="button" data-reset-monthly-special>Reset</button><button class="secondary-button" type="button" data-copy-monthly-special>Copy to next month</button><button class="primary-button" type="submit" data-save-monthly-special>Publish special</button></div>
                 </div>
+              </form>
+            </section>
+
+            <section class="admin-section crm-page-container" data-section-panel="settings" hidden>
+              <div class="admin-section-head crm-page-header">
+                <div><p class="eyebrow">CRM settings</p><h2>Agreement Template</h2><p>Edit the one master agreement used for future rentals. Signed and existing agreements keep their original wording.</p></div>
+              </div>
+              <form class="admin-panel agreement-template-settings" data-agreement-template-form>
+                <div class="agreement-template-note"><strong>Dynamic rental fields</strong><span>{{agreement_number}} · {{customer_name}} · {{vehicle}} · {{start_date}} · {{end_date}} · {{rental_price}} · {{security_deposit}} · {{mileage_allowance}} · {{overage_rate}}</span></div>
+                <label>Template title<input name="title" required /></label>
+                <label>Master rental agreement<textarea name="body" rows="24" required spellcheck="true"></textarea></label>
+                <section><div><h3>Important terms requiring initials</h3><p>Keep this list short and limited to the acknowledgments the renter must initial.</p></div><div class="agreement-template-terms" data-agreement-template-terms></div></section>
+                <div class="agreement-template-actions"><p class="admin-status" role="status" data-agreement-template-status></p><button class="primary-button" type="submit">Save new template version</button></div>
               </form>
             </section>
           </div>
@@ -896,6 +921,7 @@
 
     <script type="module" src="/src/admin.js?v=prestige-crm-performance-20260812"></script>
     <script type="module" src="/src/quotes.js?v=prestige-quotes-performance-20260812"></script>
+    <script type="module" src="/src/customers.js?v=prestige-customer-profiles-20260901"></script>
     <script type="module" src="/src/fleet-operations.js?v=prestige-fleet-images-20260818"></script>
     <script type="module" src="/src/invoices.js?v=prestige-invoices-performance-20260812"></script>
     <script type="module" src="/src/agreements.js?v=prestige-agreements-performance-20260812"></script>
