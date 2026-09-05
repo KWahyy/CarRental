@@ -3,6 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (() => {
+        const navigation = performance.getEntriesByType?.("navigation")?.[0];
+        if (!location.hash && navigation?.type === "reload" && "scrollRestoration" in history) {
+          history.scrollRestoration = "manual";
+          const resetScroll = () => {
+            requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo(0, 0)));
+          };
+          window.addEventListener("load", resetScroll, { once: true });
+          window.addEventListener("pageshow", resetScroll, { once: true });
+        }
+      })();
+    </script>
     <meta name="description" content="Rent a Lamborghini with Prestige Luxor. Browse current Lamborghini rentals with concierge delivery across Los Angeles and Orange County." />
     <meta name="theme-color" content="#080806" />
     <meta name="robots" content="index,follow,max-image-preview:large" />
@@ -13,11 +26,11 @@
     <meta property="og:title" content="Lamborghini Rental in Los Angeles & Orange County" />
     <meta property="og:description" content="Choose your Lamborghini, request your dates, and get an exact rate with concierge delivery across LA and Orange County." />
     <meta property="og:url" content="https://www.prestigeluxor.com/lamborghini" />
-    <meta property="og:image" content="https://www.prestigeluxor.com/assets/fleet-optimized/lamborghini-huracan-evo.webp" />
+    <meta property="og:image" content="https://www.prestigeluxor.com/assets/landing/lamborghini-los-angeles-hero-wide.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Lamborghini Rental | Prestige Luxor" />
     <meta name="twitter:description" content="Lamborghini rentals delivered across Los Angeles and Orange County." />
-    <meta name="twitter:image" content="https://www.prestigeluxor.com/assets/fleet-optimized/lamborghini-huracan-evo.webp" />
+    <meta name="twitter:image" content="https://www.prestigeluxor.com/assets/landing/lamborghini-los-angeles-hero-wide.jpg" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -58,9 +71,10 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/prestige-luxor-favicon-32.png?v=prestige-luxor-20260806" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/prestige-luxor-favicon-16.png?v=prestige-luxor-20260806" />
     <link rel="apple-touch-icon" href="/assets/prestige-luxor-apple-touch-icon.png?v=prestige-luxor-20260806" />
-    <link rel="preload" href="/assets/fleet-optimized/lamborghini-huracan-evo.webp" as="image" type="image/webp" fetchpriority="high" />
+    <link rel="preload" href="/assets/landing/lamborghini-los-angeles-hero-wide.avif" as="image" type="image/avif" media="(min-width: 701px)" fetchpriority="high" />
+    <link rel="preload" href="/assets/landing/lamborghini-los-angeles-hero-angled.avif" as="image" type="image/avif" media="(max-width: 700px)" fetchpriority="high" />
     <link rel="stylesheet" href="/src/styles.css?v=site-theme-20260719" />
-    <link rel="stylesheet" href="/src/lamborghini.css?v=lamborghini-home-palette-20260827" />
+    <link rel="stylesheet" href="/src/lamborghini.css?v=stable-headline-20260905" />
   </head>
   <body class="site-theme lamborghini-page" data-marque="Lamborghini" data-landing-path="/lamborghini">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -70,7 +84,7 @@
         <img class="brand-logo brand-logo-wide" src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" />
       </a>
       <div class="lambo-header-actions">
-        <a class="lambo-call-link" href="tel:+19496200024" data-campaign-call>Call (949) 620-0024</a>
+        <a class="lambo-call-link" href="tel:+19496200024" data-campaign-call>Call concierge</a>
         <a class="lambo-button lambo-button-small" href="#availability">Check availability</a>
       </div>
     </header>
@@ -78,82 +92,127 @@
     <main id="main">
       <section class="lambo-hero" aria-labelledby="lambo-title">
         <div class="lambo-hero-image" aria-hidden="true">
-          <picture class="native-picture"><source srcset="/assets/fleet-optimized/lamborghini-huracan-evo.webp" type="image/webp" /><img src="/assets/fleet/lamborghini-huracan-evo.jpg" alt="" width="1200" height="900" fetchpriority="high" decoding="async" /></picture>
+          <picture class="native-picture">
+            <source media="(max-width: 700px)" srcset="/assets/landing/lamborghini-los-angeles-hero-angled.avif" type="image/avif" />
+            <source media="(max-width: 700px)" srcset="/assets/landing/lamborghini-los-angeles-hero-angled.webp" type="image/webp" />
+            <source srcset="/assets/landing/lamborghini-los-angeles-hero-wide.avif" type="image/avif" />
+            <source srcset="/assets/landing/lamborghini-los-angeles-hero-wide.webp" type="image/webp" />
+            <img src="/assets/landing/lamborghini-los-angeles-hero-wide.jpg" alt="" width="1672" height="941" fetchpriority="high" decoding="async" />
+          </picture>
         </div>
         <div class="lambo-hero-copy">
-          <p class="lambo-kicker">Los Angeles + Orange County delivery</p>
+          <p class="lambo-kicker">Private Lamborghini collection</p>
           <h1 id="lambo-title">Lamborghini<br /><em>rental.</em></h1>
-          <p class="lambo-hero-lead">Choose your Lamborghini, send your dates, and get the exact availability and rate from a Prestige Luxor concierge.</p>
+          <p class="lambo-hero-lead">Choose your dates. Your concierge personally verifies the vehicle, delivery, and exact rate before anything is charged.</p>
           <div class="lambo-hero-actions">
-            <a class="lambo-button" href="#availability">Check My Dates</a>
+            <a class="lambo-button" href="#availability">Check Availability</a>
             <a class="lambo-text-link" href="tel:+19496200024" data-campaign-call>Call the concierge <span aria-hidden="true">↗</span></a>
           </div>
           <ul class="lambo-trust-list" aria-label="Rental benefits">
-            <li>Current Lamborghini selection</li>
-            <li>Concierge delivery</li>
-            <li>No charge to request availability</li>
+            <li>Real vehicles shown</li>
+            <li>Private LA + OC delivery</li>
+            <li>No payment to request</li>
           </ul>
         </div>
 
-        <aside id="availability" class="lambo-lead-card" aria-labelledby="availability-title">
+        <aside id="availability" class="lambo-lead-card" aria-label="Lamborghini availability request">
           <div class="lambo-lead-head">
-            <p>Private availability check</p>
-            <h2 id="availability-title">Get your exact rate.</h2>
-            <span>Tell us the car and dates. We will verify availability before any payment or booking step.</span>
+            <p>Private concierge request</p>
+            <h2 id="availability-title">Get your exact Lamborghini rate.</h2>
+            <span>Start with the car and dates. A Prestige Luxor concierge will confirm the exact rate and next steps directly with you.</span>
           </div>
 
-          <form class="lambo-lead-form" data-lamborghini-form>
+          <form class="lambo-lead-form" data-lamborghini-form novalidate>
             <input name="source" type="hidden" value="google-ads-landing-page" />
-            <div class="lambo-form-grid">
-              <label class="lambo-field-wide">
-                <span>Lamborghini</span>
-                <select name="vehicle" required data-lamborghini-select>
-                  <option value="">Choose a vehicle</option>
-                </select>
-              </label>
-              <label>
-                <span>Pickup date</span>
-                <input name="date" type="date" required />
-              </label>
-              <label>
-                <span>Return date</span>
-                <input name="returnDate" type="date" required />
-              </label>
-              <label class="lambo-field-wide">
-                <span>Delivery city or ZIP</span>
-                <input name="deliveryLocation" type="text" autocomplete="postal-code" placeholder="Beverly Hills, Newport Beach, 90210…" required />
-              </label>
-              <label>
-                <span>Name</span>
-                <input name="name" type="text" autocomplete="name" required />
-              </label>
-              <label>
-                <span>Phone</span>
-                <input name="phone" type="tel" autocomplete="tel" inputmode="tel" required />
-              </label>
-              <label class="lambo-field-wide">
-                <span>Email</span>
-                <input name="email" type="email" autocomplete="email" required />
-              </label>
+            <div class="lambo-form-progress" aria-label="Availability request progress">
+              <span class="is-active" data-form-progress="1"><b>01</b> Car &amp; dates</span>
+              <span data-form-progress="2"><b>02</b> Your details</span>
             </div>
-            <label class="lambo-consent">
-              <input name="alternatives" type="checkbox" checked />
-              <span>Show me similar Lamborghinis if my first choice is unavailable.</span>
-            </label>
-            <label class="quote-honeypot" aria-hidden="true">
-              <span>Company</span>
-              <input name="company" type="text" tabindex="-1" autocomplete="off" />
-            </label>
-            <button class="lambo-button lambo-submit" type="submit">Get Availability &amp; Exact Rate</button>
-            <p class="lambo-form-status" data-lamborghini-status role="status">No charge today. Rental approval and a refundable security deposit are required before booking.</p>
+
+            <fieldset class="lambo-form-step is-active" data-form-step="1">
+              <legend>Choose the Lamborghini and rental dates</legend>
+              <p class="lambo-step-title" aria-hidden="true">
+                <span class="lambo-step-title-desktop">Choose a Lamborghini</span>
+                <span class="lambo-step-title-mobile">Check your dates</span>
+              </p>
+              <div class="lambo-form-grid">
+                <label class="lambo-field-wide">
+                  <span><span class="lambo-field-label-desktop">Vehicle</span><span class="lambo-field-label-mobile">Vehicle</span></span>
+                  <select name="vehicle" required data-lamborghini-select>
+                    <option value="">Choose a Lamborghini</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Pickup date</span>
+                  <input name="date" type="date" required />
+                </label>
+                <label>
+                  <span>Return date</span>
+                  <input name="returnDate" type="date" required />
+                </label>
+                <label class="lambo-field-wide lambo-delivery-field-desktop">
+                  <span>Delivery city or ZIP</span>
+                  <input name="deliveryLocationDesktop" type="text" autocomplete="postal-code" placeholder="Delivery city or ZIP" required />
+                </label>
+              </div>
+              <button class="lambo-button lambo-step-next" type="button" data-form-next>Continue <span aria-hidden="true">→</span></button>
+              <p class="lambo-step-note">No payment today. We personally verify availability.</p>
+            </fieldset>
+
+            <fieldset class="lambo-form-step" data-form-step="2">
+              <legend>Tell us where to send the availability confirmation</legend>
+              <p class="lambo-step-title" aria-hidden="true">Your concierge details</p>
+              <div class="lambo-selection-summary" data-lamborghini-summary aria-live="polite">Your selected Lamborghini and dates will appear here.</div>
+              <div class="lambo-form-grid">
+                <label>
+                  <span>Name</span>
+                  <input name="name" type="text" autocomplete="name" required />
+                </label>
+                <label>
+                  <span>Phone</span>
+                  <input name="phone" type="tel" autocomplete="tel" inputmode="tel" required />
+                </label>
+                <label class="lambo-field-wide">
+                  <span>Email</span>
+                  <input name="email" type="email" autocomplete="email" required />
+                </label>
+                <label class="lambo-field-wide lambo-delivery-field-mobile">
+                  <span>Delivery city or ZIP</span>
+                  <input name="deliveryLocation" type="text" autocomplete="postal-code" placeholder="Beverly Hills, Newport Beach, 90210…" required />
+                </label>
+              </div>
+              <label class="lambo-consent">
+                <input name="alternatives" type="checkbox" checked />
+                <span>Show me similar Lamborghinis if my first choice is unavailable.</span>
+              </label>
+              <label class="quote-honeypot" aria-hidden="true">
+                <span>Company</span>
+                <input name="company" type="text" tabindex="-1" autocomplete="off" />
+              </label>
+              <div class="lambo-form-actions">
+                <button class="lambo-back-button" type="button" data-form-back>Back</button>
+                <button class="lambo-button lambo-submit" type="submit">Request My Lamborghini</button>
+              </div>
+              <p class="lambo-form-status" data-lamborghini-status role="status">Rental approval and a refundable security deposit are required before booking.</p>
+            </fieldset>
           </form>
         </aside>
+        <a class="lambo-mobile-concierge-link" href="tel:+19496200024" data-campaign-call>Prefer to speak? Call the concierge <span aria-hidden="true">↗</span></a>
       </section>
 
       <section class="lambo-proof-bar" aria-label="Prestige Luxor service details">
-        <div><strong>LA + OC</strong><span>Concierge delivery area</span></div>
-        <div><strong>Direct</strong><span>Personal availability confirmation</span></div>
-        <div><strong>Clear</strong><span>Starting daily prices shown</span></div>
+        <div>
+          <svg class="lambo-proof-icon" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23"/><path d="M13 28h22M16 28l2-8h12l3 8M16 28v5m16-5v5M19 32h10M15 25h4m10 0h4"/></svg>
+          <strong>Real vehicles</strong><span>The current collection</span>
+        </div>
+        <div>
+          <svg class="lambo-proof-icon" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23"/><rect x="15" y="14" width="18" height="22" rx="1"/><path d="M20 14v-2h8v2M19 21l2 2 4-4M19 29l2 2 4-4M27 21h3m-3 8h3"/></svg>
+          <strong>Personally verified</strong><span>Car, dates, delivery, rate</span>
+        </div>
+        <div>
+          <svg class="lambo-proof-icon" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23"/><rect x="13" y="17" width="22" height="15" rx="1"/><path d="M13 22h22M18 28h6"/></svg>
+          <strong>No payment today</strong><span>Request availability first</span>
+        </div>
       </section>
 
       <section class="lambo-collection" aria-labelledby="collection-title">
@@ -169,22 +228,29 @@
       </section>
 
       <section class="lambo-process" aria-labelledby="process-title">
-        <div class="lambo-process-copy">
-          <p class="lambo-kicker">A direct rental process</p>
-          <h2 id="process-title">From ad click to confirmed car.</h2>
-          <p>One request gives us what we need to check the exact vehicle, dates, and delivery plan. Nothing is charged when you submit the form.</p>
+        <div class="lambo-process-visual">
+          <picture>
+            <source srcset="/assets/fleet-galleries-optimized/lamborghini-huracan-evo/03.webp" type="image/webp" />
+            <img src="/assets/fleet-galleries/lamborghini-huracan-evo/03.jpg" alt="Lamborghini Huracan EVO cockpit and interior" width="1600" height="1067" loading="lazy" decoding="async" />
+          </picture>
+          <div class="lambo-process-copy">
+            <p class="lambo-kicker">Private concierge service</p>
+            <h2 id="process-title">Every detail,<br /><em>handled.</em></h2>
+            <p>You choose the Lamborghini and dates. We personally verify the vehicle, exact rate, approval requirements, and delivery plan.</p>
+          </div>
         </div>
         <ol class="lambo-process-steps">
-          <li><span>01</span><div><strong>Choose the car</strong><p>Pick the Lamborghini that fits the arrival, drive, or occasion.</p></div></li>
-          <li><span>02</span><div><strong>Send your dates</strong><p>Share pickup, return, and delivery location for an exact availability check.</p></div></li>
-          <li><span>03</span><div><strong>Confirm with concierge</strong><p>We contact you with the current rate, approval steps, deposit, and delivery details.</p></div></li>
+          <li><span>01</span><div><strong>Share the plan</strong><p>Select the car, rental dates, and delivery area.</p></div></li>
+          <li><span>02</span><div><strong>We verify everything</strong><p>Your concierge confirms availability, exact pricing, and requirements.</p></div></li>
+          <li><span>03</span><div><strong>Arrange the arrival</strong><p>Approve the rental and coordinate your private delivery.</p></div></li>
         </ol>
       </section>
 
       <section class="lambo-faq" aria-labelledby="faq-title">
         <header>
-          <p class="lambo-kicker">Before you request</p>
-          <h2 id="faq-title">Lamborghini rental questions.</h2>
+          <p class="lambo-kicker">Essential details</p>
+          <h2 id="faq-title">Before you request.</h2>
+          <p class="lambo-faq-intro">Straight answers about approval, pricing, delivery, and what happens after you send your dates.</p>
         </header>
         <div class="lambo-faq-list">
           <details open>
@@ -207,10 +273,13 @@
       </section>
 
       <section class="lambo-final-cta" aria-labelledby="final-title">
-        <p class="lambo-kicker">Your dates. Your Lamborghini.</p>
-        <h2 id="final-title">Check availability before the car is gone.</h2>
+        <p class="lambo-kicker">Your dates. Your Lamborghini. Personally verified.</p>
+        <h2 id="final-title" class="lambo-animated-headline is-animated" data-animate-headline>
+          <span class="lambo-headline-line"><span>Make the arrival</span></span>
+          <span class="lambo-headline-line"><span>unmistakable.</span></span>
+        </h2>
         <div>
-          <a class="lambo-button" href="#availability">Get My Exact Rate</a>
+          <a class="lambo-button" href="#availability">Check Lamborghini Availability</a>
           <a class="lambo-text-link" href="tel:+19496200024" data-campaign-call>Call (949) 620-0024 <span aria-hidden="true">↗</span></a>
         </div>
       </section>
@@ -230,6 +299,6 @@
       <a href="#availability">Check dates</a>
     </div>
 
-    <script type="module" src="/src/lamborghini.js?v=native-picture-flow-20260901"></script>
+    <script type="module" src="/src/lamborghini.js?v=responsive-delivery-20260905"></script>
   </body>
 </html>

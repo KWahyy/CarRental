@@ -8,6 +8,12 @@ const form = document.querySelector("[data-lamborghini-form]");
 const vehicleSelect = document.querySelector("[data-lamborghini-select]");
 const status = document.querySelector("[data-lamborghini-status]");
 const submitButton = form?.querySelector("button[type='submit']");
+const formSteps = form ? [...form.querySelectorAll("[data-form-step]")] : [];
+const formProgress = form ? [...form.querySelectorAll("[data-form-progress]")] : [];
+const selectionSummary = form?.querySelector("[data-lamborghini-summary]");
+const deliveryMobile = form?.elements.deliveryLocation;
+const deliveryDesktop = form?.elements.deliveryLocationDesktop;
+const mobileLayout = window.matchMedia("(max-width: 700px)");
 const CAMPAIGN_SOURCE = "google-ads-landing-page";
 const marque = document.body.dataset.marque || "Lamborghini";
 const marqueLower = marque.toLowerCase();
@@ -52,6 +58,60 @@ function track(event, detail = {}) {
   window.dataLayer.push({ event, page_type: `${marqueLower}_google_ads_landing_page`, ...detail });
 }
 
+function updateSelectedVehicle() {
+  const selected = vehicleSelect?.value || "";
+  grid?.querySelectorAll("[data-select-lamborghini]").forEach((button) => {
+    const isSelected = button.dataset.selectLamborghini === selected;
+    button.setAttribute("aria-pressed", String(isSelected));
+    button.closest(".lambo-card")?.classList.toggle("is-selected", isSelected);
+    const label = button.querySelector("[data-select-label]");
+    if (label) label.textContent = isSelected ? "Selected" : "Check This Car";
+  });
+}
+
+function displayDate(value) {
+  if (!value) return "date not selected";
+  return new Date(`${value}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function updateSelectionSummary() {
+  if (!selectionSummary || !form) return;
+  const vehicle = form.elements.vehicle?.value || "Lamborghini not selected";
+  const pickup = displayDate(form.elements.date?.value);
+  const returnDate = displayDate(form.elements.returnDate?.value);
+  const location = (mobileLayout.matches ? deliveryMobile?.value : deliveryDesktop?.value)?.trim() || "delivery location not entered";
+  selectionSummary.textContent = `${vehicle} · ${pickup} to ${returnDate} · ${location}`;
+}
+
+function syncResponsiveDeliveryField() {
+  if (!deliveryMobile || !deliveryDesktop) return;
+  deliveryMobile.disabled = !mobileLayout.matches;
+  deliveryDesktop.disabled = mobileLayout.matches;
+}
+
+function setActiveFormStep(stepNumber, { focus = true } = {}) {
+  if (formSteps.length !== 2) return;
+  formSteps.forEach((step) => step.classList.toggle("is-active", step.dataset.formStep === String(stepNumber)));
+  formProgress.forEach((item) => {
+    const isActive = item.dataset.formProgress === String(stepNumber);
+    item.classList.toggle("is-active", isActive);
+    if (isActive) item.setAttribute("aria-current", "step");
+    else item.removeAttribute("aria-current");
+  });
+  if (focus) {
+    const target = formSteps.find((step) => step.dataset.formStep === String(stepNumber));
+    target?.querySelector("input:not([type='hidden']), select")?.focus({ preventScroll: true });
+  }
+}
+
+function validateFormStep(step) {
+  if (!step) return true;
+  const invalid = [...step.querySelectorAll("input, select")].find((control) => !control.checkValidity());
+  if (!invalid) return true;
+  invalid.reportValidity();
+  return false;
+}
+
 function renderInventory(source) {
   const cars = source.filter(isRequestedMarque).sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
   vehicleSelect.innerHTML = [
@@ -77,9 +137,10 @@ function renderInventory(source) {
           <div><span>${escapeHtml(year)} · ${escapeHtml(marque)}</span><h3>${escapeHtml(model)}</h3></div>
           <p class="lambo-card-price"><span>From</span><strong>${escapeHtml(formatPrice(car.price))}</strong><small>/day</small></p>
         </div>
-        <button type="button" data-select-lamborghini="${escapeHtml(car.name)}">Check This Car <span aria-hidden="true">↗</span></button>
+        <button type="button" data-select-lamborghini="${escapeHtml(car.name)}" aria-pressed="false"><span data-select-label>Check This Car</span><span aria-hidden="true">↗</span></button>
       </article>`;
   }).join("");
+  updateSelectedVehicle();
   inventoryNote.textContent = `${cars.length} ${marque} ${cars.length === 1 ? "vehicle" : "vehicles"} currently listed. Rates and availability are verified for your dates.`;
 }
 
@@ -105,6 +166,8 @@ grid?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-select-lamborghini]");
   if (!button) return;
   vehicleSelect.value = button.dataset.selectLamborghini;
+  updateSelectedVehicle();
+  updateSelectionSummary();
   document.querySelector("#availability")?.scrollIntoView({ behavior: "smooth", block: "start" });
   window.setTimeout(() => form.elements.date.focus(), 450);
   track(`select_${marqueLower}`, { vehicle: vehicleSelect.value });
@@ -112,16 +175,40 @@ grid?.addEventListener("click", (event) => {
 
 form?.elements.date.addEventListener("change", setDateMinimums);
 setDateMinimums();
+syncResponsiveDeliveryField();
+mobileLayout.addEventListener?.("change", syncResponsiveDeliveryField);
+
+if (formSteps.length === 2) {
+  form.classList.add("is-stepped");
+  setActiveFormStep(1, { focus: false });
+  form.querySelector("[data-form-next]")?.addEventListener("click", () => {
+    if (!validateFormStep(formSteps[0])) return;
+    updateSelectionSummary();
+    setActiveFormStep(2);
+    track(`${marqueLower}_lead_step_complete`, { step: 1, vehicle: vehicleSelect.value });
+  });
+  form.querySelector("[data-form-back]")?.addEventListener("click", () => setActiveFormStep(1));
+  form.addEventListener("input", updateSelectionSummary);
+  form.addEventListener("change", updateSelectionSummary);
+  vehicleSelect?.addEventListener("change", updateSelectedVehicle);
+  updateSelectionSummary();
+}
 
 form?.addEventListener("submit", async (event) => {
   event.preventDefault();
+  const invalidStep = formSteps.find((step) => ![...step.querySelectorAll("input, select")].every((control) => control.checkValidity()));
+  if (invalidStep) {
+    setActiveFormStep(Number(invalidStep.dataset.formStep || 1), { focus: false });
+    validateFormStep(invalidStep);
+    return;
+  }
   const data = new FormData(form);
   const attribution = campaignParams();
   const alternatives = Boolean(data.get("alternatives"));
   const message = [
     `${marque} Google Ads landing-page request.`,
     `Return date: ${data.get("returnDate")}`,
-    `Delivery city or ZIP: ${data.get("deliveryLocation")}`,
+    `Delivery city or ZIP: ${data.get("deliveryLocation") || data.get("deliveryLocationDesktop")}`,
     `Similar ${marque} options approved: ${alternatives ? "Yes" : "No"}`,
     ...attribution.map(([key, value]) => `${key}: ${value}`),
   ].join("\n");
@@ -161,7 +248,7 @@ form?.addEventListener("submit", async (event) => {
     status.dataset.tone = "error";
     status.textContent = error.message || "Your request could not be sent. Call (949) 620-0024 for immediate help.";
     submitButton.disabled = false;
-    submitButton.textContent = "Get Availability & Exact Rate";
+    submitButton.textContent = marque === "Lamborghini" ? "Request My Lamborghini" : "Get Availability & Exact Rate";
     track(`${marqueLower}_lead_error`, { error_message: error.message || "unknown" });
   }
 });
@@ -169,6 +256,34 @@ form?.addEventListener("submit", async (event) => {
 document.querySelectorAll("[data-campaign-call]").forEach((link) => {
   link.addEventListener("click", () => track(`${marqueLower}_call_click`, { link_location: link.closest("header") ? "header" : "page" }));
 });
+
+document.querySelectorAll("[data-animate-headline]").forEach((headline) => {
+  headline.classList.add("is-animated");
+
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
+    headline.classList.add("is-visible");
+    return;
+  }
+
+  const observer = new IntersectionObserver(([entry]) => {
+    if (!entry.isIntersecting) return;
+    headline.classList.add("is-visible");
+    observer.disconnect();
+  }, { threshold: 0.35, rootMargin: "0px 0px -8%" });
+
+  observer.observe(headline);
+});
+
+const mobileCta = document.querySelector(".lambo-mobile-cta");
+const availabilityCard = document.querySelector("#availability");
+
+if (marque === "Lamborghini" && mobileCta && availabilityCard && "IntersectionObserver" in window) {
+  const mobileCtaObserver = new IntersectionObserver(([entry]) => {
+    mobileCta.classList.toggle("is-suppressed", entry.isIntersecting);
+  }, { threshold: 0.08 });
+
+  mobileCtaObserver.observe(availabilityCard);
+}
 
 hydrateInventory();
 track(`${marqueLower}_landing_view`);
