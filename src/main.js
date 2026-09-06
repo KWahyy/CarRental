@@ -159,6 +159,7 @@ const quoteTyping = document.querySelector("[data-quote-typing]");
 const quoteProgressText = document.querySelector("[data-quote-progress-text]");
 const quoteProgressPercent = document.querySelector("[data-quote-progress-percent]");
 const quoteProgressBar = document.querySelector("[data-quote-progress-bar]");
+const quoteOptional = document.querySelector("[data-quote-optional]");
 const CRM_REQUESTS_KEY = "prestige-luxor-crm-requests";
 const diaText = document.querySelector("[data-dia-words]");
 const BEST_FAN_LIMIT = 9;
@@ -665,14 +666,17 @@ function setActiveShopFilter(filter) {
 function scrollTypeBrowser(direction) {
   if (!typeGrid) return;
   const card = typeGrid.querySelector(".type-card");
-  const distance = card ? card.getBoundingClientRect().width + 28 : typeGrid.clientWidth * 0.8;
+  const gap = Number.parseFloat(getComputedStyle(typeGrid).columnGap) || 0;
+  const distance = card ? card.getBoundingClientRect().width + gap : typeGrid.clientWidth;
   typeGrid.scrollBy({ left: direction * distance, behavior: "smooth" });
 }
 
 function scrollSpecials(direction) {
   if (!specialsViewport) return;
-  const card = specialsViewport.querySelector(".special-card");
-  const distance = card ? card.getBoundingClientRect().width + 28 : specialsViewport.clientWidth * 0.82;
+  const rail = specialsViewport.querySelector(".specials-rail");
+  const card = rail?.querySelector(".special-card");
+  const gap = rail ? Number.parseFloat(getComputedStyle(rail).columnGap) || 0 : 0;
+  const distance = card ? card.getBoundingClientRect().width + gap : specialsViewport.clientWidth;
   specialsViewport.scrollBy({ left: direction * distance, behavior: "smooth" });
 }
 
@@ -789,7 +793,7 @@ function hydrateDiaText() {
   if (!diaText) return;
 
   const words = diaText.dataset.diaWords?.split(",").map((word) => word.trim()).filter(Boolean) || [];
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches || window.matchMedia("(max-width: 640px)").matches;
   if (words.length < 2 || reduceMotion) return;
 
   let index = 0;
@@ -926,54 +930,9 @@ function updateQuoteProgress() {
 
 function initQuoteTyping() {
   if (!quoteTyping) return;
-  const fullText = "A concierge will review your request before anything is confirmed.";
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let timerId = 0;
-  let started = false;
-  let interrupted = false;
-
-  const finish = () => {
-    window.clearTimeout(timerId);
-    quoteTyping.textContent = fullText;
-    quoteTyping.closest(".quote-typing-line")?.classList.add("typing-complete");
-  };
-
-  const typeNext = (index = 0) => {
-    if (interrupted || index >= fullText.length) {
-      finish();
-      return;
-    }
-    quoteTyping.textContent = fullText.slice(0, index + 1);
-    timerId = window.setTimeout(() => typeNext(index + 1), index < 11 ? 34 : 22);
-  };
-
-  const start = () => {
-    if (started) return;
-    started = true;
-    if (reduceMotion) {
-      finish();
-      return;
-    }
-    quoteTyping.textContent = "";
-    typeNext();
-  };
-
-  quoteForm?.addEventListener("focusin", () => {
-    interrupted = true;
-    finish();
-  }, { once: true });
-
-  if (!("IntersectionObserver" in window)) {
-    start();
-    return;
-  }
-
-  const observer = new IntersectionObserver((entries) => {
-    if (!entries.some((entry) => entry.isIntersecting)) return;
-    observer.disconnect();
-    start();
-  }, { threshold: 0.35 });
-  observer.observe(quoteTyping.closest(".quote-section") || quoteTyping);
+  const fullText = "We personally confirm availability before anything is charged.";
+  quoteTyping.textContent = fullText;
+  quoteTyping.closest(".quote-typing-line")?.classList.add("typing-complete");
 }
 
 if (quoteForm) {
@@ -1068,9 +1027,18 @@ if (quoteForm) {
       submitButton.disabled = false;
       submitButton.classList.remove("is-sending");
       quoteForm.removeAttribute("aria-busy");
-      submitButton.textContent = "Send Private Request";
+      submitButton.textContent = "Check Availability";
     }
   });
+}
+
+if (quoteOptional) {
+  const quoteMobileMedia = window.matchMedia("(max-width: 640px)");
+  const syncOptionalDetails = (event) => {
+    quoteOptional.open = !event.matches;
+  };
+  syncOptionalDetails(quoteMobileMedia);
+  quoteMobileMedia.addEventListener?.("change", syncOptionalDetails);
 }
 
 let baseFleet = fleet.slice();

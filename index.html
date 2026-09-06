@@ -130,7 +130,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preload" href="/assets/prestige-luxor-hero-poster.webp" as="image" type="image/webp" fetchpriority="high" />
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/src/styles.css?v=site-theme-20260719" />
+    <link rel="stylesheet" href="/src/styles.css?v=mobile-quote-conversion-20260906" />
   </head>
   <body class="site-theme home-page">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -151,6 +151,8 @@
         <a class="ghost-button" href="tel:+19496200024" aria-label="Call Prestige Luxor">Call</a>
         <a class="primary-button compact" href="#quote">Reserve</a>
       </div>
+
+      <a class="mobile-header-call" href="tel:+19496200024" aria-label="Call Prestige Luxor concierge">Call</a>
 
       <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-toggle>
         <span></span>
@@ -187,20 +189,20 @@
           <p class="hero-private-label reveal">Private Automotive Concierge</p>
           <h1 class="reveal">
             <span class="hero-title-line"><span>Exotic Car Rentals</span></span>
-            <span class="hero-title-line hero-title-line-muted"><span>Los Angeles &amp; Orange County</span></span>
+            <span class="hero-title-line hero-title-line-muted"><span>Los Angeles.</span></span>
           </h1>
-          <p class="hero-copy reveal">The key to bigger moments. Exceptional vehicles, discreet service, and every detail handled.</p>
+          <p class="hero-copy reveal">Exceptional vehicles. Discreet service. Delivered throughout Los Angeles and Orange County.</p>
           <div class="hero-cta reveal">
             <a class="primary-button hero-booking-button" href="/fleet.html">
-              Explore the Collection
+              View Available Cars
               <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
             </a>
-            <a class="hero-request-button" href="#quote">Request a Vehicle</a>
+            <a class="hero-request-button" href="tel:+19496200024">Call the Concierge <span aria-hidden="true">↗</span></a>
           </div>
-          <p class="hero-trust reveal" aria-label="Private, discreet, by request">
-            <span>Private</span>
-            <span>Discreet</span>
-            <span>By Request</span>
+          <p class="hero-trust reveal" aria-label="Service advantages">
+            <span>Real Vehicles</span>
+            <span>LA + OC Delivery</span>
+            <span>Private Service</span>
           </p>
         </div>
       </section>
@@ -438,7 +440,7 @@
       <section class="quote-section reveal" id="quote" aria-labelledby="quote-title">
         <div class="quote-copy">
           <p class="quote-kicker">Private Reservation Desk</p>
-          <h2 id="quote-title">Request your arrival.</h2>
+          <h2 id="quote-title"><span>Request your</span> <span>arrival.</span></h2>
           <p>
             Share the vehicle and timing you have in mind. Your concierge will confirm availability, arrange the details,
             and return with a private proposal.
@@ -453,9 +455,9 @@
         <form class="quote-form" data-quote-form aria-label="Request a rental quote">
           <div class="quote-form-head">
             <p>Confidential Inquiry</p>
-            <strong>Reservation details</strong>
-            <span class="quote-typing-line" aria-label="A concierge will review your request before anything is confirmed.">
-              <span data-quote-typing aria-hidden="true">A concierge will review your request before anything is confirmed.</span>
+            <strong>Check availability</strong>
+            <span class="quote-typing-line" aria-label="We personally confirm availability before anything is charged.">
+              <span data-quote-typing aria-hidden="true">We personally confirm availability before anything is charged.</span>
               <i aria-hidden="true"></i>
             </span>
             <div class="quote-completion" aria-label="Quote form completion">
@@ -466,45 +468,54 @@
           </div>
           <div class="quote-form-grid">
             <label>
+              <span>Vehicle</span>
+              <select name="vehicle" data-vehicle-select required></select>
+            </label>
+            <label>
+              <span>Pickup Date</span>
+              <input name="date" type="date" required />
+            </label>
+            <label>
               <span>Name</span>
               <input name="name" type="text" autocomplete="name" required />
             </label>
             <label>
               <span>Phone</span>
-              <input name="phone" type="tel" autocomplete="tel" required />
+              <input name="phone" type="tel" autocomplete="tel" inputmode="tel" required />
             </label>
             <label>
-              <span>Email</span>
-              <input name="email" type="email" autocomplete="email" />
-            </label>
-            <label>
-              <span>Rental Date</span>
-              <input name="date" type="date" required />
-            </label>
-            <label>
-              <span>Vehicle</span>
-              <select name="vehicle" data-vehicle-select required></select>
+              <span>Email <small>Optional</small></span>
+              <input name="email" type="email" autocomplete="email" inputmode="email" />
             </label>
           </div>
 
-          <fieldset class="quote-addons">
-            <legend>Enhance your arrival</legend>
-            <label><input type="checkbox" name="photographer" /> Content Capture</label>
-            <label><input type="checkbox" name="delivery" /> Arrival Coordination</label>
-            <label><input type="checkbox" name="chauffeur" /> Chauffeur</label>
-          </fieldset>
+          <details class="quote-optional" data-quote-optional open>
+            <summary>
+              <span>Add optional details</span>
+              <small>Add-ons or a message</small>
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></svg>
+            </summary>
+            <div class="quote-optional-body">
+              <fieldset class="quote-addons">
+                <legend>Enhance your arrival</legend>
+                <label><input type="checkbox" name="photographer" /> Content Capture</label>
+                <label><input type="checkbox" name="delivery" /> Arrival Coordination</label>
+                <label><input type="checkbox" name="chauffeur" /> Chauffeur</label>
+              </fieldset>
 
-          <label>
-            <span>Message</span>
-            <textarea name="message" rows="4" placeholder="Tell us the car, date, timing, and experience you want."></textarea>
-          </label>
+              <label>
+                <span>Message</span>
+                <textarea name="message" rows="4" placeholder="Timing, delivery city, or anything else we should know."></textarea>
+              </label>
+            </div>
+          </details>
           <label class="quote-honeypot" aria-hidden="true">
             <span>Company</span>
             <input name="company" type="text" tabindex="-1" autocomplete="off" />
           </label>
 
-          <button class="quote-submit" type="submit">Send Private Request</button>
-          <p class="quote-status" data-quote-status role="status">Your request remains private. License, eligibility, and deposit are confirmed before approval.</p>
+          <button class="quote-submit" type="submit">Check Availability</button>
+          <p class="quote-status" data-quote-status role="status">No payment today. We will personally confirm availability and your exact rate.</p>
         </form>
       </section>
 
@@ -749,6 +760,6 @@
       </div>
     </footer>
 
-    <script type="module" src="/src/main.js?v=homepage-fleet-hotfix-20260901"></script>
+    <script type="module" src="/src/main.js?v=mobile-quote-conversion-v3-20260906"></script>
   </body>
 </html>
