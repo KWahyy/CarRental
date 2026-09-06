@@ -99,16 +99,34 @@ function ensureVehicleShell() {
 
       <section class="vehicle-private-hero" aria-labelledby="vehicle-private-title">
         <div class="vehicle-private-title-card">
-          <span data-vehicle-year>Private collection</span>
+          <span class="vehicle-private-year" data-vehicle-year>Private collection</span>
           <p data-vehicle-category>Exotic vehicle</p>
           <h1 id="vehicle-private-title" data-vehicle-title>Vehicle</h1>
-          <strong data-vehicle-price></strong>
+          <div class="vehicle-mobile-rate"><span>From</span><strong data-vehicle-price></strong></div>
+          <div class="vehicle-mobile-specs" aria-label="Quick vehicle details">
+            <div>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 20v-6a3 3 0 0 1 3-3h2V5a2 2 0 0 1 4 0v9h1a3 3 0 0 1 3 3v3"/><path d="M5 20h16M12 14H8a3 3 0 0 0-3 3v3"/></svg>
+              <strong data-vehicle-seats></strong><span>Seats</span>
+            </div>
+            <div>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15a8 8 0 0 1 16 0"/><path d="m12 15 4-5"/><path d="M5 19h14"/></svg>
+              <strong data-vehicle-mileage-short></strong><span>Mi/day</span>
+            </div>
+            <div>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v10H3zM14 10h4l3 3v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+              <strong>Concierge</strong><span>Delivery</span>
+            </div>
+          </div>
           <a href="#vehicle-request">Request this vehicle <span aria-hidden="true">↘</span></a>
         </div>
         <div class="vehicle-gallery-stage">
           <button class="vehicle-gallery-nav vehicle-gallery-nav-prev" type="button" aria-label="Previous photo" data-gallery-prev><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></button>
           <picture data-gallery-picture><source data-gallery-source /><img data-gallery-main alt="" width="1600" height="1100" fetchpriority="high" decoding="async" /></picture>
           <button class="vehicle-gallery-nav vehicle-gallery-nav-next" type="button" aria-label="Next photo" data-gallery-next><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+          <div class="vehicle-mobile-gallery-status" aria-live="polite">
+            <span data-gallery-count>1 / 1</span>
+            <div data-gallery-dots aria-hidden="true"></div>
+          </div>
         </div>
       </section>
 
@@ -147,18 +165,25 @@ function ensureVehicleShell() {
           <div class="vehicle-request-rate"><span>Starting from</span><strong data-vehicle-price></strong></div>
           <form data-vehicle-request-form>
             <input name="vehicle" type="hidden" />
-            <div class="vehicle-request-dates">
-              <label><span>Pickup date</span><input name="date" type="date" required /></label>
-              <label><span>Return date</span><input name="returnDate" type="date" required /></label>
+            <div class="vehicle-request-step vehicle-request-step-dates" data-request-step="dates">
+              <div class="vehicle-request-dates">
+                <label><span>Pickup</span><input name="date" type="date" required /></label>
+                <label><span>Return</span><input name="returnDate" type="date" required /></label>
+              </div>
+              <label><span>Delivery city or ZIP</span><input name="deliveryLocation" type="text" autocomplete="postal-code" placeholder="City or ZIP code" required /></label>
+              <button class="vehicle-request-continue" type="button" data-request-continue>Check availability <span aria-hidden="true">→</span></button>
+              <p class="vehicle-request-assurance">No payment today. We personally verify availability.</p>
             </div>
-            <label><span>Delivery city or ZIP</span><input name="deliveryLocation" type="text" placeholder="Beverly Hills or 90210" required /></label>
-            <label><span>Full name</span><input name="name" type="text" autocomplete="name" required /></label>
-            <label><span>Phone</span><input name="phone" type="tel" autocomplete="tel" required /></label>
-            <label><span>Email <small>Optional</small></span><input name="email" type="email" autocomplete="email" /></label>
-            <label class="vehicle-request-alternatives"><input name="alternatives" type="checkbox" checked /><span>Show me similar options if this car is unavailable.</span></label>
-            <label class="quote-honeypot" aria-hidden="true"><span>Company</span><input name="company" type="text" tabindex="-1" autocomplete="off" /></label>
-            <button type="submit">Request This Vehicle <span aria-hidden="true">↗</span></button>
-            <p data-vehicle-request-status role="status">No charge today. We will verify availability and contact you personally.</p>
+            <div class="vehicle-request-step vehicle-request-step-details" data-request-step="details">
+              <div class="vehicle-request-step-heading"><strong>Your details.</strong><button type="button" data-request-back>Edit dates</button></div>
+              <label><span>Full name</span><input name="name" type="text" autocomplete="name" required /></label>
+              <label><span>Phone</span><input name="phone" type="tel" autocomplete="tel" required /></label>
+              <label><span>Email <small>Optional</small></span><input name="email" type="email" autocomplete="email" /></label>
+              <label class="vehicle-request-alternatives"><input name="alternatives" type="checkbox" checked /><span>Show me similar options if this car is unavailable.</span></label>
+              <label class="quote-honeypot" aria-hidden="true"><span>Company</span><input name="company" type="text" tabindex="-1" autocomplete="off" /></label>
+              <button type="submit">Request This Vehicle <span aria-hidden="true">↗</span></button>
+              <p data-vehicle-request-status role="status">Your request goes directly to the Prestige Luxor concierge.</p>
+            </div>
           </form>
           <a class="vehicle-request-call" href="tel:+19496200024">Prefer to speak privately? Call (949) 620-0024</a>
         </aside>
@@ -170,6 +195,14 @@ function ensureVehicleShell() {
         <div class="section-heading compact-heading"><p class="eyebrow">Continue exploring</p><h2>Similar vehicles</h2><p>Three considered alternatives from the active collection.</p></div>
         <div class="related-grid" data-related></div>
       </section>
+
+      <nav class="vehicle-mobile-actions" aria-label="Vehicle actions">
+        <a href="tel:+19496200024">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.69 2.78a2 2 0 0 1-.45 2.11L8.08 9.88a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.88.33 1.82.56 2.78.69A2 2 0 0 1 22 16.92Z"/></svg>
+          Call concierge
+        </a>
+        <a href="#vehicle-request">Request this car <span aria-hidden="true">→</span></a>
+      </nav>
     </div>`;
   if (staticSeo) {
     const relatedSection = page.querySelector(".vehicle-product-related");
@@ -232,6 +265,8 @@ function renderGallery(gallery) {
   const galleryThumbs = document.querySelector("[data-gallery-thumbs]");
   const previousButton = document.querySelector("[data-gallery-prev]");
   const nextButton = document.querySelector("[data-gallery-next]");
+  const galleryCount = document.querySelector("[data-gallery-count]");
+  const galleryDots = document.querySelector("[data-gallery-dots]");
   let activeIndex = 0;
 
   function setActiveImage(index) {
@@ -248,6 +283,10 @@ function renderGallery(gallery) {
     }
     mainImage.src = fallback;
     mainImage.alt = `${car.name} photo ${activeIndex + 1}`;
+    if (galleryCount) galleryCount.textContent = `${activeIndex + 1} / ${gallery.length}`;
+    galleryDots?.querySelectorAll("span").forEach((dot, dotIndex) => {
+      dot.classList.toggle("active", dotIndex === activeIndex);
+    });
     document.querySelectorAll("[data-gallery-image]").forEach((button) => {
       button.classList.toggle("active", Number(button.dataset.galleryIndex) === activeIndex);
     });
@@ -269,6 +308,7 @@ function renderGallery(gallery) {
       )
       .join("");
   }
+  if (galleryDots) galleryDots.innerHTML = gallery.map((_, index) => `<span class="${index === 0 ? "active" : ""}"></span>`).join("");
 
   document.querySelectorAll("[data-gallery-image]").forEach((button) => {
     button.addEventListener("click", () => setActiveImage(Number(button.dataset.galleryIndex)));
@@ -295,11 +335,32 @@ function bindVehicleRequestForm() {
   const status = form.querySelector("[data-vehicle-request-status]");
   const pickup = form.elements.date;
   const returnDate = form.elements.returnDate;
+  const continueButton = form.querySelector("[data-request-continue]");
+  const backButton = form.querySelector("[data-request-back]");
+  const detailsStep = form.querySelector("[data-request-step='details']");
+  const dateFields = [pickup, returnDate, form.elements.deliveryLocation];
   pickup.min = localDateValue();
   returnDate.min = localDateValue();
   pickup.addEventListener("change", () => {
     returnDate.min = pickup.value || localDateValue();
     if (returnDate.value && returnDate.value < returnDate.min) returnDate.value = returnDate.min;
+  });
+
+  continueButton?.addEventListener("click", () => {
+    const invalidField = dateFields.find((field) => !field.checkValidity());
+    if (invalidField) {
+      invalidField.reportValidity();
+      invalidField.focus({ preventScroll: true });
+      return;
+    }
+    form.classList.add("show-details");
+    detailsStep?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    window.setTimeout(() => form.elements.name?.focus({ preventScroll: true }), 220);
+  });
+
+  backButton?.addEventListener("click", () => {
+    form.classList.remove("show-details");
+    pickup.focus({ preventScroll: true });
   });
 
   form.addEventListener("submit", async (event) => {
@@ -353,6 +414,18 @@ function bindVehicleRequestForm() {
   });
 }
 
+function syncVehicleRequestPlacement() {
+  const request = document.querySelector(".vehicle-private-request");
+  const information = document.querySelector(".vehicle-private-information");
+  const hero = document.querySelector(".vehicle-private-hero");
+  if (!request || !information || !hero) return;
+  if (window.matchMedia("(max-width: 680px)").matches) {
+    if (request.previousElementSibling !== hero) hero.after(request);
+  } else if (request.parentElement !== information) {
+    information.append(request);
+  }
+}
+
 function renderVehicle() {
   ensureVehicleShell();
   if (!car) {
@@ -366,6 +439,8 @@ function renderVehicle() {
     return;
   }
 
+  syncVehicleRequestPlacement();
+
   document.title = vehicleSeoTitle(car);
   const metaDescription = document.querySelector('meta[name="description"]');
   if (metaDescription) metaDescription.content = vehicleSeoDescription(car, formatPrice);
@@ -374,13 +449,19 @@ function renderVehicle() {
   const vehicleTitle = car.name.replace(/^\d{4}\s+/, "");
   const vehicleTitleNode = document.querySelector("[data-vehicle-title]");
   if (vehicleTitleNode) {
-    vehicleTitleNode.textContent = vehicleTitle;
+    if (slug === "2022-lamborghini-huracan") {
+      vehicleTitleNode.innerHTML = `<span>Huracán EVO</span><em>Spyder.</em>`;
+      vehicleTitleNode.setAttribute("aria-label", "Lamborghini Huracán EVO Spyder");
+    } else {
+      vehicleTitleNode.textContent = vehicleTitle;
+    }
     vehicleTitleNode.classList.toggle("vehicle-title-long", vehicleTitle.length > 18);
     vehicleTitleNode.classList.toggle("vehicle-title-extra-long", vehicleTitle.length > 28);
   }
   setText("[data-vehicle-summary]", publicVehicleSummary(car));
   setTextAll("[data-vehicle-price]", `${formatPrice(car.price)}/day`);
   setText("[data-vehicle-mileage]", car.mileage);
+  setText("[data-vehicle-mileage-short]", String(car.mileage || "100").match(/\d+/)?.[0] || "100");
   setText("[data-vehicle-color]", car.color);
   setText("[data-vehicle-make]", car.make);
   setText("[data-vehicle-model]", car.model);
@@ -498,3 +579,5 @@ function initVehicle() {
 }
 
 initVehicle();
+
+window.matchMedia("(max-width: 680px)").addEventListener("change", syncVehicleRequestPlacement);
