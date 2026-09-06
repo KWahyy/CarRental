@@ -7,7 +7,7 @@ import {
   loadMonthlySpecialFromSupabase,
   recordFleetEvent,
 } from "./supabase-fleet.js?v=product-image-quality-20260901";
-import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
+import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260906";
 import {
   accelerationForVehicle,
   bodyTypeForVehicle,

@@ -1,6 +1,6 @@
 import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=fleet-consistency-20260715";
 import { fleetPictureMarkup, isSupabaseFleetConfigured, loadMonthlySpecialFromSupabase, optimizedFleetImageUrl, recordFleetEvent } from "./supabase-fleet.js?v=native-picture-flow-20260901";
-import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
+import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260906";
 
 const grid = document.querySelector("[data-fleet-grid]");
 const popularGrid = document.querySelector("[data-popular-grid]");

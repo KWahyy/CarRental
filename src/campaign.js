@@ -1,4 +1,4 @@
-import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
+import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260906";
 
 const form = document.querySelector("[data-campaign-form]");
 const status = document.querySelector("[data-campaign-status]");

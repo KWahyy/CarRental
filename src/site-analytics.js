@@ -1,5 +1,6 @@
 const ATTRIBUTION_KEY = "prestige_luxor_attribution";
 const TRACKED_QUERY_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "gclid", "gbraid", "wbraid"];
+const GOOGLE_ADS_HOSTS = new Set(["prestigeluxor.com", "www.prestigeluxor.com"]);
 
 function readAttribution() {
   try {
@@ -71,7 +72,13 @@ document.addEventListener("click", (event) => {
   if (!link) return;
   const href = link.getAttribute("href") || "";
   const context = link.closest("header") ? "header" : link.closest("footer") ? "footer" : link.closest(".hero, [class*='hero']") ? "hero" : "content";
-  if (href.startsWith("tel:")) window.prestigeTrack("call_clicked", { link_context: context });
+  if (href.startsWith("tel:")) {
+    window.prestigeTrack("call_clicked", { link_context: context });
+    if (GOOGLE_ADS_HOSTS.has(window.location.hostname) && typeof window.gtag_report_call_conversion === "function") {
+      event.preventDefault();
+      window.gtag_report_call_conversion(href);
+    }
+  }
   else if (href.startsWith("sms:")) window.prestigeTrack("text_clicked", { link_context: context });
   else if (href.startsWith("mailto:")) window.prestigeTrack("email_clicked", { link_context: context });
   else if (href.includes("#quote") || href.includes("#location-quote")) window.prestigeTrack("quote_cta_clicked", { link_context: context });

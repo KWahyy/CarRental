@@ -1,4 +1,4 @@
-import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
+import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260906";
 
 function localDateValue(date = new Date()) {
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);

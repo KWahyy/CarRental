@@ -1,6 +1,6 @@
 import { fleet as websiteFleet } from "./fleet-data.js?v=fleet-consistency-20260715";
 import { cacheSafeFleetImageUrl, fleetPictureMarkup, isSupabaseFleetConfigured, loadMonthlySpecialFromSupabase, optimizedFleetImageUrl } from "./supabase-fleet.js?v=native-picture-flow-20260901";
-import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260720";
+import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260906";
 
 let fleet = [
   {

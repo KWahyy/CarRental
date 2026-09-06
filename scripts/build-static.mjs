@@ -724,7 +724,7 @@ if (existsSync(carDir)) {
 }
 
 const vercelObservability = `
-    <script type="module" src="/src/site-analytics.js?v=conversion-tracking-20260823"></script>
+    <script type="module" src="/src/site-analytics.js?v=conversion-tracking-20260906"></script>
     <script defer src="/_vercel/insights/script.js" data-sdkn="@vercel/analytics"></script>
     <script defer src="/_vercel/speed-insights/script.js" data-sdkn="@vercel/speed-insights"></script>`;
 
@@ -736,6 +736,42 @@ const googleAdsTag = `    <!-- Google tag (gtag.js) -->
       gtag('js', new Date());
 
       gtag('config', 'AW-18413260632');
+
+      function gtag_report_lead_conversion(url) {
+        var callback = function () {
+          if (typeof(url) != 'undefined') {
+            window.location = url;
+          }
+        };
+        gtag('event', 'conversion', {
+          'send_to': 'AW-18413260632/U4oyCOnQ2u8cENiekMxE',
+          'value': 1.0,
+          'currency': 'USD',
+          'event_callback': callback
+        });
+        return false;
+      }
+
+      function gtag_report_call_conversion(url) {
+        var navigated = false;
+        var callback = function () {
+          if (navigated) return;
+          navigated = true;
+          if (typeof(url) != 'undefined') {
+            window.location = url;
+          }
+        };
+        gtag('event', 'conversion', {
+          'send_to': 'AW-18413260632/ooYTCITp2u8cENiekMxE',
+          'value': 1.0,
+          'currency': 'USD',
+          'event_callback': callback
+        });
+        if (typeof(url) != 'undefined') {
+          window.setTimeout(callback, 1000);
+        }
+        return false;
+      }
     </script>`;
 
 function injectGoogleAdsTag(directory) {
