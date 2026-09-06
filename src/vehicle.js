@@ -167,8 +167,7 @@ function ensureVehicleShell() {
             <input name="vehicle" type="hidden" />
             <div class="vehicle-request-step vehicle-request-step-dates" data-request-step="dates">
               <div class="vehicle-request-dates">
-                <label><span>Pickup</span><input name="date" type="date" required /></label>
-                <label><span>Return</span><input name="returnDate" type="date" required /></label>
+                <label><span>Pickup date &amp; time</span><input name="date" type="datetime-local" required /></label>
               </div>
               <label><span>Delivery city or ZIP</span><input name="deliveryLocation" type="text" autocomplete="postal-code" placeholder="City or ZIP code" required /></label>
               <button class="vehicle-request-continue" type="button" data-request-continue>Check availability <span aria-hidden="true">→</span></button>
@@ -267,7 +266,13 @@ function renderGallery(gallery) {
   const nextButton = document.querySelector("[data-gallery-next]");
   const galleryCount = document.querySelector("[data-gallery-count]");
   const galleryDots = document.querySelector("[data-gallery-dots]");
+  const galleryStage = mainImage?.closest(".vehicle-gallery-stage");
   let activeIndex = 0;
+  let pointerStartX = 0;
+  let pointerStartY = 0;
+  let pointerOffsetX = 0;
+  let activePointerId = null;
+  let isHorizontalSwipe = false;
 
   function setActiveImage(index) {
     if (!gallery.length || !mainImage) return;
@@ -310,6 +315,13 @@ function renderGallery(gallery) {
   }
   if (galleryDots) galleryDots.innerHTML = gallery.map((_, index) => `<span class="${index === 0 ? "active" : ""}"></span>`).join("");
 
+  gallery.forEach((image) => {
+    const { optimized, fallback } = fleetImageSources(image, { width: 2000, height: 1400, quality: 90, updatedAt: car.updatedAt || car.updated_at });
+    const preload = new Image();
+    preload.decoding = "async";
+    preload.src = /^\/assets\/fleet-galleries\//i.test(fallback.split("?")[0]) ? fallback : optimized;
+  });
+
   document.querySelectorAll("[data-gallery-image]").forEach((button) => {
     button.addEventListener("click", () => setActiveImage(Number(button.dataset.galleryIndex)));
   });
@@ -321,11 +333,55 @@ function renderGallery(gallery) {
 
   if (previousButton) previousButton.onclick = () => setActiveImage(activeIndex - 1);
   if (nextButton) nextButton.onclick = () => setActiveImage(activeIndex + 1);
+
+  if (galleryStage && mainImage && gallery.length > 1) {
+    galleryStage.addEventListener("pointerdown", (event) => {
+      if (!event.isPrimary) return;
+      activePointerId = event.pointerId;
+      pointerStartX = event.clientX;
+      pointerStartY = event.clientY;
+      pointerOffsetX = 0;
+      isHorizontalSwipe = false;
+      galleryStage.classList.add("is-touching");
+      galleryStage.setPointerCapture?.(event.pointerId);
+    });
+
+    galleryStage.addEventListener("pointermove", (event) => {
+      if (event.pointerId !== activePointerId) return;
+      const deltaX = event.clientX - pointerStartX;
+      const deltaY = event.clientY - pointerStartY;
+      if (!isHorizontalSwipe && Math.abs(deltaX) > 8) isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
+      if (!isHorizontalSwipe) return;
+      event.preventDefault();
+      pointerOffsetX = deltaX;
+      mainImage.style.transform = `translate3d(${deltaX * 0.38}px, 0, 0) scale(1.015)`;
+      mainImage.style.opacity = String(Math.max(0.64, 1 - Math.abs(deltaX) / 500));
+    });
+
+    const finishSwipe = (event) => {
+      if (event.pointerId !== activePointerId) return;
+      galleryStage.releasePointerCapture?.(event.pointerId);
+      activePointerId = null;
+      galleryStage.classList.remove("is-touching");
+      mainImage.style.removeProperty("transform");
+      mainImage.style.removeProperty("opacity");
+      if (isHorizontalSwipe && Math.abs(pointerOffsetX) >= 42) {
+        galleryStage.classList.add("is-settling");
+        setActiveImage(activeIndex + (pointerOffsetX < 0 ? 1 : -1));
+        window.setTimeout(() => galleryStage.classList.remove("is-settling"), 260);
+      }
+      pointerOffsetX = 0;
+      isHorizontalSwipe = false;
+    };
+
+    galleryStage.addEventListener("pointerup", finishSwipe);
+    galleryStage.addEventListener("pointercancel", finishSwipe);
+  }
 }
 
-function localDateValue(date = new Date()) {
+function localDateTimeValue(date = new Date()) {
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0, 10);
+  return local.toISOString().slice(0, 16);
 }
 
 function bindVehicleRequestForm() {
@@ -334,17 +390,11 @@ function bindVehicleRequestForm() {
   form.dataset.bound = "true";
   const status = form.querySelector("[data-vehicle-request-status]");
   const pickup = form.elements.date;
-  const returnDate = form.elements.returnDate;
   const continueButton = form.querySelector("[data-request-continue]");
   const backButton = form.querySelector("[data-request-back]");
   const detailsStep = form.querySelector("[data-request-step='details']");
-  const dateFields = [pickup, returnDate, form.elements.deliveryLocation];
-  pickup.min = localDateValue();
-  returnDate.min = localDateValue();
-  pickup.addEventListener("change", () => {
-    returnDate.min = pickup.value || localDateValue();
-    if (returnDate.value && returnDate.value < returnDate.min) returnDate.value = returnDate.min;
-  });
+  const dateFields = [pickup, form.elements.deliveryLocation];
+  pickup.min = localDateTimeValue();
 
   continueButton?.addEventListener("click", () => {
     const invalidField = dateFields.find((field) => !field.checkValidity());
@@ -379,7 +429,6 @@ function bindVehicleRequestForm() {
       addons: alternatives ? ["Similar options approved"] : [],
       message: [
         "Vehicle product-page availability request.",
-        `Return date: ${data.get("returnDate") || "Not provided"}`,
         `Delivery city or ZIP: ${data.get("deliveryLocation") || "Not provided"}`,
         `Similar options approved: ${alternatives ? "Yes" : "No"}`,
       ].join("\n"),
