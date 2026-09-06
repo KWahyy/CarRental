@@ -21108,6 +21108,10 @@ body.availability-open {
 .quote-optional {
   display: grid;
   gap: 18px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
 }
 
 .quote-optional summary {
@@ -21156,6 +21160,10 @@ body.availability-open {
   gap: 20px;
 }
 
+.quote-optional-body > label {
+  padding-top: 2px;
+}
+
 @keyframes quoteTypingCursor {
   0%,48% { opacity:1; }
   49%,100% { opacity:0; }
@@ -21199,7 +21207,12 @@ body.availability-open {
 
 .quote-form input::placeholder,
 .quote-form textarea::placeholder {
-  color: rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.quote-form textarea {
+  min-height: 112px;
+  line-height: 1.55;
 }
 
 .quote-form input:focus,
@@ -21238,6 +21251,7 @@ body.availability-open {
 
 .quote-addons legend {
   margin-bottom: 8px;
+  padding: 0;
 }
 
 .quote-addons label {
