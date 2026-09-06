@@ -76,7 +76,7 @@ function displayDate(value) {
 
 function updateSelectionSummary() {
   if (!selectionSummary || !form) return;
-  const vehicle = form.elements.vehicle?.value || "Lamborghini not selected";
+  const vehicle = form.elements.vehicle?.value || `${marque} not selected`;
   const pickup = displayDate(form.elements.date?.value);
   const returnDate = displayDate(form.elements.returnDate?.value);
   const location = (mobileLayout.matches ? deliveryMobile?.value : deliveryDesktop?.value)?.trim() || "delivery location not entered";
@@ -248,7 +248,7 @@ form?.addEventListener("submit", async (event) => {
     status.dataset.tone = "error";
     status.textContent = error.message || "Your request could not be sent. Call (949) 620-0024 for immediate help.";
     submitButton.disabled = false;
-    submitButton.textContent = marque === "Lamborghini" ? "Request My Lamborghini" : "Get Availability & Exact Rate";
+    submitButton.textContent = `Request My ${marque}`;
     track(`${marqueLower}_lead_error`, { error_message: error.message || "unknown" });
   }
 });
@@ -277,7 +277,7 @@ document.querySelectorAll("[data-animate-headline]").forEach((headline) => {
 const mobileCta = document.querySelector(".lambo-mobile-cta");
 const availabilityCard = document.querySelector("#availability");
 
-if (marque === "Lamborghini" && mobileCta && availabilityCard && "IntersectionObserver" in window) {
+if (mobileCta && availabilityCard && "IntersectionObserver" in window) {
   const mobileCtaObserver = new IntersectionObserver(([entry]) => {
     mobileCta.classList.toggle("is-suppressed", entry.isIntersecting);
   }, { threshold: 0.08 });

@@ -46,7 +46,17 @@ function showFormStep(stepNumber) {
 
 if (form) {
   const rentalDate = form.elements.date;
+  const returnDate = form.elements.returnDate;
   if (rentalDate) rentalDate.min = localDateValue();
+  if (returnDate) returnDate.min = localDateValue();
+
+  const syncReturnDate = () => {
+    if (!rentalDate || !returnDate) return;
+    returnDate.min = rentalDate.value || localDateValue();
+    if (returnDate.value && returnDate.value < returnDate.min) returnDate.value = "";
+  };
+
+  rentalDate?.addEventListener("change", syncReturnDate);
   showFormStep(1);
 
   form.querySelector("[data-step-next]")?.addEventListener("click", () => {
@@ -55,10 +65,10 @@ if (form) {
     if (invalidField) {
       firstStep.querySelectorAll("input[required], select[required]").forEach(showValidationError);
       invalidField.focus();
-      setStatus("Choose a brand and rental date to continue.", "error");
+      setStatus("Choose a vehicle and both rental dates to continue.", "error");
       return;
     }
-    setStatus("Insurance and deposit are confirmed after availability.");
+    setStatus("No payment today. We verify availability personally.");
     showFormStep(2);
     form.elements.name?.focus();
     trackCampaignEvent("campaign_quote_step", { step: 2 });
@@ -101,7 +111,7 @@ if (form) {
       date: formData.get("date") || "",
       vehicle: formData.get("vehicle") || "Help me choose",
       addons: ["Delivery"],
-      message: "Google Ads landing page vehicle request.",
+      message: `Google Ads landing page vehicle request. Return date: ${formData.get("returnDate") || "Not provided"}.`,
       company: formData.get("company") || "",
       pageUrl: window.location.href,
     };
@@ -123,6 +133,7 @@ if (form) {
       setStatus("Request received.", "success");
       form.reset();
       if (rentalDate) rentalDate.min = localDateValue();
+      if (returnDate) returnDate.min = localDateValue();
       form.querySelectorAll("[aria-invalid]").forEach((field) => field.removeAttribute("aria-invalid"));
       form.hidden = true;
       successPanel.hidden = false;
@@ -158,3 +169,13 @@ document.querySelectorAll("[data-select-car]").forEach((button) => {
 document.querySelectorAll("[data-track]").forEach((link) => {
   link.addEventListener("click", () => trackCampaignEvent("campaign_phone_click", { placement: link.dataset.track }));
 });
+
+const mobileBar = document.querySelector(".campaign-mobile-bar");
+const hero = document.querySelector(".campaign-hero");
+if (mobileBar && hero && "IntersectionObserver" in window) {
+  const heroObserver = new IntersectionObserver(
+    ([entry]) => mobileBar.classList.toggle("is-suppressed", entry.isIntersecting),
+    { threshold: 0.08 },
+  );
+  heroObserver.observe(hero);
+}

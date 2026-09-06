@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/prestige-luxor-favicon-16.png?v=prestige-luxor-20260806" />
     <link rel="apple-touch-icon" href="/assets/prestige-luxor-apple-touch-icon.png?v=prestige-luxor-20260806" />
     <link rel="preload" as="image" href="/assets/optimized/campaign-exotic-lineup-hero.webp" type="image/webp" fetchpriority="high" />
-    <link rel="stylesheet" href="/src/campaign.css?v=campaign-two-step-20260722" />
+    <link rel="stylesheet" href="/src/campaign.css?v=campaign-final-cta-refined-20260906" />
   </head>
   <body>
     <a class="campaign-skip" href="#campaign-main">Skip to main content</a>
@@ -46,8 +46,8 @@
         </div>
         <div class="campaign-hero-copy">
           <p class="campaign-eyebrow">Los Angeles + Orange County</p>
-          <p class="campaign-first-offer">First-time clients save 10%</p>
-          <h1 id="campaign-title">Exotic cars.<br /><span>Make an entrance.</span></h1>
+          <p class="campaign-first-offer">First rental · 10% off</p>
+          <h1 id="campaign-title">Exotic car rentals<br /><span>Los Angeles.</span></h1>
           <p class="campaign-lead">Choose your car and date. Our private rental desk handles availability, pricing, and delivery.</p>
           <ul class="campaign-benefits" aria-label="Rental benefits">
             <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg>Curated exotic and luxury fleet</li>
@@ -63,7 +63,7 @@
         <aside class="campaign-form-card" id="quote-card" aria-labelledby="quote-card-title">
           <div class="campaign-form-head">
             <p>Private request</p>
-            <h2 id="quote-card-title">Check availability</h2>
+            <h2 id="quote-card-title">Check your dates</h2>
             <span>Two quick steps. No payment required.</span>
           </div>
           <form data-campaign-form novalidate>
@@ -96,12 +96,18 @@
                   <option value="Help me choose">Help me choose</option>
                 </select>
               </label>
-              <label>
-                <span>Rental date <b aria-hidden="true">*</b></span>
-                <input name="date" type="date" required />
-              </label>
+              <div class="campaign-date-grid">
+                <label>
+                  <span>Pick-up date <b aria-hidden="true">*</b></span>
+                  <input name="date" type="date" required />
+                </label>
+                <label>
+                  <span>Return date <b aria-hidden="true">*</b></span>
+                  <input name="returnDate" type="date" required />
+                </label>
+              </div>
               <button class="campaign-step-next" type="button" data-step-next>
-                <span>Continue</span>
+                <span>Check availability</span>
                 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
               </button>
             </div>
@@ -134,7 +140,7 @@
               Company
               <input name="company" type="text" tabindex="-1" autocomplete="off" />
             </label>
-            <p class="campaign-form-status" data-campaign-status role="status" aria-live="polite">Insurance and deposit are confirmed after availability.</p>
+            <p class="campaign-form-status" data-campaign-status role="status" aria-live="polite">No payment today. We verify availability personally.</p>
           </form>
           <div class="campaign-form-success" data-campaign-success hidden tabindex="-1">
             <p>Request received</p>
@@ -148,10 +154,19 @@
         </aside>
       </section>
 
-      <section class="campaign-trust-strip" aria-label="Rental process">
-        <div><strong>01</strong><span>Send your request</span></div>
-        <div><strong>02</strong><span>We confirm the car</span></div>
-        <div><strong>03</strong><span>Delivery is arranged</span></div>
+      <section class="campaign-trust-strip" aria-label="Rental advantages">
+        <div>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 15.5V12l2.2-4.4A2 2 0 0 1 7 6.5h10a2 2 0 0 1 1.8 1.1L21 12v3.5M5 15.5h14M6.5 12h11M6 18.5h.01M18 18.5h.01M4 15.5v4M20 15.5v4" /></svg>
+          <span><strong>Real vehicles</strong><small>Current collection</small></span>
+        </div>
+        <div>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg>
+          <span><strong>LA + OC delivery</strong><small>Private concierge</small></span>
+        </div>
+        <div>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 10h18M7 15h3" /></svg>
+          <span><strong>No payment today</strong><small>Request availability</small></span>
+        </div>
       </section>
 
       <section class="campaign-fleet" aria-labelledby="campaign-fleet-title">
@@ -249,8 +264,10 @@
 
       <section class="campaign-final-cta" aria-labelledby="final-cta-title">
         <p>Ready when you are</p>
-        <h2 id="final-cta-title">The right car starts with one request.</h2>
-        <a href="#quote-card">Check availability</a>
+        <h2 id="final-cta-title"><span class="campaign-final-line">Your next</span> <span class="campaign-final-line">arrival starts</span> <span class="campaign-final-line">here.</span></h2>
+        <div class="campaign-final-copy">Choose your car and dates. We’ll personally confirm availability.</div>
+        <a href="#quote-card">Check my dates <span aria-hidden="true">→</span></a>
+        <small class="campaign-final-note">No payment today.</small>
       </section>
     </main>
 
@@ -266,6 +283,6 @@
       <a href="#quote-card">Get a quote</a>
     </nav>
 
-    <script type="module" src="/src/campaign.js?v=campaign-brand-selection-20260725"></script>
+    <script type="module" src="/src/campaign.js?v=campaign-mobile-conversion-20260906"></script>
   </body>
 </html>
