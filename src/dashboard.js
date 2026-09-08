@@ -3,7 +3,7 @@ const overviewButton = document.querySelector('[data-crm-section="overview"]');
 const supabase = window.prestigeLuxorSupabase;
 
 let loaded = false;
-let model = { invoices: [], agreements: [], quotes: [], quoteActivities: [], invoiceEvents: [], agreementEvents: [], bookings: [], cars: [], partners: [], profile: null };
+let model = { invoices: [], invoicePayments: [], agreements: [], quotes: [], quoteActivities: [], invoiceEvents: [], agreementEvents: [], bookings: [], cars: [], partners: [], profile: null };
 let rangeKey = "this_month";
 let chartMetric = "revenue";
 let vehicleMetric = "revenue";
@@ -14,8 +14,31 @@ const money = (value) => new Intl.NumberFormat("en-US", { style: "currency", cur
 const number = (value) => Number(value || 0);
 const escapeHtml = (value) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 const isoDate = (value) => String(value || "").slice(0, 10);
-const todayIso = () => new Date().toISOString().slice(0, 10);
+const todayIso = () => { const date = new Date(); const offset = date.getTimezoneOffset() * 60000; return new Date(date.getTime() - offset).toISOString().slice(0, 10); };
 const titleCase = (value) => String(value || "").replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+const vehicleNameKey = (value) => String(value || "")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .toLowerCase()
+  .replace(/\bhurracan\b/g, "huracan")
+  .replace(/\b(?:19|20)\d{2}\b/g, " ")
+  .replace(/[^a-z0-9]+/g, " ")
+  .trim();
+
+function vehicleIndex(cars) {
+  const index = new Map();
+  cars.forEach((car) => {
+    index.set(String(car.name || "").trim().toLowerCase(), car);
+    const normalized = vehicleNameKey(car.name);
+    if (normalized && !index.has(normalized)) index.set(normalized, car);
+  });
+  return index;
+}
+
+function resolveVehicle(value, index) {
+  const name = String(value || "").trim();
+  return index.get(name.toLowerCase()) || index.get(vehicleNameKey(name)) || null;
+}
 const dateLabel = (value) => {
   if (!value) return "—";
   const date = value instanceof Date ? value : new Date(`${isoDate(value)}T12:00:00`);
@@ -59,6 +82,23 @@ function invoiceRevenue(invoice) { return Math.max(invoiceGross(invoice) - numbe
 function rentalBalance(invoice) { return Math.max(number(invoice.subtotal) - Math.min(number(invoice.amount_paid), number(invoice.subtotal)), 0); }
 function isEarnedInvoice(invoice) { return !["draft", "void", "refunded"].includes(invoice.status); }
 
+function bookingFinance(row) {
+  const match = String(row?.notes || "").match(/\[PL_FINANCE\]([^\n]+)/);
+  if (!match) return {};
+  try { return JSON.parse(match[1]); } catch { return {}; }
+}
+
+function bookingCosts(row) {
+  const finance = bookingFinance(row);
+  return {
+    partnerPayouts: number(row.partner_cost),
+    processingFees: number(finance.processing_fee),
+    deliveryCosts: number(finance.delivery_cost),
+    detailing: number(finance.detailing_cost),
+    other: number(finance.other_cost),
+  };
+}
+
 async function safeRows(query) {
   try { const { data, error } = await query; return error ? [] : data || []; } catch { return []; }
 }
@@ -68,8 +108,9 @@ async function loadDashboard(force = false) {
   root.innerHTML = `<div class="executive-dashboard-loading crm-loading-state">Loading your command center…</div>`;
   const session = (await supabase.auth.getSession()).data.session;
   const userId = session?.user?.id;
-  const [invoices, agreements, quotes, quoteActivities, invoiceEvents, agreementEvents, bookings, cars, partners, profiles] = await Promise.all([
+  const [invoices, invoicePayments, agreements, quotes, quoteActivities, invoiceEvents, agreementEvents, bookings, cars, partners, profiles] = await Promise.all([
     safeRows(supabase.from("invoices").select("*").order("created_at", { ascending: false }).limit(500)),
+    safeRows(supabase.from("invoice_payments").select("*").order("paid_at", { ascending: false }).limit(2000)),
     safeRows(supabase.from("rental_agreements").select("*").order("created_at", { ascending: false }).limit(500)),
     safeRows(supabase.from("quote_requests").select("*").order("created_at", { ascending: false }).limit(500)),
     safeRows(supabase.from("quote_activities").select("*").order("created_at", { ascending: false }).limit(100)),
@@ -80,30 +121,50 @@ async function loadDashboard(force = false) {
     safeRows(supabase.from("car_partners").select("car_id,partner_name")),
     userId ? safeRows(supabase.from("admin_profiles").select("display_name,role").eq("user_id", userId).limit(1)) : [],
   ]);
-  model = { invoices, agreements, quotes, quoteActivities, invoiceEvents, agreementEvents, bookings, cars, partners, profile: profiles[0] || null, session };
+  model = { invoices, invoicePayments, agreements, quotes, quoteActivities, invoiceEvents, agreementEvents, bookings, cars, partners, profile: profiles[0] || null, session };
   loaded = true;
   render();
 }
 
 function recordsForRange(range) {
-  const agreements = model.agreements.filter((item) => inRange(agreementDate(item), range) && item.status !== "cancelled");
-  const agreementInvoiceIds = new Set(agreements.filter((item) => item.source_type === "invoice").map((item) => String(item.source_id)));
-  const invoices = model.invoices.filter((item) => inRange(invoiceDate(item), range) && item.status !== "void");
-  const bookings = agreements.length ? agreements : invoices.filter((item) => !agreementInvoiceIds.has(String(item.id)));
-  const earned = invoices.filter(isEarnedInvoice);
-  const gross = earned.reduce((sum, item) => sum + invoiceGross(item), 0);
-  const discounts = earned.reduce((sum, item) => sum + number(item.discount), 0);
-  const revenue = Math.max(gross - discounts, 0);
-  const quoteIds = new Set(invoices.filter((item) => item.source_type === "quote").map((item) => String(item.source_id)));
-  const partnerCosts = model.bookings.filter((item) => inRange(item.start_date || item.booked_on, range) && (!quoteIds.size || quoteIds.has(String(item.quote_request_id)))).reduce((sum, item) => sum + number(item.partner_cost), 0);
-  const costs = { discounts, refunds: 0, partnerPayouts: partnerCosts, processingFees: 0, deliveryCosts: 0, detailing: 0, fuel: 0, other: 0 };
+  const agreements = model.agreements.filter((item) => item.status !== "cancelled" && item.signed_at && inRange(item.signed_at, range));
+  const manualBookings = model.bookings.filter((item) => {
+    const finance = bookingFinance(item);
+    return !finance.cancelled && !finance.agreement_id && item.payment_status !== "refunded" && inRange(item.booked_on || item.created_at, range);
+  });
+  const bookings = [...agreements, ...manualBookings];
+  const invoiceById = new Map(model.invoices.map((item) => [String(item.id), item]));
+  const paymentInvoiceIds = new Set(model.invoicePayments.map((item) => String(item.invoice_id)));
+  const invoiceCash = model.invoicePayments.filter((payment) => {
+    const invoice = invoiceById.get(String(payment.invoice_id));
+    return invoice && !["void", "refunded"].includes(invoice.status) && inRange(payment.paid_at, range);
+  });
+  const legacyInvoiceCash = model.invoices.filter((invoice) => !paymentInvoiceIds.has(String(invoice.id)) && number(invoice.amount_paid) > 0 && !["void", "refunded"].includes(invoice.status) && inRange(invoice.paid_at || invoice.updated_at, range)).map((invoice) => ({ invoice_id: invoice.id, amount: Math.min(number(invoice.amount_paid), number(invoice.subtotal)), paid_at: invoice.paid_at || invoice.updated_at }));
+  const agreementById = new Map(model.agreements.map((item) => [String(item.id), item]));
+  const manualCash = model.bookings.filter((item) => {
+    const finance = bookingFinance(item);
+    const agreement = finance.agreement_id ? agreementById.get(String(finance.agreement_id)) : null;
+    const linkedInvoiceHasPayments = agreement?.source_type === "invoice" && paymentInvoiceIds.has(String(agreement.source_id));
+    return !linkedInvoiceHasPayments && number(item.amount_paid) > 0 && item.payment_status !== "refunded" && !finance.cancelled && inRange(finance.payment_date || item.booked_on, range);
+  });
+  const revenue = invoiceCash.reduce((sum, item) => sum + number(item.amount), 0) + legacyInvoiceCash.reduce((sum, item) => sum + number(item.amount), 0) + manualCash.reduce((sum, item) => sum + number(item.amount_paid), 0);
+  const invoices = [...new Set([...invoiceCash, ...legacyInvoiceCash].map((item) => invoiceById.get(String(item.invoice_id))).filter(Boolean))];
+  const earned = invoices;
+  const gross = revenue;
+  const costs = { discounts: 0, refunds: 0, partnerPayouts: 0, processingFees: 0, deliveryCosts: 0, detailing: 0, fuel: 0, other: 0 };
+  model.bookings.forEach((item) => {
+    const finance = bookingFinance(item);
+    if (finance.cancelled || item.payment_status === "refunded" || !inRange(finance.cost_date || finance.payment_date || item.booked_on, range)) return;
+    const rowCosts = bookingCosts(item);
+    Object.keys(rowCosts).forEach((key) => { costs[key] += rowCosts[key]; });
+  });
   const totalCosts = Object.values(costs).reduce((sum, value) => sum + value, 0);
-  const netProfit = gross - totalCosts;
+  const netProfit = revenue - totalCosts;
   const completed = bookings.filter((item) => ["completed", "returned", "paid"].includes(item.status)).length;
   const upcoming = bookings.filter((item) => isoDate(item.rental_start || item.issue_date) >= todayIso() && !["completed", "cancelled", "void"].includes(item.status)).length;
-  const outstanding = invoices.reduce((sum, item) => sum + rentalBalance(item), 0);
+  const outstanding = model.invoices.filter((item) => item.status !== "void" && inRange(invoiceDate(item), range)).reduce((sum, item) => sum + rentalBalance(item), 0);
   const depositsHeld = agreements.filter((item) => ["held", "charged"].includes(item.deposit_status) && !["completed", "cancelled"].includes(item.status)).reduce((sum, item) => sum + Math.max(number(item.refundable_deposit) - number(item.deposit_deduction), 0), 0);
-  return { agreements, invoices, bookings, earned, gross, revenue, costs, netProfit, completed, upcoming, outstanding, depositsHeld };
+  return { agreements, invoices, bookings, earned, gross, revenue, costs, netProfit, completed, upcoming, outstanding, depositsHeld, invoiceCash, legacyInvoiceCash, manualCash };
 }
 
 function delta(current, previous) {
@@ -172,6 +233,8 @@ function render() {
   if (!root) return;
   if (!supabase) { root.innerHTML = `<div class="executive-dashboard-loading crm-loading-state">Connect Supabase to load the dashboard.</div>`; return; }
   const range = selectedRange(); const current = recordsForRange(range); const previous = recordsForRange(previousRange(range));
+  const owner = model.profile?.role === "owner";
+  if (!owner && chartMetric !== "bookings") chartMetric = "bookings";
   const today = todayIso();
   const pickups = model.agreements.filter((item) => isoDate(item.rental_start) === today && ["signed", "draft"].includes(item.status));
   const returns = model.agreements.filter((item) => isoDate(item.rental_end) === today && item.status === "vehicle_out");
@@ -186,14 +249,27 @@ function render() {
   const pipelineValue = openQuotes.reduce((sum,item) => sum + number(item.quote_total), 0);
   const conversion = quotes.length ? (pipeline.booked / quotes.length) * 100 : 0;
   const chart = chartData(range);
-  const carByName = new Map(model.cars.map((car) => [String(car.name).toLowerCase(), car]));
+  const carByName = vehicleIndex(model.cars);
+  const carById = new Map(model.cars.map((car) => [String(car.id), car]));
   const partnerCarIds = new Set(model.partners.map((item) => String(item.car_id)));
   const vehicleMap = new Map();
-  current.bookings.forEach((item) => { const name = item.vehicle_name || item.vehicle || "Vehicle TBD"; const invoice = item.source_type === "invoice" ? invoiceById.get(String(item.source_id)) : current.invoices.find((row) => row.vehicle_name === name); const row = vehicleMap.get(name) || { name, bookings: 0, revenue: 0, profit: 0 }; const revenue = invoice ? invoiceRevenue(invoice) : number(item.rental_total || item.total_amount); row.bookings++; row.revenue += revenue; row.profit += revenue; vehicleMap.set(name,row); });
-  model.bookings.filter((item) => inRange(item.start_date || item.booked_on, range)).forEach((item) => { const row = vehicleMap.get(item.vehicle); if (row) row.profit -= number(item.partner_cost); });
+  const mergeVehicle = (rawName, values = {}, vehicleId = "") => {
+    const fallbackName = String(rawName || "Vehicle TBD").trim() || "Vehicle TBD";
+    const car = carById.get(String(vehicleId || "")) || resolveVehicle(fallbackName, carByName);
+    const key = car ? `car:${car.id}` : `name:${vehicleNameKey(fallbackName) || fallbackName.toLowerCase()}`;
+    const row = vehicleMap.get(key) || { name: car?.name || fallbackName, car, bookings: 0, revenue: 0, profit: 0 };
+    row.bookings += number(values.bookings);
+    row.revenue += number(values.revenue);
+    row.profit += number(values.profit);
+    vehicleMap.set(key, row);
+  };
+  current.bookings.forEach((item) => mergeVehicle(item.vehicle_name || item.vehicle, { bookings: 1 }, item.vehicle_id));
+  [...current.invoiceCash, ...current.legacyInvoiceCash].forEach((payment) => { const invoice = invoiceById.get(String(payment.invoice_id)); if (invoice) mergeVehicle(invoice.vehicle_name, { revenue: payment.amount, profit: payment.amount }, invoice.vehicle_id); });
+  current.manualCash.forEach((item) => mergeVehicle(item.vehicle, { revenue: item.amount_paid, profit: item.amount_paid }));
+  model.bookings.filter((item) => { const f=bookingFinance(item); return !f.cancelled && inRange(f.cost_date || f.payment_date || item.booked_on, range); }).forEach((item) => mergeVehicle(item.vehicle, { profit: -Object.values(bookingCosts(item)).reduce((sum,value)=>sum+value,0) }));
   const vehicles = [...vehicleMap.values()].sort((a,b) => number(b[vehicleMetric])-number(a[vehicleMetric])).slice(0,5);
   const leadSources = new Map();
-  quotes.forEach((quote) => { const label=sourceLabel(quote.source); const row=leadSources.get(label)||{label,leads:0,bookings:0,revenue:0}; row.leads++; if(quote.status==="booked")row.bookings++; const invoice=model.invoices.find(item=>item.source_type==="quote"&&String(item.source_id)===String(quote.id)); if(invoice)row.revenue+=invoiceRevenue(invoice); leadSources.set(label,row); });
+  quotes.forEach((quote) => { const label=sourceLabel(quote.source); const row=leadSources.get(label)||{label,leads:0,bookings:0,revenue:0}; row.leads++; if(quote.status==="booked")row.bookings++; const invoice=model.invoices.find(item=>item.source_type==="quote"&&String(item.source_id)===String(quote.id)); if(invoice)row.revenue+=[...current.invoiceCash,...current.legacyInvoiceCash].filter(payment=>String(payment.invoice_id)===String(invoice.id)).reduce((sum,payment)=>sum+number(payment.amount),0); leadSources.set(label,row); });
   const receivables = current.invoices.filter((item)=>rentalBalance(item)>0);
   const overdue = receivables.filter((item)=>item.due_date&&isoDate(item.due_date)<today);
   const pendingDeposits = current.agreements.filter((item)=>item.deposit_status==="pending").reduce((sum,item)=>sum+number(item.refundable_deposit),0);
@@ -204,7 +280,7 @@ function render() {
   const displayName = /^khaled/i.test(normalizedName) ? "Khaled" : normalizedName.split(/[._-]/).filter(Boolean).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
   const activeRentals = model.agreements.filter((item) => !["completed", "cancelled"].includes(item.status)).length;
   const hasBusinessData = Boolean(model.invoices.length || model.agreements.length || model.quotes.length || model.bookings.length);
-  const secondaryAnalytics = hasBusinessData ? `
+  const secondaryAnalytics = hasBusinessData && owner ? `
     <div class="executive-two-column executive-balanced">
       <section class="executive-card"><div class="executive-card-head"><div><h3>Top Performing Vehicles</h3><p>Owned and partner inventory.</p></div>${toggle("vehicle",["revenue","profit","bookings"],vehicleMetric)}</div><div class="vehicle-performance-list">${vehicles.length?vehicles.map((item,index)=>vehicleRow(item,index,carByName,partnerCarIds)).join(""):`<p class="admin-empty">Vehicle performance will appear after agreements are created.</p>`}</div></section>
       <section class="executive-card"><div class="executive-card-head"><div><h3>Financial Breakdown</h3><p>Deposits are excluded from revenue.</p></div></div>${financialBreakdown(current)}</section>
@@ -216,23 +292,23 @@ function render() {
     <div class="executive-two-column executive-bottom-grid">
       <section class="executive-card"><div class="executive-card-head"><div><h3>Needs Attention</h3><p>Urgent operational risks first.</p></div></div><div class="attention-list">${attention.length?attention.slice(0,10).map(attentionRow).join(""):`<p class="admin-empty">No current issues found.</p>`}</div></section>
       <section class="executive-card"><div class="executive-card-head"><div><h3>Recent Activity</h3><p>Latest activity across billing, rentals, and sales.</p></div></div><div class="activity-list">${activity.length?activity.slice(0,10).map(activityRow).join(""):`<p class="admin-empty">Activity will appear as your team works in the CRM.</p>`}</div></section>
-    </div>` : "";
+    </div>` : hasBusinessData ? `<div class="executive-two-column executive-bottom-grid"><section class="executive-card"><div class="executive-card-head"><div><h3>Needs Attention</h3><p>Urgent operational risks first.</p></div></div><div class="attention-list">${attention.length?attention.slice(0,10).map(attentionRow).join(""):`<p class="admin-empty">No current issues found.</p>`}</div></section><section class="executive-card"><div class="executive-card-head"><div><h3>Recent Activity</h3><p>Latest team activity.</p></div></div><div class="activity-list">${activity.length?activity.slice(0,10).map(activityRow).join(""):`<p class="admin-empty">Activity will appear as your team works in the CRM.</p>`}</div></section></div>` : "";
 
   root.innerHTML = `
     <header class="executive-head executive-command-hero crm-page-header">
       <div class="executive-command-copy"><p class="eyebrow">Prestige Luxor command</p><h2>Good ${new Date().getHours()<12?"morning":new Date().getHours()<18?"afternoon":"evening"}, ${escapeHtml(displayName)}</h2><p>Start with the invoice. The rental workflow continues from there.</p><div class="executive-route" aria-label="Prestige Luxor rental workflow"><span>Invoice</span><i aria-hidden="true"></i><span>Agreement</span><i aria-hidden="true"></i><span>Rental</span></div></div>
       <div class="executive-command-tools">
-        <div class="executive-primary-actions" aria-label="Dashboard quick actions"><button type="button" class="executive-action-primary" data-dashboard-create="invoice">New invoice <span aria-hidden="true">→</span></button><button type="button" class="executive-action-secondary" data-dashboard-create="quote">New quote</button><button type="button" class="executive-action-secondary" data-dashboard-create="vehicle">Add vehicle</button></div>
+        <div class="executive-primary-actions" aria-label="Dashboard quick actions"><button type="button" class="executive-action-primary" data-dashboard-create="invoice">New invoice <span aria-hidden="true">→</span></button><button type="button" class="executive-action-secondary" data-dashboard-create="booking">Add booking</button><button type="button" class="executive-action-secondary" data-dashboard-create="quote">New quote</button></div>
         <div class="executive-date-control crm-page-actions"><label><span>Date range</span><select data-dashboard-range><option value="today">Today</option><option value="this_week">This Week</option><option value="this_month">This Month</option><option value="last_month">Last Month</option><option value="ytd">YTD</option><option value="custom">Custom</option></select></label><div class="executive-custom-dates" ${rangeKey==="custom"?"":"hidden"}><input type="date" value="${escapeHtml(customStart)}" data-dashboard-start aria-label="Custom start date"><input type="date" value="${escapeHtml(customEnd)}" data-dashboard-end aria-label="Custom end date"></div></div>
       </div>
     </header>
     <section class="executive-kpis">
-      ${kpi("Revenue",money(current.revenue),`${delta(current.revenue,previous.revenue)} vs previous period`,"01",true)}
+      ${owner ? kpi("Revenue collected",money(current.revenue),`${delta(current.revenue,previous.revenue)} vs previous period`,"01",true) : kpi("Bookings",current.bookings.length,"Signed and manually added","01",true)}
       ${kpi("Active Rentals",activeRentals,activeRentals?"Currently in the agreement workflow":"No active rentals","02")}
-      ${kpi("Outstanding",money(current.outstanding),"Rental balance still owed","03")}
+      ${owner ? kpi("Outstanding",money(current.outstanding),"Rental balance still owed","03") : kpi("Pickups Today",pickups.length,"Scheduled rental starts","03")}
       ${kpi("Open Quotes",openQuotes.length,openQuotes.length?`${pipeline.followup} follow-up${pipeline.followup===1?"":"s"} due`:"No open opportunities","04")}
     </section>
-    <section class="executive-card executive-performance ${hasBusinessData?"":"is-empty"}">${hasBusinessData?`<div class="executive-card-head"><div><h3>Performance</h3><p>${dateLabel(range.start)} – ${dateLabel(range.end)}</p></div>${toggle("chart",["revenue","profit","bookings"],chartMetric)}</div>${chartSvg(chart,chartMetric)}`:emptyPerformance()}</section>
+    <section class="executive-card executive-performance ${hasBusinessData?"":"is-empty"}">${hasBusinessData?`<div class="executive-card-head"><div><h3>${owner ? "Performance" : "Booking activity"}</h3><p>${dateLabel(range.start)} – ${dateLabel(range.end)}</p></div>${owner ? toggle("chart",["revenue","profit","bookings"],chartMetric) : ""}</div>${chartSvg(chart,owner ? chartMetric : "bookings")}`:emptyPerformance()}</section>
     <section class="executive-section executive-operations"><div class="executive-section-title"><div><span>Live desk</span><h3>Today’s Operations</h3></div><time>${dateLabel(today)}</time></div><div class="operations-strip">${operation("Pickups",pickups.length,"agreements")}${operation("Returns",returns.length,"agreements")}${operation("Payments Due",paymentsDue.length,"invoices")}${operation("Missing Documents",missingDocs.length,"agreements")}</div></section>
     <div class="executive-two-column">
       <section class="executive-card executive-wide"><div class="executive-card-head"><div><h3>Upcoming Reservations</h3><p>Next rentals in the agreement workflow.</p></div><button class="text-button" data-dashboard-section="agreements">View All</button></div>${reservationTable(upcoming,invoiceById)}</section>
@@ -249,8 +325,8 @@ function operation(label,value,section,note=""){return `<button type="button" da
 function pipelineCell(label,value){return `<button type="button" data-dashboard-section="requests"><span>${label}</span><strong>${value}</strong></button>`;}
 
 function reservationTable(rows,invoiceById){return rows.length?`<div class="executive-table-wrap crm-table-container"><table><thead><tr><th>Customer</th><th>Vehicle</th><th>Start</th><th>End</th><th>Total</th><th>Remaining</th><th>Status</th></tr></thead><tbody>${rows.map(item=>{const invoice=item.source_type==="invoice"?invoiceById.get(String(item.source_id)):null;const status=statusForReservation(item,invoice);return `<tr tabindex="0" role="button" data-dashboard-open="agreement" data-id="${item.id}"><td><strong>${escapeHtml(item.customer_name)}</strong></td><td>${escapeHtml(item.vehicle_name)}</td><td>${dateLabel(item.rental_start)}</td><td>${dateLabel(item.rental_end)}</td><td>${money(invoice?.subtotal||item.rental_total)}</td><td>${money(invoice?rentalBalance(invoice):0)}</td><td><span class="executive-status">${status}</span></td></tr>`;}).join("")}</tbody></table></div>`:`<div class="executive-reservation-empty"><span>Clear road ahead</span><strong>No upcoming rentals.</strong><p>Create an invoice to begin a new client rental.</p><button type="button" data-dashboard-create="invoice">Create invoice <span aria-hidden="true">→</span></button></div>`;}
-function vehicleRow(item,index,carByName,partnerCarIds){const car=carByName.get(item.name.toLowerCase());const partner=car&&partnerCarIds.has(String(car.id));return `<article><span class="vehicle-rank">${index+1}</span>${car?.image_url?`<img src="${escapeHtml(car.image_url)}" alt="" loading="lazy">`:`<span class="vehicle-placeholder">PL</span>`}<div><strong>${escapeHtml(item.name)}</strong><small>${partner?"Partner vehicle":"Prestige-owned or unassigned"}</small></div><span><b>${item.bookings}</b><small>Bookings</small></span><span><b>${money(item.revenue)}</b><small>Revenue</small></span><span><b>${money(item.profit)}</b><small>Profit</small></span></article>`;}
-function financialBreakdown(data){const revenueRows=[["Rental Revenue",data.earned.reduce((s,i)=>s+number(i.daily_rate)*Math.max(number(i.rental_days),1),0)],["Delivery Fees",data.earned.reduce((s,i)=>s+number(i.delivery_fee),0)],["Mileage Charges",data.earned.reduce((s,i)=>s+number(i.mileage_fee),0)],["Late Fees",0],["Other Revenue",data.earned.reduce((s,i)=>s+number(i.addons_total)+number(i.insurance_fee)+number(i.fuel_fee)+number(i.tolls_fee)+number(i.damage_fee)+number(i.other_fee),0)]];const costs=[["Discounts",data.costs.discounts],["Refunds",data.costs.refunds],["Partner Payouts",data.costs.partnerPayouts],["Processing Fees",0],["Delivery Costs",0],["Detailing",0],["Fuel",0],["Other Expenses",0]];return `<div class="financial-columns"><div><h4>Revenue</h4>${revenueRows.map(([l,v])=>`<p><span>${l}</span><b>${money(v)}</b></p>`).join("")}</div><div><h4>Costs & deductions</h4>${costs.map(([l,v])=>`<p><span>${l}</span><b>${money(v)}</b></p>`).join("")}</div></div><div class="financial-net"><span>Net Profit</span><strong>${money(data.netProfit)}</strong></div>`;}
+function vehicleRow(item,index,carByName,partnerCarIds){const car=item.car||resolveVehicle(item.name,carByName);const partner=car&&partnerCarIds.has(String(car.id));return `<article><span class="vehicle-rank">${index+1}</span>${car?.image_url?`<img src="${escapeHtml(car.image_url)}" alt="" loading="lazy" decoding="async">`:`<span class="vehicle-placeholder">PL</span>`}<div><strong>${escapeHtml(car?.name||item.name)}</strong><small>${partner?"Partner vehicle":car?"Prestige-owned vehicle":"Unassigned vehicle"}</small></div><span><b>${item.bookings}</b><small>Bookings</small></span><span><b>${money(item.revenue)}</b><small>Revenue</small></span><span><b>${money(item.profit)}</b><small>Profit</small></span></article>`;}
+function financialBreakdown(data){const revenueRows=[["Invoice payments collected",data.invoiceCash.reduce((sum,item)=>sum+number(item.amount),0)+data.legacyInvoiceCash.reduce((sum,item)=>sum+number(item.amount),0)],["Manual booking payments",data.manualCash.reduce((sum,item)=>sum+number(item.amount_paid),0)],["Refundable deposits",0]];const costs=[["Partner vehicle costs",data.costs.partnerPayouts],["Stripe / card fees",data.costs.processingFees],["Delivery costs",data.costs.deliveryCosts],["Detailing",data.costs.detailing],["Other costs",data.costs.other]];return `<div class="financial-columns"><div><h4>Collected revenue</h4>${revenueRows.map(([l,v])=>`<p><span>${l}</span><b>${money(v)}</b></p>`).join("")}</div><div><h4>Recorded costs</h4>${costs.map(([l,v])=>`<p><span>${l}</span><b>${money(v)}</b></p>`).join("")}</div></div><div class="financial-net"><span>Net Profit</span><strong>${money(data.netProfit)}</strong></div>`;}
 function leadSourceTable(rows){return rows.length?`<div class="executive-table-wrap crm-table-container"><table><thead><tr><th>Source</th><th>Leads</th><th>Bookings</th><th>Conversion</th><th>Revenue</th></tr></thead><tbody>${rows.sort((a,b)=>b.leads-a.leads).map(row=>`<tr><td><strong>${escapeHtml(row.label)}</strong></td><td>${row.leads}</td><td>${row.bookings}</td><td>${row.leads?((row.bookings/row.leads)*100).toFixed(1):"0.0"}%</td><td>${money(row.revenue)}</td></tr>`).join("")}</tbody></table></div><p class="executive-data-note">Spend and ROAS are hidden because ad-spend data is not stored in the CRM.</p>`:`<p class="admin-empty">Lead sources will appear when quote requests exist.</p>`;}
 function collectionList(rows){return rows.length?`<div class="collection-list">${rows.sort((a,b)=>String(a.due_date||"").localeCompare(String(b.due_date||""))).slice(0,6).map(item=>`<button type="button" data-dashboard-open="invoice" data-id="${item.id}"><span><strong>${escapeHtml(item.customer_name)}</strong><small>${escapeHtml(item.vehicle_name)}</small></span><span><b>${money(rentalBalance(item))}</b><small>${item.due_date?dateLabel(item.due_date):"No due date"} · ${item.due_date&&isoDate(item.due_date)<todayIso()?"Overdue":"Upcoming"}</small></span></button>`).join("")}</div>`:`<p class="admin-empty">No rental balances to collect in this period.</p>`;}
 
@@ -267,8 +343,8 @@ function bindDashboard(){
   root.querySelectorAll("[data-dashboard-section]").forEach(button=>button.addEventListener("click",()=>document.querySelector(`[data-crm-section="${button.dataset.dashboardSection}"]`)?.click()));
   root.querySelectorAll("[data-dashboard-create]").forEach(button=>button.addEventListener("click",()=>{
     const type=button.dataset.dashboardCreate;
-    const section=type==="invoice"?"invoices":type==="quote"?"requests":"vehicles";
-    const trigger=type==="invoice"?"[data-new-invoice]":type==="quote"?"[data-new-quote]":"[data-new-car]";
+    const section=type==="invoice"?"invoices":type==="quote"?"requests":type==="booking"?"bookings":"vehicles";
+    const trigger=type==="invoice"?"[data-new-invoice]":type==="quote"?"[data-new-quote]":type==="booking"?"[data-new-booking]":"[data-new-car]";
     document.querySelector(`[data-crm-section="${section}"]`)?.click();
     setTimeout(()=>document.querySelector(trigger)?.click(),120);
   }));
@@ -278,6 +354,7 @@ function bindDashboard(){
 function openRecord(kind,id){const section=kind==="invoice"?"invoices":kind==="agreement"?"agreements":"requests";document.querySelector(`[data-crm-section="${section}"]`)?.click();if(kind==="invoice")window.dispatchEvent(new CustomEvent("prestige:open-invoice",{detail:{id}}));else if(kind==="agreement")window.dispatchEvent(new CustomEvent("prestige:open-agreement",{detail:{id}}));else{setTimeout(()=>document.querySelector(`[data-select-request="${CSS.escape(id)}"]`)?.click(),250);}}
 
 overviewButton?.addEventListener("click",()=>loadDashboard());
-supabase?.auth.onAuthStateChange((event,session)=>{if(!session){loaded=false;model={invoices:[],agreements:[],quotes:[],quoteActivities:[],invoiceEvents:[],agreementEvents:[],bookings:[],cars:[],partners:[],profile:null};}else if(document.querySelector('[data-section-panel="overview"]')?.classList.contains("active"))loadDashboard();});
+window.addEventListener("prestige:finance-updated",()=>loadDashboard(true));
+supabase?.auth.onAuthStateChange((event,session)=>{if(!session){loaded=false;model={invoices:[],invoicePayments:[],agreements:[],quotes:[],quoteActivities:[],invoiceEvents:[],agreementEvents:[],bookings:[],cars:[],partners:[],profile:null};}else if(document.querySelector('[data-section-panel="overview"]')?.classList.contains("active"))loadDashboard();});
 if (!document.querySelector("[data-admin-view]")?.hidden) loadDashboard();
 setTimeout(() => { if (!document.querySelector("[data-admin-view]")?.hidden && !loaded) loadDashboard(); }, 900);

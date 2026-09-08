@@ -1480,3 +1480,13 @@ html { scroll-behavior: smooth; }
     object-position: 54% 56%;
   }
 }
+
+/* Final cascade guard for marque-page forms and panels. */
+:root,
+* { scrollbar-color: #66625f #090909; scrollbar-width: thin; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner { background: #090909; }
+*::-webkit-scrollbar-thumb { border: 2px solid #090909; border-radius: 999px; background: #66625f; background-clip: padding-box; }
+*::-webkit-scrollbar-thumb:hover { background: #d8d5cf; background-clip: padding-box; }
+@media (max-width: 700px) { *::-webkit-scrollbar { width: 7px; height: 7px; } }

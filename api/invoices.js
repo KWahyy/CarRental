@@ -84,8 +84,19 @@ export default async function handler(req, res) {
         if (!['owner', 'manager'].includes(profile.role)) throw Object.assign(new Error("A manager or owner must record payments."), { status: 403 });
         if (invoice.status === "void") throw Object.assign(new Error("A voided invoice cannot receive a payment."), { status: 409 });
         const amount = Number(body.amount);
-        if (!Number.isFinite(amount) || amount < 0) throw Object.assign(new Error("Enter a valid payment amount."), { status: 400 });
-        const paid = Math.min(amount, Number(invoice.total || 0));
+        if (!Number.isFinite(amount) || amount <= 0) throw Object.assign(new Error("Enter a payment greater than $0."), { status: 400 });
+        const rentalTotal = Number(invoice.subtotal || 0);
+        const previousPaid = Math.min(Number(invoice.amount_paid || 0), rentalTotal);
+        const paid = Math.min(previousPaid + amount, rentalTotal);
+        const applied = Math.max(paid - previousPaid, 0);
+        if (!applied) throw Object.assign(new Error("This invoice's rental balance is already paid. Refundable deposits are not recorded as revenue."), { status: 409 });
+        const paymentDate = clean(body.payment_date, 40);
+        const paidAt = /^\d{4}-\d{2}-\d{2}$/.test(paymentDate) ? `${paymentDate}T12:00:00.000Z` : new Date().toISOString();
+        await db("invoice_payments", {
+          method: "POST",
+          headers: { Prefer: "return=minimal" },
+          body: JSON.stringify({ invoice_id: id, amount: applied, method: clean(body.payment_method, 40) || "stripe", reference: clean(body.payment_reference, 240), paid_at: paidAt, created_by: user.id }),
+        }, token);
         const rows = await db(`invoices?id=eq.${encodeURIComponent(id)}`, {
           method: "PATCH",
           headers: { Prefer: "return=representation" },
@@ -93,11 +104,11 @@ export default async function handler(req, res) {
             amount_paid: paid,
             payment_method: clean(body.payment_method, 40) || "stripe",
             payment_reference: clean(body.payment_reference, 240),
-            status: paid >= Number(invoice.total || 0) ? "paid" : paid > 0 ? "partially_paid" : "finalized",
-            paid_at: paid >= Number(invoice.total || 0) ? new Date().toISOString() : null,
+            status: paid >= rentalTotal && rentalTotal > 0 ? "paid" : paid > 0 ? "partially_paid" : "finalized",
+            paid_at: paid >= rentalTotal && rentalTotal > 0 ? paidAt : null,
           }),
         }, token);
-        await addEvent(id, "payment_recorded", `Payment recorded: $${paid.toFixed(2)}.`, user.id, { method: clean(body.payment_method, 40), reference: clean(body.payment_reference, 240) }, token);
+        await addEvent(id, "payment_recorded", `Payment recorded: $${applied.toFixed(2)}.`, user.id, { method: clean(body.payment_method, 40), reference: clean(body.payment_reference, 240), payment_date: paidAt }, token);
         return json(res, 200, { invoice: rows[0] });
       }
 

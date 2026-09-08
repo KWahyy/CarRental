@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/prestige-luxor-favicon-32.png?v=prestige-luxor-20260806" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/prestige-luxor-favicon-16.png?v=prestige-luxor-20260806" />
     <link rel="apple-touch-icon" href="/assets/prestige-luxor-apple-touch-icon.png?v=prestige-luxor-20260806" />
-    <link rel="stylesheet" href="/src/styles.css?v=crm-ui-standard-20260812-5" />
+    <link rel="stylesheet" href="/src/styles.css?v=prestige-scrollbars-20260906-1" />
   </head>
   <body class="admin-page">
     <main class="admin-shell">
@@ -71,6 +71,7 @@
               <button type="button" data-crm-section="customers">Customers</button>
               <button type="button" data-crm-section="invoices">Invoices</button>
               <button type="button" data-crm-section="agreements">Agreements</button>
+              <button type="button" data-crm-section="bookings">Bookings</button>
               <button type="button" data-crm-section="settings">Settings</button>
             </nav>
             <div class="admin-crm-sidebar-card">
@@ -614,19 +615,59 @@
                       <p>These fields are filled from the selected record. Only complete information that is missing.</p>
                       <div class="invoice-form-grid">
                         <label>Renter full name<input name="customer_name" autocomplete="name" required /></label><label>Phone<input name="customer_phone" type="tel" autocomplete="tel" /></label>
-                        <label>Email<input name="customer_email" type="email" autocomplete="email" /></label><label>Driver's license number<input name="license_number" autocomplete="off" /></label>
-                        <label>License state<input name="license_state" /></label><label>License expiration<input name="license_expiration" type="date" /></label>
-                        <label class="invoice-wide">Vehicle<input name="vehicle_name" required /></label>
+                        <label class="invoice-wide">Email<input name="customer_email" type="email" autocomplete="email" /></label>
+                        <div class="agreement-license-card invoice-wide" data-license-photo-card>
+                          <input name="license_file_path" type="hidden" />
+                          <input class="agreement-license-input" id="agreement-license-photo" type="file" accept="image/*" capture="environment" data-license-photo-input />
+                          <div class="agreement-license-copy">
+                            <span class="agreement-license-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7.5h3l1.3-2h7.4l1.3 2h3v11H4v-11Z"/><circle cx="12" cy="13" r="3.2"/></svg></span>
+                            <div><strong>Driver's license photo</strong><span>Take a clear photo or choose one from the photo library. Stored privately in the CRM.</span></div>
+                          </div>
+                          <div class="agreement-license-preview" data-license-photo-preview hidden><img alt="Driver's license preview" data-license-photo-image /><span data-license-photo-name></span></div>
+                          <label class="secondary-button agreement-license-button" for="agreement-license-photo" data-license-photo-button>Take license photo</label>
+                        </div>
+                        <div class="agreement-vehicle-picker invoice-wide" data-agreement-vehicle-picker>
+                          <input name="vehicle_id" type="hidden" />
+                          <input name="vehicle_name" type="hidden" />
+                          <span class="agreement-field-label">Vehicle</span>
+                          <button class="agreement-vehicle-selected" type="button" data-open-agreement-vehicle-picker>
+                            <span class="agreement-vehicle-selected-media"><img alt="" data-agreement-vehicle-selected-image hidden /><i data-agreement-vehicle-placeholder>PL</i></span>
+                            <span class="agreement-vehicle-selected-copy"><strong data-agreement-vehicle-selected-name>Choose a vehicle</strong><small data-agreement-vehicle-selected-meta>Browse your active inventory with photos</small></span>
+                            <span class="agreement-vehicle-change">Choose <b aria-hidden="true">→</b></span>
+                          </button>
+                        </div>
                         <label>Rental starts<input name="rental_start_at" type="datetime-local" /></label><label>Rental ends<input name="rental_end_at" type="datetime-local" /></label>
                         <label>Rental amount<input name="quote_total" type="number" min="0" step=".01" /></label><label>Security deposit<input name="refundable_deposit" type="number" min="0" step=".01" /></label>
                         <label>Mileage allowance<input name="mileage_allowance" /></label><label>Excess mileage rate<input name="overage_rate" type="number" min="0" step=".01" /></label>
                       </div>
                     </details>
+                    <dialog class="agreement-vehicle-dialog" data-agreement-vehicle-dialog>
+                      <div class="agreement-vehicle-dialog-shell">
+                        <header><div><p class="eyebrow">Active fleet</p><h3>Choose a vehicle</h3><span>Select a car and its details will be added to this agreement.</span></div><button type="button" data-close-agreement-vehicle-picker aria-label="Close vehicle picker">×</button></header>
+                        <label class="agreement-vehicle-search"><span>Search inventory</span><input type="search" placeholder="Lamborghini, Ferrari, SUV…" autocomplete="off" data-agreement-vehicle-search /></label>
+                        <div class="agreement-vehicle-grid" data-agreement-vehicle-grid></div>
+                        <footer><div><strong>Partner or off-fleet vehicle?</strong><span>Enter its name manually.</span></div><input type="text" placeholder="Year, make, and model" data-agreement-manual-vehicle /><button class="secondary-button" type="button" data-use-manual-agreement-vehicle>Use vehicle</button></footer>
+                      </div>
+                    </dialog>
                     <section class="agreement-link-card" data-agreement-link-card hidden><div><p>Private signing link</p><strong data-agreement-link-status>Ready to send</strong><span>Renter flow: Review Rental → Initial Important Terms → Accept → Sign → Done</span></div><div><button class="secondary-button" type="button" data-copy-agreement-link>Copy link</button><button class="secondary-button" type="button" data-open-agreement-link>Open signing screen</button></div></section>
                     <details class="agreement-audit" data-agreement-audit hidden><summary>Agreement Details &amp; Audit Log</summary><div data-agreement-audit-list></div></details>
-                    <div class="invoice-actions agreement-admin-actions"><button class="danger-button invoice-delete-button" type="button" data-delete-agreement hidden>Delete agreement</button><button class="secondary-button" type="button" data-download-agreement hidden>Download PDF</button><button class="secondary-button" type="button" data-resend-agreement hidden>Send by email</button><button class="primary-button" type="submit" data-save-agreement>Save &amp; create signing link</button></div>
+                    <div class="invoice-actions agreement-admin-actions"><button class="danger-button invoice-delete-button" type="button" data-delete-agreement hidden>Delete agreement</button><div class="agreement-document-actions"><button class="secondary-button" type="button" data-download-agreement hidden>Download PDF</button><button class="secondary-button" type="button" data-resend-agreement hidden>Send by email</button><button class="primary-button" type="submit" data-save-agreement>Save &amp; create signing link</button></div></div>
                   </form>
                 </section>
+              </div>
+            </section>
+
+            <section class="admin-section crm-page-container booking-workspace" data-section-panel="bookings" hidden>
+              <div class="admin-section-head crm-page-header booking-section-head">
+                <div>
+                  <p class="eyebrow">Rental ledger</p>
+                  <h2>Bookings</h2>
+                  <p>Signed agreements appear automatically. Add phone bookings, record collected payments, and enter the real costs for each rental.</p>
+                </div>
+                <button class="primary-button compact" type="button" data-new-booking>+ Add booking</button>
+              </div>
+              <div class="booking-app" data-booking-app aria-live="polite">
+                <div class="crm-loading-state">Loading bookings…</div>
               </div>
             </section>
 
@@ -923,8 +964,9 @@
     <script type="module" src="/src/quotes.js?v=prestige-quotes-performance-20260812"></script>
     <script type="module" src="/src/customers.js?v=prestige-customer-profiles-20260901"></script>
     <script type="module" src="/src/fleet-operations.js?v=prestige-fleet-images-20260818"></script>
-    <script type="module" src="/src/invoices.js?v=prestige-invoices-performance-20260812"></script>
-    <script type="module" src="/src/agreements.js?v=prestige-agreements-performance-20260812"></script>
-    <script type="module" src="/src/dashboard.js?v=prestige-dashboard-performance-20260812"></script>
+    <script type="module" src="/src/invoices.js?v=prestige-invoice-cash-ledger-20260906-1"></script>
+    <script type="module" src="/src/agreements.js?v=prestige-agreements-vehicle-picker-20260906-7"></script>
+    <script type="module" src="/src/bookings.js?v=prestige-booking-ledger-20260906-2"></script>
+    <script type="module" src="/src/dashboard.js?v=prestige-dashboard-vehicle-merge-20260906-1"></script>
   </body>
 </html>

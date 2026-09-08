@@ -153,7 +153,8 @@ begin
   new.amount_paid := greatest(coalesce(new.amount_paid, 0), 0);
   new.subtotal := greatest((new.daily_rate * new.rental_days) + new.delivery_fee + new.addons_total + new.insurance_fee + new.mileage_fee + new.fuel_fee + new.tolls_fee + new.damage_fee + new.other_fee - new.discount, 0);
   new.total := new.subtotal + case when new.deposit_method = 'charge' then new.refundable_deposit else 0 end;
-  new.balance_due := greatest(new.total - new.amount_paid, 0);
+  -- Refundable deposits are tracked separately and never treated as rental revenue.
+  new.balance_due := greatest(new.subtotal - new.amount_paid, 0);
   new.updated_at := now();
   if new.status = 'paid' and new.balance_due > 0 then
     new.status := case when new.amount_paid > 0 then 'partially_paid' else 'due' end;

@@ -21,6 +21,11 @@
     var(--sans);
 }
 
+/* Simple booking ledger: operational for the team, financial reporting for owners. */
+.booking-workspace{max-width:1500px}.booking-section-head{align-items:flex-end}.booking-app{display:grid;gap:22px}.booking-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.booking-kpis article{min-height:142px;padding:22px;border:1px solid #393536;border-radius:17px;background:linear-gradient(145deg,#171515,#0d0c0c);display:flex;flex-direction:column;gap:10px}.booking-kpis article.featured{background:linear-gradient(145deg,#85283a,#581521);border-color:#bd5669;box-shadow:0 18px 42px rgba(113,25,42,.2)}.booking-kpis span,.booking-row div span,.booking-editor-summary small{color:#a7a0a0;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.booking-kpis strong{font-size:30px;color:#f8f5ef}.booking-kpis small{margin-top:auto;color:#918989}.booking-staff-note,.booking-error{padding:18px 20px;border:1px solid #393536;border-radius:14px;background:#121111;display:flex;align-items:center;justify-content:space-between;gap:16px}.booking-staff-note span,.booking-error span{color:#9f9898}.booking-ledger-card{border:1px solid #403c3c;border-radius:18px;background:#0d0c0c;overflow:hidden}.booking-ledger-card>header{padding:22px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;border-bottom:1px solid #302d2d}.booking-ledger-card h3{margin:4px 0;font-size:25px}.booking-ledger-card header>div>span{color:#928b8b}.booking-ledger-card header label{min-width:280px;color:#9e9797;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em}.booking-ledger-card input,.booking-dialog input,.booking-dialog select,.booking-dialog textarea{width:100%;margin-top:7px;border:1px solid #474242;background:#151414;color:#f6f2ec;border-radius:0;padding:13px 14px;font:inherit}.booking-list{display:grid}.booking-row{width:100%;padding:18px 22px;border:0;border-bottom:1px solid #2c2929;background:transparent;color:#f7f3ed;display:grid;grid-template-columns:135px minmax(180px,1.4fr) minmax(165px,1fr) repeat(3,minmax(90px,.55fr)) 150px;align-items:center;gap:18px;text-align:left;cursor:pointer;transition:background .18s ease,border-color .18s ease}.booking-row:hover{background:#171414}.booking-row.cancelled{opacity:.52}.booking-row-source{font-size:10px;font-weight:900;letter-spacing:.11em;color:#d87a8b}.booking-row-main,.booking-row-dates,.booking-row>div{display:grid;gap:5px}.booking-row-main strong{font-size:16px}.booking-row small{color:#928b8b}.booking-row>div strong{font-size:16px}.booking-row-status{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;font-weight:800}.booking-row-status b{font-size:18px}.booking-dialog{width:min(880px,calc(100vw - 32px));max-height:calc(100vh - 32px);padding:0;border:1px solid #4a4445;background:#0c0b0b;color:#f7f3ed;border-radius:18px}.booking-dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(5px)}.booking-dialog-shell>header{padding:24px 26px;border-bottom:1px solid #353131;display:flex;align-items:flex-start;justify-content:space-between;gap:20px}.booking-dialog-shell>header h3{font-size:28px;margin:5px 0}.booking-dialog-shell>header span{color:#a39b9b}.booking-dialog-shell>header button{width:40px;height:40px;border:1px solid #484343;border-radius:50%;background:#171515;color:#fff;font-size:25px;cursor:pointer}.booking-dialog form{padding:24px 26px;display:grid;gap:24px}.booking-dialog form section{padding-bottom:22px;border-bottom:1px solid #302d2d}.booking-dialog h4{margin:0 0 5px;font-size:17px}.booking-dialog section>p{margin:0 0 16px;color:#9c9494}.booking-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.booking-form-grid label,.booking-notes{color:#aaa2a2;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.booking-cancel{display:flex!important;align-items:center;gap:10px;align-self:end;min-height:48px}.booking-cancel input{width:20px;margin:0}.booking-editor-summary{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #403b3b}.booking-editor-summary span{padding:15px 18px;display:grid;gap:5px;border-right:1px solid #403b3b}.booking-editor-summary span:last-child{border:0}.booking-editor-summary strong{font-size:22px}.booking-editor-summary .negative strong{color:#ed8b9d}.booking-dialog footer{display:flex;align-items:center;justify-content:space-between;gap:14px}.booking-dialog footer>div{display:flex;gap:10px}.booking-error{flex-wrap:wrap}.booking-error strong{font-size:18px}
+@media(max-width:1100px){.booking-kpis{grid-template-columns:repeat(2,1fr)}.booking-row{grid-template-columns:110px minmax(170px,1.4fr) minmax(150px,1fr) repeat(2,minmax(85px,.6fr))}.booking-row>div:nth-of-type(3){display:none}}
+@media(max-width:720px){.booking-kpis{grid-template-columns:1fr 1fr}.booking-kpis article{min-height:120px;padding:17px}.booking-kpis strong{font-size:24px}.booking-ledger-card>header{align-items:stretch;flex-direction:column}.booking-ledger-card header label{min-width:0}.booking-row{padding:17px;grid-template-columns:1fr auto;gap:9px}.booking-row-source{grid-column:1/-1}.booking-row-main,.booking-row-dates{grid-column:1}.booking-row>div{display:none}.booking-row-status{grid-column:2;grid-row:2/4;max-width:120px}.booking-form-grid{grid-template-columns:1fr}.booking-editor-summary{grid-template-columns:1fr}.booking-editor-summary span{border-right:0;border-bottom:1px solid #403b3b}.booking-dialog footer{align-items:stretch;flex-direction:column-reverse}.booking-dialog footer>div{display:grid;grid-template-columns:1fr 1fr}.booking-dialog footer>button{width:100%}}
+
 picture.native-picture {
   display: contents;
 }
@@ -30199,5 +30204,850 @@ html:has(body.admin-page) {
   .vehicle-page .vehicle-private-request form.show-details .vehicle-request-step-details {
     animation: none;
     transition: none;
+  }
+}
+
+/* Mobile Safari request-card containment. Keep at the physical end of the cascade. */
+@media (max-width: 680px) {
+  .vehicle-page .vehicle-private-request {
+    overflow: hidden;
+    padding: 32px 22px calc(30px + env(safe-area-inset-bottom));
+  }
+
+  .vehicle-page .vehicle-private-request h2 {
+    width: 100%;
+    max-width: 7.5ch;
+    margin: 0 0 34px;
+    font-size: clamp(2.45rem, 12vw, 3.25rem);
+    line-height: 0.98;
+    text-wrap: balance;
+  }
+
+  .vehicle-page .vehicle-private-request form,
+  .vehicle-page .vehicle-request-step,
+  .vehicle-page .vehicle-request-dates,
+  .vehicle-page .vehicle-private-request label {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .vehicle-page .vehicle-private-request input:not([type="checkbox"]) {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .vehicle-page .vehicle-private-request input[type="datetime-local"] {
+    min-inline-size: 0;
+    overflow: hidden;
+  }
+
+  .vehicle-page .vehicle-private-request input[type="datetime-local"]::-webkit-date-and-time-value {
+    min-width: 0;
+    text-align: left;
+  }
+}
+
+/* Agreement editor action bar: compact document actions with a safely separated delete control. */
+.admin-page .agreement-admin-actions {
+  position: sticky;
+  z-index: 8;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 24px;
+  padding: 16px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(12, 12, 12, 0.96);
+  box-shadow: 0 -14px 34px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(14px);
+}
+
+.admin-page .agreement-admin-actions .invoice-delete-button {
+  flex: 0 0 auto;
+  margin-right: 0;
+}
+
+.admin-page .agreement-document-actions {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.admin-page .agreement-admin-actions button {
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .admin-page .agreement-admin-actions {
+    position: static;
+    align-items: stretch;
+    flex-direction: column-reverse;
+    padding: 14px;
+  }
+
+  .admin-page .agreement-document-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .agreement-admin-actions button,
+  .admin-page .agreement-document-actions button {
+    width: 100%;
+  }
+
+  .admin-page .agreement-admin-actions .invoice-delete-button {
+    margin-top: 4px;
+  }
+}
+
+/* Private driver's-license capture inside the agreement editor. */
+.admin-page .agreement-license-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px 22px;
+  align-items: center;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
+}
+
+.admin-page .agreement-license-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.admin-page .agreement-license-input:focus-visible + .agreement-license-copy {
+  outline: 2px solid #fff;
+  outline-offset: 6px;
+}
+
+.admin-page .agreement-license-copy {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.admin-page .agreement-license-copy > div {
+  min-width: 0;
+}
+
+.admin-page .agreement-license-copy strong,
+.admin-page .agreement-license-copy > div span,
+.admin-page .agreement-license-preview span {
+  display: block;
+}
+
+.admin-page .agreement-license-copy strong {
+  color: #f7f5f0;
+  font-size: 14px;
+}
+
+.admin-page .agreement-license-copy div > span {
+  max-width: 520px;
+  margin-top: 5px;
+  color: #9d9992;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.admin-page .agreement-license-icon {
+  display: grid;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  background: #0b0b0b;
+}
+
+.admin-page .agreement-license-icon svg {
+  display: block;
+  width: 23px;
+  height: 23px;
+  stroke: #f7f5f0;
+  stroke-width: 1.5;
+}
+
+.admin-page .agreement-license-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  margin: 0;
+  padding: 0 18px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.admin-page .agreement-license-preview {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(140px, 240px) 1fr;
+  gap: 14px;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-page .agreement-license-preview[hidden] {
+  display: none;
+}
+
+.admin-page .agreement-license-preview img:not([src]) {
+  display: none;
+}
+
+.admin-page .agreement-license-preview img {
+  width: 100%;
+  aspect-ratio: 1.58 / 1;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: #080808;
+}
+
+.admin-page .agreement-license-preview span {
+  color: #bcb7af;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.admin-page .agreement-license-card.has-photo {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.admin-page .agreement-license-card.is-locked .agreement-license-button {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+@media (max-width: 680px) {
+  .admin-page .agreement-license-card {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .admin-page .agreement-license-button {
+    width: 100%;
+    min-height: 52px;
+  }
+
+  .admin-page .agreement-license-preview {
+    grid-column: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .agreement-license-preview img {
+    max-width: 320px;
+  }
+}
+
+/* Agreement inventory picker: visual fleet selection with a manual partner fallback. */
+.admin-page .agreement-vehicle-picker {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-page .agreement-field-label {
+  color: #aaa59e;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.admin-page .agreement-vehicle-selected {
+  display: grid;
+  grid-template-columns: 124px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+  min-height: 96px;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  color: #f7f5f0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease;
+}
+
+.admin-page .agreement-vehicle-selected:hover {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.admin-page .agreement-vehicle-selected:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.admin-page .agreement-vehicle-selected:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.admin-page .agreement-vehicle-selected-media {
+  position: relative;
+  display: grid;
+  width: 124px;
+  height: 76px;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 8px;
+  background: #080808;
+}
+
+.admin-page .agreement-vehicle-selected-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-page .agreement-vehicle-selected-media i {
+  color: #6f6b65;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.admin-page .agreement-vehicle-selected-copy,
+.admin-page .agreement-vehicle-selected-copy strong,
+.admin-page .agreement-vehicle-selected-copy small {
+  display: block;
+  min-width: 0;
+}
+
+.admin-page .agreement-vehicle-selected-copy strong {
+  color: #f7f5f0;
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.admin-page .agreement-vehicle-selected-copy small {
+  margin-top: 6px;
+  color: #96918a;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.admin-page .agreement-vehicle-change {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 14px;
+  color: #d8d4cd;
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.admin-page .agreement-vehicle-change b {
+  font-size: 16px;
+}
+
+.admin-page .agreement-vehicle-dialog {
+  width: min(1080px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 16px;
+  background: #101010;
+  color: #f7f5f0;
+}
+
+.admin-page .agreement-vehicle-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(7px);
+}
+
+.admin-page .agreement-vehicle-dialog-shell {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  height: min(780px, calc(100dvh - 34px));
+  max-height: calc(100dvh - 34px);
+}
+
+.admin-page .agreement-vehicle-dialog header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-page .agreement-vehicle-dialog header h3 {
+  margin: 3px 0 5px;
+  color: #f7f5f0;
+  font-size: 24px;
+}
+
+.admin-page .agreement-vehicle-dialog header span {
+  color: #96918a;
+  font-size: 12px;
+}
+
+.admin-page .agreement-vehicle-dialog header button {
+  display: grid;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background: transparent;
+  color: #f7f5f0;
+  font: 300 26px/1 Arial, sans-serif;
+  cursor: pointer;
+}
+
+.admin-page .agreement-vehicle-search {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  padding: 14px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #aaa59e;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.admin-page .agreement-vehicle-search input,
+.admin-page .agreement-vehicle-dialog footer input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: #090909;
+  color: #f7f5f0;
+  font: inherit;
+}
+
+.admin-page .agreement-vehicle-search input:focus,
+.admin-page .agreement-vehicle-dialog footer input:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.72);
+  outline-offset: 1px;
+}
+
+.admin-page .agreement-vehicle-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: max-content;
+  align-content: start;
+  gap: 12px;
+  min-height: 260px;
+  padding: 18px 24px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.32) #101010;
+}
+
+.admin-page .agreement-vehicle-grid::-webkit-scrollbar {
+  width: 9px;
+}
+
+.admin-page .agreement-vehicle-grid::-webkit-scrollbar-track {
+  margin-block: 10px;
+  border-radius: 999px;
+  background: #101010;
+}
+
+.admin-page .agreement-vehicle-grid::-webkit-scrollbar-thumb {
+  min-height: 48px;
+  border: 2px solid #101010;
+  border-radius: 999px;
+  background: #5d5a55;
+}
+
+.admin-page .agreement-vehicle-grid::-webkit-scrollbar-thumb:hover {
+  background: #827e77;
+}
+
+.admin-page .agreement-inventory-card {
+  position: relative;
+  display: block;
+  align-self: start;
+  height: auto;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 11px;
+  background: #151515;
+  color: #f7f5f0;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease;
+}
+
+.admin-page .agreement-inventory-card:hover,
+.admin-page .agreement-inventory-card.selected {
+  border-color: rgba(255, 255, 255, 0.65);
+  background: #1b1b1b;
+}
+
+.admin-page .agreement-inventory-card:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.admin-page .agreement-inventory-card > img,
+.admin-page .agreement-inventory-no-photo {
+  position: static;
+  display: grid;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  place-items: center;
+  object-fit: cover;
+  background: #080808;
+  color: #77726c;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.admin-page .agreement-inventory-card > span:last-child {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  min-height: 92px;
+  padding: 13px 86px 13px 14px;
+}
+
+.admin-page .agreement-inventory-card small {
+  color: #88837c;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.admin-page .agreement-inventory-card strong {
+  color: #f7f5f0;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.admin-page .agreement-inventory-card b {
+  position: absolute;
+  top: 13px;
+  right: 14px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.admin-page .agreement-inventory-card em {
+  color: #89847e;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.admin-page .agreement-vehicle-empty {
+  display: grid;
+  grid-column: 1 / -1;
+  min-height: 240px;
+  place-content: center;
+  justify-items: center;
+  gap: 7px;
+  color: #8f8a83;
+  text-align: center;
+}
+
+.admin-page .agreement-vehicle-empty strong {
+  color: #f7f5f0;
+}
+
+.admin-page .agreement-vehicle-dialog footer {
+  display: grid;
+  grid-template-columns: auto minmax(220px, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0b0b0b;
+}
+
+.admin-page .agreement-vehicle-dialog footer strong,
+.admin-page .agreement-vehicle-dialog footer span {
+  display: block;
+}
+
+.admin-page .agreement-vehicle-dialog footer strong {
+  color: #f7f5f0;
+  font-size: 12px;
+}
+
+.admin-page .agreement-vehicle-dialog footer span {
+  margin-top: 3px;
+  color: #88837c;
+  font-size: 10px;
+}
+
+.admin-page .agreement-vehicle-dialog footer button {
+  min-height: 46px;
+}
+
+@media (max-width: 820px) {
+  .admin-page .agreement-vehicle-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-page .agreement-vehicle-dialog footer {
+    grid-template-columns: 1fr auto;
+  }
+
+  .admin-page .agreement-vehicle-dialog footer > div {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .admin-page .agreement-vehicle-selected {
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 12px;
+    min-height: 82px;
+  }
+
+  .admin-page .agreement-vehicle-selected-media {
+    width: 92px;
+    height: 62px;
+  }
+
+  .admin-page .agreement-vehicle-change {
+    display: none;
+  }
+
+  .admin-page .agreement-vehicle-dialog {
+    width: 100vw;
+    max-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .admin-page .agreement-vehicle-dialog-shell {
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+
+  .admin-page .agreement-vehicle-dialog header {
+    padding: max(16px, env(safe-area-inset-top)) 16px 14px;
+  }
+
+  .admin-page .agreement-vehicle-search {
+    grid-template-columns: 1fr;
+    gap: 7px;
+    padding: 12px 16px;
+  }
+
+  .admin-page .agreement-vehicle-grid {
+    grid-template-columns: 1fr;
+    padding: 14px 16px 18px;
+  }
+
+  .admin-page .agreement-inventory-card {
+    display: grid;
+    grid-template-columns: 132px minmax(0, 1fr);
+  }
+
+  .admin-page .agreement-inventory-card > img,
+  .admin-page .agreement-inventory-no-photo {
+    height: 100%;
+    min-height: 112px;
+    aspect-ratio: auto;
+  }
+
+  .admin-page .agreement-inventory-card > span:last-child {
+    min-height: 112px;
+    padding-right: 12px;
+  }
+
+  .admin-page .agreement-inventory-card b {
+    position: static;
+    margin-top: 4px;
+  }
+
+  .admin-page .agreement-vehicle-dialog footer {
+    grid-template-columns: 1fr;
+    padding: 14px 16px max(14px, env(safe-area-inset-bottom));
+  }
+
+  .admin-page .agreement-vehicle-dialog footer > div {
+    grid-column: auto;
+  }
+
+.admin-page .agreement-vehicle-dialog footer button {
+    width: 100%;
+  }
+}
+
+/* Keep booking ledger rows inside the CRM card at every desktop width. */
+.admin-page .booking-row {
+  box-sizing: border-box;
+  grid-template-columns: 120px minmax(130px, 1.45fr) minmax(120px, 1.05fr) repeat(3, minmax(68px, .55fr)) minmax(104px, .72fr);
+  gap: 12px;
+}
+
+.admin-page .booking-row > * {
+  min-width: 0;
+}
+
+.admin-page .booking-row-main strong,
+.admin-page .booking-row-main small,
+.admin-page .booking-row-dates strong,
+.admin-page .booking-row-dates small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-page .booking-row > div strong {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.admin-page .booking-row-status {
+  justify-content: flex-end;
+  text-align: right;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.admin-page .booking-row-status i {
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .055);
+  color: #eee9e1;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+@media (max-width: 1240px) {
+  .admin-page .booking-row {
+    grid-template-columns: 108px minmax(125px, 1.3fr) minmax(112px, 1fr) repeat(3, minmax(64px, .55fr)) 88px;
+    gap: 10px;
+    padding-inline: 18px;
+  }
+
+  .admin-page .booking-row-status b {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) and (min-width: 721px) {
+  .admin-page .booking-row {
+    grid-template-columns: 105px minmax(150px, 1.4fr) minmax(130px, 1fr) repeat(2, minmax(70px, .55fr)) 94px;
+  }
+
+  .admin-page .booking-row > div:nth-of-type(3) {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-page .booking-row {
+    grid-template-columns: minmax(0, 1fr) 112px;
+    gap: 9px;
+    padding: 17px;
+  }
+
+  .admin-page .booking-row-status {
+    justify-content: space-between;
+    text-align: left;
+  }
+}
+
+/* Final cascade guard keeps legacy component scrollbars on the same theme. */
+:root,
+* {
+  scrollbar-color: #66625f #090909;
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
+  background: #090909;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 2px solid #090909;
+  border-radius: 999px;
+  background: #66625f;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #d8d5cf;
+  background-clip: padding-box;
+}
+
+.admin-page,
+.admin-page * {
+  scrollbar-color: #8f2940 #080808 !important;
+}
+
+.admin-page *::-webkit-scrollbar-track,
+.admin-page *::-webkit-scrollbar-corner {
+  background: #080808 !important;
+}
+
+.admin-page *::-webkit-scrollbar-thumb {
+  border-color: #080808 !important;
+  border-radius: 999px !important;
+  background: #8f2940 !important;
+  background-clip: padding-box !important;
+}
+
+.admin-page *::-webkit-scrollbar-thumb:hover {
+  background: #c34b63 !important;
+  background-clip: padding-box !important;
+}
+
+@media (max-width: 700px) {
+  *::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
   }
 }

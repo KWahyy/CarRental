@@ -370,11 +370,18 @@ continueButton?.addEventListener("click", async () => {
 });
 
 paymentButton?.addEventListener("click", async () => {
-  const amount = window.prompt("Amount received", String(currentInvoice.total || 0));
+  const rentalBalance = Math.max(Number(currentInvoice.subtotal || 0) - Number(currentInvoice.amount_paid || 0), 0);
+  const amount = window.prompt("Rental payment received (refundable deposit not included)", String(rentalBalance || 0));
   if (amount === null) return;
-  const reference = window.prompt("Stripe payment reference (optional)", currentInvoice.payment_reference || "");
+  const now = new Date();
+  const localPaymentDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const paymentDate = window.prompt("Payment date (YYYY-MM-DD)", localPaymentDate);
+  if (paymentDate === null) return;
+  const method = window.prompt("Payment method: stripe, cash, wire, zelle, or other", currentInvoice.payment_method || "stripe");
+  if (method === null) return;
+  const reference = window.prompt("Payment reference (optional)", currentInvoice.payment_reference || "");
   try {
-    const data = await invoiceApi("invoices", { method: "POST", body: JSON.stringify({ action: "record_payment", id: currentInvoice.id, amount: Number(amount), payment_method: "stripe", payment_reference: reference || "" }) });
+    const data = await invoiceApi("invoices", { method: "POST", body: JSON.stringify({ action: "record_payment", id: currentInvoice.id, amount: Number(amount), payment_date: paymentDate, payment_method: method || "other", payment_reference: reference || "" }) });
     currentInvoice = data.invoice;
     await loadInvoices(true);
     openInvoice(currentInvoice);
