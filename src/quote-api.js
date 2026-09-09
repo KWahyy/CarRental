@@ -1,3 +1,5 @@
+import { trackMetaLead } from "./meta-tracking.js?v=20260909";
+
 const LOCAL_PREVIEW_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0"]);
 const PRODUCTION_HOSTS = new Set(["prestigeluxor.com", "www.prestigeluxor.com"]);
 const PRODUCTION_QUOTE_ENDPOINT = "https://www.prestigeluxor.com/api/quote";
@@ -40,6 +42,7 @@ export async function submitQuoteRequest(payload) {
   if (PRODUCTION_HOSTS.has(window.location.hostname) && typeof window.gtag_report_lead_conversion === "function") {
     window.gtag_report_lead_conversion();
   }
+  try { trackMetaLead(result); } catch { /* Measurement must never interrupt booking. */ }
   window.prestigeTrack?.("quote_submitted", { form_type: payload.source || payload.requestType || "website_quote", vehicle: payload.vehicle || "Vehicle TBD" });
 
   return result;

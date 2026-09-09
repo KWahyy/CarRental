@@ -1,3 +1,7 @@
+import { initMetaConsent } from "./meta-tracking.js?v=20260909";
+
+initMetaConsent();
+
 const ATTRIBUTION_KEY = "prestige_luxor_attribution";
 const TRACKED_QUERY_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "gclid", "gbraid", "wbraid"];
 const GOOGLE_ADS_HOSTS = new Set(["prestigeluxor.com", "www.prestigeluxor.com"]);
