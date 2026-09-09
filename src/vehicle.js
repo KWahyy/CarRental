@@ -8,6 +8,7 @@ import {
   recordFleetEvent,
 } from "./supabase-fleet.js?v=product-image-quality-20260901";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260906";
+import { enhanceHuracanProduct } from "./huracan-product.js?v=20260909";
 import {
   accelerationForVehicle,
   bodyTypeForVehicle,
@@ -464,6 +465,7 @@ function bindVehicleRequestForm() {
 }
 
 function syncVehicleRequestPlacement() {
+  if (slug === "2022-lamborghini-huracan") return;
   const request = document.querySelector(".vehicle-private-request");
   const information = document.querySelector(".vehicle-private-information");
   const hero = document.querySelector(".vehicle-private-hero");
@@ -591,6 +593,7 @@ function renderVehicle() {
       )
       .join("");
   }
+  if (slug === "2022-lamborghini-huracan") enhanceHuracanProduct(car);
 }
 
 if (menuToggle && mobileMenu) {
