@@ -1,5 +1,23 @@
 import { initMetaConsent } from "./meta-tracking.js?v=20260909";
 
+// Keep top-of-page navigation out of the address bar, including older #top links.
+function clearTopFragment() {
+  window.history.replaceState(window.history.state, "", `${window.location.pathname}${window.location.search}`);
+}
+if (window.location.hash === "#top") clearTopFragment();
+
+document.addEventListener("click", (event) => {
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  const link = event.target.closest("a[href]");
+  if (!link || link.hasAttribute("download") || (link.target && link.target !== "_self")) return;
+  const destination = new URL(link.href, window.location.href);
+  if (destination.hash !== "#top" || destination.origin !== window.location.origin
+    || destination.pathname !== window.location.pathname || destination.search !== window.location.search) return;
+  event.preventDefault();
+  clearTopFragment();
+  window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+});
+
 initMetaConsent();
 
 const ATTRIBUTION_KEY = "prestige_luxor_attribution";
