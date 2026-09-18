@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { clean, db, json, readBody, requireEmployee, serverConfig, setCors } from "./_invoice-core.js";
 import { addAgreementEvent, getPublicAgreement, normalizeImportantTerms, publicAgreementPayload } from "./_agreement-core.js";
 import { createAgreementPdf } from "./_agreement-pdf.js";
@@ -18,10 +19,11 @@ async function uploadSignedPdf(bytes, agreement, userToken = "") {
   const { url, key, serviceKey } = serverConfig();
   const credential = serviceKey || userToken;
   if (!credential) throw new Error("Supabase server credentials are missing.");
-  const path = `signed-agreements/${agreement.id}/${agreement.agreement_number}.pdf`;
+  // Separate signing attempts cannot overwrite the PDF retained by the winning save.
+  const path = `signed-agreements/${agreement.id}/${randomUUID()}.pdf`;
   const response = await fetch(`${url}/storage/v1/object/rental-documents/${path}`, {
     method: "POST",
-    headers: { apikey: key, Authorization: `Bearer ${credential}`, "Content-Type": "application/pdf", "x-upsert": "true" },
+    headers: { apikey: key, Authorization: `Bearer ${credential}`, "Content-Type": "application/pdf", "x-upsert": "false" },
     body: Buffer.from(bytes),
   });
   if (!response.ok) {
