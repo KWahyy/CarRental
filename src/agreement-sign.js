@@ -1,8 +1,4 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./supabase-config.js?v=fleet-sync-20260714";
-
 const params=new URLSearchParams(location.search),token=params.get("token")||"";
-const supabase=window.prestigeLuxorSupabase||createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const $=(selector)=>document.querySelector(selector);
 const loading=$("[data-sign-loading]"),app=$("[data-sign-app]"),errorView=$("[data-sign-error]"),status=$("[data-sign-status]");
 const canvas=$("[data-public-signature]"),ctx=canvas.getContext("2d");
@@ -10,7 +6,8 @@ let agreement=null,step=0,drawing=false,hasInk=false,initials={},consents={};
 const money=(value)=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(Number(value||0));
 const dateTime=(value)=>value?new Date(value).toLocaleString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}):"To be confirmed";
 const escapeHtml=(value)=>String(value??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
-async function authHeaders(extra={}){const {data}=await supabase.auth.getSession();const accessToken=data.session?.access_token;return{...extra,...(accessToken?{Authorization:`Bearer ${accessToken}`}:{})};}
+// The private agreement token authorizes the renter; no staff login is needed.
+async function authHeaders(extra={}){return extra;}
 
 function setStatus(message="",tone=""){status.textContent=message;status.dataset.tone=tone;}
 function clearSignature(){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.strokeStyle="#090909";ctx.lineWidth=5;ctx.lineCap="round";ctx.lineJoin="round";hasInk=false;}

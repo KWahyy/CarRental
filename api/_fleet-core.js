@@ -16,7 +16,9 @@ export function overlaps(aStart, aEnd, bStart, bEnd) {
 export async function vehicleAvailability(vehicleId, startAt, endAt, token = "", { excludeAgreementId = "" } = {}) {
   const id = validUuid(vehicleId);
   if (!id) throw Object.assign(new Error("Select a fleet vehicle."), { status: 400 });
-  const vehicles = await db(`cars?id=eq.${encodeURIComponent(id)}&select=id,name,is_active,operational_status&limit=1`, {}, token);
+  // Older inventories predate fleet-operations.sql. Select the row so optional
+  // operational fields do not make agreement saves fail on those databases.
+  const vehicles = await db(`cars?id=eq.${encodeURIComponent(id)}&select=*&limit=1`, {}, token);
   const vehicle = vehicles?.[0];
   if (!vehicle) throw Object.assign(new Error("Vehicle not found."), { status: 404 });
   if (!vehicle.is_active || vehicle.operational_status === "inactive") return { available: false, status: "inactive", vehicle, conflicts: [{ type: "inactive", label: "Vehicle is archived or inactive." }] };

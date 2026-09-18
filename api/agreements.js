@@ -4,12 +4,9 @@ import { addAgreementEvent, agreementId, getAgreement, normalizeAgreement } from
 import { assertVehicleAvailable } from "./_fleet-core.js";
 import { DEFAULT_IMPORTANT_TERMS, DEFAULT_MASTER_AGREEMENT } from "./_agreement-template.js";
 
-function publicUrl(req, token) {
-  const origin = clean(req.headers.origin, 300);
-  if (["http://localhost:4173", "http://127.0.0.1:4173", "https://prestigeluxor.com", "https://www.prestigeluxor.com"].includes(origin)) return `${origin}/agreement?token=${encodeURIComponent(token)}`;
-  const host = clean(req.headers.host, 300) || "www.prestigeluxor.com";
-  const protocol = host.includes("localhost") || host.startsWith("127.0.0.1") ? "http" : "https";
-  return `${protocol}://${host}/agreement?token=${encodeURIComponent(token)}`;
+export function publicUrl(req, token) {
+  // A renter may open this on another device; never share a localhost/admin host.
+  return `https://www.prestigeluxor.com/agreement?token=${encodeURIComponent(token)}`;
 }
 
 function emailEscape(value) {
