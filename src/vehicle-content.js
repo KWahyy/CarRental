@@ -173,6 +173,7 @@ export function vehicleSeoSectionMarkup(vehicle, {
         <article><p class="eyebrow">Best uses</p><h3>Choose it for the right moment.</h3><p>${escapeHtml(`This ${bodyTypeForVehicle(vehicle).toLowerCase()} is recommended for ${recommendedUseLabel(vehicle)}.`)}</p></article>
         <article class="vehicle-walkaround"><p class="eyebrow">Current-condition check</p><h3>Request the walkaround.</h3><p>Ask for the latest video and current-condition photos of this exact vehicle before you approve the booking.</p><a href="sms:+19496200024?body=${encodeURIComponent(`Please send me the latest walkaround video for the ${name}.`)}">Request walkaround video <span aria-hidden="true">↗</span></a></article>
       </div>
+      ${vehicleTripPlanningMarkup(vehicle, escapeHtml)}
       <nav class="vehicle-seo-links" aria-label="Related rental pages">
         <a href="${escapeHtml(makeLink.href)}">${escapeHtml(makeLink.label)}</a>
         ${vehicleCityLinks.map((link) => `<a href="${link.href}">${escapeHtml(link.label)} exotic car rentals</a>`).join("")}
@@ -184,4 +185,40 @@ export function vehicleSeoSectionMarkup(vehicle, {
         </div>
       </section>
     </section>`;
+}
+
+const TRIP_PLANNING = {
+  '2022-lamborghini-huracan': {
+    heading: 'Plan a trip in this blue Huracán.',
+    points: [
+      ['Passengers and luggage', 'This listing has two seats. Share the size of your bags before an airport pickup, and ask to see the usable luggage space with the roof in the position you plan to use.'],
+      ['Your route and parking', 'For a Newport Beach stay or a Los Angeles event, send the delivery address and mention steep driveways or restricted parking. Confirm access and the return meeting point before booking.'],
+      ['Rental length and total', 'Send pickup and return times, even for a one-day trip. Ask for the approved mileage allowance, excess-mile rate, deposit amount and any delivery charges in the final quote.'],
+    ],
+    links: [['/guides/lamborghini-rental-cost-southern-california', 'Compare Lamborghini starting rates'], ['/guides/lamborghini-huracan-vs-urus-rental', 'Compare Huracán and Urus']],
+  },
+  'audi-r8-v10-spyder-white': {
+    heading: 'Plan your Audi R8 Spyder rental.',
+    points: [
+      ['Two seats, a clear luggage plan', 'The listed configuration seats the driver and one passenger. For a hotel or airport arrival, share bag dimensions and confirm storage with the roof up and down.'],
+      ['Wedding and photo timing', 'For wedding use, confirm entry and exit with your clothing in mind. A separate driver uses one of the two seats. Include photo stops, venue access and return time in your request.'],
+      ['Coastal trip or city stay', 'Share your planned route and estimated distance. The final quote should confirm included mileage, additional-mile charges, delivery, driver approval and the deposit before you pay.'],
+    ],
+    links: [['/wedding', 'Plan wedding transportation'], ['/guides/exotic-car-delivery-hotels-airports', 'Plan hotel or airport delivery']],
+  },
+  'tesla-cybertruck': {
+    heading: 'Plan your Cybertruck rental.',
+    points: [
+      ['Charging and return level', 'Ask what charge level the truck will have at handoff, what return level is required and how charging costs are handled. Confirm the supplied charging equipment and compatible stops for your route; range depends on the exact vehicle and use.'],
+      ['Five seats and cargo planning', 'The published configuration lists five seats. Send passenger count and bag dimensions for cargo confirmation. Ask about the current bed configuration and secure storage before planning airport delivery.'],
+      ['Parking and permitted use', 'Check parking height and space limits at your hotel or venue. Confirm your itinerary and mileage before booking. Do not assume towing, off-road driving or production use is included; request any special use in advance.'],
+    ],
+    links: [['/locations/orange-county-exotic-car-rental', 'Explore Orange County delivery'], ['/rental-policies', 'Review rental requirements']],
+  },
+};
+
+export function vehicleTripPlanningMarkup(vehicle, escapeHtml = value => String(value ?? '')) {
+  const plan = TRIP_PLANNING[vehicle?.slug];
+  if (!plan) return '';
+  return `<section class="rental-planning-section vehicle-trip-planning" data-trip-planning aria-labelledby="trip-planning-title"><p class="eyebrow">Before you choose your dates</p><h2 id="trip-planning-title">${escapeHtml(plan.heading)}</h2><div class="rental-planning-columns">${plan.points.map(([title,copy]) => `<div><h3>${escapeHtml(title)}</h3><p>${escapeHtml(copy)}</p></div>`).join('')}</div><p class="rental-planning-links">${plan.links.map(([href,label]) => `<a href="${href}">${escapeHtml(label)}</a>`).join(' · ')}</p><a href="#vehicle-request">Request this vehicle for your dates →</a></section>`;
 }

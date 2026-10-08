@@ -414,7 +414,9 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
               </div>
               <p>From <strong>$${Number(car.price).toLocaleString("en-US")}</strong>/day</p>
             </div>
-            <a class="oc-showroom-link" href="/cars/${car.slug}"><span>View vehicle</span><span aria-hidden="true">&#8599;</span></a>
+            <p class="oc-car-rental-facts">${escapeHtml(seatsForVehicle(car))} · ${escapeHtml(car.mileage || "Mileage confirmed by quote")}</p>
+            <a class="oc-showroom-link" href="/cars/${car.slug}"><span>Photos &amp; rental details</span><span aria-hidden="true">&#8599;</span></a>
+            <a class="oc-showroom-link" href="#location-quote" data-location-vehicle="${escapeHtml(car.name)}"><span>Request this car in Orange County</span><span aria-hidden="true">→</span></a>
           </article>`).join("");
   const schema = {
     "@context": "https://schema.org",
@@ -486,10 +488,23 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
 
       <section class="oc-location-fleet" id="orange-county-fleet" aria-labelledby="oc-fleet-title">
         <header class="oc-section-heading">
-          <div><p>Available now</p><h2 id="oc-fleet-title">Choose your arrival.</h2></div>
+          <div><p>Compare listed vehicles</p><h2 id="oc-fleet-title">Exotic &amp; luxury rentals.</h2></div>
           <a href="/fleet.html">View the full fleet <span aria-hidden="true">&#8594;</span></a>
         </header>
         <div class="oc-showroom-grid">${fleetCards}</div>
+      </section>
+
+      <section class="rental-planning-section oc-rental-planning" aria-labelledby="oc-rental-planning-title">
+        <p class="eyebrow">Choose around your itinerary</p>
+        <h2 id="oc-rental-planning-title">Orange County rental details.</h2>
+        <div class="rental-planning-columns">
+          <div><h3>Newport Beach &amp; coastal stays</h3><p>Compare a two-seat convertible with a luxury SUV based on passengers and bags. Share the hotel or residence address, parking access and planned route so delivery and mileage can be quoted together.</p><p><a href="/locations/newport-beach-exotic-car-rental">Newport Beach delivery details</a></p></div>
+          <div><h3>Irvine &amp; Anaheim plans</h3><p>For a business stay, celebration or hotel handoff, include pickup and return times plus any venue access instructions. Delivery is arranged for your booking; these cities are service areas, not walk-in branches.</p><p><a href="/wedding">Wedding car planning</a></p></div>
+          <div><h3>John Wayne Airport arrivals</h3><p>Share your flight timing, passenger count and luggage dimensions. We confirm an eligible meeting point and any delivery charge. A terminal-curbside handoff is not assumed.</p><p><a href="/locations/sna-exotic-car-delivery">SNA delivery arrangements</a></p></div>
+        </div>
+        <h3>Compare the total, not just the daily rate</h3>
+        <p>Displayed prices are starting daily rates. Request the same dates and delivery address for each car, then compare included mileage, excess-mile charges, rental duration, applicable fees and the separate deposit hold. Ask about minimum rental length for your selected vehicle and dates.</p>
+        <p><a href="/guides/lamborghini-rental-cost-southern-california">Lamborghini pricing guide</a> · <a href="/rental-policies">Driver, insurance and rental requirements</a></p>
       </section>
 
       <section class="oc-location-service" aria-labelledby="oc-service-title">
@@ -572,7 +587,7 @@ const locationPages = [
     slug: "orange-county-exotic-car-rental",
     area: "Orange County",
     title: "Exotic & Luxury Car Rental Orange County | Prestige Luxor",
-    description: "Explore exotic and luxury car rentals in Orange County with delivery options for Newport Beach, Irvine, Anaheim, and surrounding communities.",
+    description: "Compare exotic and luxury car rental rates in Orange County. Explore Lamborghini, Ferrari and Rolls-Royce options with hotel, home and SNA delivery by arrangement.",
     heading: "Exotic car rental in Orange County.",
     lead: "Prestige Luxor serves Orange County clients looking for a memorable car, a straightforward quote, and delivery planned around the day—not the other way around.",
     content: `<section><h2>From coastal weekends to event arrivals</h2><p>Orange County bookings range from Newport Coast getaways to Anaheim events and Irvine business travel. Tell us where the car is needed, who will drive, and the dates so we can confirm availability, mileage, deposit, and delivery.</p></section><div class="seo-card-grid"><article class="seo-card"><h3>Newport Beach</h3><p>Convertibles, supercars, and luxury SUVs for coastal stays, dinners, and celebrations.</p></article><article class="seo-card"><h3>Irvine</h3><p>Performance sedans and executive SUVs for local travel, meetings, and weekend plans.</p></article><article class="seo-card"><h3>Anaheim</h3><p>Vehicle delivery for events, hotels, entertainment districts, and private bookings.</p></article></div><section><h2>What your quote covers</h2><p>Every quote is based on the exact vehicle, dates, driver requirements, mileage plan, delivery address, and optional add-ons. Online prices are starting points until the team confirms the booking.</p></section>`

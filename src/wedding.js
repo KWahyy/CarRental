@@ -6,9 +6,6 @@ const form = document.querySelector("[data-wedding-form]");
 const status = document.querySelector("[data-wedding-status]");
 const reveals = document.querySelectorAll(".reveal");
 const heroVideo = document.querySelector(".wedding-hero-media");
-const driverPreference = form?.querySelector("[data-wedding-driver]");
-const insuranceSection = form?.querySelector("[data-wedding-insurance]");
-const insuranceFields = insuranceSection ? [...insuranceSection.querySelectorAll("input")] : [];
 
 if (heroVideo) {
   const revealHeroVideo = () => heroVideo.classList.add("is-playing");
@@ -55,20 +52,8 @@ function valueOf(formData, key) {
   return String(formData.get(key) || "").trim();
 }
 
-function syncInsuranceSection() {
-  if (!driverPreference || !insuranceSection) return;
-  const needsInsurance = driverPreference.value === "Self-drive";
-  insuranceSection.hidden = !needsInsurance;
-  insuranceFields.forEach((field) => {
-    field.disabled = !needsInsurance;
-    field.required = needsInsurance;
-  });
-}
-
 if (form) {
-  driverPreference?.addEventListener("change", syncInsuranceSection);
-  syncInsuranceSection();
-
+  form.elements.date.min = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -77,15 +62,13 @@ if (form) {
     const service = valueOf(formData, "service");
     const venue = valueOf(formData, "venue");
     const chauffeur = valueOf(formData, "chauffeur");
-    const insuranceProvider = valueOf(formData, "insuranceProvider");
-    const insurancePolicyholder = valueOf(formData, "insurancePolicyholder");
+
     const notes = valueOf(formData, "notes");
     const message = [
       `Wedding service: ${service}`,
       `Venue or city: ${venue}`,
       `Driver preference: ${chauffeur}`,
-      `Insurance provider: ${insuranceProvider || (chauffeur === "Self-drive" ? "Not provided" : "Not required for requested service")}`,
-      `Name on policy: ${insurancePolicyholder || "Not provided"}`,
+      "Driver eligibility and insurance to be reviewed during booking approval.",
       "",
       "Timeline and notes:",
       notes || "Not provided",
@@ -97,12 +80,12 @@ if (form) {
       name: valueOf(formData, "name"),
       phone: valueOf(formData, "phone"),
       email: valueOf(formData, "email"),
-      insuranceProvider,
+      insuranceProvider: "",
       vehicle: valueOf(formData, "vehicle"),
       date: valueOf(formData, "date"),
       addons: [service, chauffeur].filter(Boolean),
       message,
-      company: "",
+      company: valueOf(formData, "company"),
       pageUrl: window.location.href,
     };
 
@@ -117,7 +100,6 @@ if (form) {
     try {
       await submitQuoteRequest(payload);
       form.reset();
-      syncInsuranceSection();
       submitButton.textContent = "Plan received";
       if (status) {
         status.dataset.tone = "success";

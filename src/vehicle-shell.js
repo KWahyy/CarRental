@@ -74,6 +74,7 @@ export function vehicleShellMarkup(seoMarkup = "") {
             <div class="vehicle-request-step vehicle-request-step-dates" data-request-step="dates">
               <div class="vehicle-request-dates">
                 <label><span>Pickup date &amp; time</span><input name="date" type="datetime-local" required /></label>
+                <label><span>Return date &amp; time <small>Optional</small></span><input name="returnDate" type="datetime-local" /></label>
               </div>
               <label><span>Delivery city or ZIP</span><input name="deliveryLocation" type="text" autocomplete="postal-code" placeholder="City or ZIP code" required /></label>
               <button class="vehicle-request-continue" type="button" data-request-continue>Check availability <span aria-hidden="true">→</span></button>

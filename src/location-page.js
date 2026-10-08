@@ -24,6 +24,17 @@ for (const form of document.querySelectorAll("[data-location-quote]")) {
   const locationName = form.dataset.locationName || "Southern California";
   let started = false;
 
+  for (const link of document.querySelectorAll("[data-location-vehicle]")) {
+    link.addEventListener("click", () => {
+      const select = form.elements.vehicle;
+      const requested = link.dataset.locationVehicle;
+      if (![...select.options].some(option => option.value === requested)) return;
+      select.value = requested;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      track("location_vehicle_selected", { location_slug: locationSlug, vehicle: requested });
+    });
+  }
+
   if (pickupDate) pickupDate.min = localDateValue();
   if (returnDate) returnDate.min = localDateValue();
   pickupDate?.addEventListener("change", () => {

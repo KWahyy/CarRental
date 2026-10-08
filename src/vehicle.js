@@ -285,11 +285,20 @@ function bindVehicleRequestForm() {
   form.dataset.bound = "true";
   const status = form.querySelector("[data-vehicle-request-status]");
   const pickup = form.elements.date;
+  const returnDate = form.elements.returnDate;
   const continueButton = form.querySelector("[data-request-continue]");
   const backButton = form.querySelector("[data-request-back]");
   const detailsStep = form.querySelector("[data-request-step='details']");
-  const dateFields = [pickup, form.elements.deliveryLocation];
+  const dateFields = [pickup, returnDate, form.elements.deliveryLocation].filter(Boolean);
   pickup.min = localDateTimeValue();
+  const syncReturnDate = () => {
+    if (!returnDate) return;
+    returnDate.min = pickup.value || pickup.min;
+    returnDate.setCustomValidity(returnDate.value && pickup.value && returnDate.value <= pickup.value ? "Return must be after pickup." : "");
+  };
+  pickup.addEventListener("change", syncReturnDate);
+  returnDate?.addEventListener("change", syncReturnDate);
+  syncReturnDate();
 
   continueButton?.addEventListener("click", () => {
     const invalidField = dateFields.find((field) => !field.checkValidity());
@@ -310,6 +319,8 @@ function bindVehicleRequestForm() {
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    syncReturnDate();
+    if (!form.reportValidity()) return;
     const submit = form.querySelector("button[type='submit']");
     const data = new FormData(form);
     const alternatives = Boolean(data.get("alternatives"));
@@ -324,6 +335,7 @@ function bindVehicleRequestForm() {
       addons: alternatives ? ["Similar options approved"] : [],
       message: [
         "Vehicle product-page availability request.",
+        `Return date: ${data.get("returnDate") || "Not decided yet"}`,
         `Delivery city or ZIP: ${data.get("deliveryLocation") || "Not provided"}`,
         `Similar options approved: ${alternatives ? "Yes" : "No"}`,
       ].join("\n"),

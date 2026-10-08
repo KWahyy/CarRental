@@ -79,6 +79,8 @@ export function enhanceHuracanProduct(car) {
   overview.querySelector('.vehicle-private-inclusions').remove();
   overview.querySelector('.vehicle-private-rates').remove();
   const seo = page.querySelector('[data-vehicle-seo]');
+  const tripPlanning = seo?.querySelector("[data-trip-planning]");
+  if (tripPlanning) page.querySelector(".vehicle-private-information").after(tripPlanning);
   seo?.remove();
   const terms = document.createElement('section');
   terms.className = 'hp-terms';
