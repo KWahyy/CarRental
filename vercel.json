@@ -5,6 +5,28 @@
   "trailingSlash": false,
   "redirects": [
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "kdsexotics.com"
+        }
+      ],
+      "destination": "https://www.prestigeluxor.com",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.kdsexotics.com"
+        }
+      ],
+      "destination": "https://www.prestigeluxor.com",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [
         {
