@@ -14,9 +14,10 @@
 .hero-rental-search label span { color: #a9a69e; font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; }
 .hero-rental-search input,.hero-rental-search select { display: block; width: 100%; min-width: 0; min-height: 30px; padding: 0; border: 0; border-radius: 0; background: transparent; color: #f4f1e9; font: 400 .9rem Arial,sans-serif; }
 .hero-rental-search input::placeholder { color: #aeaba4; opacity:1; }
-.hero-rental-search button { min-height: 58px; margin-left: 12px; padding: 0 24px; border: 0; border-radius: 7px; background: #f4f1e9; color: #121210; font: 600 .85rem Arial,sans-serif; cursor: pointer; white-space: nowrap; }
-.hero-rental-search button span { margin-left: 16px; }
-.hero-rental-search button:hover { background: #ded4c0; }
+.hero-rental-search button { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 58px; margin-left: 12px; padding: 0 20px 0 24px; border: 1px solid #ffffff55; border-radius: 9px; background: #f4f1e9; color: #181815; font: 500 .9rem Arial,sans-serif; letter-spacing: -.01em; cursor: pointer; white-space: nowrap; box-shadow: 0 1px 2px #00000018, inset 0 1px 0 #ffffff80; transition: background .18s ease, box-shadow .18s ease; }
+.hero-rental-search button span { display: grid; place-items: center; width: 32px; height: 28px; margin: 0; padding-left: 14px; border-left: 1px solid #18181526; font-size: 20px; font-weight: 400; line-height: 1; transition: transform .18s ease; }
+.hero-rental-search button:hover { background: #fffaf0; box-shadow: 0 3px 12px #00000024, inset 0 1px 0 #fff; }
+.hero-rental-search button:active { background: #e8e1d3; box-shadow: inset 0 1px 3px #00000015; }
 .hero-rental-search select:focus-visible,.hero-rental-search input:focus-visible,.hero-rental-search button:focus-visible { outline: 2px solid #d8c9a9; outline-offset: 5px; }
 .home-page .cinematic-home-hero .hero-search-note { margin: 17px 0 0; font-size: .75rem; line-height: 1.6; color: #b9b5ae; }
 .hero-search-note a { color: #e4dfd4; text-underline-offset: 4px; margin-left: 7px; }
@@ -44,3 +45,5 @@
 .hero-date-control input[data-empty] { color:transparent; }
 .hero-date-control input[data-empty]::-webkit-datetime-edit { opacity:0; }
 .hero-date-control:has(input:not([data-empty])) .hero-date-placeholder { display:none; }
+
+@media(prefers-reduced-motion:reduce) { .hero-rental-search button,.hero-rental-search button span { transition:none; } }
