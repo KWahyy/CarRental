@@ -9,7 +9,7 @@ export function vehicleDisplayName(vehicle) {
 }
 
 export function bodyTypeForVehicle(vehicle) {
-  const label = vehicle?.categoryLabel || vehicle?.category || "";
+  const label = vehicle?.categoryLabel || vehicle?.category_label || vehicle?.category || "";
   const joined = `${vehicle?.name || ""} ${label} ${vehicle?.summary || ""}`.toLowerCase();
   if (/convertible|spyder|spider|gtc|dawn|portofino|open-air/.test(joined)) return "Convertible";
   if (/cybertruck|f150|truck/.test(joined)) return "Truck";
@@ -22,35 +22,15 @@ export function bodyTypeForVehicle(vehicle) {
 export function seatsForVehicle(vehicle) {
   const exactSeats = Number(vehicle?.seats);
   if (Number.isFinite(exactSeats) && exactSeats > 0) return `${exactSeats} seats`;
-  const body = bodyTypeForVehicle(vehicle);
-  if (body === "SUV" || body === "Sedan" || body === "Truck") return "Confirm seating";
-  return "2 seats";
+  return "Confirm seating";
 }
 
 export function engineForVehicle(vehicle) {
-  const name = String(vehicle?.name || "").toLowerCase();
-  const make = String(vehicle?.make || "").toLowerCase();
-  if (name.includes("huracan") || name.includes("r8")) return "V10";
-  if (name.includes("cybertruck") || name.includes("tesla")) return "Electric";
-  if (name.includes("corvette")) return "V8";
-  if (/urus|g63|g-wagon|g wagon|gls|gle|escalade|cullinan|defender|range rover/.test(name)) return "V8 / SUV";
-  if (make.includes("rolls") || make.includes("bentley")) return "Twin-turbo power";
-  if (make.includes("ferrari") || make.includes("mclaren")) return "Performance powertrain";
-  if (make.includes("lotus")) return "Mid-engine performance";
-  if (make.includes("bmw")) return "BMW M performance";
-  if (make.includes("porsche")) return "Porsche performance";
-  return "Performance";
+  return vehicle?.engine || "Confirm exact specification";
 }
 
 export function accelerationForVehicle(vehicle) {
-  const name = String(vehicle?.name || "").toLowerCase();
-  const make = String(vehicle?.make || "").toLowerCase();
-  if (name.includes("huracan")) return "Approx. 2.9 sec";
-  if (make.includes("ferrari") || make.includes("mclaren") || name.includes("r8") || name.includes("corvette")) return "Approx. 3.1 sec";
-  if (name.includes("urus")) return "Approx. 3.6 sec";
-  if (name.includes("tesla") || name.includes("plaid")) return "Approx. 2.1 sec";
-  if (make.includes("bmw")) return "Model dependent";
-  return "Configuration dependent";
+  return vehicle?.acceleration || "Configuration dependent";
 }
 
 function cleanPublicText(value) {
@@ -118,13 +98,17 @@ export function makePageLink(vehicle) {
   const make = String(vehicle?.make || "");
   if (make.toLowerCase() === "lamborghini") return { href: "/lamborghini", label: "Explore Lamborghini rentals" };
   if (make.toLowerCase() === "ferrari") return { href: "/ferrari", label: "Explore Ferrari rentals" };
+  if (make.toLowerCase() === "porsche") return { href: "/porsche", label: "Explore Porsche rentals" };
+  if (/rolls/i.test(make)) return { href: "/rolls-royce", label: "Explore Rolls-Royce rentals" };
   return { href: `/fleet?search=${encodeURIComponent(make)}`, label: `Explore ${make || "similar"} rentals` };
 }
 
 export const vehicleCityLinks = [
+  { href: "/locations/san-diego-exotic-car-rental", label: "San Diego" },
+  { href: "/locations/palm-springs-exotic-car-rental", label: "Palm Springs" },
   { href: "/locations/los-angeles-exotic-car-rental", label: "Los Angeles" },
   { href: "/locations/orange-county-exotic-car-rental", label: "Orange County" },
-  { href: "/locations/beverly-hills-exotic-car-rental", label: "Beverly Hills" },
+  { href: "/locations/beverly-hills-luxury-car-rental", label: "Beverly Hills" },
   { href: "/locations/newport-beach-exotic-car-rental", label: "Newport Beach" },
 ];
 
@@ -137,7 +121,7 @@ export function vehicleFaqItems(vehicle, formatPrice = (value) => `$${Number(val
     { question: `How many people and bags fit in the ${name}?`, answer: `This listing is configured for ${seatsForVehicle(vehicle)}. ${luggageGuidance(vehicle)}` },
     { question: `What are the driver and insurance requirements?`, answer: `The starting minimum driver age is 18, subject to approval for this specific vehicle. A valid driver’s license and proof of active auto insurance are required before confirmation.` },
     { question: `What mileage and security deposit apply?`, answer: `${mileage} is currently listed. The refundable security-deposit hold is vehicle- and driver-specific; the exact amount and release terms are disclosed before payment.` },
-    { question: `Where can Prestige Luxor deliver the ${name}?`, answer: `Approved delivery is available across Los Angeles and Orange County, including Beverly Hills, Newport Beach, Malibu, Irvine, Anaheim, and nearby destinations. Timing and any delivery charge are confirmed for the exact address.` },
+    { question: `Where can Prestige Luxor deliver the ${name}?`, answer: `Approved delivery is available across Southern California, including Los Angeles, Orange County, San Diego and Palm Springs. Timing and any delivery charge are confirmed for the exact address.` },
     { question: `Can I see a walkaround video before renting the ${name}?`, answer: `Yes. Ask the concierge for the latest walkaround video and current-condition photos for this exact vehicle before approving the reservation.` },
   ];
 }
