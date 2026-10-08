@@ -75,13 +75,18 @@ export function initHeroSearch() {
   const pickup = form.elements.pickup, end = form.elements.return;
   const today = new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
   pickup.min = today;
-  if (trip.city) form.elements.deliveryCity.value = trip.city;
+  if ([...form.elements.deliveryCity.options].some(option => option.value === trip.city)) form.elements.deliveryCity.value = trip.city;
   pickup.value = trip.pickup;
   end.value = trip.returnDate;
   const validate = () => {
+    for (const field of [pickup,end]) field.toggleAttribute('data-empty', !field.value);
     end.min = pickup.value || today;
     end.setCustomValidity(end.value && pickup.value && end.value < pickup.value ? 'Return date must be on or after pickup.' : '');
   };
+  for (const field of [pickup,end]) {
+    field.addEventListener('input',validate);
+    field.addEventListener('click',() => { try { field.showPicker?.(); } catch {} });
+  }
   pickup.addEventListener('change',validate);
   end.addEventListener('change',validate);
   validate();

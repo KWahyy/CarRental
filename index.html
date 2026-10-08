@@ -182,10 +182,9 @@
           <h1 id="home-hero-title">Your next drive,<br class="hero-mobile-break" /> <em>delivered.</em></h1>
           <p class="hero-copy">Exotic and luxury car rentals delivered across Southern California. Choose the car. We’ll arrange the arrival.</p>
           <form id="rental-search" class="hero-rental-search" data-hero-search action="/fleet" method="get" aria-label="Plan your car rental">
-            <label class="hero-search-city"><span>Delivery city</span><input name="deliveryCity" type="text" list="hero-delivery-cities" placeholder="City or ZIP code" autocomplete="address-level2" maxlength="100" required /></label>
-            <datalist id="hero-delivery-cities"><option value="Los Angeles"></option><option value="Orange County"></option><option value="Newport Beach"></option><option value="Irvine"></option><option value="San Diego"></option><option value="Palm Springs"></option></datalist>
-            <label><span>Pickup</span><input name="pickup" type="date" aria-label="Pickup date" required /></label>
-            <label><span>Return</span><input name="return" type="date" aria-label="Return date" required /></label>
+            <label class="hero-search-city"><span>Delivery city</span><select name="deliveryCity" aria-label="Delivery city" required><option value="Los Angeles">Los Angeles</option><option value="Palm Springs">Palm Springs</option><option value="Orange County">Orange County</option></select></label>
+            <label><span>Pickup</span><div class="hero-date-control"><input name="pickup" type="date" aria-label="Pickup date" data-empty required /><span class="hero-date-placeholder" aria-hidden="true">Select date</span></div></label>
+            <label><span>Return</span><div class="hero-date-control"><input name="return" type="date" aria-label="Return date" data-empty required /><span class="hero-date-placeholder" aria-hidden="true">Select date</span></div></label>
             <button type="submit">Explore available cars <span aria-hidden="true">↗</span></button>
           </form>
           <p class="hero-search-note">Delivery by arrangement. Availability confirmed personally. <a href="/fleet">Just browsing? View the fleet.</a></p>
