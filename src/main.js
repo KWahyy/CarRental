@@ -469,6 +469,7 @@ function shortestFanOffset(index) {
 }
 
 function updateFanCarousel() {
+  if (!fanStage) return;
   const multiplier = fanMultiplier();
   const fanItems = fanStage.querySelectorAll(".fan-card");
   const isDesktopGrid = window.matchMedia("(min-width: 821px)").matches;
@@ -512,6 +513,7 @@ function cycleFan(direction) {
 }
 
 function renderFanCarousel() {
+  if (!fanStage) return;
   fanStage.innerHTML = fanCards
     .map(
       (car) => `
@@ -566,6 +568,7 @@ function initLazyMedia() {
 }
 
 function renderFleetLoading() {
+  if (!fanStage) return;
   fanCards = Array.from({ length: 7 }, (_, index) => ({
     slug: "",
     name: `Loading vehicle ${index + 1}`,
@@ -653,6 +656,7 @@ function renderRateGrid(car) {
 }
 
 function renderFleet(filter = "all") {
+  if (!fanStage) { document.dispatchEvent(new CustomEvent("home-fleet-filter", { detail: filter })); return; }
   setFeaturedFanCards(fleet.filter(fleetFilter(filter)));
   renderFanCarousel();
 }
@@ -856,8 +860,8 @@ document.addEventListener("click", (event) => {
   renderFleet(shopButton.dataset.shopFilter);
 });
 
-fanPrev.addEventListener("click", () => cycleFan(-1));
-fanNext.addEventListener("click", () => cycleFan(1));
+fanPrev?.addEventListener("click", () => cycleFan(-1));
+fanNext?.addEventListener("click", () => cycleFan(1));
 typePrev?.addEventListener("click", () => scrollTypeBrowser(-1));
 typeNext?.addEventListener("click", () => scrollTypeBrowser(1));
 specialPrev?.addEventListener("click", () => scrollSpecials(-1));

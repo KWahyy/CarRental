@@ -132,6 +132,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/src/styles.css?v=prestige-scrollbars-20260906-1" />
     <link rel="stylesheet" href="/src/home-hero.css" />
+    <link rel="stylesheet" href="/src/home-fleet.css" />
   </head>
   <body class="site-theme home-page">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -239,29 +240,18 @@
           <picture class="native-picture"><source srcset="/assets/optimized/prestige-luxor-porsche-gt3rs-wide.webp" type="image/webp" /><img src="/assets/prestige-luxor-porsche-gt3rs-wide.jpg" alt="" loading="lazy" decoding="async" width="2200" height="844" /></picture>
         </figure>
 
-        <div class="popular-cars-head reveal">
-          <div>
-            <p>Most requested</p>
-            <h3>Popular cars</h3>
-          </div>
-          <a href="/fleet.html" aria-label="See more cars in the full fleet">
-            See more
-            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
-          </a>
-        </div>
-
-        <div class="fan-showcase rental-fan-showcase reveal" data-fan-carousel>
-          <div class="fan-stage" data-fan-stage aria-label="Featured exotic car carousel"></div>
-          <div class="fan-controls">
-            <button class="slider-arrow" type="button" aria-label="Previous featured car" data-fan-prev>
-              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6" /></svg>
-            </button>
-            <div class="fan-dots" data-fan-dots aria-hidden="true"></div>
-            <button class="slider-arrow" type="button" aria-label="Next featured car" data-fan-next>
-              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
-            </button>
-          </div>
-        </div>
+        <section class="home-fleet" data-home-fleet aria-labelledby="home-fleet-title">
+          <p class="home-fleet-kicker">The fleet</p>
+          <h2 id="home-fleet-title">Find your car.</h2>
+          <label class="home-fleet-search"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6.5" /><path d="m15 15 5 5" /></svg><input type="search" aria-label="Search cars" placeholder='Search “black Escalade”' autocomplete="off" /><kbd aria-hidden="true">/</kbd></label>
+          <div class="home-fleet-quick" aria-label="Popular searches"><span>Popular</span><button type="button" data-home-fleet-query="Mercedes">Mercedes-Benz</button><button type="button" data-home-fleet-query="Lamborghini">Lamborghini</button><button type="button" data-home-fleet-query="McLaren">McLaren</button><button type="button" data-home-fleet-query="Rolls Royce">Rolls-Royce</button><button type="button" data-home-fleet-query="Convertible">Convertible</button><button type="button" data-home-fleet-query="Black">Black</button></div>
+          <div class="home-fleet-categories" data-home-fleet-categories role="group" aria-label="Filter cars by category"></div>
+          <p class="home-fleet-count" data-home-fleet-count role="status" aria-live="polite">Browse the collection</p>
+          <div class="home-fleet-grid" data-home-fleet-grid></div>
+          <div class="home-fleet-empty" data-home-fleet-empty hidden><p>No cars match this search. Try another brand, color, or category.</p><button type="button" data-home-fleet-reset>Clear filters</button></div>
+          <div class="home-fleet-footer"><button type="button" data-home-fleet-more>Show more cars</button></div>
+          <noscript><p><a href="/fleet">View the full fleet</a></p></noscript>
+        </section>
 
         <div class="shop-browse reveal">
           <section class="shop-panel" aria-labelledby="shop-brand-title">
@@ -746,5 +736,6 @@
 
     <script type="module" src="/src/main.js?v=mobile-quote-conversion-v3-20260906"></script>
     <script type="module" src="/src/hero-search.js"></script>
+    <script type="module" src="/src/home-fleet.js"></script>
   </body>
 </html>

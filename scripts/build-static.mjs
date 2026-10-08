@@ -1,3 +1,4 @@
+import { homeFleetCard, sortHomeFleet } from "../src/home-fleet-model.js";
 import { rentalGuides } from "./rental-guides.mjs";
 import { vehicleShellMarkup } from "../src/vehicle-shell.js";
 import { vehicleYear as getVehicleYear, vehicleDisplayName, bodyTypeForVehicle, seatsForVehicle, engineForVehicle, accelerationForVehicle } from "../src/vehicle-content.js";
@@ -943,6 +944,8 @@ for (const page of brandPages) {
   const html = pageShell({ path: page.slug, schemaType: "CollectionPage", collection: page.cars, title: `${page.name} Rental Los Angeles & Southern California | Prestige Luxor`, description: `Explore ${page.name} rentals with Prestige Luxor. Compare active vehicles, daily rates and delivery options across Southern California.`, eyebrow: `${page.name} collection`, heading: `${page.name} rentals in Southern California.`, lead: page.copy, content: `<section><h2>Explore available ${page.name} models</h2><div class="fleet-showroom-grid">${collectionCards(page.cars)}</div></section><section><h2>Delivery and rental requirements</h2><p>Delivery is available across Southern California, subject to the confirmed vehicle, dates and address. Your quote covers mileage, driver eligibility, insurance requirements, security deposit and any delivery fees. <a href="/rental-policies">Review rental policies</a>.</p></section>${regionLinks}` });
   writeFileSync(join(outDir, `${page.slug}.html`), html);
 }
+const homePath = join(outDir, "index.html");
+writeFileSync(homePath, readFileSync(homePath, "utf8").replace('<div class="home-fleet-grid" data-home-fleet-grid></div>', `<div class="home-fleet-grid" data-home-fleet-grid>${sortHomeFleet(publicFleetSnapshot).slice(0,9).map(car => homeFleetCard(car, publicCarPicture(activeInventoryBySlug.get(car.slug), {alt:car.name}))).join("")}</div>`).replace('Browse the collection</p>', `${publicFleetSnapshot.length} cars · Showing ${Math.min(9,publicFleetSnapshot.length)}</p>`));
 const fleetPath = join(outDir, "fleet.html");
 writeFileSync(fleetPath, readFileSync(fleetPath, "utf8").replace('Choose the<br /><em>arrival.</em>', 'Exotic &amp; luxury<br /><em>car rentals.</em>').replace('<div class="fleet-showroom-grid" data-fleet-grid></div>', `<div class="fleet-showroom-grid" data-fleet-grid>${collectionCards(activeInventory)}</div>`).replace('<div class="fleet-popular-grid" data-popular-grid></div>', `<div class="fleet-popular-grid" data-popular-grid>${collectionCards(locationFeaturedCars(), "popular")}</div>`));
 for (const brand of ["lamborghini", "ferrari"]) {
