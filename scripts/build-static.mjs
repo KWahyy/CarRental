@@ -1,3 +1,4 @@
+import { rentalGuides } from "./rental-guides.mjs";
 import { vehicleShellMarkup } from "../src/vehicle-shell.js";
 import { vehicleYear as getVehicleYear, vehicleDisplayName, bodyTypeForVehicle, seatsForVehicle, engineForVehicle, accelerationForVehicle } from "../src/vehicle-content.js";
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
@@ -290,8 +291,10 @@ function locationEnhancements({ slug, area }, { includeFleet = true } = {}) {
 function pageShell({ title, description, path, eyebrow, heading, lead, content, schemaType = "WebPage", area = "", collection = [] }) {
   const canonical = `${siteUrl}/${path}`;
   const isLocationPage = path.startsWith("locations/");
+  const isGuide = path === "guides" || path.startsWith("guides/");
   const pageEntity = {
     "@type": schemaType,
+    ...(schemaType === "Article" ? { headline: heading, author: { "@type": "Organization", name: "Prestige Luxor", url: `${siteUrl}/about` }, datePublished: "2026-10-08", mainEntityOfPage: canonical } : {}),
     name: heading,
     description,
     url: canonical,
@@ -338,7 +341,7 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
     <link rel="apple-touch-icon" href="/assets/prestige-luxor-apple-touch-icon.png?v=prestige-luxor-20260806" />
     <link rel="stylesheet" href="/src/styles.css?v=site-theme-20260719" />
   </head>
-  <body class="site-theme site-content-page">
+  <body class="site-theme site-content-page${isGuide ? " rental-guide-page" : ""}">
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header scrolled" data-header>
       <a class="brand" href="/" aria-label="Prestige Luxor home"><img class="brand-logo brand-logo-wide" src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" /></a>
@@ -357,7 +360,7 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
       <div class="seo-copy">${content}</div>
     </main>
     <footer class="site-footer">
-      <div class="footer-main"><a class="brand footer-brand" href="/" aria-label="Prestige Luxor home"><span class="footer-logo-frame"><img class="brand-logo-wide" src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" loading="lazy" /></span></a><p>Exotic and luxury car rentals with concierge delivery across Los Angeles and Orange County.</p><div class="footer-contact"><a href="tel:${phoneHref}">Call ${phoneLabel}</a><a href="sms:${phoneHref}">Text concierge</a><a href="mailto:Contact@prestigeluxor.com">Email</a></div></div>
+      <div class="footer-main"><a class="brand footer-brand" href="/" aria-label="Prestige Luxor home"><span class="footer-logo-frame"><img class="brand-logo-wide" src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" loading="lazy" /></span></a><p>Exotic and luxury car rentals with concierge delivery across Southern California.</p><div class="footer-contact"><a href="tel:${phoneHref}">Call ${phoneLabel}</a><a href="sms:${phoneHref}">Text concierge</a><a href="mailto:Contact@prestigeluxor.com">Email</a></div></div>
       <div class="footer-columns">
         <nav class="footer-links" aria-label="Explore"><h3>Explore</h3><a href="/fleet">Fleet</a><a href="/partner">Become a Partner</a><a href="${isLocationPage ? "#location-quote" : "/#quote"}">Request Quote</a></nav>
         <nav class="footer-links" aria-label="Locations"><h3>Locations</h3><a href="/locations/los-angeles-exotic-car-rental">Los Angeles</a><a href="/locations/orange-county-exotic-car-rental">Orange County</a><a href="/locations/lax-exotic-car-delivery">LAX Delivery</a><a href="/locations/sna-exotic-car-delivery">SNA Delivery</a></nav>
@@ -524,7 +527,7 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
     </main>
 
     <footer class="site-footer">
-      <div class="footer-main"><a class="brand footer-brand" href="/" aria-label="Prestige Luxor home"><span class="footer-logo-frame"><img class="brand-logo-wide" src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" loading="lazy" /></span></a><p>Exotic and luxury car rentals with concierge delivery across Los Angeles and Orange County.</p><div class="footer-contact"><a href="tel:${phoneHref}">Call ${phoneLabel}</a><a href="sms:${phoneHref}">Text concierge</a><a href="mailto:Contact@prestigeluxor.com">Email</a></div></div>
+      <div class="footer-main"><a class="brand footer-brand" href="/" aria-label="Prestige Luxor home"><span class="footer-logo-frame"><img class="brand-logo-wide" src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" loading="lazy" /></span></a><p>Exotic and luxury car rentals with concierge delivery across Southern California.</p><div class="footer-contact"><a href="tel:${phoneHref}">Call ${phoneLabel}</a><a href="sms:${phoneHref}">Text concierge</a><a href="mailto:Contact@prestigeluxor.com">Email</a></div></div>
       <div class="footer-columns">
         <nav class="footer-links" aria-label="Explore"><h3>Explore</h3><a href="/fleet">Fleet</a><a href="/partner">Become a Partner</a><a href="/#quote">Request Quote</a></nav>
         <nav class="footer-links" aria-label="Locations"><h3>Locations</h3><a href="/locations/los-angeles-exotic-car-rental">Los Angeles</a><a href="/locations/orange-county-exotic-car-rental">Orange County</a><a href="/locations/lax-exotic-car-delivery">LAX Delivery</a><a href="/locations/sna-exotic-car-delivery">SNA Delivery</a></nav>
@@ -914,7 +917,13 @@ const brandPages = [
 function collectionCards(cars, variant = "collection") {
   return cars.map((car, index) => `<article class="showroom-card showroom-card-${variant}" data-vehicle-slug="${escapeHtml(car.slug)}"><a class="showroom-card-media" href="/cars/${car.slug}" aria-label="View ${escapeHtml(car.name)}" data-fleet-card-link data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${car.slug}">${publicCarPicture(car, { alt: car.name, loading: index < 3 ? "eager" : "lazy" })}</a><div class="showroom-card-body"><div class="showroom-card-title"><span>${escapeHtml(car.make)}</span><h3>${escapeHtml(car.name)}</h3></div><strong>${formatUsd(car.price)}<small>/day</small></strong></div><a class="showroom-request" href="/cars/${car.slug}">View vehicle &amp; request dates</a></article>`).join("");
 }
-const regionLinks = `<nav class="seo-delivery-nav" aria-label="Explore delivery areas"><h2>Southern California delivery</h2>${locationPages.map(page => `<a href="/locations/${page.slug}">${escapeHtml(page.area)}</a>`).join(" · ")}<p>Browse by make: <a href="/lamborghini">Lamborghini</a> · <a href="/ferrari">Ferrari</a>${brandPages.map(page => ` · <a href="/${page.slug}">${page.name}</a>`).join("")}</p></nav>`;
+const guidePages = rentalGuides(activeInventory, { escapeHtml, formatUsd });
+mkdirSync(join(outDir, "guides"), { recursive: true });
+for (const page of guidePages) {
+  writeFileSync(join(outDir, `${page.path}.html`), pageShell({ ...page, schemaType: "Article", eyebrow: "Prestige Luxor rental guides" }));
+}
+writeFileSync(join(outDir, "guides.html"), pageShell({ path: "guides", title: "Southern California Exotic Car Rental Guides | Prestige Luxor", heading: "Plan your Southern California rental.", eyebrow: "Rental guides", description: "Compare Lamborghini rental costs, choose between Huracán and Urus, and plan hotel or airport delivery with Prestige Luxor.", lead: "Practical answers using our published fleet and booking process. Compare options, understand the quote and plan your delivery before you reserve.", content: guidePages.map(page => `<section><h2><a href="/${page.path}">${escapeHtml(page.heading)}</a></h2><p>${escapeHtml(page.description)}</p><p><a href="/${page.path}">Read the guide →</a></p></section>`).join("") }));
+const regionLinks = `<nav class="seo-delivery-nav" aria-label="Explore delivery areas"><h2>Southern California delivery</h2>${locationPages.map(page => `<a href="/locations/${page.slug}">${escapeHtml(page.area)}</a>`).join(" · ")}<p>Browse by make: <a href="/lamborghini">Lamborghini</a> · <a href="/ferrari">Ferrari</a>${brandPages.map(page => ` · <a href="/${page.slug}">${page.name}</a>`).join("")}</p><p><a href="/guides">Rental pricing, vehicle comparisons &amp; delivery guides</a></p></nav>`;
 for (const page of brandPages) {
   const html = pageShell({ path: page.slug, schemaType: "CollectionPage", collection: page.cars, title: `${page.name} Rental Los Angeles & Southern California | Prestige Luxor`, description: `Explore ${page.name} rentals with Prestige Luxor. Compare active vehicles, daily rates and delivery options across Southern California.`, eyebrow: `${page.name} collection`, heading: `${page.name} rentals in Southern California.`, lead: page.copy, content: `<section><h2>Explore available ${page.name} models</h2><div class="fleet-showroom-grid">${collectionCards(page.cars)}</div></section><section><h2>Delivery and rental requirements</h2><p>Delivery is available across Southern California, subject to the confirmed vehicle, dates and address. Your quote covers mileage, driver eligibility, insurance requirements, security deposit and any delivery fees. <a href="/rental-policies">Review rental policies</a>.</p></section>${regionLinks}` });
   writeFileSync(join(outDir, `${page.slug}.html`), html);
@@ -954,6 +963,8 @@ writeFileSync(
 const sitemapPages = [
   "",
   "fleet",
+  "guides",
+  ...guidePages.map(({ path }) => path),
   "lamborghini",
   "ferrari",
   ...brandPages.map(({ slug }) => slug),

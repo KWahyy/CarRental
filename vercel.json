@@ -5,6 +5,28 @@
   "trailingSlash": false,
   "redirects": [
     {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "kdsexotics.com"
+        }
+      ],
+      "destination": "https://www.prestigeluxor.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.kdsexotics.com"
+        }
+      ],
+      "destination": "https://www.prestigeluxor.com/:path*",
+      "permanent": true
+    },
+    {
       "source": "/cars/porschepanamera",
       "destination": "/cars/porsche-panamera",
       "permanent": true

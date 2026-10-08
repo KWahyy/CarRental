@@ -5,3 +5,17 @@
 .site-content-page .showroom-card-body h3 { font-size: 20px; line-height: 1.3; margin: 8px 0; }
 .site-content-page .showroom-request { display: block; padding: 16px; text-align: center; }
 @media(max-width:600px) { .seo-delivery-nav { margin-top: 40px; padding: 24px 16px; } }
+.guide-table-wrap { width: 100%; overflow-x: auto; margin: 24px 0; border: 1px solid #ffffff26; }
+.guide-table-wrap:focus-visible { outline: 2px solid #d1b984; outline-offset: 4px; }
+.guide-table { width: 100%; border-collapse: collapse; font-size: 15px; line-height: 1.6; }
+.guide-table caption { text-align: left; padding: 16px; color: #f4f1e9; font-weight: 600; }
+.guide-table th, .guide-table td { padding: 16px; text-align: left; border-top: 1px solid #ffffff26; vertical-align: top; min-width: 130px; }
+.guide-table thead { background: #ffffff08; }
+.guide-table tbody th { font-weight: 500; }
+.seo-copy .guide-note { font-size: 14px; color: #aaa69e; border-left: 2px solid #b99a60; padding-left: 18px; }
+.rental-guide-page .seo-page-main { max-width: 1080px; }
+.rental-guide-page .seo-page-hero { margin-bottom: 40px; }
+.rental-guide-page .seo-page-hero h1 { max-width: 24ch; font-size: clamp(2.3rem, 5vw, 4.5rem); line-height: 1.04; text-transform: none; }
+.rental-guide-page .seo-copy h2 { max-width: 32ch; font-size: clamp(1.7rem, 3vw, 2.5rem); line-height: 1.15; text-transform: none; }
+.rental-guide-page .seo-copy > section { padding-block: 36px; min-width: 0; }
+.rental-guide-page .seo-copy { min-width: 0; }
