@@ -1,3 +1,4 @@
+import { enhanceDatePicker } from "./hero-calendar.js";
 function validDate(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return '';
   const date = new Date(`${value}T12:00:00Z`);
@@ -118,6 +119,7 @@ function enhanceCitySelect(select) {
     if (restoreFocus) trigger.focus({preventScroll:true});
   };
   const open = () => {
+    document.dispatchEvent(new CustomEvent('hero-picker-open',{detail:'city'}));
     field.classList.add('city-open');
     trigger.setAttribute('aria-expanded', 'true');
     menu.inert = false;
@@ -142,6 +144,7 @@ function enhanceCitySelect(select) {
   });
   document.addEventListener('pointerdown', event => { if (!field.contains(event.target)) close(); });
   field.addEventListener('focusout', event => { if (!field.contains(event.relatedTarget)) close(); });
+  document.addEventListener('hero-picker-open',event=>{if(event.detail !== 'city') close();});
   select.hidden = true;
   field.append(trigger, menu);
   sync();
@@ -164,9 +167,12 @@ export function initHeroSearch() {
   };
   for (const field of [pickup,end]) {
     field.addEventListener('input',validate);
-    field.addEventListener('click',() => { try { field.showPicker?.(); } catch {} });
+    enhanceDatePicker(field);
   }
-  pickup.addEventListener('change',validate);
+  pickup.addEventListener('change',() => {
+    if (end.value && end.value < pickup.value) { end.value = ''; end.dispatchEvent(new Event('change',{bubbles:true})); }
+    validate();
+  });
   end.addEventListener('change',validate);
   validate();
   form.addEventListener('submit',event => {

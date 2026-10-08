@@ -61,3 +61,26 @@
 .hero-city-options button[aria-selected="true"]::after { content:'✓'; color:#d8c9a9; }
 .hero-city-options button:hover,.hero-city-options button:focus-visible { outline:none; background:#f4f1e91c; color:#fff; }
 @media(prefers-reduced-motion:reduce) { .hero-city-chevron,.hero-city-options,.hero-city-options button { transition:none; } }
+
+.hero-date-control.date-enhanced input,.hero-date-control.date-enhanced .hero-date-placeholder { display:none; }
+.hero-date-trigger { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; min-height:30px; padding:0; border:0; border-radius:5px; background:transparent; color:#aeaba4; text-align:left; font:400 .9rem Arial,sans-serif; cursor:pointer; }
+.hero-date-trigger.has-date { color:#f4f1e9; }
+.hero-date-trigger:focus-visible { outline:none; box-shadow:0 0 0 5px #ffffff0d,0 0 0 6px #d8c9a970; }
+.hero-calendar-icon { position:relative; flex:0 0 12px; width:12px; height:12px; border:1px solid currentColor; border-radius:2px; color:#e2dfd7; }
+.hero-calendar-icon::before { content:''; position:absolute; left:-1px; right:-1px; top:3px; border-top:1px solid currentColor; }
+.hero-calendar { position:fixed; z-index:1100; width:min(308px,calc(100vw - 24px)); padding:12px; border:1px solid #ffffff25; border-radius:14px; background:#1b1b19; color:#f4f1e9; box-shadow:0 16px 40px #0009; opacity:0; pointer-events:none; transform:translateY(7px) scale(.98); transform-origin:bottom center; transition:opacity .18s ease,transform .18s ease; font:400 14px Arial,sans-serif; }
+.hero-calendar.calendar-open { opacity:1; pointer-events:auto; transform:translateY(0) scale(1); }
+.hero-calendar-header { display:grid; grid-template-columns:36px 1fr 36px; align-items:center; gap:6px; margin-bottom:12px; }
+.hero-calendar-header strong { text-align:center; font-size:14px; font-weight:500; }
+.hero-calendar button { display:grid; place-items:center; padding:0; border:0; border-radius:7px; background:transparent; color:#dedbd4; font:400 13px Arial,sans-serif; cursor:pointer; transition:background .15s ease,color .15s ease; }
+.hero-calendar-header button { min-height:36px; font-size:25px; }
+.hero-calendar-weekdays,.hero-calendar-days { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:3px; }
+.hero-calendar-weekdays { margin-bottom:5px; color:#9b978e; font-size:11px; text-align:center; }
+.hero-calendar-days button,.hero-calendar-days > span { min-height:36px; }
+.hero-calendar button:hover:not(:disabled),.hero-calendar button:focus-visible { outline:none; background:#f4f1e91c; color:#fff; }
+.hero-calendar button:focus-visible { box-shadow:inset 0 0 0 1px #d8c9a9; }
+.hero-calendar button[aria-current="date"] { color:#d8c9a9; text-decoration:underline; text-underline-offset:4px; }
+.hero-calendar button[aria-pressed="true"],.hero-calendar button[aria-pressed="true"]:hover { color:#181815; background:#f4f1e9; }
+.hero-calendar button:disabled { color:#68665f; cursor:default; }
+.hero-calendar-hint { margin:12px 0 0; padding-top:10px; border-top:1px solid #ffffff15; color:#aaa59b; font-size:11px; line-height:1.5; }
+@media(prefers-reduced-motion:reduce) { .hero-calendar,.hero-calendar button { transition:none; } }
