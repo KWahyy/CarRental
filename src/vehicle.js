@@ -1,3 +1,4 @@
+import { applyTripToForm } from "./rental-search.js";
 import { vehicleShellMarkup } from "./vehicle-shell.js";
 import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=fleet-consistency-20260715";
 import {
@@ -291,10 +292,11 @@ function bindVehicleRequestForm() {
   const detailsStep = form.querySelector("[data-request-step='details']");
   const dateFields = [pickup, returnDate, form.elements.deliveryLocation].filter(Boolean);
   pickup.min = localDateTimeValue();
+  applyTripToForm(form);
   const syncReturnDate = () => {
     if (!returnDate) return;
     returnDate.min = pickup.value || pickup.min;
-    returnDate.setCustomValidity(returnDate.value && pickup.value && returnDate.value <= pickup.value ? "Return must be after pickup." : "");
+    returnDate.setCustomValidity(returnDate.value && pickup.value && (pickup.type === "date" ? returnDate.value < pickup.value : returnDate.value <= pickup.value) ? "Return must be after pickup." : "");
   };
   pickup.addEventListener("change", syncReturnDate);
   returnDate?.addEventListener("change", syncReturnDate);

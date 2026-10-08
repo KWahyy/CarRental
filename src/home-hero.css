@@ -1,0 +1,38 @@
+.home-page .cinematic-home-hero { position: relative; display: flex; align-items: flex-end; min-height: max(700px, 100svh); padding: 0; overflow: hidden; background: #090909; }
+.home-page .cinematic-home-hero::before,.home-page .cinematic-home-hero::after { display: none; }
+.home-page .cinematic-home-hero .hero-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 42%; opacity: 1; transform: none; filter: none; animation: none; }
+.home-page .cinematic-home-hero .hero-scrim { position: absolute; inset: 0; background: linear-gradient(180deg,rgba(0,0,0,.65) 0%,rgba(0,0,0,.03) 32%,rgba(0,0,0,.3) 50%,rgba(5,5,5,.9) 81%,#050505 100%); animation: none; }
+.home-page .cinematic-home-hero .hero-content { position: relative; z-index: 2; align-self: auto; width: min(1280px,calc(100% - 112px)); max-width: none; margin: 0 auto; padding: 300px 0 42px; text-align: left; transform: none; }
+.home-page .cinematic-home-hero .hero-private-label { opacity: 1; transform: none; animation: none; margin: 0 0 18px; color: #d8c9a9; font-size: .68rem; font-weight: 600; letter-spacing: .22em; line-height: 1.6; text-transform: uppercase; }
+.home-page .cinematic-home-hero .hero-private-label::before,.home-page .cinematic-home-hero .hero-private-label::after { display:none; }
+.home-page .cinematic-home-hero h1 { max-width: none; margin: 0; text-align: left; font-family: Arial, Helvetica, sans-serif; font-size: clamp(2.6rem,4.6vw,4.8rem); font-weight: 400; line-height: 1.06; letter-spacing: -.045em; text-transform: none; color: #f4f1e9; }
+.home-page .cinematic-home-hero h1 em { font-family: Georgia,'Times New Roman',serif; font-weight: 400; }
+.hero-mobile-break { display:none; }
+.home-page .cinematic-home-hero .hero-copy { max-width: 590px; margin: 20px 0 26px; color: #d3d0ca; font-size: 1rem; line-height: 1.6; animation:none; opacity:1; transform:none; }
+.hero-rental-search { display: grid; grid-template-columns: 1.15fr 1fr 1fr auto; align-items: center; width: min(100%,970px); padding: 10px; border: 1px solid #ffffff30; border-radius: 12px; background: rgba(22,22,21,.9); backdrop-filter: blur(16px); gap: 0; color-scheme: dark; scroll-margin-top: 110px; }
+.hero-rental-search label { display: grid; min-width: 0; gap: 9px; padding: 7px 16px; border-right: 1px solid #ffffff22; }
+.hero-rental-search label span { color: #a9a69e; font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; }
+.hero-rental-search input { display: block; width: 100%; min-width: 0; min-height: 30px; padding: 0; border: 0; border-radius: 0; background: transparent; color: #f4f1e9; font: 400 .9rem Arial,sans-serif; }
+.hero-rental-search input::placeholder { color: #aeaba4; opacity:1; }
+.hero-rental-search button { min-height: 58px; margin-left: 12px; padding: 0 24px; border: 0; border-radius: 7px; background: #f4f1e9; color: #121210; font: 600 .85rem Arial,sans-serif; cursor: pointer; white-space: nowrap; }
+.hero-rental-search button span { margin-left: 16px; }
+.hero-rental-search button:hover { background: #ded4c0; }
+.hero-rental-search input:focus-visible,.hero-rental-search button:focus-visible { outline: 2px solid #d8c9a9; outline-offset: 5px; }
+.home-page .cinematic-home-hero .hero-search-note { margin: 17px 0 0; font-size: .75rem; line-height: 1.6; color: #b9b5ae; }
+.hero-search-note a { color: #e4dfd4; text-underline-offset: 4px; margin-left: 7px; }
+@media(max-width:800px) {
+ .home-page .cinematic-home-hero { min-height: max(760px,100svh); }
+ .home-page .cinematic-home-hero .hero-scrim { background: linear-gradient(180deg,rgba(0,0,0,.65),rgba(0,0,0,.12) 22%,rgba(0,0,0,.65) 38%,rgba(5,5,5,.94) 72%,#050505); }
+ .home-page .cinematic-home-hero .hero-content { width: calc(100% - 40px); padding: 290px 0 34px; }
+ .home-page .cinematic-home-hero h1 { font-size: clamp(2.4rem,7.5vw,4rem); }
+ .hero-mobile-break { display:block; }
+ .home-page .cinematic-home-hero .hero-copy { max-width: 440px; font-size: .93rem; margin-block: 16px 22px; }
+ .hero-rental-search { grid-template-columns: 1fr 1fr; padding: 8px; }
+ .hero-rental-search .hero-search-city { grid-column: 1 / -1; border-right: 0; border-bottom: 1px solid #ffffff22; padding-bottom: 14px; margin-bottom: 8px; }
+ .hero-rental-search label { padding: 8px 10px; }
+ .hero-rental-search label:nth-of-type(3) { border-right: 0; }
+ .hero-rental-search button { grid-column:1 / -1; margin:12px 0 0; min-height:52px; }
+ .home-page .cinematic-home-hero .hero-search-note { max-width: 380px; }
+ .hero-search-note a { margin-left:0; display:block; }
+}
+@media(prefers-reduced-motion:reduce) { .home-page .cinematic-home-hero .hero-media { background: url('/assets/prestige-luxor-hero-poster.webp') center/cover; } }

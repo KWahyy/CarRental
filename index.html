@@ -131,6 +131,7 @@
     <link rel="preload" href="/assets/prestige-luxor-hero-poster.webp" as="image" type="image/webp" fetchpriority="high" />
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/src/styles.css?v=prestige-scrollbars-20260906-1" />
+    <link rel="stylesheet" href="/src/home-hero.css" />
   </head>
   <body class="site-theme home-page">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -170,40 +171,24 @@
     </div>
 
     <main id="main">
-      <section id="top" class="hero">
-        <video
-          class="hero-media"
-          autoplay
-          muted
-          loop
-          playsinline
-          preload="auto"
-          poster="/assets/prestige-luxor-hero-poster.webp"
-          aria-label="Black exotic sports car staged at night for a VIP rental experience"
-        >
-          <source src="/assets/prestige-luxor-hero-source.mp4" type="video/mp4" />
-          <source src="/assets/prestige-luxor-hero-loop.webm" type="video/webm" />
+      <section id="top" class="hero cinematic-home-hero" aria-labelledby="home-hero-title">
+        <video class="hero-media" data-hero-film muted loop playsinline preload="none" poster="/assets/prestige-luxor-hero-poster.webp" aria-hidden="true">
+          <source data-src="/assets/prestige-luxor-hero-source.mp4" type="video/mp4" />
+          <source data-src="/assets/prestige-luxor-hero-loop.webm" type="video/webm" />
         </video>
         <div class="hero-scrim" aria-hidden="true"></div>
         <div class="hero-content">
-          <p class="hero-private-label reveal">Private Automotive Concierge</p>
-          <h1 class="reveal">
-            <span class="hero-title-line"><span>Exotic Car Rentals</span></span>
-            <span class="hero-title-line hero-title-line-muted"><span>Los Angeles.</span></span>
-          </h1>
-          <p class="hero-copy reveal">Exceptional vehicles. Discreet service. Delivered throughout Los Angeles and Orange County.</p>
-          <div class="hero-cta reveal">
-            <a class="primary-button hero-booking-button" href="/fleet.html">
-              View Available Cars
-              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
-            </a>
-            <a class="hero-request-button" href="tel:+19496200024">Call the Concierge <span aria-hidden="true">↗</span></a>
-          </div>
-          <p class="hero-trust reveal" aria-label="Service advantages">
-            <span>Real Vehicles</span>
-            <span>LA + OC Delivery</span>
-            <span>Private Service</span>
-          </p>
+          <p class="hero-private-label">Exotic &amp; luxury · Southern California</p>
+          <h1 id="home-hero-title">Your next drive,<br class="hero-mobile-break" /> <em>delivered.</em></h1>
+          <p class="hero-copy">Exotic and luxury car rentals delivered across Southern California. Choose the car. We’ll arrange the arrival.</p>
+          <form id="rental-search" class="hero-rental-search" data-hero-search action="/fleet" method="get" aria-label="Plan your car rental">
+            <label class="hero-search-city"><span>Delivery city</span><input name="deliveryCity" type="text" list="hero-delivery-cities" placeholder="City or ZIP code" autocomplete="address-level2" maxlength="100" required /></label>
+            <datalist id="hero-delivery-cities"><option value="Los Angeles"></option><option value="Orange County"></option><option value="Newport Beach"></option><option value="Irvine"></option><option value="San Diego"></option><option value="Palm Springs"></option></datalist>
+            <label><span>Pickup</span><input name="pickup" type="date" aria-label="Pickup date" required /></label>
+            <label><span>Return</span><input name="return" type="date" aria-label="Return date" required /></label>
+            <button type="submit">Explore available cars <span aria-hidden="true">↗</span></button>
+          </form>
+          <p class="hero-search-note">Delivery by arrangement. Availability confirmed personally. <a href="/fleet">Just browsing? View the fleet.</a></p>
         </div>
       </section>
 
@@ -761,5 +746,6 @@
     </footer>
 
     <script type="module" src="/src/main.js?v=mobile-quote-conversion-v3-20260906"></script>
+    <script type="module">import { initHeroSearch } from "/src/rental-search.js"; initHeroSearch();</script>
   </body>
 </html>

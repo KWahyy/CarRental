@@ -1,3 +1,4 @@
+import { initFleetTrip, applyTripToForm } from "./rental-search.js";
 import { fleet as websiteFleet, formatPrice } from "./fleet-data.js?v=fleet-consistency-20260715";
 import { fleetPictureMarkup, isSupabaseFleetConfigured, loadMonthlySpecialFromSupabase, optimizedFleetImageUrl, recordFleetEvent } from "./supabase-fleet.js?v=native-picture-flow-20260901";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260906";
@@ -446,6 +447,7 @@ function openAvailabilityDrawer(vehicleName, trigger) {
   availabilityForm.elements.alternatives.checked = true;
   availabilityForm.elements.date.min = localDateValue();
   availabilityForm.elements.returnDate.min = localDateValue();
+  applyTripToForm(availabilityForm);
   availabilityVehicle.querySelector("strong").textContent = vehicleName;
   availabilityStatus.dataset.tone = "";
   availabilityStatus.textContent = "No charge today. We will verify the vehicle and contact you before any booking step.";
@@ -802,3 +804,5 @@ async function initFleetPage() {
 }
 
 initFleetPage();
+
+initFleetTrip();

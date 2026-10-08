@@ -36,3 +36,7 @@
   body[data-vehicle-slug="tesla-cybertruck"] .vehicle-private-title-card { min-width: 0; }
   body[data-vehicle-slug="tesla-cybertruck"] .vehicle-private-title-card h1 { font-size: clamp(2rem, 12vw, 3.5rem); }
 }
+.rental-trip-banner { display:flex; flex-wrap:wrap; align-items:center; gap:12px 24px; padding:24px; margin: 0 0 32px; border:1px solid #ffffff30; color:#f4f1e9; background:#151513; font-size:14px; line-height:1.6; }
+.rental-trip-banner span { flex:1 1 300px; color:#bfbab0; }
+.rental-trip-banner a { color:#f4f1e9; text-underline-offset:4px; }
+.rental-trip-note { font-size:13px; line-height:1.6; margin:0 0 18px; }
