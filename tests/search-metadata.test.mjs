@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {parseHTML} from 'linkedom';
-import {applySearchMetadata,vehicleEntity,sitemapXml} from '../src/search-metadata.js';import {renderPublicDocument} from '../src/public-render.js';import handler from '../api/public-page.js';import sitemapHandler from '../api/sitemap.js';
+import {applySearchMetadata,vehicleEntity,sitemapXml} from '../src/search-metadata.js';import {renderPublicDocument} from '../src/public-render.js';import handler from '../api/public-page.js';const sitemapHandler=(req,res)=>handler({...req,query:{page:'sitemap'}},res);
 const car={slug:'new-approved-car',name:'2025 Ferrari Example',make:'Ferrari',model:'Example',category:'exotic',category_label:'Exotic',price:2100,seats:2,mileage:'100 miles/day',color:'Blue',summary:'A verified test fixture.',tags:[],details:[],car_photos:[{position:0,url:'/new-car.jpg'}]};
 const response=()=>({code:200,headers:{},status(n){this.code=n;return this;},setHeader(k,v){this.headers[k]=v;return this;},send(body){this.body=body;return this;}});
 const entities=doc=>JSON.parse(doc.querySelector('#search-entities').textContent)['@graph'];

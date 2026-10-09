@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { loadPublicInventory } from '../src/public-inventory.js';
-import { sitemapXml } from '../src/search-metadata.js';
+import { loadPublicInventory } from './public-inventory.js';
+import { sitemapXml } from './search-metadata.js';
 export default async function handler(req,res) {
  const snapshot=JSON.parse(await readFile(join(process.cwd(),'server-pages/seo-routes.json'),'utf8'));
  let fleet=snapshot.fleet;

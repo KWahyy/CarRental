@@ -836,10 +836,7 @@
   ],
   "functions": {
     "api/public-page.js": {
-      "includeFiles": "server-pages/**/*.html"
-    },
-    "api/sitemap.js": {
-      "includeFiles": "server-pages/seo-routes.json"
+      "includeFiles": "server-pages/**/*"
     }
   },
   "rewrites": [
@@ -849,7 +846,7 @@
     },
     {
       "source": "/sitemap.xml",
-      "destination": "/api/sitemap"
+      "destination": "/api/public-page?page=sitemap"
     },
     {
       "source": "/",

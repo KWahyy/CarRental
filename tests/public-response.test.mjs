@@ -32,9 +32,16 @@ test('URL trip/search state is present before JavaScript',()=>{
 test('compiled response templates cannot shadow Vercel rewrites',async()=>{
  const {existsSync}=await import('node:fs');
  const config=JSON.parse(readFileSync('vercel.json','utf8'));
- assert.equal(config.functions['api/public-page.js'].includeFiles,'server-pages/**/*.html');
+ assert.equal(config.functions['api/public-page.js'].includeFiles,'server-pages/**/*');
  for(const page of ['index','fleet','lamborghini','ferrari','quote','agreement','cars/mclaren-720s-spider-rental']){
   assert.equal(existsSync('dist/'+page+'.html'),false,'Static file shadows '+page);
   assert.equal(existsSync('server-pages/'+page+'.html'),true,'Missing private template '+page);
  }
+});
+
+test('deployment stays within the Hobby function limit and routes the live sitemap', async()=>{
+ const {readdirSync}=await import('node:fs');
+ const config=JSON.parse(readFileSync('vercel.json','utf8'));
+ assert.ok(readdirSync('api').filter(name=>/^[a-z].*\.js$/.test(name)).length<=12);
+ assert.equal(config.rewrites.find(route=>route.source==='/sitemap.xml').destination,'/api/public-page?page=sitemap');
 });

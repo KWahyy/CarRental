@@ -1,4 +1,4 @@
-import sitemapHandler from '../api/sitemap.js';
+import sitemapHandler from '../src/server-sitemap.js';
 // Local harness for the compiled static output and Vercel response handler.
 import http from 'node:http';
 import { readFile, readdir } from 'node:fs/promises';
