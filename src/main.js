@@ -797,7 +797,7 @@ function hydrateDiaText() {
   if (!diaText) return;
 
   const words = diaText.dataset.diaWords?.split(",").map((word) => word.trim()).filter(Boolean) || [];
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches || window.matchMedia("(max-width: 640px)").matches;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (words.length < 2 || reduceMotion) return;
 
   let index = 0;
