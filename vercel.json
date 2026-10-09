@@ -57,6 +57,741 @@
       "source": "/wedding-car-rental",
       "destination": "/wedding",
       "permanent": true
+    },
+    {
+      "source": "/cars/2015-lamborghini-huracan-lp-610-4",
+      "destination": "/cars/lamborghini-huracan-evo-spyder-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/2015-lamborghini-huracan-lp-610-4.html",
+      "destination": "/cars/lamborghini-huracan-evo-spyder-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/2016-ferrari-488-gtb",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/2016-ferrari-488-gtb.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/2017-audi-r8",
+      "destination": "/cars/audi-r8-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/2017-audi-r8.html",
+      "destination": "/cars/audi-r8-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/2021-bmw-m3-comp",
+      "destination": "/cars/bmw-m3-competition-xdrive-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/2021-bmw-m3-comp.html",
+      "destination": "/cars/bmw-m3-competition-xdrive-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/2022-cadillac-escalade",
+      "destination": "/cars/cadillac-escalade-esv-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/2022-cadillac-escalade.html",
+      "destination": "/cars/cadillac-escalade-esv-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/2022-lamborghini-huracan",
+      "destination": "/cars/lamborghini-huracan-evo-spyder-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/2022-lamborghini-huracan.html",
+      "destination": "/cars/lamborghini-huracan-evo-spyder-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/2022-porsche-911-carrera",
+      "destination": "/cars/porsche-911-carrera-cabriolet-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/2022-porsche-911-carrera.html",
+      "destination": "/cars/porsche-911-carrera-cabriolet-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/2024-bmw-m4-comp",
+      "destination": "/cars/bmw-m4-competition-convertible-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/2024-bmw-m4-comp.html",
+      "destination": "/cars/bmw-m4-competition-convertible-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/audi-r8-v10-spyder-white",
+      "destination": "/cars/audi-r8-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/audi-r8-v10-spyder-white.html",
+      "destination": "/cars/audi-r8-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bentley-continental",
+      "destination": "/cars/bentley-continental-gtc-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bentley-continental.html",
+      "destination": "/cars/bentley-continental-gtc-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bentley-continental-gt-convertible",
+      "destination": "/cars/bentley-continental-gtc-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bentley-continental-gt-convertible.html",
+      "destination": "/cars/bentley-continental-gtc-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bentley-continental-gtc",
+      "destination": "/cars/bentley-continental-gtc-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bentley-continental-gtc.html",
+      "destination": "/cars/bentley-continental-gtc-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bentley-continental-gtc-black",
+      "destination": "/cars/bentley-continental-gtc-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bentley-continental-gtc-black.html",
+      "destination": "/cars/bentley-continental-gtc-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bmw-m3-frozen-white",
+      "destination": "/cars/bmw-m3-competition-xdrive-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bmw-m3-frozen-white.html",
+      "destination": "/cars/bmw-m3-competition-xdrive-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bmw-m3-gloss-grey",
+      "destination": "/cars/bmw-m3-competition-xdrive-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bmw-m3-gloss-grey.html",
+      "destination": "/cars/bmw-m3-competition-xdrive-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bmw-m3-isle-man-green",
+      "destination": "/cars/bmw-m3-competition-xdrive-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bmw-m3-isle-man-green.html",
+      "destination": "/cars/bmw-m3-competition-xdrive-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bmw-m4-comp",
+      "destination": "/cars/bmw-m4-competition-convertible-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bmw-m4-comp.html",
+      "destination": "/cars/bmw-m4-competition-convertible-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bmw-m4-x-drive-blue",
+      "destination": "/cars/bmw-m4-competition-convertible-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bmw-m4-x-drive-blue.html",
+      "destination": "/cars/bmw-m4-competition-convertible-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bmw-m5-dark-grey",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bmw-m5-dark-grey.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bmw-m5-competition",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bmw-m5-competition.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bmw-m8-competition",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/bmw-m8-competition.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/cadillac-escalade-white",
+      "destination": "/cars/cadillac-escalade-esv-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/cadillac-escalade-white.html",
+      "destination": "/cars/cadillac-escalade-esv-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/cadillac-escalade-esv",
+      "destination": "/cars/cadillac-escalade-esv-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/cadillac-escalade-esv.html",
+      "destination": "/cars/cadillac-escalade-esv-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/corvette-c8-black",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/corvette-c8-black.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/corvette-c8-charcoal-grey",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/corvette-c8-charcoal-grey.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/corvette-c8-orange",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/corvette-c8-orange.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/corvette-c8-white",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/corvette-c8-white.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/corvette-c8-modded-black",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/corvette-c8-modded-black.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/corvette-c8-z06-black",
+      "destination": "/cars/chevrolet-corvette-z06-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/corvette-c8-z06-black.html",
+      "destination": "/cars/chevrolet-corvette-z06-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/corvette-c8-z06-grey",
+      "destination": "/cars/chevrolet-corvette-z06-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/corvette-c8-z06-grey.html",
+      "destination": "/cars/chevrolet-corvette-z06-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/corvette-c8-z06-navy-blue",
+      "destination": "/cars/chevrolet-corvette-z06-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/corvette-c8-z06-navy-blue.html",
+      "destination": "/cars/chevrolet-corvette-z06-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/ferrari-296-gtb",
+      "destination": "/cars/ferrari-296-gtb-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/ferrari-296-gtb.html",
+      "destination": "/cars/ferrari-296-gtb-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/ferrari-488-spider-grey",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/ferrari-488-spider-grey.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/ferrari-f8",
+      "destination": "/cars/ferrari-f8-tributo-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/ferrari-f8.html",
+      "destination": "/cars/ferrari-f8-tributo-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/ferrari-portofino",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/ferrari-portofino.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-huracan-pink",
+      "destination": "/cars/lamborghini-huracan-evo-spyder-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-huracan-pink.html",
+      "destination": "/cars/lamborghini-huracan-evo-spyder-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-huracan-evo",
+      "destination": "/cars/lamborghini-huracan-evo-spyder-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-huracan-evo.html",
+      "destination": "/cars/lamborghini-huracan-evo-spyder-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-huracan-perf",
+      "destination": "/cars/lamborghini-huracan-evo-spyder-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-huracan-perf.html",
+      "destination": "/cars/lamborghini-huracan-evo-spyder-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-huracan-spyder",
+      "destination": "/cars/lamborghini-huracan-evo-spyder-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-huracan-spyder.html",
+      "destination": "/cars/lamborghini-huracan-evo-spyder-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-huracan-spyder-white",
+      "destination": "/cars/lamborghini-huracan-evo-spyder-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-huracan-spyder-white.html",
+      "destination": "/cars/lamborghini-huracan-evo-spyder-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-urus-black",
+      "destination": "/cars/lamborghini-urus-s-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-urus-black.html",
+      "destination": "/cars/lamborghini-urus-s-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-urus-blue",
+      "destination": "/cars/lamborghini-urus-s-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-urus-blue.html",
+      "destination": "/cars/lamborghini-urus-s-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-urus-grey",
+      "destination": "/cars/lamborghini-urus-s-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-urus-grey.html",
+      "destination": "/cars/lamborghini-urus-s-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-urus-white",
+      "destination": "/cars/lamborghini-urus-s-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-urus-white.html",
+      "destination": "/cars/lamborghini-urus-s-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-urus-performante-white",
+      "destination": "/cars/lamborghini-urus-performante-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-urus-performante-white.html",
+      "destination": "/cars/lamborghini-urus-performante-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-widebody-urus-black",
+      "destination": "/cars/lamborghini-urus-s-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lamborghini-widebody-urus-black.html",
+      "destination": "/cars/lamborghini-urus-s-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/land-rover-defender",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/land-rover-defender.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/land-rover-range-rover",
+      "destination": "/cars/range-rover-p400-se-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/land-rover-range-rover.html",
+      "destination": "/cars/range-rover-p400-se-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/land-rover-sport-white",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/land-rover-sport-white.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lotus-emira",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lotus-emira.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lotus-emira-green",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/lotus-emira-green.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mclaren-570s",
+      "destination": "/cars/mclaren-570s-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mclaren-570s.html",
+      "destination": "/cars/mclaren-570s-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mclaren-720s-turquoise",
+      "destination": "/cars/mclaren-720s-spider-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mclaren-720s-turquoise.html",
+      "destination": "/cars/mclaren-720s-spider-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mclaren-artura-black",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mclaren-artura-black.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mclaren-artura-silver",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mclaren-artura-silver.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-amg-gt-63",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-amg-gt-63.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-amg-gt-r-green",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-amg-gt-r-green.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-brabus-g-wagon",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-brabus-g-wagon.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-g-wagon-black",
+      "destination": "/cars/mercedes-amg-g63-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-g-wagon-black.html",
+      "destination": "/cars/mercedes-amg-g63-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-g-wagon-blue",
+      "destination": "/cars/mercedes-amg-g63-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-g-wagon-blue.html",
+      "destination": "/cars/mercedes-amg-g63-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-g-wagon-silver",
+      "destination": "/cars/mercedes-amg-g63-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-g-wagon-silver.html",
+      "destination": "/cars/mercedes-amg-g63-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-maybach-grey",
+      "destination": "/cars/mercedes-maybach-s580-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-maybach-grey.html",
+      "destination": "/cars/mercedes-maybach-s580-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-s-class-amg-s63",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-s-class-amg-s63.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-maybach-gls-600-black",
+      "destination": "/cars/mercedes-maybach-gls-600-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-maybach-gls-600-black.html",
+      "destination": "/cars/mercedes-maybach-gls-600-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-maybach-gls-600-white-and-black",
+      "destination": "/cars/mercedes-maybach-gls-600-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-maybach-gls-600-white-and-black.html",
+      "destination": "/cars/mercedes-maybach-gls-600-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-maybach-gls-600-white",
+      "destination": "/cars/mercedes-maybach-gls-600-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/mercedes-maybach-gls-600-white.html",
+      "destination": "/cars/mercedes-maybach-gls-600-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/porsche-911-carrera-gts",
+      "destination": "/cars/porsche-911-carrera-cabriolet-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/porsche-911-carrera-gts.html",
+      "destination": "/cars/porsche-911-carrera-cabriolet-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/porsche-macan-black",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/porsche-macan-black.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/porschepanamera.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/porsche-panamera",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/porsche-panamera.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/rolls-royce-cullinan-white",
+      "destination": "/cars/rolls-royce-cullinan-black-badge-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/rolls-royce-cullinan-white.html",
+      "destination": "/cars/rolls-royce-cullinan-black-badge-rental",
+      "permanent": true
+    },
+    {
+      "source": "/cars/rolls-royce-dawn-convertible-white",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/rolls-royce-dawn-convertible-white.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/tesla-cybertruck",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/tesla-cybertruck.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/tesla-plaid-model-s",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/cars/tesla-plaid-model-s.html",
+      "destination": "/fleet",
+      "permanent": true
     }
   ]
 }
