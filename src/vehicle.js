@@ -1,9 +1,11 @@
+import { vehicleRentalInfoMarkup } from './vehicle-rental-info.js';
 import { applyTripToForm } from "./rental-search.js";
 import { vehicleShellMarkup } from "./vehicle-shell.js";
 import { fleet, formatPrice, getVehicle, isPublicRendered } from "./live-fleet.js";
 import {
   cacheSafeFleetImageUrl,
   fleetImageSources,
+  galleryPreviewPosition,
   fleetPictureMarkup,
   isSupabaseFleetConfigured,
   loadMonthlySpecialFromSupabase,
@@ -32,7 +34,6 @@ const car = vehicleFleet.find((item) => item.slug === slug) || getVehicle(slug);
 const header = document.querySelector("[data-header]");
 const menuToggle = document.querySelector("[data-menu-toggle]");
 const mobileMenu = document.querySelector("[data-mobile-menu]");
-const MAX_LISTING_PHOTOS = 3;
 const CRM_REQUESTS_KEY = "prestige-luxor-crm-requests";
 
 function escapeHtml(value) {
@@ -158,7 +159,6 @@ function vehicleSeoMarkup(vehicle) {
 
 function listingGallery(vehicle) {
   return [...new Set([...(vehicle.gallery || []), vehicle.image].filter(Boolean))]
-    .slice(0, MAX_LISTING_PHOTOS)
     .map((image) => cacheSafeFleetImageUrl(image, vehicle.updatedAt || vehicle.updated_at));
 }
 
@@ -171,7 +171,45 @@ function renderGallery(gallery) {
   const galleryCount = document.querySelector("[data-gallery-count]");
   const galleryDots = document.querySelector("[data-gallery-dots]");
   const galleryStage = mainImage?.closest(".vehicle-gallery-stage");
+  const dialog = document.querySelector('[data-gallery-dialog]');
+  const dialogImage = dialog?.querySelector('[data-lightbox-image]');
+  const openButton = document.querySelector('[data-gallery-open]');
+  const photoTotal = document.querySelector('[data-gallery-total]');
+  if (photoTotal) photoTotal.textContent = `${gallery.length} photos`;
+  let restoreFocus = null;
+  let previousOverflow = '';
   let activeIndex = 0;
+  function updateDialog() {
+    if (!dialog?.open) return;
+    const url = gallery[activeIndex];
+    dialogImage.src = fleetImageSources(url, {width:1600,height:1100,quality:85,updatedAt:car.updatedAt}).optimized;
+    dialogImage.alt = `${car.name} — photo ${activeIndex + 1} of ${gallery.length}`;
+    dialog.querySelector('[data-lightbox-count]').textContent = `${activeIndex + 1} / ${gallery.length}`;
+    dialog.querySelector('[data-lightbox-original]').href = url;
+  }
+  openButton?.addEventListener('click', () => {
+    restoreFocus = document.activeElement;
+    previousOverflow = document.body.style.overflow;
+    dialog.querySelector('h2').textContent = car.name;
+    dialog.showModal();
+    document.body.style.overflow = 'hidden';
+    updateDialog();
+  });
+  dialog?.querySelector('[data-gallery-close]').addEventListener('click', () => dialog.close());
+  dialog?.addEventListener('close', () => {document.body.style.overflow = previousOverflow;restoreFocus?.focus({preventScroll:true});});
+  dialog?.addEventListener('click', event => {if(event.target === dialog) dialog.close();});
+  dialog?.addEventListener('keydown', event => {
+    if(event.key === 'ArrowRight' || event.key === 'ArrowLeft') {event.preventDefault();setActiveImage(activeIndex + (event.key === 'ArrowRight' ? 1 : -1));}
+  });
+  dialog?.querySelector('[data-lightbox-prev]').addEventListener('click', () => setActiveImage(activeIndex - 1));
+  dialog?.querySelector('[data-lightbox-next]').addEventListener('click', () => setActiveImage(activeIndex + 1));
+  dialog?.querySelectorAll('[data-lightbox-prev],[data-lightbox-next]').forEach(button => button.hidden = gallery.length < 2);
+  let dialogTouch = null;
+  dialogImage?.addEventListener('touchstart', event => {const t=event.touches[0];dialogTouch={x:t.clientX,y:t.clientY};}, {passive:true});
+  dialogImage?.addEventListener('touchend', event => {
+    if(!dialogTouch)return;const t=event.changedTouches[0],dx=t.clientX-dialogTouch.x,dy=t.clientY-dialogTouch.y;dialogTouch=null;
+    if(Math.abs(dx)>44 && Math.abs(dx)>Math.abs(dy))setActiveImage(activeIndex+(dx<0?1:-1));
+  }, {passive:true});
   let pointerStartX = 0;
   let pointerStartY = 0;
   let pointerOffsetX = 0;
@@ -182,6 +220,9 @@ function renderGallery(gallery) {
     if (!gallery.length || !mainImage) return;
     activeIndex = (index + gallery.length) % gallery.length;
     const originalImage = gallery[activeIndex];
+    const previewPosition = galleryPreviewPosition(originalImage);
+    mainImage.dataset.galleryCrop = String(Boolean(previewPosition));
+    mainImage.style.objectPosition = previewPosition || '50% 50%';
     const { optimized, fallback } = fleetImageSources(originalImage, { width: 1200, height: 825, quality: 82, updatedAt: car.updatedAt || car.updated_at });
     const displaySource = optimized;
     if (mainSource) {
@@ -191,12 +232,18 @@ function renderGallery(gallery) {
     }
     mainImage.src = fallback;
     mainImage.alt = `${car.name} photo ${activeIndex + 1}`;
+    updateDialog();
     if (galleryCount) galleryCount.textContent = `${activeIndex + 1} / ${gallery.length}`;
-    galleryDots?.querySelectorAll("span").forEach((dot, dotIndex) => {
+    galleryDots?.querySelectorAll("button").forEach((dot, dotIndex) => {
       dot.classList.toggle("active", dotIndex === activeIndex);
+      dot.setAttribute("aria-pressed", String(dotIndex === activeIndex));
+      if(dotIndex === activeIndex) galleryDots.scrollTo({left:dot.offsetLeft - galleryDots.offsetLeft - (galleryDots.clientWidth-dot.clientWidth)/2,behavior:"auto"});
     });
     document.querySelectorAll("[data-gallery-image]").forEach((button) => {
-      button.classList.toggle("active", Number(button.dataset.galleryIndex) === activeIndex);
+      const active = Number(button.dataset.galleryIndex) === activeIndex;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+      if (active && galleryThumbs) galleryThumbs.scrollTo({left:button.offsetLeft - galleryThumbs.offsetLeft - (galleryThumbs.clientWidth - button.clientWidth) / 2, behavior:"auto"});
     });
   }
 
@@ -209,15 +256,17 @@ function renderGallery(gallery) {
     galleryThumbs.innerHTML = gallery
       .map(
         (image, index) => `
-          <button class="vehicle-side-thumb ${index === 0 ? "active" : ""}" type="button" data-gallery-image="${image}" data-gallery-index="${index}" aria-label="Show photo ${index + 1} of ${car.name}">
+          <button class="vehicle-side-thumb ${index === 0 ? "active" : ""}" type="button" data-gallery-image="${image}" data-gallery-index="${index}" aria-pressed="${index === 0}" aria-label="Show photo ${index + 1} of ${car.name}">
             ${fleetPictureMarkup(image, { alt: "", width: 360, height: 240, quality: 78, updatedAt: car.updatedAt || car.updated_at, loading: "lazy" })}
           </button>
         `,
       )
       .join("");
   }
-  if (galleryDots && !isPublicRendered) galleryDots.innerHTML = gallery.map((_, index) => `<span class="${index === 0 ? "active" : ""}"></span>`).join("");
+  if (galleryDots && !isPublicRendered) galleryDots.innerHTML = gallery.map((_, index) => `<button type="button" class="${index === 0 ? "active" : ""}" data-gallery-dot="${index}" aria-label="Show photo ${index + 1}" aria-pressed="${index === 0}"></button>`).join("");
 
+
+  galleryDots?.querySelectorAll("[data-gallery-dot]").forEach(button => button.addEventListener("click", () => setActiveImage(Number(button.dataset.galleryDot))));
 
   document.querySelectorAll("[data-gallery-image]").forEach((button) => {
     button.addEventListener("click", () => setActiveImage(Number(button.dataset.galleryIndex)));
@@ -294,6 +343,13 @@ function bindVehicleRequestForm() {
   const dateFields = [pickup, returnDate, form.elements.deliveryLocation].filter(Boolean);
   pickup.min = localDateTimeValue();
   applyTripToForm(form);
+  [pickup, returnDate].filter(Boolean).forEach(field => {
+    const syncDatePlaceholder = () => field.toggleAttribute("data-has-value", Boolean(field.value));
+    field.addEventListener("input", syncDatePlaceholder);
+    field.addEventListener("change", syncDatePlaceholder);
+    form.addEventListener("reset", () => window.setTimeout(syncDatePlaceholder, 0));
+    syncDatePlaceholder();
+  });
   const syncReturnDate = () => {
     if (!returnDate) return;
     returnDate.min = pickup.value || pickup.min;
@@ -423,6 +479,9 @@ function renderVehicle() {
 
   const gallery = listingGallery(car);
   renderGallery(gallery);
+
+  const rentalInfo = document.querySelector("[data-vehicle-rental-info]");
+  if (rentalInfo) rentalInfo.innerHTML = vehicleRentalInfoMarkup(car);
 
   const rates = car.tags.map((tag) => rateFromTag(tag, car.price)).filter(Boolean);
   const featureTags = publicVehicleDetails(car).slice(0, 4);

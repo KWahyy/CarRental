@@ -84,3 +84,152 @@
 .hero-calendar button:disabled { color:#68665f; cursor:default; }
 .hero-calendar-hint { margin:12px 0 0; padding-top:10px; border-top:1px solid #ffffff15; color:#aaa59b; font-size:11px; line-height:1.5; }
 @media(prefers-reduced-motion:reduce) { .hero-calendar,.hero-calendar button { transition:none; } }
+
+/* A quieter editorial introduction with a single, cohesive reservation bar. */
+.home-page .cinematic-home-hero .hero-content {
+  width: min(1080px, calc(100% - 112px));
+  padding-bottom: clamp(64px, 9vh, 104px);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+.home-page .cinematic-home-hero .hero-private-label {
+  margin-bottom: 22px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .19em;
+  color: #d5c39b;
+}
+.home-page .cinematic-home-hero h1#home-hero-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 4.7vw, 68px);
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -.035em;
+  word-spacing: normal;
+  text-transform: none;
+  color: #f3f0e8;
+}
+.home-page .cinematic-home-hero h1 em { color: #d8c7a1; }
+.home-page .cinematic-home-hero .hero-copy {
+  max-width: 520px;
+  margin: 20px 0 28px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.8;
+  color: #cbc8bf;
+}
+.home-page .hero-rental-search {
+  width: min(100%, 940px);
+  padding: 10px;
+  border-color: #d8c7a138;
+  border-radius: 6px;
+  background: #151513e8;
+  box-shadow: 0 12px 40px #0002;
+}
+.home-page .hero-rental-search label,
+.home-page .hero-rental-search .hero-search-city { gap: 8px; padding: 6px 18px; border-color: #ffffff16; }
+.home-page .hero-rental-search label > span,
+.home-page .hero-rental-search .hero-search-city > span { color: #b9b2a3; font-size: 10px; font-weight: 400; letter-spacing: .12em; }
+.home-page .hero-city-trigger,
+.home-page .hero-date-trigger { font-family: "Helvetica Neue",Helvetica,Arial,sans-serif; font-size: 15px; font-weight: 400; min-height: 32px; }
+.home-page .hero-date-trigger { color: #c7c2b7; }
+.home-page .hero-date-trigger.has-date { color: #f4f1e9; }
+.home-page .hero-rental-search > button {
+  min-height: 58px;
+  padding-inline: 22px 18px;
+  border: 0;
+  border-radius: 3px;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  background: #eee8db;
+  box-shadow: none;
+}
+.home-page .hero-rental-search > button span { border-color: #18181520; }
+.home-page .cinematic-home-hero .hero-search-note { margin-top: 18px; color: #aaa69c; font-size: 11px; font-weight: 400; line-height: 1.8; }
+.home-page .hero-search-note a { margin-left: 12px; font-weight: 400; color: #d9ceba; }
+@media (max-width: 1000px) and (min-width: 801px) {
+  .home-page .hero-rental-search label,
+  .home-page .hero-rental-search .hero-search-city { padding-inline: 12px; }
+  .home-page .hero-rental-search > button { padding-inline: 16px; gap: 12px; font-size: 12px; }
+}
+/* Mobile: keep the film behind the editorial headline, then stack the booking controls. */
+@media (max-width: 800px) {
+  .home-page .cinematic-home-hero { min-height: 100svh; }
+  .home-page .cinematic-home-hero .hero-content {
+    width: min(560px, calc(100% - 40px));
+    padding: clamp(230px, 32svh, 320px) 0 32px;
+  }
+  .home-page .cinematic-home-hero .hero-scrim {
+    background: linear-gradient(180deg, #0008 0%, #0001 18%, #05050570 30%, #050505e8 53%, #050505 78%);
+  }
+  .home-page .cinematic-home-hero h1#home-hero-title {
+    font-size: clamp(34px, 9.7vw, 54px);
+    line-height: 1.08;
+    letter-spacing: -.035em;
+  }
+  .home-page .cinematic-home-hero .hero-private-label {
+    max-width: none;
+    margin-bottom: 14px;
+    font-size: 9px;
+    line-height: 1.6;
+    letter-spacing: .16em;
+  }
+  .home-page .cinematic-home-hero .hero-copy {
+    max-width: 40ch;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 16px 0 22px;
+  }
+  .home-page .hero-rental-search {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    padding: 0;
+    border-radius: 8px;
+    background: #191917eb;
+    border-color: #d8c7a140;
+    box-shadow: none;
+  }
+  .home-page .hero-rental-search label,
+  .home-page .hero-rental-search .hero-search-city {
+    gap: 2px;
+    padding: 12px 16px 8px;
+  }
+  .home-page .hero-rental-search .hero-search-city {
+    margin: 0;
+    border-bottom: 1px solid #ffffff20;
+  }
+  .home-page .hero-city-trigger,
+  .home-page .hero-date-trigger,
+  .home-page .hero-rental-search input,
+  .home-page .hero-rental-search select { min-height: 44px; font-size: 15px; }
+  .home-page .hero-city-options { width: 100%; }
+  .home-page .hero-calendar-icon { flex-basis: 14px; width: 14px; height: 14px; }
+  .home-page .hero-rental-search > button {
+    min-height: 52px;
+    margin: 4px 10px 10px;
+    padding-inline: 18px;
+    border-radius: 4px;
+    font-size: 15px;
+    background: #f2ede2;
+  }
+  .home-page .cinematic-home-hero .hero-search-note {
+    max-width: none;
+    margin: 14px 0 0;
+    font-size: 11px;
+    line-height: 1.65;
+  }
+  .home-page .hero-search-note a {
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 44px;
+    margin: 6px 0 0;
+    color: #d8c7a1;
+    font-size: 12px;
+    text-decoration: underline;
+    text-underline-offset: 5px;
+  }
+}
+
+.home-page .cinematic-home-hero .hero-copy strong { color: #f3f0e8; font-weight: 600; }

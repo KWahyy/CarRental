@@ -1,0 +1,25 @@
+body .content-experience-promo { width: 100%; margin-inline: 0; height: clamp(520px,38vw,640px); min-height: 520px; }
+body .content-wedding-copy { left: max(32px,calc((100vw - 1440px)/2 + 48px)); width: min(44%,620px); top: 43%; justify-items: start; text-align: left; text-shadow: none; pointer-events: auto; }
+body .content-wedding-kicker { display: flex; justify-content: flex-start; width: 100%; gap: 15px; }
+body .content-wedding-kicker span { flex: 0 0 34px; background: #8b7049; }
+body .content-wedding-kicker span:last-child { display: none; }
+body .content-wedding-kicker p { font: 600 10px/1.5 Arial,sans-serif; color: #594b38; letter-spacing: .2em; white-space: normal; }
+body .content-wedding-copy h2 { font: 400 clamp(40px,4vw,66px)/1.06 Georgia,serif; letter-spacing: -.04em; text-transform: none; margin: 25px 0 30px; color: #211f1b; }
+body .content-wedding-copy h2 span { white-space: normal; }
+body .content-wedding-copy h2 span:last-child { color: #80633b; font-style: italic; }
+.wedding-enquiry { display: inline-flex; align-items: center; gap: 26px; padding: 16px 21px; min-height: 52px; border: 1px solid #27251f; border-radius: 3px; background: #211f1b; color: #fffdf7; text-decoration: none; font: 500 12px/1.4 Arial,sans-serif; }
+.wedding-enquiry span { font-size: 20px; }
+.wedding-enquiry:hover { background: #40372a; }
+.wedding-enquiry:focus-visible { outline: 2px solid #80633b; outline-offset: 5px; }
+@media(max-width:900px) { body .content-wedding-copy { left: 28px; width: 48%; } body .content-wedding-copy h2 { font-size: 42px; } }
+@media(max-width:640px) {
+ body .content-experience-promo { height: 680px; min-height: 0; }
+ body .content-wedding-copy { top: 40px; left: 24px; width: calc(100% - 48px); transform: none; }
+ body .content-wedding-copy h2 { font-size: clamp(35px,9vw,44px); margin: 21px 0 24px; }
+ body .content-wedding-kicker { gap: 10px; }
+ body .content-wedding-kicker p { font-size: 9px; letter-spacing: .16em; }
+ body .content-wedding-kicker span { flex-basis: 24px; }
+ body .content-experience-promo::after { background: linear-gradient(180deg,#fffaf3 0%,#fffaf3f5 31%,#fffaf36b 46%,transparent 62%); }
+ body .content-experience-bg { object-position: 65% bottom; }
+}
+@media(prefers-reduced-motion:reduce) { .wedding-enquiry { transition: none; } }

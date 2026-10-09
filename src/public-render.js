@@ -1,7 +1,10 @@
+import { applySearchMetadata } from './search-metadata.js';
+import { brandFor, sortBrands } from './vehicle-brands.js';
+import { vehicleRentalInfoMarkup } from './vehicle-rental-info.js';
 import {readTripSearch,tripSearchParams,tripSummary} from './rental-search.js';
 import { parseHTML } from 'linkedom';
-import { homeFleetCard, sortHomeFleet, fleetCategory } from './home-fleet-model.js';
-import { fleetPictureMarkup, fleetImageSources, optimizedFleetImageUrl, mapCar } from './supabase-fleet.js';
+import { homeFleetCard, sortHomeFleet, fleetCategory, homeFleetFilterMarkup } from './home-fleet-model.js';
+import { fleetPictureMarkup, fleetImageSources, optimizedFleetImageUrl, mapCar, galleryPreviewPosition } from './supabase-fleet.js';
 import { vehicleShellMarkup } from './vehicle-shell.js';
 import { vehicleSeoTitle, vehicleSeoDescription, vehicleYear, vehicleDisplayName, publicVehicleDetails, publicVehicleSummary, vehicleSeoSectionMarkup, seatsForVehicle, engineForVehicle, accelerationForVehicle, bodyTypeForVehicle } from './vehicle-content.js';
 export const escapeHtml = value => String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
@@ -26,28 +29,7 @@ if(hero) {
  });
 }
 
-function brandFor(car) {
-  const source = `${car.make || ""} ${car.name || ""}`.toLowerCase();
-  const brands = [
-    ["Rolls-Royce", /rolls[ -]?royce|cullinan|\bdawn\b/],
-    ["Mercedes-Benz", /mercedes|maybach|\bamg\b|g[ -]?wagon/],
-    ["Land Rover", /land rover|range rover|defender/],
-    ["Chevrolet", /chevrolet|chevy|corvette|\bc8\b/],
-    ["Lamborghini", /lamborghini/],
-    ["McLaren", /mclaren/],
-    ["Cadillac", /cadillac|escalade/],
-    ["Porsche", /porsche/],
-    ["Ferrari", /ferrari/],
-    ["Bentley", /bentley|continental/],
-    ["Tesla", /tesla/],
-    ["Lotus", /lotus|emira/],
-    ["Ford", /\bford\b|f-?150|raptor/],
-    ["Audi", /\baudi\b/],
-    ["BMW", /\bbmw\b/],
-  ];
 
-  return brands.find(([, pattern]) => pattern.test(source))?.[0] || "Other";
-}
 
 function brandMark(brand) {
   const logos = {
@@ -83,7 +65,7 @@ function brandMark(brand) {
     return `<img class="brand-logo-mark brand-logo-monochrome" src="${monochromeLogos[brand]}" alt="" width="160" height="96" />`;
   }
 
-  if (!logos[brand]) return `<span class="brand-logo-text">${brand}</span>`;
+  if (!logos[brand]) return `<span class="brand-logo-text">${escapeHtml(brand)}</span>`;
 
   return `<img class="brand-logo-mark" src="${logos[brand]}" alt="" width="104" height="104" />`;
 }
@@ -191,7 +173,7 @@ function cleanFeature(car) {
 
 const brandGrid=document.querySelector("[data-brand-grid]"),brandDots=document.querySelector("[data-brand-dots]"),typeGrid=document.querySelector("[data-type-grid]");
 function renderShopBrowsers() {
-  const brands = [...new Set(fleet.map(brandFor))].sort((a, b) => a.localeCompare(b));
+  const brands = sortBrands(fleet.map(brandFor));
   const availableTypes = new Set(fleet.map(bodyTypeFor));
   const types = ["SUV", "Convertible", "Coupe", "Sedan", "Truck"].filter((type) => availableTypes.has(type));
   types.push("All");
@@ -200,9 +182,9 @@ function renderShopBrowsers() {
     .map((brand) => {
       const count = fleet.filter((car) => brandFor(car) === brand).length;
       return `
-        <button class="shop-tile brand-tile" type="button" data-shop-filter="brand:${brand}">
+        <button class="shop-tile brand-tile" type="button" data-shop-filter="brand:${escapeHtml(brand)}">
           ${brandMark(brand)}
-          <span class="brand-name">${brand}</span>
+          <span class="brand-name">${escapeHtml(brand)}</span>
           <strong>${count} ${count === 1 ? "car" : "cars"}</strong>
         </button>
       `;
@@ -211,7 +193,7 @@ function renderShopBrowsers() {
 
   brandDots.innerHTML = brands.map((_, index) => `<span class="${index === 0 ? "active" : ""}"></span>`).join("");
 
-  typeGrid.innerHTML = types
+  if (typeGrid) typeGrid.innerHTML = types
     .map((type) => {
       const value = type === "All" ? "all" : `type:${type}`;
       const count = type === "All" ? fleet.length : fleet.filter((car) => bodyTypeFor(car) === type).length;
@@ -225,10 +207,10 @@ function renderShopBrowsers() {
     .join("");
 }
 
-if(brandGrid && brandDots && typeGrid) renderShopBrowsers();
+if(brandGrid && brandDots) renderShopBrowsers();
 const cars=sortHomeFleet(fleet);
 put(document,'[data-home-fleet-grid]',cars.slice(0,9).map(car=>homeFleetCard(car,fleetPictureMarkup(car.image,{alt:car.name,width:600,height:400,quality:78,updatedAt:car.updatedAt,loading:'lazy'}))).join(''));
-put(document,'[data-home-fleet-categories]',['All','Exotic','Luxury','SUV','Classic','Truck'].filter(category=>category==='All'||cars.some(c=>fleetCategory(c)===category)).map(category=>`<button type="button" data-category="${category}" aria-pressed="${category==='All'}">${category}</button>`).join(''));
+put(document,'[data-home-fleet-categories]',homeFleetFilterMarkup(cars));
 text(document,'[data-home-fleet-count]',`${cars.length} ${cars.length===1?'car':'cars'}${cars.length>9?' · Showing 9':''}`);
 const more=document.querySelector('[data-home-fleet-more]');if(more)more.hidden=cars.length<=9;
 const empty=document.querySelector('[data-home-fleet-empty]');if(empty)empty.hidden=cars.length>0;
@@ -246,9 +228,7 @@ function vehicleSlug(car) {
   return car.slug || slugify(car.name);
 }
 
-function brandFor(car) {
-  return car.make || car.name.split(" ")[1] || "Other";
-}
+
 
 const BRAND_LOGOS = {
   Audi: "/assets/brand-logos/audi.svg",
@@ -320,7 +300,7 @@ function mediaBackgroundStyle(car) {
 function renderFilterButtons() {
   const typeOrder = ["Coupe", "Convertible", "SUV", "Sedan", "Truck"];
   const types = typeOrder.filter((type) => cars.some((car) => bodyTypeFor(car) === type));
-  const brands = [...new Set(cars.map(brandFor))].sort((a, b) => a.localeCompare(b));
+  const brands = sortBrands(cars.map(brandFor));
 
   typeFilters.innerHTML = [
     { value: "all", label: "All" },
@@ -440,20 +420,22 @@ function renderVehicle(document,car,vehicleFleet,special,month) {
 const page=document.querySelector('[data-vehicle-page]'); if(!page||!car)return;
 page.innerHTML=vehicleShellMarkup(vehicleSeoSectionMarkup(car,{formatPrice,escapeHtml}));
 const title=vehicleDisplayName(car);
+put(document,'[data-vehicle-rental-info]',vehicleRentalInfoMarkup(car));
 const facts={year:vehicleYear(car),title,category:car.categoryLabel,price:formatPrice(car.price)+'/day',summary:publicVehicleSummary(car),mileage:car.mileage,'mileage-short':String(car.mileage||'').match(/\d+/)?.[0]||'Confirm',color:car.color||'Confirm exterior',make:car.make,model:car.model,engine:engineForVehicle(car),seats:seatsForVehicle(car),acceleration:accelerationForVehicle(car),type:bodyTypeForVehicle(car)};
 for(const [key,value] of Object.entries(facts))text(document,`[data-vehicle-${key}]`,value||'');
 document.title=vehicleSeoTitle(car);
 const description=document.querySelector('meta[name="description"]');if(description)description.setAttribute('content',vehicleSeoDescription(car,formatPrice));
 const h=document.querySelector('[data-vehicle-title]');h.classList.toggle('vehicle-title-long',title.length>18);h.classList.toggle('vehicle-title-extra-long',title.length>28);
-const gallery=[...new Set([...(car.gallery||[]),car.image].filter(Boolean))].slice(0,3);
+const gallery=[...new Set([...(car.gallery||[]),car.image].filter(Boolean))];
 const src=fleetImageSources(gallery[0],{width:1200,height:825,quality:82,updatedAt:car.updatedAt});
 document.querySelectorAll('link[rel="preload"][as="image"]').forEach(link=>{link.setAttribute('href',src.optimized);link.removeAttribute('imagesrcset');link.removeAttribute('imagesizes');link.removeAttribute('type');});
 const discounted=(special?.car_slugs||[]).slice(0,2).includes(car.slug);
-document.querySelectorAll('script[type="application/ld+json"]').forEach(script=>{try{const data=JSON.parse(script.textContent);for(const entity of data['@graph']||[]){if(entity.offers && entity.url?.endsWith('/cars/'+car.slug)){entity.name=car.name;entity.image=src.fallback;entity.offers.price=discounted?Math.round(car.price*.9):car.price;if(entity.offers.priceSpecification)entity.offers.priceSpecification.price=entity.offers.price;}}script.textContent=JSON.stringify(data).replaceAll('<','\\u003c');}catch{}});
+applySearchMetadata(document,{car,price:discounted?Math.round(car.price*.9):car.price});
 const source=document.querySelector('[data-gallery-source]');source.setAttribute('srcset',src.optimized);if(/\.webp(?:\?|$)/i.test(src.optimized))source.setAttribute('type','image/webp');
 const image=document.querySelector('[data-gallery-main]');image.setAttribute('draggable','false');image.setAttribute('src',src.fallback);image.setAttribute('alt',car.name+' photo 1');
-put(document,'[data-gallery-thumbs]',gallery.map((url,i)=>`<button class="vehicle-side-thumb ${i===0?'active':''}" type="button" data-gallery-image="${escapeHtml(url)}" data-gallery-index="${i}" aria-label="Show photo ${i+1} of ${escapeHtml(car.name)}">${fleetPictureMarkup(url,{alt:'',width:360,height:240,quality:78,updatedAt:car.updatedAt,loading:'lazy'})}</button>`).join(''));
-text(document,'[data-gallery-count]',`1 / ${gallery.length}`);put(document,'[data-gallery-dots]',gallery.map((_,i)=>`<span class="${i===0?'active':''}"></span>`).join(''));
+const previewPosition=galleryPreviewPosition(gallery[0]);image.setAttribute('data-gallery-crop',String(Boolean(previewPosition)));image.style.objectPosition=previewPosition||'50% 50%';
+put(document,'[data-gallery-thumbs]',gallery.map((url,i)=>`<button class="vehicle-side-thumb ${i===0?'active':''}" type="button" data-gallery-image="${escapeHtml(url)}" data-gallery-index="${i}" aria-pressed="${i===0}" aria-label="Show photo ${i+1} of ${escapeHtml(car.name)}">${fleetPictureMarkup(url,{alt:'',width:360,height:240,quality:78,updatedAt:car.updatedAt,loading:'lazy'})}</button>`).join(''));
+text(document,'[data-gallery-total]',`${gallery.length} photos`);text(document,'[data-gallery-count]',`1 / ${gallery.length}`);put(document,'[data-gallery-dots]',gallery.map((_,i)=>`<button type="button" class="${i===0?'active':''}" data-gallery-dot="${i}" aria-label="Show photo ${i+1}" aria-pressed="${i===0}"></button>`).join(''));
 document.querySelectorAll('[data-gallery-prev],[data-gallery-next]').forEach(button=>button.hidden=gallery.length<2);
 const field=document.querySelector('[name="vehicle"]');if(field)field.setAttribute('value',car.name);
 function rateFromTag(tag, basePrice) {
@@ -539,8 +521,23 @@ if((special?.car_slugs||[]).slice(0,2).includes(car.slug)){
  document.querySelectorAll('[data-vehicle-price]').forEach(price=>{price.classList.add('vehicle-special-price');price.setAttribute('aria-label',`${label} special: 10% off, ${formatPrice(Math.round(car.price*.9))} per day, regularly ${formatPrice(car.price)} per day`);price.innerHTML=`<span class="vehicle-special-label">${label} special · 10% off</span><span class="vehicle-special-values" aria-hidden="true"><del>${formatPrice(car.price)}</del><b>${formatPrice(Math.round(car.price*.9))}</b><small>/day</small></span>`;});
  }
 }
+// Wedding cards use the same active inventory and CRM cover photos as the fleet.
+function renderWedding(document, fleet) {
+ const grid=document.querySelector('.wedding-fleet-lookbook');
+ if(!grid)return;
+ const preferred=['rolls-royce-cullinan-black-badge-rental','ferrari-roma-rental','ferrari-f8-tributo-rental','lamborghini-huracan-evo-spyder-rental','mercedes-maybach-gls-600-tan-rental','bentley-continental-gtc-rental'];
+ const available=fleet.filter(car=>car.image);
+ const selected=preferred.map(slug=>available.find(car=>car.slug===slug)).filter(Boolean);
+ for(const car of available)if(selected.length<6&&!selected.some(item=>item.slug===car.slug))selected.push(car);
+ grid.innerHTML=selected.map((car,index)=>{
+  const modifier=index===0?' wedding-fleet-car--hero':index===1?' wedding-fleet-car--portrait':index>=4?' wedding-fleet-car--wide':'';
+  return `<a class="wedding-fleet-car${modifier} reveal" href="/cars/${escapeHtml(car.slug)}"><figure>${fleetPictureMarkup(car.image,{alt:car.name,width:1200,height:800,quality:85,updatedAt:car.updatedAt,pictureClass:'native-picture'})}</figure><div class="wedding-fleet-car-copy"><span>${String(index+1).padStart(2,'0')} / ${escapeHtml(car.make)}</span><h3>${escapeHtml(car.model||car.name)}</h3><em>View vehicle</em></div></a>`;
+ }).join('');
+ text(document,'#wedding-fleet-title',selected.length===6?'Six ways to make an entrance.':'Choose your arrival.');
+}
 export function renderPublicDocument(html, rows, {special=null,month=new Date().toISOString().slice(0,7),path='/',search=''}={}) {
  const fleet=normalizePublicFleet(rows),{document}=parseHTML(html),params=new URLSearchParams(search),trip=readTripSearch(search);
+ renderWedding(document,fleet);
  if(document.body.classList.contains('home-page'))renderHome(document,fleet,special,month);
  if(document.body.classList.contains('fleet-page'))renderFleet(document,fleet,params.get('search')?.trim()||'');
  if(document.body.classList.contains('lamborghini-page'))renderMarque(document,fleet);
@@ -572,6 +569,7 @@ export function renderPublicDocument(html, rows, {special=null,month=new Date().
     const input=form.querySelector(`[name="${name}"]`);if(!input||!value)continue;
     if(input.getAttribute('type')==='datetime-local'){input.setAttribute('type','date');const label=input.closest('label')?.querySelector('span');if(label?.firstChild)label.firstChild.textContent=name==='date'?'Pickup date':'Return date ';}
     input.setAttribute('value',value);
+    if(input.closest('.vehicle-date-control'))input.setAttribute('data-has-value','');
    }
    form.querySelector('.rental-trip-note')?.remove();form.insertAdjacentHTML('afterbegin',`<p class="rental-trip-note">${escapeHtml(summary)}. Confirm exact handoff times with your concierge.</p>`);
   });

@@ -26,22 +26,35 @@ export function vehicleShellMarkup(seoMarkup = "") {
           <a href="#vehicle-request">Request this vehicle <span aria-hidden="true">↘</span></a>
         </div>
         <div class="vehicle-gallery-stage">
+          <div class="vehicle-gallery-frame">
           <button class="vehicle-gallery-nav vehicle-gallery-nav-prev" type="button" aria-label="Previous photo" data-gallery-prev><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></button>
           <picture data-gallery-picture><source data-gallery-source /><img data-gallery-main alt="" width="1600" height="1100" fetchpriority="high" decoding="async" /></picture>
           <button class="vehicle-gallery-nav vehicle-gallery-nav-next" type="button" aria-label="Next photo" data-gallery-next><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
-          <div class="vehicle-mobile-gallery-status" aria-live="polite">
-            <span data-gallery-count>1 / 1</span>
-            <div data-gallery-dots aria-hidden="true"></div>
+          </div>
+          <div class="vehicle-mobile-gallery-status">
+            <span data-gallery-count aria-live="polite">1 / 1</span>
+            <div data-gallery-dots aria-label="Choose vehicle photo"></div>
+          <button class="vehicle-gallery-open" type="button" data-gallery-open aria-haspopup="dialog">View all photos <span aria-hidden="true">↗</span></button>
           </div>
         </div>
       </section>
 
-      <div class="vehicle-private-photo-grid" data-gallery-thumbs aria-label="Vehicle gallery"></div>
+      <div class="vehicle-gallery-strip">
+        <div class="vehicle-gallery-caption"><span>Explore every angle</span><span data-gallery-total></span></div>
+        <div class="vehicle-private-photo-grid" data-gallery-thumbs aria-label="Vehicle photos"></div>
+      </div>
+      <dialog class="vehicle-photo-dialog" data-gallery-dialog aria-labelledby="vehicle-photo-dialog-title">
+        <div class="vehicle-photo-dialog-header"><h2 id="vehicle-photo-dialog-title">Vehicle gallery</h2><button type="button" data-gallery-close aria-label="Close gallery" autofocus>Close <span aria-hidden="true">×</span></button></div>
+        <div class="vehicle-photo-dialog-stage"><button type="button" data-lightbox-prev aria-label="Previous full-screen photo">←</button><img data-lightbox-image alt="" width="1600" height="1100" decoding="async" draggable="false" /><button type="button" data-lightbox-next aria-label="Next full-screen photo">→</button></div>
+        <div class="vehicle-photo-dialog-footer"><p data-lightbox-count role="status"></p><a data-lightbox-original target="_blank" rel="noopener">Open original ↗</a></div>
+      </dialog>
+
+      <section class="vehicle-rental-information" data-vehicle-rental-info aria-label="Rental information and terms"></section>
 
       <section class="vehicle-private-information" aria-label="Vehicle information and request">
         <article class="vehicle-private-overview">
           <p class="eyebrow">Overview</p>
-          <h2>Made for the moment.</h2>
+          <h2>About this vehicle.</h2>
           <p class="vehicle-private-summary" data-vehicle-summary></p>
           <div class="vehicle-private-specs" aria-label="Vehicle specifications">
             <div><span>Engine</span><strong data-vehicle-engine></strong></div>
@@ -57,11 +70,6 @@ export function vehicleShellMarkup(seoMarkup = "") {
             <ul data-vehicle-details></ul>
           </div>
 
-          <div class="vehicle-private-rates">
-            <p class="eyebrow">Rate guidance</p>
-            <div data-vehicle-tags></div>
-            <p>Multi-day savings are calculated from the displayed daily rate. Additional mileage, delivery, and add-ons are confirmed by your concierge before approval.</p>
-          </div>
         </article>
 
         <aside id="vehicle-request" class="vehicle-private-request">
@@ -73,8 +81,8 @@ export function vehicleShellMarkup(seoMarkup = "") {
             <input name="vehicle" type="hidden" />
             <div class="vehicle-request-step vehicle-request-step-dates" data-request-step="dates">
               <div class="vehicle-request-dates">
-                <label><span>Pickup date &amp; time</span><input name="date" type="datetime-local" required /></label>
-                <label><span>Return date &amp; time <small>Optional</small></span><input name="returnDate" type="datetime-local" /></label>
+                <label><span>Pickup date &amp; time</span><div class="vehicle-date-control"><input name="date" type="datetime-local" required /><span class="vehicle-date-placeholder" aria-hidden="true">Select date</span></div></label>
+                <label><span>Return date &amp; time <small>Optional</small></span><div class="vehicle-date-control"><input name="returnDate" type="datetime-local" /><span class="vehicle-date-placeholder" aria-hidden="true">Select date</span></div></label>
               </div>
               <label><span>Delivery city or ZIP</span><input name="deliveryLocation" type="text" autocomplete="postal-code" placeholder="City or ZIP code" required /></label>
               <button class="vehicle-request-continue" type="button" data-request-continue>Check availability <span aria-hidden="true">→</span></button>

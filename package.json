@@ -10,7 +10,9 @@
     "test:seo": "node scripts/check-seo.mjs",
     "test:render": "node scripts/test-render-stability.mjs",
     "test:booking": "node scripts/test-booking-rendering.mjs",
-    "test:scenes": "node scripts/test-render-scenes.mjs"
+    "test:scenes": "node scripts/test-render-scenes.mjs",
+    "test:gallery": "node scripts/test-vehicle-gallery.mjs",
+    "test:search": "node scripts/check-search-readiness.mjs"
   },
   "engines": {
     "node": ">=18"

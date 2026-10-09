@@ -1,3 +1,4 @@
+import { brandFor, sortBrands } from './vehicle-brands.js';
 import { FEATURED_FLEET_SLUGS, sortHomeFleet } from './home-fleet-model.js';
 import { initFleetTrip, applyTripToForm } from "./rental-search.js";
 import { fleet as websiteFleet, formatPrice, publicPageState } from "./live-fleet.js";
@@ -126,9 +127,7 @@ function vehicleSlug(car) {
   return car.slug || slugify(car.name);
 }
 
-function brandFor(car) {
-  return car.make || car.name.split(" ")[1] || "Other";
-}
+
 
 const BRAND_LOGOS = {
   Audi: "/assets/brand-logos/audi.svg",
@@ -263,7 +262,7 @@ function mediaBackgroundStyle(car) {
 function renderFilterButtons() {
   const typeOrder = ["Coupe", "Convertible", "SUV", "Sedan", "Truck"];
   const types = typeOrder.filter((type) => cars.some((car) => bodyTypeFor(car) === type));
-  const brands = [...new Set(cars.map(brandFor))].sort((a, b) => a.localeCompare(b));
+  const brands = sortBrands(cars.map(brandFor));
 
   typeFilters.innerHTML = [
     { value: "all", label: "All" },

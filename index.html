@@ -129,9 +129,12 @@
     <link rel="preload" href="/assets/prestige-luxor-hero-poster.webp" as="image" type="image/webp" fetchpriority="high" />
     <link rel="preload" href="/assets/fonts/barlow-condensed-700.ttf" as="font" type="font/ttf" crossorigin />
     <link rel="stylesheet" href="/src/fonts.css" />
-    <link rel="stylesheet" href="/src/styles.css?v=prestige-scrollbars-20260906-1" />
+    <link rel="stylesheet" href="/src/styles.css?v=mobile-carousel-controls-20260908-3" />
     <link rel="stylesheet" href="/src/home-hero.css" />
     <link rel="stylesheet" href="/src/home-fleet.css" />
+  <link rel="stylesheet" href="/src/customer-care.css" />
+  <link rel="stylesheet" href="/src/home-faq.css" />
+  <link rel="stylesheet" href="/src/home-wedding.css" />
   </head>
   <body class="site-theme home-page">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -144,8 +147,7 @@
       <nav class="desktop-nav" aria-label="Primary navigation">
         <a href="/fleet.html">Fleet</a>
         <a href="/wedding">Weddings</a>
-        <a href="/partner.html">Partner</a>
-        <a href="/faq">FAQ</a>
+        <a href="/partner.html">Consignment</a>
       </nav>
 
       <div class="header-actions">
@@ -164,8 +166,7 @@
     <div class="mobile-menu" data-mobile-menu>
       <a href="/fleet.html">Fleet</a>
       <a href="/wedding">Weddings</a>
-      <a href="/partner.html">Partner</a>
-      <a href="/faq">FAQ</a>
+      <a href="/partner.html">Consignment</a>
       <a href="tel:+19496200024">Call</a>
       <a href="#quote">Reserve</a>
     </div>
@@ -180,12 +181,12 @@
         <div class="hero-content">
           <p class="hero-private-label">Exotic &amp; luxury · Southern California</p>
           <h1 id="home-hero-title">Your next drive,<br class="hero-mobile-break" /> <em>delivered.</em></h1>
-          <p class="hero-copy">Exotic and luxury car rentals delivered across Southern California. Choose the car. We’ll arrange the arrival.</p>
+          <p class="hero-copy"><strong>Book in minutes.</strong> Choose your car and dates. We’ll arrange your Southern California delivery.</p>
           <form id="rental-search" class="hero-rental-search" data-hero-search action="/fleet" method="get" aria-label="Plan your car rental">
             <div class="hero-search-city"><span>Delivery city</span><select name="deliveryCity" aria-label="Delivery city" required><option value="Los Angeles">Los Angeles</option><option value="Palm Springs">Palm Springs</option><option value="Orange County">Orange County</option></select></div>
             <label><span>Pickup</span><div class="hero-date-control"><input name="pickup" type="date" aria-label="Pickup date" data-empty required /><span class="hero-date-placeholder" aria-hidden="true">Select date</span></div></label>
             <label><span>Return</span><div class="hero-date-control"><input name="return" type="date" aria-label="Return date" data-empty required /><span class="hero-date-placeholder" aria-hidden="true">Select date</span></div></label>
-            <button type="submit">Explore available cars <span aria-hidden="true">↗</span></button>
+            <button type="submit">Book in minutes <span aria-hidden="true">↗</span></button>
           </form>
           <p class="hero-search-note">Delivery by arrangement. Availability confirmed personally. <a href="/fleet">Just browsing? View the fleet.</a></p>
         </div>
@@ -259,61 +260,42 @@
               <h3 id="shop-brand-title">Our car brands</h3>
               <p>Exotic | Luxury | Performance</p>
             </div>
-            <div class="shop-rail" data-brand-grid></div>
-            <div class="brand-dots" data-brand-dots aria-hidden="true"></div>
+            <div class="shop-rail" id="home-brand-rail" data-brand-grid aria-label="Car brands"></div>
+            <nav class="brand-carousel-controls" aria-label="Browse car brands">
+              <button type="button" data-brand-prev aria-label="Previous brands" aria-controls="home-brand-rail">&#8249;</button>
+              <div class="brand-dots" data-brand-dots></div>
+              <button type="button" data-brand-next aria-label="Next brands" aria-controls="home-brand-rail">&#8250;</button>
+            </nav>
           </section>
 
-          <section class="type-browser-panel" aria-labelledby="shop-type-title">
-            <div class="type-browser-head">
-              <h3 id="shop-type-title">Browse by Type</h3>
-              <button class="type-see-all" type="button" data-shop-filter="all">
-                See all options
-                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
-              </button>
-            </div>
-            <div class="type-browser-shell">
-              <button class="type-nav type-nav-prev" type="button" aria-label="Previous car types" data-type-prev>
-                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6" /></svg>
-              </button>
-              <div class="type-browser-viewport">
-                <div class="type-card-rail" data-type-grid></div>
-              </div>
-              <button class="type-nav type-nav-next" type="button" aria-label="Next car types" data-type-next>
-                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
-              </button>
-            </div>
-          </section>
+
         </div>
       </section>
 
-      <section class="monthly-specials reveal" id="specials" aria-labelledby="monthly-specials-title">
-        <div class="monthly-specials-copy">
-          <p class="section-kicker">Monthly special deal</p>
-          <h2 id="monthly-specials-title" data-specials-title>Monthly special</h2>
-          <p data-specials-description>Select active fleet cars are featured each month for delivery across Los Angeles and Orange County.</p>
-          <a class="specials-cta" href="sms:+19496200024">Ask for this month&apos;s rate</a>
-          <div class="monthly-specials-notes" aria-label="Monthly special details">
-            <span>Selected from the active fleet</span>
-            <span>Availability checked before confirmation</span>
-          </div>
-        </div>
-
-        <div class="specials-slider" aria-label="Monthly special vehicles">
-          <div class="specials-slider-head">
-            <p><span>Private selection</span> Curated for this month</p>
-            <div class="specials-controls">
-              <button class="specials-nav specials-nav-prev" type="button" aria-label="Previous specials" data-special-prev>
-                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6" /></svg>
-              </button>
-              <button class="specials-nav specials-nav-next" type="button" aria-label="Next specials" data-special-next>
-                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
-              </button>
+      <section class="customer-care" id="customer-care" aria-labelledby="customer-care-title">
+        <div class="customer-care-inner">
+          <div class="customer-care-copy">
+            <p class="customer-care-kicker">THE PRESTIGE LUXOR EXPERIENCE</p>
+            <h2 id="customer-care-title">A great car.<br />An even better <em>experience.</em></h2>
+            <p class="customer-care-intro">The right car matters. So does the way you’re treated. From choosing your vehicle to arranging the handover, we help you feel confident about every detail.</p>
+            <div class="customer-care-details">
+              <div><span aria-hidden="true">01</span><div><h3>A car that fits your plans.</h3><p>Tell us the occasion, your dates, and what you have in mind. We’ll help you find the right fit.</p></div></div>
+              <div><span aria-hidden="true">02</span><div><h3>The details, made clear.</h3><p>Your concierge confirms availability, pricing, and rental requirements before you commit.</p></div></div>
+              <div><span aria-hidden="true">03</span><div><h3>An arrival, personally arranged.</h3><p>We coordinate pickup or delivery around your plans, with a direct contact for your rental questions.</p></div></div>
             </div>
+            <div class="customer-care-actions"><a class="customer-care-primary" href="sms:+19496200024">Let’s plan your drive <span aria-hidden="true">↗</span></a><a class="customer-care-secondary" href="#fleet">Explore the cars <span aria-hidden="true">→</span></a></div>
           </div>
-
-          <div class="specials-viewport" data-specials-viewport>
-            <div class="specials-rail" data-specials-rail aria-live="polite"></div>
-          </div>
+          <figure class="customer-review">
+            <div class="customer-review-player">
+              <video controls playsinline preload="none" poster="/assets/reviews/customer-experience.jpg" width="720" height="1280" aria-label="Customer review of Prestige Luxor" data-customer-review>
+                <source src="/assets/reviews/customer-experience.mp4" type="video/mp4" />
+                <track kind="captions" src="/assets/reviews/customer-experience.vtt" srclang="en" label="English" default />
+                <a href="/assets/reviews/customer-experience.mp4">Watch the customer review</a>
+              </video>
+              <button class="customer-review-play" type="button" data-review-play hidden aria-label="Play customer review with sound"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7Z" /></svg><span>Hear his experience</span></button>
+            </div>
+            <figcaption><span>IN OUR CUSTOMER’S WORDS</span><span>A personal shoutout. A real experience.</span></figcaption>
+          </figure>
         </div>
       </section>
 
@@ -328,7 +310,6 @@
           decoding="async"
         /></picture>
         <div class="content-wedding-copy">
-          <img class="content-wedding-logo" src="/assets/prestige-luxor-logo-dark.png" alt="Prestige Luxor" width="1684" height="315" />
           <div class="content-wedding-kicker" aria-hidden="true">
             <span></span>
             <p>Luxury Wedding Experience</p>
@@ -338,13 +319,8 @@
             <span>Arrive in style.</span>
             <span>Celebrate forever.</span>
           </h2>
-          <div class="content-wedding-ornament" aria-hidden="true">
-            <span></span>
-            <svg viewBox="0 0 32 24"><path d="M5 7h22l-11 13L5 7Zm0 0 6-5h10l6 5M11 2l5 18L21 2" /></svg>
-            <span></span>
-          </div>
+          <a class="wedding-enquiry" href="sms:+19496200024">Plan your wedding arrival <span aria-hidden="true">↗</span></a>
         </div>
-        <a class="content-experience-link" href="sms:+19496200024" aria-label="Ask Prestige Luxor about luxury wedding car rentals"></a>
       </section>
 
       <section class="requirements-section reveal" id="how-it-works" aria-labelledby="requirements-title">
@@ -584,33 +560,7 @@
         </div>
       </section>
 
-      <section class="press-section reveal" aria-label="Featured In">
-        <div class="press-heading">
-          <p class="section-kicker">Featured In</p>
-        </div>
-        <div class="press-marquee" role="region" aria-label="Publications featuring Prestige Luxor">
-          <div class="press-track">
-            <ul class="press-group">
-              <li><img src="/assets/press/vogue.svg" alt="Vogue" width="512" height="133" loading="eager" decoding="async" /></li>
-              <li><img src="/assets/press/gq.svg" alt="GQ" width="452" height="243" loading="eager" decoding="async" /></li>
-              <li><img src="/assets/press/business-insider.svg" alt="Business Insider" width="1365" height="120" loading="eager" decoding="async" /></li>
-              <li><img src="/assets/press/la-weekly.svg" alt="LA Weekly" width="300" height="77" loading="eager" decoding="async" /></li>
-              <li><img src="/assets/press/ocean-drive.jpg" alt="Ocean Drive" width="160" height="70" loading="eager" decoding="async" /></li>
-              <li><img src="/assets/press/yahoo.svg" alt="Yahoo" width="512" height="220" loading="eager" decoding="async" /></li>
-              <li><img src="/assets/press/forbes.svg" alt="Forbes" width="200" height="54" loading="eager" decoding="async" /></li>
-            </ul>
-            <ul class="press-group" aria-hidden="true">
-              <li><img src="/assets/press/vogue.svg" alt="" width="512" height="133" loading="eager" decoding="async" /></li>
-              <li><img src="/assets/press/gq.svg" alt="" width="452" height="243" loading="eager" decoding="async" /></li>
-              <li><img src="/assets/press/business-insider.svg" alt="" width="1365" height="120" loading="eager" decoding="async" /></li>
-              <li><img src="/assets/press/la-weekly.svg" alt="" width="300" height="77" loading="eager" decoding="async" /></li>
-              <li><img src="/assets/press/ocean-drive.jpg" alt="" width="160" height="70" loading="eager" decoding="async" /></li>
-              <li><img src="/assets/press/yahoo.svg" alt="" width="512" height="220" loading="eager" decoding="async" /></li>
-              <li><img src="/assets/press/forbes.svg" alt="" width="200" height="54" loading="eager" decoding="async" /></li>
-            </ul>
-          </div>
-        </div>
-      </section>
+
 
       <div class="faq-section-divider" aria-hidden="true"></div>
 
@@ -702,7 +652,7 @@
           <a href="/fleet.html">Fleet</a>
           <a href="/wedding">Weddings</a>
           <a href="/partner.html">Become a Partner</a>
-          <a href="#specials">Specials</a>
+          <a href="#customer-care">Customer experience</a>
           <a href="#quote">Request Quote</a>
           <a href="/faq">FAQ</a>
         </nav>
@@ -734,8 +684,9 @@
       </div>
     </footer>
 
-    <script type="module" src="/src/main.js?v=mobile-quote-conversion-v3-20260906"></script>
+    <script type="module" src="/src/main.js?v=mobile-carousel-controls-20260908-3"></script>
     <script type="module" src="/src/hero-search.js"></script>
     <script type="module" src="/src/home-fleet.js"></script>
+  <script type="module" src="/src/customer-care.js"></script>
   </body>
 </html>

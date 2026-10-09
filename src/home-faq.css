@@ -1,0 +1,23 @@
+/* A quieter, readable FAQ treatment consistent with the customer-care section. */
+body .faq-home { background: #0c0c0b; grid-template-columns: minmax(0,.8fr) minmax(0,1.2fr); gap: clamp(48px,6vw,90px); padding: clamp(64px,7vw,104px) max(24px,calc((100vw - 1180px)/2)); border-top: 1px solid #ffffff12; }
+body .faq-home::before,body .faq-home::after { content: none; animation: none; }
+body .faq-home .faq-home-head h2 { font: 400 clamp(44px,4.5vw,64px)/1.06 Georgia,serif; text-transform: none; letter-spacing: -.04em; max-width: 10ch; margin: 20px 0 24px; text-wrap: balance; }
+body .faq-home .quote-kicker { font: 600 10px/1.5 Arial,sans-serif; letter-spacing: .16em; color: #c9b88d; }
+body .faq-home .faq-home-intro { font: 400 14px/1.8 Arial,sans-serif; color: #aaa89f; max-width: 350px; margin: 0; }
+body .faq-home .faq-concierge { max-width: 350px; margin-top: 30px; border-color: #ffffff24; padding-block: 18px; text-decoration: none; }
+body .faq-home .faq-concierge span { font: 500 9px/1.5 Arial,sans-serif; letter-spacing: .12em; color: #aaa89f; }
+body .faq-home .faq-concierge strong { font: 500 14px/1.5 Arial,sans-serif; margin-top: 7px; }
+body .faq-home .faq-concierge svg { stroke: #c9b88d; }
+body .faq-home-list { border-color: #ffffff26; }
+body .faq-home-list details { border-color: #ffffff20; }
+body .faq-home-list details[open] { background: #161614; box-shadow: inset 2px 0 #c9b88d; }
+body .faq-home-list summary { min-height: 86px; grid-template-columns: 24px minmax(0,1fr) 30px; gap: 16px; padding: 22px 20px; cursor: pointer; }
+body .faq-home-list .faq-question { font: 500 18px/1.45 Arial,sans-serif; letter-spacing: -.015em; }
+body .faq-home-list .faq-index { font: 400 10px/1.5 Arial,sans-serif; color: #c9b88d; letter-spacing: .08em; }
+body .faq-home-list summary::after { width: 28px; height: 28px; border-color: #ffffff35; font: 400 18px/1 Arial,sans-serif; }
+body .faq-home-list details[open] summary::after { background: #d2c49e; border-color: #d2c49e; color: #141412; }
+body .faq-home-list p { padding: 0 64px 26px 60px; font: 400 14px/1.8 Arial,sans-serif; color: #b7b5ac; }
+body .faq-home summary:hover .faq-question { color: #dfd1ae; }
+body .faq-home summary:focus-visible,body .faq-home .faq-concierge:focus-visible { outline: 2px solid #d2c49e; outline-offset: -2px; box-shadow: none; }
+@media(max-width:900px) { body .faq-home { grid-template-columns: 1fr; gap: 36px; } body .faq-home .faq-home-head h2 { max-width: none; font-size: 46px; } body .faq-home .faq-home-intro { max-width: 520px; } }
+@media(max-width:480px) { body .faq-home { padding: 52px 22px; } body .faq-home .faq-home-head h2 { font-size: 42px; max-width: 10ch; text-wrap: initial; } body .faq-home-list summary { grid-template-columns: 18px minmax(0,1fr) 26px; gap: 10px; padding: 20px 12px; } body .faq-home-list .faq-question { font-size: 16px; } body .faq-home-list summary::after { width: 26px; height: 26px; } body .faq-home-list p { padding: 0 24px 24px 40px; font-size: 13px; } }

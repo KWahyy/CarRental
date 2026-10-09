@@ -1,0 +1,128 @@
+body.destination-page .site-header { position:sticky; top:0; }
+body.destination-page { --destination-ink:#252825; --destination-accent:#c7b48d; --destination-paper:#f0eee7; font-family:Arial,sans-serif; }
+body.destination-desert { --destination-ink:#3c4439; --destination-accent:#9b583e; --destination-paper:#f5efdf; }
+body.destination-page .destination-main { width:100%; max-width:none; margin:0; padding:0; }
+body.destination-page .destination-hero { display:grid; grid-template-columns:1.1fr 1fr; min-height:660px; background:#181c1e; }
+body.destination-page .destination-hero-copy { padding:75px 60px 65px max(32px,calc((100vw - 1180px)/2)); align-self:center; }
+body.destination-page .destination-kicker { font:600 10px/1.6 Arial,sans-serif; letter-spacing:.16em; text-transform:uppercase; color:var(--destination-accent); margin:0 0 22px; }
+body.destination-page .destination-hero h1 { margin:0; font:400 clamp(44px,4.3vw,68px)/1.09 Georgia,serif; letter-spacing:-.045em; color:#f4f1e8; text-transform:none; }
+body.destination-page .destination-hero h1 em { color:#d5c39d; font-weight:400; }
+body.destination-page .destination-intro { color:#f2eee3; font:400 20px/1.5 Georgia,serif; max-width:30ch; margin:27px 0 17px; }
+body.destination-page .destination-description { max-width:43ch; color:#b9bfc1; font:400 14px/1.85 Arial,sans-serif; margin:0; }
+body.destination-page .destination-actions { display:flex; flex-wrap:wrap; gap:18px; align-items:center; margin:30px 0 36px; }
+body.destination-page .destination-primary { display:inline-flex; min-height:50px; align-items:center; justify-content:space-between; gap:25px; padding:13px 21px; border-radius:3px; background:#ebe5d6; color:#252825; font:500 13px/1.5 Arial,sans-serif; }
+body.destination-page .destination-secondary { display:inline-flex; align-items:center; gap:17px; min-height:48px; color:#f1ece0; font:400 13px/1.5 Arial,sans-serif; border-bottom:1px solid #ffffff45; }
+body.destination-page .destination-note { padding-top:22px; border-top:1px solid #ffffff25; color:#aab1b3; font:400 11px/1.7 Arial,sans-serif; }
+body.destination-page .destination-scene { position:relative; margin:0; min-width:0; min-height:660px; overflow:hidden; }
+body.destination-page .destination-scene img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+body.destination-page .destination-scene::after { content:''; position:absolute; inset:0; background:linear-gradient(0deg,#101516b3,transparent 35%); pointer-events:none; }
+body.destination-page .destination-scene figcaption { position:absolute; bottom:35px; left:35px; right:35px; z-index:1; font:italic 26px/1.3 Georgia,serif; color:#f4e9d6; }
+body.destination-page .destination-fleet { padding:80px max(32px,calc((100% - 1180px)/2)); background:var(--destination-paper); color:var(--destination-ink); }
+body.destination-page .destination-section-heading { display:flex; justify-content:space-between; gap:32px; align-items:end; margin-bottom:36px; }
+body.destination-page .destination-fleet .destination-kicker { color:#77644a; margin-bottom:16px; }
+body.destination-page h2 { font:400 clamp(34px,3.2vw,48px)/1.12 Georgia,serif; letter-spacing:-.035em; text-transform:none; }
+body.destination-page .destination-section-heading h2 { margin:0; color:var(--destination-ink); }
+body.destination-page .destination-section-heading > a { font:500 13px/1.5 Arial,sans-serif; border-bottom:1px solid #3337; padding:12px 0; white-space:nowrap; }
+body.destination-page .destination-section-heading > a span { margin-left:24px; }
+body.destination-page .destination-cars { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:30px; }
+body.destination-page .destination-car { min-width:0; }
+body.destination-page .destination-car-image { display:block; aspect-ratio:4/3; overflow:hidden; border-radius:4px; background:#d9d6cc; }
+body.destination-page .destination-car-image picture,body.destination-page .destination-car-image img { display:block; width:100%; height:100%; object-fit:cover; }
+body.destination-page .destination-car-copy { padding:23px 0 15px; }
+body.destination-page .destination-car-copy > p:first-child { font:600 10px/1.5 Arial,sans-serif; color:#777467; text-transform:uppercase; letter-spacing:.12em; margin:0 0 9px; }
+body.destination-page .destination-car h3 { font:500 22px/1.3 Arial,sans-serif; letter-spacing:-.025em; margin:0 0 13px; text-transform:none; color:var(--destination-ink); }
+body.destination-page .destination-rate { font:400 12px/1.5 Arial,sans-serif; color:#64665e; margin:0; }
+body.destination-page .destination-rate strong { font:400 26px/1.2 Georgia,serif; color:var(--destination-ink); margin:0 3px; }
+body.destination-page .destination-car-link,body.destination-page .destination-car-request { display:flex; align-items:center; justify-content:space-between; min-height:42px; font:500 12px/1.5 Arial,sans-serif; border-top:1px solid #262b222b; }
+body.destination-page .destination-car-request { border:0; color:#796148; }
+body.destination-page .destination-fleet-note { font:400 12px/1.7 Arial,sans-serif; color:#77756a; margin:28px 0 0; }
+body.destination-page .destination-story { padding:80px max(32px,calc((100% - 1180px)/2)); display:grid; grid-template-columns:.8fr 1.2fr; gap:90px; background:#202629; color:#f2eee5; }
+body.destination-page .destination-story-intro h2 { max-width:12ch; margin:0 0 25px; }
+body.destination-page .destination-story-intro > p:not(.destination-kicker) { font:400 15px/1.8 Arial,sans-serif; color:#bfc4c5; max-width:31ch; }
+body.destination-page .destination-story-intro > a { display:inline-flex; gap:25px; align-items:center; min-height:48px; border-bottom:1px solid #ffffff45; font-size:13px; margin-top:20px; }
+body.destination-page .destination-local-details h2,body.destination-page .destination-local-details h3 { font:500 19px/1.4 Arial,sans-serif; letter-spacing:-.01em; text-transform:none; color:inherit; margin:0 0 14px; }
+body.destination-page .destination-local-details p,body.destination-page .destination-local-details li { font:400 14px/1.85 Arial,sans-serif; color:#c2c7c8; }
+body.destination-page .destination-local-details a { text-decoration:underline; text-underline-offset:4px; }
+body.destination-page .destination-local-details > section { padding:24px 0; border-top:1px solid #ffffff25; }
+body.destination-page .destination-local-details > section:first-child { padding-top:0; border:0; }
+body.destination-page .destination-local-details .seo-card-grid { grid-template-columns:1fr; gap:0; margin:0; }
+body.destination-page .destination-local-details .seo-card { background:transparent; border:0; border-top:1px solid #ffffff25; padding:24px 0; }
+body.destination-page .location-faq,body.destination-page .location-quote-section { width:100%; max-width:none; margin:0; padding:75px max(32px,calc((100% - 1180px)/2)); box-sizing:border-box; border:0; }
+body.destination-page .location-faq { background:#faf9f5; color:#292b26; }
+body.destination-page .location-section-heading h2 { color:#292b26; max-width:none; }
+body.destination-page .location-section-heading p { color:#80664b; font-size:10px; letter-spacing:.14em; }
+body.destination-page .location-faq-list details { border:0; border-bottom:1px solid #292b2629; background:transparent; }
+body.destination-page .location-faq-list summary { font:500 17px/1.5 Arial,sans-serif; padding:24px 0; color:#292b26; }
+body.destination-page .location-faq-list summary::after { color:#826b4b; }
+body.destination-page .location-faq-list details p { color:#62665f; font:400 14px/1.8 Arial,sans-serif; margin:0; padding:0 35px 24px 0; }
+body.destination-page .location-quote-section { background:#14191c; grid-template-columns:.85fr 1.15fr; gap:70px; }
+body.destination-page .location-quote-copy h2 { max-width:14ch; color:#f1eee7; }
+body.destination-page .location-quote-copy > p { color:#c8b895; font-size:10px; }
+body.destination-page .location-quote-copy > span { color:#bcc3c5; font:400 15px/1.8 Arial,sans-serif; max-width:34ch; }
+body.destination-page .location-quote-form { background:#202629; border:1px solid #ffffff25; padding:30px; border-radius:4px; }
+body.destination-page .location-quote-form label > span { font:500 10px/1.5 Arial,sans-serif; letter-spacing:.08em; color:#d0d5d5; }
+body.destination-page .location-quote-form input,body.destination-page .location-quote-form select,body.destination-page .location-quote-form textarea { box-sizing:border-box; min-width:0; width:100%; background:#13191c; border:1px solid #ffffff30; border-radius:3px; padding:12px; min-height:48px; font:400 14px/1.5 Arial,sans-serif; color:#eee; color-scheme:dark; }
+body.destination-page .location-quote-form button { background:#e7decc; color:#222722; border-radius:3px; min-height:52px; font:500 13px/1.5 Arial,sans-serif; text-transform:none; letter-spacing:0; }
+body.destination-page .location-quote-status { color:#bec5c5; font:400 12px/1.7 Arial,sans-serif; }
+body.destination-page .destination-closing { padding:70px max(32px,calc((100% - 1180px)/2)); background:#dcd5c5; color:#282d2c; display:grid; grid-template-columns:1fr auto; gap:16px 40px; align-items:center; }
+body.destination-page .destination-closing h2 { margin:0; max-width:22ch; }
+body.destination-page .destination-closing .destination-kicker { grid-column:1/-1; color:#6f5c45; margin:0; }
+body.destination-page .destination-closing .destination-primary { background:#202629; color:#fff; }
+body.destination-page main a:focus-visible,body.destination-page summary:focus-visible { outline:2px solid #a17c4f; outline-offset:5px; }
+/* Palm Springs: an inset sunset arch, warm plaster, clay and sage. */
+body.destination-desert .destination-hero { background:#f5efdf; grid-template-columns:1fr 1.2fr; padding:60px max(32px,calc((100% - 1180px)/2)); gap:70px; }
+body.destination-desert .destination-hero-copy { grid-column:2; grid-row:1; padding:20px 0; }
+body.destination-desert .destination-hero h1 { color:#3c4439; font-size:clamp(44px,4.2vw,64px); }
+body.destination-desert .destination-hero h1 em { color:#9b583e; }
+body.destination-desert .destination-intro { color:#4c513f; }
+body.destination-desert .destination-description { color:#6f6e5f; }
+body.destination-desert .destination-primary { background:#3c4439; color:#f7f0e1; }
+body.destination-desert .destination-secondary { color:#704b37; border-color:#704b3760; }
+body.destination-desert .destination-note { color:#757561; border-color:#34392b30; }
+body.destination-desert .destination-scene { grid-column:1; grid-row:1; min-height:570px; border-radius:250px 250px 3px 3px; }
+body.destination-desert .destination-scene figcaption { font-size:25px; }
+body.destination-desert .destination-fleet { background:#fffdf8; }
+body.destination-desert .destination-story { background:#e7ddca; color:#424b3c; }
+body.destination-desert .destination-story-intro > p:not(.destination-kicker),body.destination-desert .destination-local-details p,body.destination-desert .destination-local-details li { color:#656752; }
+body.destination-desert .destination-story-intro > a,body.destination-desert .destination-local-details > section { border-color:#444d3b30; }
+body.destination-desert .location-faq { background:#f5efdf; }
+body.destination-desert .location-quote-section { background:#38443c; }
+body.destination-desert .location-quote-form { background:#414e43; }
+body.destination-desert .location-quote-form input,body.destination-desert .location-quote-form select,body.destination-desert .location-quote-form textarea { background:#2e392f; }
+body.destination-desert .destination-closing { background:#e5c6ae; }
+@media(max-width:1000px) {
+ body.destination-page .destination-hero-copy { padding:50px 30px; }
+ body.destination-page .destination-hero h1 { font-size:46px; }
+ body.destination-page .destination-story { gap:40px; grid-template-columns:.8fr 1.2fr; }
+ body.destination-page .location-quote-section { gap:30px; }
+ body.destination-page .location-form-grid { grid-template-columns:1fr; }
+ body.destination-page .destination-car h3 { font-size:19px; }
+ body.destination-desert .destination-hero { gap:32px; padding:40px 30px; }
+ body.destination-desert .destination-hero-copy { padding:20px 0; }
+}
+@media(max-width:680px) {
+ body.destination-page .destination-hero { grid-template-columns:1fr; min-height:0; }
+ body.destination-page .destination-hero-copy { padding:40px 22px; }
+ body.destination-page .destination-hero h1 { font-size:clamp(38px,10vw,52px); }
+ body.destination-page .destination-scene { min-height:330px; }
+ body.destination-page .destination-scene img { object-position:center 62%; }
+ body.destination-page .destination-scene figcaption { left:22px; bottom:22px; font-size:24px; }
+ body.destination-page .destination-intro { font-size:20px; }
+ body.destination-page .destination-actions { gap:15px; margin-bottom:26px; }
+ body.destination-page .destination-primary { padding:13px 16px; gap:18px; }
+ body.destination-page .destination-fleet,body.destination-page .destination-story,body.destination-page .location-faq,body.destination-page .location-quote-section,body.destination-page .destination-closing { padding:52px 22px; }
+ body.destination-page .destination-section-heading { display:block; }
+ body.destination-page .destination-section-heading > a { display:inline-block; margin-top:18px; }
+ body.destination-page .destination-cars,body.destination-page .destination-story,body.destination-page .location-quote-section,body.destination-page .destination-closing { grid-template-columns:1fr; }
+ body.destination-page .destination-cars { gap:30px; }
+ body.destination-page .destination-story { gap:35px; }
+ body.destination-page .destination-story-intro h2 { max-width:16ch; }
+ body.destination-page .destination-car h3 { font-size:22px; }
+ body.destination-page .location-quote-copy { position:static; }
+ body.destination-page .location-quote-form { padding:22px 18px; }
+ body.destination-page .location-faq-list summary { font-size:16px; }
+ body.destination-page .destination-closing .destination-primary { justify-self:start; margin-top:8px; }
+ body.destination-desert .destination-hero { padding:0; gap:0; }
+ body.destination-desert .destination-hero-copy { grid-column:1; grid-row:1; padding:40px 22px 25px; }
+ body.destination-desert .destination-scene { grid-column:1; grid-row:2; min-height:360px; margin:0 22px 40px; border-radius:180px 180px 3px 3px; }
+}

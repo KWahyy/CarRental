@@ -35,3 +35,16 @@ test('featured mix leads with requested exotics without losing or duplicating in
  assert.equal(inventory[0].slug,'audi-r8-rental');
  assert.deepEqual(sortHomeFleet(inventory.filter(c=>!c.slug.includes('mclaren'))).map(c=>c.slug),result.slice(1).map(c=>c.slug));
 });
+
+test('overlapping customer categories include classics and convertibles without misclassifying SUVs',async()=>{
+ const {fleetCategories,homeFleetFilters}=await import('../src/home-fleet-model.js');
+ assert.deepEqual(fleetCategories({name:'Lamborghini Huracan EVO Spyder',category:'supercar convertible'}),['Exotics','Convertibles']);
+ assert.deepEqual(fleetCategories({name:'1967 Cadillac Coupe DeVille Convertible',category:'exotic'}),['Convertibles','Classics']);
+ assert.deepEqual(fleetCategories({name:'Lamborghini Urus',category:'suv luxury'}),['Luxury SUVs']);
+ assert.deepEqual(fleetCategories({name:'Mercedes-Maybach S580',category:'luxury'}),['Luxury sedans']);
+ assert.deepEqual(fleetCategories({name:'Rolls-Royce Spectre',category:'luxury'}),['Luxury coupes']);
+ assert.ok(!homeFleetFilters([cars[2]]).some(f=>f.category==='Trucks'));
+ assert.equal(homeFleetFilters(cars).find(f=>f.category==='Convertibles').count,1);
+ assert.deepEqual(filterHomeFleet(cars,'','Convertibles'),[cars[2]]);
+ assert.equal(homeFleetFilters(cars,'White').find(f=>f.category==='Luxury SUVs').count,1);
+});

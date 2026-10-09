@@ -1,3 +1,4 @@
+import { brandFor } from './vehicle-brands.js';
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import { deleteCarDraft, readDeletedCarSlugs, signalFleetRefresh, slugifyVehicle } from "./admin-store.js?v=fleet-consistency-20260715";
 import { fleet } from "./fleet-data.js?v=fleet-consistency-20260715";
@@ -128,7 +129,6 @@ const defaultRequests = [];
 const configured = Boolean(SUPABASE_URL && SUPABASE_URL.startsWith("https://"));
 const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
 window.prestigeLuxorSupabase = supabase;
-const MAX_LISTING_PHOTOS = 3;
 
 let cars = [];
 let selectedCarId = null;
@@ -556,7 +556,7 @@ function readFileAsDataUrl(file) {
 }
 
 function normalizePhotoOrder() {
-  photos = photos.slice(0, MAX_LISTING_PHOTOS).map((photo, index) => ({ ...photo, position: index + 1 }));
+  photos = photos.map((photo, index) => ({ ...photo, position: index + 1 }));
 }
 
 function updatePhotoPreview() {
@@ -1806,7 +1806,7 @@ async function saveMonthlySpecial(event) {
 
 function renderPhotos() {
   normalizePhotoOrder();
-  if (addPhotoButton) addPhotoButton.disabled = photos.length >= MAX_LISTING_PHOTOS;
+  if (addPhotoButton) addPhotoButton.disabled = false;
   photoList.innerHTML = photos
     .map(
       (photo, index) => `
@@ -1897,7 +1897,7 @@ async function selectCar(carId) {
   }
 
   if (isLocalCarId(car.id) || !requireConfig()) {
-    const gallery = (car.gallery?.length ? car.gallery : [car.image_url || car.image].filter(Boolean)).slice(0, MAX_LISTING_PHOTOS);
+    const gallery = (car.gallery?.length ? car.gallery : [car.image_url || car.image].filter(Boolean));
     photos = gallery.map((url, index) => ({ position: index + 1, url }));
     availableDates = [];
     renderPhotos();
@@ -1912,7 +1912,7 @@ async function selectCar(carId) {
   ]);
 
   photos = photoRows.length
-    ? photoRows.slice(0, MAX_LISTING_PHOTOS).map((row) => ({ id: row.id, position: row.position, url: row.url }))
+    ? photoRows.map((row) => ({ id: row.id, position: row.position, url: row.url }))
     : [{ position: 1, url: car.image_url || "" }];
   availableDates = dateRows.map((row) => row.date);
   renderPhotos();
@@ -1963,7 +1963,7 @@ async function savePhotos(carId, slug) {
   const nextPhotos = [];
 
   normalizePhotoOrder();
-  for (const [index, photo] of photos.slice(0, MAX_LISTING_PHOTOS).entries()) {
+  for (const [index, photo] of photos.entries()) {
     const position = index + 1;
     const url = photo.file ? await uploadPhoto(photo.file, slug, position) : photo.url?.trim();
     if (url) {
@@ -1974,12 +1974,8 @@ async function savePhotos(carId, slug) {
 
   if (nextPhotos.length) {
     await runQuery(supabase.from("car_photos").upsert(nextPhotos, { onConflict: "car_id,position" }));
-    const activePositions = new Set(nextPhotos.map((photo) => photo.position));
-    for (let position = 1; position <= MAX_LISTING_PHOTOS; position += 1) {
-      if (!activePositions.has(position)) {
-        await runQuery(supabase.from("car_photos").delete().eq("car_id", carId).eq("position", position));
-      }
-    }
+    const activePositions = nextPhotos.map((photo) => photo.position);
+    await runQuery(supabase.from("car_photos").delete().eq("car_id", carId).not("position", "in", `(${activePositions.join(",")})`));
   } else {
     await runQuery(supabase.from("car_photos").delete().eq("car_id", carId));
   }
@@ -2007,7 +2003,6 @@ async function verifySavedCarPhotos(carId, expectedPhotos) {
 function currentPhotoUrls() {
   normalizePhotoOrder();
   return photos
-    .slice(0, MAX_LISTING_PHOTOS)
     .map((photo) => photo.url || photo.previewUrl)
     .filter(Boolean);
 }
@@ -2019,7 +2014,7 @@ function buildCarPayloadFromForm() {
   return {
     slug,
     name: formData.get("name").trim(),
-    make: formData.get("make").trim(),
+    make: brandFor({make: formData.get("make"), name: formData.get("name")}),
     model: formData.get("model").trim(),
     category: formData.get("category").trim(),
     category_label: formData.get("category_label").trim(),
@@ -2730,7 +2725,6 @@ carForm.elements.name.addEventListener("input", () => {
 });
 
 addPhotoButton.addEventListener("click", () => {
-  if (photos.length >= MAX_LISTING_PHOTOS) return;
   photos.push({ position: photos.length + 1, url: "" });
   renderPhotos();
 });

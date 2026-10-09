@@ -1,12 +1,25 @@
+import { galleryAssets } from "./vehicle-gallery-assets.js";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./supabase-config.js";
 
 const configured = Boolean(SUPABASE_URL && SUPABASE_URL.startsWith("https://"));
 let supabasePromise = null;
-const MAX_LISTING_PHOTOS = 3;
 const ANALYTICS_SESSION_KEY = "prestige_luxor_fleet_analytics_session";
 const VEHICLE_SLUG_ALIASES = Object.freeze({ porschepanamera: "porsche-panamera" });
 
 export const isSupabaseFleetConfigured = configured;
+
+// Reviewed exterior portraits: crop excess sky/road in the preview, never in
+// the full-screen viewer. Match asset identity so CRM replacements stay intact.
+const galleryPreviewPositions = Object.freeze({
+  '30a042653098f02f': '50% 65%',
+  '367408482e5e1893': '50% 65%',
+  'c67be8051b10ec59': '50% 65%',
+  '44ec93b03542dfea': '50% 65%',
+});
+
+export function galleryPreviewPosition(url) {
+  return galleryPreviewPositions[galleryAssets[String(url || '').split('?')[0]]] || '';
+}
 
 async function getSupabase() {
   if (!configured) return null;
@@ -23,7 +36,7 @@ async function getSupabase() {
 
 export function mapCar(row) {
   const photos = [...(row.car_photos || [])].sort((a, b) => Number(a.position) - Number(b.position));
-  const gallery = photos.map((photo) => photo.url).filter(Boolean).slice(0, MAX_LISTING_PHOTOS);
+  const gallery = photos.map((photo) => photo.url).filter(Boolean);
   const image = gallery[0] || row.image_url || "/assets/prestige-luxor-hero.png";
 
   return {
@@ -66,6 +79,9 @@ export function cacheSafeFleetImageUrl(url, updatedAt = "") {
 export function optimizedFleetImageUrl(url, { width = 900, height = 675, quality = 78, updatedAt = "" } = {}) {
   const source = cacheSafeFleetImageUrl(url, updatedAt);
   if (!source) return source;
+
+  const galleryKey = galleryAssets[source.split("?")[0]];
+  if (galleryKey) return `/assets/vehicle-gallery/${galleryKey}-${width <= 400 ? "thumb" : width <= 1000 ? "view" : "large"}.webp`;
 
   if (source.includes("/storage/v1/object/public/")) {
     try {

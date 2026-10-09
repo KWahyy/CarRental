@@ -4,7 +4,7 @@ const {chromium}=await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 import {renderPublicDocument} from '../src/public-render.js';
 import {renderPrivateDocument} from '../src/private-render.js';
 import {parseHTML} from 'linkedom';
-const root='http://127.0.0.1:8772',home=await readFile('server-pages/index.html','utf8');
+const root=process.env.AUDIT_BASE_URL||'http://127.0.0.1:8772',home=await readFile('server-pages/index.html','utf8');
 const state=JSON.parse(parseHTML(home).document.querySelector('#public-page-state').textContent);
 const quote={quote_number:'TEST-ONLY',status:'viewed',customer_name:'Test Renter',vehicle_name:'McLaren 720S',rental_total:1345,amount_required:100,remaining_balance:1345,security_deposit:500,rate_amount:1345,duration_value:1};
 const agreement={agreement_number:'TEST-ONLY',status:'sent',customer_name:'Test Renter',vehicle_name:'McLaren 720S',rental_total:1345,refundable_deposit:500,terms:'Rental Agreement\nTest terms',important_terms:[{key:'rental',title:'Rental terms',body:'Review the test terms.'}],initials:{}};

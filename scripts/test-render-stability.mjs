@@ -3,7 +3,7 @@ import { readFile, mkdir, writeFile } from 'node:fs/promises';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const base=process.env.AUDIT_BASE_URL||'http://127.0.0.1:8772';
 const output=process.env.AUDIT_OUTPUT||'output/render-audit/production';
-const sitemap=await readFile('dist/sitemap.xml','utf8');
+const sitemap=await readFile('server-pages/sitemap.xml','utf8');
 const allPaths=[...new Set([...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(m=>new URL(m[1]).pathname).concat(['/quote','/agreement','/exotic-car-rental']))];
 const paths=process.env.AUDIT_PATHS ? process.env.AUDIT_PATHS.split(',') : allPaths;
 const sizes=[{width:1440,height:900},{width:768,height:1024},{width:390,height:844}];

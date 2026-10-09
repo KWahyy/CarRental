@@ -1,7 +1,6 @@
 const DRAFT_KEY = "prestige_luxor_admin_car_drafts";
 const DELETED_KEY = "prestige_luxor_admin_deleted_car_slugs";
 const REFRESH_KEY = "prestige_luxor_fleet_refresh";
-const MAX_LISTING_PHOTOS = 3;
 
 export const ADMIN_CAR_DRAFTS_KEY = DRAFT_KEY;
 export const ADMIN_DELETED_CARS_KEY = DELETED_KEY;
@@ -61,7 +60,7 @@ export function deleteCarDraft(slugValue) {
 }
 
 export function toPublicCar(car) {
-  const gallery = (car.gallery?.length ? car.gallery : [car.image_url || car.image].filter(Boolean)).slice(0, MAX_LISTING_PHOTOS);
+  const gallery = (car.gallery?.length ? car.gallery : [car.image_url || car.image].filter(Boolean));
   const image = gallery[0] || car.image_url || car.image || "/assets/prestige-luxor-hero.png";
 
   return {

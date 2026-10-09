@@ -141,8 +141,11 @@ export default async function handler(req, res) {
     }
     if (req.method === "POST") {
       if (action === "photos") {
-        const photos = (Array.isArray(body.photos) ? body.photos : []).slice(0, 30).map((item, index) => ({ car_id: carId, position: index + 1, url: clean(item.url || item, 1200) })).filter((row) => row.url);
+        const requestedPhotos = Array.isArray(body.photos) ? body.photos : [];
+        if (requestedPhotos.length > 100) throw Object.assign(new Error("A vehicle gallery supports up to 100 photos. No photos were changed."), { status: 400 });
+        const photos = requestedPhotos.map((item, index) => ({ car_id: carId, position: index + 1, url: clean(item.url || item, 1200) })).filter((row) => row.url);
         await db(`car_photos?car_id=eq.${carId}`, { method: "DELETE", headers: { Prefer: "return=minimal" } }, token); if (photos.length) await db("car_photos", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(photos) }, token);
+        await db(`cars?id=eq.${carId}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ image_url: photos[0]?.url || null, updated_at: new Date().toISOString() }) }, token);
         await addActivity(carId, "photos_updated", `${photos.length} vehicle photos saved.`, user.id, {}, token); return json(res, 200, { photos });
       }
       if (action === "block") {

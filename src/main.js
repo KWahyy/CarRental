@@ -1,3 +1,5 @@
+import './brand-carousel.js';
+import { brandFor, sortBrands } from './vehicle-brands.js';
 import { fleet as websiteFleet } from "./live-fleet.js";
 import { cacheSafeFleetImageUrl, fleetPictureMarkup, isSupabaseFleetConfigured, loadMonthlySpecialFromSupabase, optimizedFleetImageUrl } from "./supabase-fleet.js?v=native-picture-flow-20260901";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260906";
@@ -188,17 +190,9 @@ fleet = websiteFleet.slice();
 
 let fanCards = getFeaturedFanCards(fleet);
 
-const fanPositions = [
-  { x: -34, y: 0.8, rot: -8, scale: 0.8, z: 1 },
-  { x: -23, y: 0.4, rot: -5, scale: 0.88, z: 2 },
-  { x: -12, y: 0.1, rot: -2, scale: 0.94, z: 3 },
-  { x: 0, y: 0, rot: 0, scale: 1, z: 8 },
-  { x: 12, y: 0.1, rot: 2, scale: 0.94, z: 3 },
-  { x: 23, y: 0.4, rot: 5, scale: 0.88, z: 2 },
-  { x: 34, y: 0.8, rot: 8, scale: 0.8, z: 1 },
-];
-
 let fanCenterIndex = Math.floor(fanCards.length / 2);
+let fanPointer = null;
+let fanDidDrag = false;
 
 function formatPrice(price) {
   return new Intl.NumberFormat("en-US", {
@@ -216,28 +210,7 @@ function formatCategory(category) {
   return label;
 }
 
-function brandFor(car) {
-  const source = `${car.make || ""} ${car.name || ""}`.toLowerCase();
-  const brands = [
-    ["Rolls-Royce", /rolls[ -]?royce|cullinan|\bdawn\b/],
-    ["Mercedes-Benz", /mercedes|maybach|\bamg\b|g[ -]?wagon/],
-    ["Land Rover", /land rover|range rover|defender/],
-    ["Chevrolet", /chevrolet|chevy|corvette|\bc8\b/],
-    ["Lamborghini", /lamborghini/],
-    ["McLaren", /mclaren/],
-    ["Cadillac", /cadillac|escalade/],
-    ["Porsche", /porsche/],
-    ["Ferrari", /ferrari/],
-    ["Bentley", /bentley|continental/],
-    ["Tesla", /tesla/],
-    ["Lotus", /lotus|emira/],
-    ["Ford", /\bford\b|f-?150|raptor/],
-    ["Audi", /\baudi\b/],
-    ["BMW", /\bbmw\b/],
-  ];
 
-  return brands.find(([, pattern]) => pattern.test(source))?.[0] || "Other";
-}
 
 function brandMark(brand) {
   const logos = {
@@ -273,7 +246,7 @@ function brandMark(brand) {
     return `<img class="brand-logo-mark brand-logo-monochrome" src="${monochromeLogos[brand]}" alt="" width="160" height="96" />`;
   }
 
-  if (!logos[brand]) return `<span class="brand-logo-text">${brand}</span>`;
+  if (!logos[brand]) return `<span class="brand-logo-text">${escapeHtml(brand)}</span>`;
 
   return `<img class="brand-logo-mark" src="${logos[brand]}" alt="" width="104" height="104" />`;
 }
@@ -447,17 +420,7 @@ function getFeaturedFanCards(sourceFleet = fleet) {
 
 function setFeaturedFanCards(sourceFleet = fleet) {
   fanCards = getFeaturedFanCards(sourceFleet);
-  fanCenterIndex = Math.floor(fanCards.length / 2);
-}
-
-function fanMultiplier() {
-  const width = window.innerWidth;
-  if (width >= 2200) return 1.35;
-  if (width < 480) return 0.34;
-  if (width < 640) return 0.46;
-  if (width < 768) return 0.58;
-  if (width < 1024) return 0.78;
-  return 1;
+  fanCenterIndex = window.matchMedia("(max-width: 820px)").matches ? 0 : Math.floor(fanCards.length / 2);
 }
 
 function shortestFanOffset(index) {
@@ -470,7 +433,6 @@ function shortestFanOffset(index) {
 
 function updateFanCarousel() {
   if (!fanStage) return;
-  const multiplier = fanMultiplier();
   const fanItems = fanStage.querySelectorAll(".fan-card");
   const isDesktopGrid = window.matchMedia("(min-width: 821px)").matches;
 
@@ -485,25 +447,29 @@ function updateFanCarousel() {
     return;
   }
 
+  const stageWidth = fanStage.getBoundingClientRect().width;
+  const mobileStep = Math.max(stageWidth - 72, 250);
+
   fanItems.forEach((card, index) => {
     const offset = shortestFanOffset(index);
-    const isVisible = Math.abs(offset) <= 3;
-    const slot = offset + 3;
-    const position = fanPositions[slot] || fanPositions[3];
+    const isCurrent = offset === 0;
+    const isPreview = offset === 1;
+    const isVisible = isCurrent || isPreview;
 
-    card.style.setProperty("--fan-x", `${position.x * multiplier}rem`);
-    card.style.setProperty("--fan-y", `${position.y * multiplier}rem`);
-    card.style.setProperty("--fan-rot", `${position.rot}deg`);
-    card.style.setProperty("--fan-scale", String(position.scale));
+    card.style.setProperty("--fan-x", `${offset * mobileStep}px`);
+    card.style.setProperty("--fan-y", "0px");
+    card.style.setProperty("--fan-rot", "0deg");
+    card.style.setProperty("--fan-scale", isCurrent ? "1" : "0.94");
     card.style.setProperty("--fan-opacity", isVisible ? "1" : "0");
-    card.style.zIndex = isVisible ? String(position.z) : "0";
-    card.setAttribute("aria-hidden", String(!isVisible));
-    card.tabIndex = isVisible ? 0 : -1;
+    card.style.zIndex = isCurrent ? "2" : isPreview ? "1" : "0";
+    card.setAttribute("aria-hidden", String(!isCurrent));
+    card.setAttribute("aria-current", isCurrent ? "true" : "false");
+    card.tabIndex = isCurrent ? 0 : -1;
   });
 
-  fanDots.querySelectorAll("span").forEach((dot, index) => {
-    dot.classList.toggle("active", index === fanCenterIndex);
-  });
+  const currentCount = fanDots.querySelector("[data-fan-current]");
+  if (currentCount) currentCount.textContent = String(fanCenterIndex + 1);
+  fanDots.style.setProperty("--fan-progress", String((fanCenterIndex + 1) / Math.max(fanCards.length, 1)));
 }
 
 function cycleFan(direction) {
@@ -519,13 +485,13 @@ function renderFanCarousel() {
       (car) => `
         <a class="fan-card" href="/cars/${vehicleSlug(car)}.html" aria-label="View ${car.name}">
           ${fleetPictureMarkup(car.source, { alt: car.name, width: 500, height: 375, quality: 74, updatedAt: car.updatedAt, loading: "lazy" })}
-          <span>${vehicleLabel(car)}</span>
+          <span class="fan-card-copy"><small>Featured vehicle</small><strong>${vehicleLabel(car)}</strong><b>View vehicle <i aria-hidden="true">→</i></b></span>
         </a>
       `,
     )
     .join("");
 
-  fanDots.innerHTML = fanCards.map((_, index) => `<span class="${index === fanCenterIndex ? "active" : ""}"></span>`).join("");
+  fanDots.innerHTML = `<div class="fan-count"><b data-fan-current>${fanCenterIndex + 1}</b> of ${fanCards.length}</div>`;
   updateFanCarousel();
 }
 
@@ -584,7 +550,7 @@ function renderFleetLoading() {
       `,
     )
     .join("");
-  fanDots.innerHTML = fanCards.map((_, index) => `<span class="${index === fanCenterIndex ? "active" : ""}"></span>`).join("");
+  fanDots.innerHTML = '<div class="fan-count fan-count-loading">Loading vehicles…</div>';
   updateFanCarousel();
   if (brandGrid) brandGrid.innerHTML = "";
   if (typeGrid) typeGrid.innerHTML = "";
@@ -746,7 +712,7 @@ async function renderMonthlySpecials() {
 }
 
 function renderShopBrowsers() {
-  const brands = [...new Set(fleet.map(brandFor))].sort((a, b) => a.localeCompare(b));
+  const brands = sortBrands(fleet.map(brandFor));
   const availableTypes = new Set(fleet.map(bodyTypeFor));
   const types = ["SUV", "Convertible", "Coupe", "Sedan", "Truck"].filter((type) => availableTypes.has(type));
   types.push("All");
@@ -755,9 +721,9 @@ function renderShopBrowsers() {
     .map((brand) => {
       const count = fleet.filter((car) => brandFor(car) === brand).length;
       return `
-        <button class="shop-tile brand-tile" type="button" data-shop-filter="brand:${brand}">
+        <button class="shop-tile brand-tile" type="button" data-shop-filter="brand:${escapeHtml(brand)}">
           ${brandMark(brand)}
-          <span class="brand-name">${brand}</span>
+          <span class="brand-name">${escapeHtml(brand)}</span>
           <strong>${count} ${count === 1 ? "car" : "cars"}</strong>
         </button>
       `;
@@ -766,7 +732,7 @@ function renderShopBrowsers() {
 
   brandDots.innerHTML = brands.map((_, index) => `<span class="${index === 0 ? "active" : ""}"></span>`).join("");
 
-  typeGrid.innerHTML = types
+  if (typeGrid) typeGrid.innerHTML = types
     .map((type) => {
       const value = type === "All" ? "all" : `type:${type}`;
       const count = type === "All" ? fleet.length : fleet.filter((car) => bodyTypeFor(car) === type).length;
@@ -863,6 +829,38 @@ document.addEventListener("click", (event) => {
 
 fanPrev?.addEventListener("click", () => cycleFan(-1));
 fanNext?.addEventListener("click", () => cycleFan(1));
+fanStage?.addEventListener("pointerdown", (event) => {
+  if (!window.matchMedia("(max-width: 820px)").matches || !event.isPrimary) return;
+  fanPointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
+  fanDidDrag = false;
+  fanStage.setPointerCapture?.(event.pointerId);
+  fanStage.classList.add("is-dragging");
+});
+fanStage?.addEventListener("pointermove", (event) => {
+  if (!fanPointer || event.pointerId !== fanPointer.id) return;
+  const deltaX = event.clientX - fanPointer.x;
+  const deltaY = event.clientY - fanPointer.y;
+  if (Math.abs(deltaX) <= Math.abs(deltaY)) return;
+  fanDidDrag = Math.abs(deltaX) > 8;
+  const activeCard = fanStage.querySelector('.fan-card[aria-current="true"]');
+  activeCard?.style.setProperty("--fan-drag-x", `${Math.max(-72, Math.min(72, deltaX * 0.42))}px`);
+});
+const finishFanSwipe = (event) => {
+  if (!fanPointer || event.pointerId !== fanPointer.id) return;
+  const deltaX = event.clientX - fanPointer.x;
+  const deltaY = event.clientY - fanPointer.y;
+  fanStage.querySelectorAll(".fan-card").forEach((card) => card.style.removeProperty("--fan-drag-x"));
+  fanStage.classList.remove("is-dragging");
+  fanPointer = null;
+  if (Math.abs(deltaX) >= 44 && Math.abs(deltaX) > Math.abs(deltaY)) cycleFan(deltaX < 0 ? 1 : -1);
+};
+fanStage?.addEventListener("pointerup", finishFanSwipe);
+fanStage?.addEventListener("pointercancel", finishFanSwipe);
+fanStage?.addEventListener("click", (event) => {
+  if (!fanDidDrag) return;
+  event.preventDefault();
+  fanDidDrag = false;
+}, true);
 typePrev?.addEventListener("click", () => scrollTypeBrowser(-1));
 typeNext?.addEventListener("click", () => scrollTypeBrowser(1));
 specialPrev?.addEventListener("click", () => scrollSpecials(-1));

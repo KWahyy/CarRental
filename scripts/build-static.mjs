@@ -1,3 +1,7 @@
+import { refineDestinationPage } from './destination-pages.mjs';
+import { mapCar, optimizedFleetImageUrl, fleetPictureMarkup } from '../src/supabase-fleet.js';
+import { parseHTML } from 'linkedom';
+import { applySearchMetadata, sitemapXml, vehicleEntity } from '../src/search-metadata.js';
 import { renderPrivateDocument } from '../src/private-render.js';
 import { renderPublicDocument } from '../src/public-render.js';
 import { loadPublicInventory, inventoryMonth } from '../src/public-inventory.js';
@@ -47,8 +51,7 @@ const pathsToCopy = [
   "cars",
   "images",
   "public",
-  "src",
-  "supabase"
+  "src"
 ];
 
 for (const path of pathsToCopy) {
@@ -139,7 +142,7 @@ const activeInventoryBySlug = new Map(activeInventory.map((car) => [car.slug, ca
 
 const publicFleetSnapshot = activeInventory.map((car) => {
   const photos = [...(car.car_photos || [])].sort((a, b) => Number(a.position) - Number(b.position));
-  const gallery = photos.map((photo) => photo.url).filter(Boolean).slice(0, 3);
+  const gallery = photos.map((photo) => photo.url).filter(Boolean);
   const image = gallery[0] || car.image_url || "/assets/prestige-luxor-hero.png";
   return {
     id: car.id,
@@ -353,11 +356,11 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header scrolled" data-header>
       <a class="brand" href="/" aria-label="Prestige Luxor home"><img class="brand-logo brand-logo-wide" src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" /></a>
-      <nav class="desktop-nav" aria-label="Primary navigation"><a href="/fleet.html">Fleet</a><a href="/partner.html">Partner</a><a href="/faq">FAQ</a></nav>
+      <nav class="desktop-nav" aria-label="Primary navigation"><a href="/fleet.html">Fleet</a><a href="/partner.html">Consignment</a></nav>
       <div class="header-actions"><a class="ghost-button" href="tel:${phoneHref}">Call</a><a class="primary-button compact" href="${isLocationPage ? "#location-quote" : "/#quote"}">Reserve</a></div>
       <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-toggle><span></span><span></span></button>
     </header>
-    <div class="mobile-menu" data-mobile-menu><a href="/fleet.html">Fleet</a><a href="/partner.html">Partner</a><a href="/faq">FAQ</a><a href="tel:${phoneHref}">Call</a><a href="${isLocationPage ? "#location-quote" : "/#quote"}">Reserve</a></div>
+    <div class="mobile-menu" data-mobile-menu><a href="/fleet.html">Fleet</a><a href="/partner.html">Consignment</a><a href="tel:${phoneHref}">Call</a><a href="${isLocationPage ? "#location-quote" : "/#quote"}">Reserve</a></div>
     <main id="main" class="seo-page-main">
       <header class="seo-page-hero">
         <p class="eyebrow">${eyebrow}</p>
@@ -385,9 +388,9 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
 function orangeCountyPage({ title, description, heading, lead, path }) {
   const canonical = `${siteUrl}/${path}`;
   const preferredSlugs = [
-    "2022-lamborghini-huracan",
-    "ferrari-f8",
-    "rolls-royce-cullinan-white",
+    "lamborghini-huracan-evo-spyder-rental",
+    "ferrari-f8-tributo-rental",
+    "lamborghini-urus-s-rental",
   ];
   const featuredCars = preferredSlugs
     .map((slug) => activeInventoryBySlug.get(slug))
@@ -399,26 +402,20 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
   }
 
   const heroCar = featuredCars[0];
-  const heroImage = heroCar ? publicCarImage(heroCar, { width: 960, height: 640, quality: 80 }) : "/assets/optimized/prestige-luxor-hero.webp";
-  const heroImageSrcset = heroCar
-    ? [
-        [640, 427, 76],
-        [960, 640, 80],
-        [1600, 1067, 82],
-      ].map(([width, height, quality]) => `${publicCarImage(heroCar, { width, height, quality })} ${width}w`).join(", ")
-    : "";
+  const heroImage = heroCar ? optimizedFleetImageUrl(publicCarOriginalImage(heroCar), { width: 1800, height: 1200, quality: 85, updatedAt: heroCar.updated_at }) : "/assets/optimized/prestige-luxor-hero.webp";
+  const heroImageSrcset = "";
   const heroImagePreconnect = heroImage.startsWith("https://")
     ? `<link rel="preconnect" href="${new URL(heroImage).origin}" crossorigin />`
     : "";
   const fleetCards = featuredCars.map((car) => `
           <article class="oc-showroom-card">
             <a class="oc-showroom-media" href="/cars/${car.slug}" aria-label="View ${car.make} ${car.model}">
-              ${publicCarPicture(car, { alt: `${car.make} ${car.model} available from Prestige Luxor`, width: 1200, height: 900 })}
+              ${fleetPictureMarkup(publicCarOriginalImage(car), { alt: `${car.make} ${car.model} available from Prestige Luxor`, width: 1200, height: 900, loading: "lazy", updatedAt: car.updated_at })}
             </a>
             <div class="oc-showroom-card-copy">
               <div>
-                <span>${car.make}</span>
-                <h3>${car.model}</h3>
+                <span>${escapeHtml(car.make)}</span>
+                <h3>${escapeHtml(car.model)}</h3>
               </div>
               <p>From <strong>$${Number(car.price).toLocaleString("en-US")}</strong>/day</p>
             </div>
@@ -462,16 +459,17 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/prestige-luxor-favicon-16.png" />
     <link rel="apple-touch-icon" href="/assets/prestige-luxor-apple-touch-icon.png?v=prestige-luxor-20260806" />
   <link rel="stylesheet" href="/src/styles.css?v=site-theme-20260719" />
+    <link rel="stylesheet" href="/src/orange-county.css" />
   </head>
   <body class="site-theme fleet-page oc-location-page">
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header scrolled" data-header>
       <a class="brand" href="/" aria-label="Prestige Luxor home"><img class="brand-logo brand-logo-wide" src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" /></a>
-      <nav class="desktop-nav" aria-label="Primary navigation"><a href="/fleet.html">Fleet</a><a href="/partner.html">Partner</a><a href="/faq">FAQ</a></nav>
+      <nav class="desktop-nav" aria-label="Primary navigation"><a href="/fleet.html">Fleet</a><a href="/partner.html">Consignment</a></nav>
       <div class="header-actions"><a class="ghost-button" href="tel:${phoneHref}">Call</a><a class="primary-button compact" href="#location-quote">Reserve</a></div>
       <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-toggle><span></span><span></span></button>
     </header>
-    <div class="mobile-menu" data-mobile-menu><a href="/fleet.html">Fleet</a><a href="/partner.html">Partner</a><a href="/faq">FAQ</a><a href="tel:${phoneHref}">Call</a><a href="#location-quote">Reserve</a></div>
+    <div class="mobile-menu" data-mobile-menu><a href="/fleet.html">Fleet</a><a href="/partner.html">Consignment</a><a href="tel:${phoneHref}">Call</a><a href="#location-quote">Reserve</a></div>
 
     <main id="main" class="oc-location-main">
       <section class="oc-location-hero" aria-labelledby="oc-location-title">
@@ -479,7 +477,7 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
         <div class="oc-location-hero-scrim" aria-hidden="true"></div>
         <div class="oc-location-hero-content">
           <p class="oc-location-kicker">Orange County exotic car rental</p>
-          <h1 id="oc-location-title">Exotic car rental<br />in Orange County.</h1>
+          <h1 id="oc-location-title">Exotic car rental.<br /><em>Orange County.</em></h1>
           <p>Premium cars, clear quotes, and concierge delivery built around your plans.</p>
           <div class="oc-new-client-offer" aria-label="New client offer">
             <strong>10% off</strong>
@@ -496,7 +494,7 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
 
       <section class="oc-location-fleet" id="orange-county-fleet" aria-labelledby="oc-fleet-title">
         <header class="oc-section-heading">
-          <div><p>Compare listed vehicles</p><h2 id="oc-fleet-title">Exotic &amp; luxury rentals.</h2></div>
+          <div><p>Compare listed vehicles</p><h2 id="oc-fleet-title">Find your Orange County drive.</h2></div>
           <a href="/fleet.html">View the full fleet <span aria-hidden="true">&#8594;</span></a>
         </header>
         <div class="oc-showroom-grid">${fleetCards}</div>
@@ -504,7 +502,7 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
 
       <section class="rental-planning-section oc-rental-planning" aria-labelledby="oc-rental-planning-title">
         <p class="eyebrow">Choose around your itinerary</p>
-        <h2 id="oc-rental-planning-title">Orange County rental details.</h2>
+        <h2 id="oc-rental-planning-title">From the coast to your next occasion.</h2>
         <div class="rental-planning-columns">
           <div><h3>Newport Beach &amp; coastal stays</h3><p>Compare a two-seat convertible with a luxury SUV based on passengers and bags. Share the hotel or residence address, parking access and planned route so delivery and mileage can be quoted together.</p><p><a href="/locations/newport-beach-exotic-car-rental">Newport Beach delivery details</a></p></div>
           <div><h3>Irvine &amp; Anaheim plans</h3><p>For a business stay, celebration or hotel handoff, include pickup and return times plus any venue access instructions. Delivery is arranged for your booking; these cities are service areas, not walk-in branches.</p><p><a href="/wedding">Wedding car planning</a></p></div>
@@ -518,7 +516,7 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
       <section class="oc-location-service" aria-labelledby="oc-service-title">
         <div class="oc-service-intro">
           <p>Three steps. No rental counter.</p>
-          <h2 id="oc-service-title">Booked without the runaround.</h2>
+          <h2 id="oc-service-title">A great drive starts here.</h2>
         </div>
         <div class="oc-service-steps">
           <article><span>01</span><h3>Choose the car</h3><p>Send the vehicle, date, and driver details.</p></article>
@@ -527,24 +525,11 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
         </div>
       </section>
 
-      <section class="oc-location-quote" aria-labelledby="oc-quote-title">
-        <div>
-          <p>Before you commit</p>
-          <h2 id="oc-quote-title">Everything<br />upfront.</h2>
-        </div>
-        <dl>
-          <div><dt>Vehicle</dt><dd>Exact car and live availability</dd></div>
-          <div><dt>Schedule</dt><dd>Dates and delivery window</dd></div>
-          <div><dt>Approval</dt><dd>License, insurance, and deposit</dd></div>
-          <div><dt>Total</dt><dd>Mileage, delivery, and add-ons</dd></div>
-        </dl>
-      </section>
-
       ${locationEnhancements({ slug: "orange-county-exotic-car-rental", area: "Orange County" }, { includeFleet: false })}
 
       <section class="oc-location-final" aria-labelledby="oc-final-title">
         <p>10% off for first-time clients</p>
-        <h2 id="oc-final-title">Make the first one count.</h2>
+        <h2 id="oc-final-title">Your first drive, thoughtfully arranged.</h2>
         <div><a class="oc-location-primary" href="#location-quote">Request a quote</a><a class="oc-location-secondary" href="tel:${phoneHref}">Call ${phoneLabel}</a></div>
       </section>
     </main>
@@ -565,6 +550,22 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
 }
 
 const locationPages = [
+  {
+    slug: "irvine-exotic-car-rental", area: "Irvine",
+    title: "Exotic & Luxury Car Rental Irvine | Prestige Luxor",
+    description: "Request an exotic or luxury car rental in Irvine. Compare the active fleet and plan hotel, residence or business-address delivery with Prestige Luxor.",
+    heading: "Exotic and luxury car rental in Irvine.",
+    lead: "Choose a car for an Irvine business stay, celebration or Orange County weekend, with the exact vehicle and delivery address confirmed before booking.",
+    content: `<section><h2>Plan around your Irvine stay</h2><p>For meetings or a hotel stay near the Irvine Business Complex, consider passengers, luggage and parking access before choosing between a sports car and a luxury SUV. Tell us your hotel or business address and the time you need the vehicle. Property access and permission for the handoff are confirmed separately; no hotel partnership is implied.</p></section><section><h2>Arriving through John Wayne Airport</h2><p>If you are flying into SNA, send flight details and your onward Irvine address. The concierge will confirm a permitted meeting location and delivery window. Airport terminal pickup is not assumed. Read our <a href="/locations/sna-exotic-car-delivery">SNA delivery guide</a> for the information to include.</p></section><section><h2>Coastal trips and return arrangements</h2><p>Planning time in Newport Beach or another Orange County city? Share the route and return address so your quote can account for the listed mileage allowance and delivery arrangements. Additional mileage is $5 per mile. Confirm the total with your concierge before accepting the quote.</p><p>Compare <a href="/locations/newport-beach-exotic-car-rental">Newport Beach rentals</a>, <a href="/locations/orange-county-exotic-car-rental">Orange County delivery</a> and the <a href="/rental-policies">driver and insurance requirements</a>.</p></section>`
+  },
+  {
+    slug: "riverside-county-exotic-car-rental", area: "Riverside County",
+    title: "Riverside County Exotic Car Rental | Prestige Luxor",
+    description: "Request exotic or luxury car delivery in Riverside County. Share your address, dates and itinerary for confirmed vehicle availability and delivery pricing.",
+    heading: "Exotic car rental requests in Riverside County.",
+    lead: "From a Palm Springs resort stay to a private event elsewhere in Riverside County, send the exact address and dates so we can confirm whether delivery works for your booking.",
+    content: `<section><h2>Confirm the address before planning the handoff</h2><p>Riverside County covers a wide area. A request in Riverside, Temecula or the Coachella Valley can involve different travel distances and delivery windows. We confirm coverage for your exact address, selected vehicle and dates rather than promising every location or same-day delivery.</p></section><section><h2>Palm Springs and the desert communities</h2><p>For resort stays and celebrations in Palm Springs, Palm Desert or Rancho Mirage, provide the property name, parking access and preferred arrival window. Review our <a href="/locations/palm-springs-exotic-car-rental">Palm Springs rental page</a> for desert-stay planning. A luxury SUV and a two-seat convertible offer different passenger and luggage options; check the exact listing.</p></section><section><h2>Events and longer itineraries</h2><p>For a wedding or private event, include the venue, arrival time, photography schedule and return address. Venue permission and any special access arrangements need confirmation. If the trip starts in Los Angeles or Orange County, share the complete route and expected mileage.</p><p>Your quote confirms the vehicle, included mileage, additional mileage at $5 per mile, delivery charges and security-deposit hold starting from $1,000. Read our <a href="/wedding">wedding rental information</a> and <a href="/rental-policies">rental requirements</a> before requesting dates.</p></section>`
+  },
   {
     slug: "san-diego-exotic-car-rental", area: "San Diego",
     title: "Exotic & Luxury Car Rental San Diego | Prestige Luxor",
@@ -638,9 +639,13 @@ const locationPages = [
   }
 ];
 
+// Present the primary service areas before airport-specific delivery resources.
+const locationPriority = ['orange-county-exotic-car-rental','los-angeles-exotic-car-rental','newport-beach-exotic-car-rental','beverly-hills-luxury-car-rental','irvine-exotic-car-rental','riverside-county-exotic-car-rental','san-diego-exotic-car-rental','palm-springs-exotic-car-rental','lax-exotic-car-delivery','sna-exotic-car-delivery'];
+locationPages.sort((a,b)=>locationPriority.indexOf(a.slug)-locationPriority.indexOf(b.slug));
+
 const companyPages = [
-  { slug: "about", title: "About Prestige Luxor | LA & OC Exotic Car Rentals", description: "Learn how Prestige Luxor approaches delivery-only exotic car rentals, client approval, and concierge service in LA and Orange County.", eyebrow: "About Prestige Luxor", heading: "The car is only part of the experience.", lead: "Prestige Luxor brings together distinctive vehicles, direct booking support, and planned delivery for private clients, events, brands, and productions.", content: `<section><h2>What we do</h2><p>We are a delivery-only service with no customer-facing storefront. We help clients find and reserve exotic cars, luxury SUVs, convertibles, and performance vehicles for approved addresses across Los Angeles and Orange County.</p></section><section><h2>How we work</h2><p>Every request is reviewed for vehicle availability, driver requirements, dates, mileage, delivery access, and the intended experience. Our public fleet reflects vehicles marked active in the inventory system. A quote is not a guaranteed reservation until the vehicle, driver, documents, deposit, agreement, and payment details are approved.</p></section><section><h2>Talk with the team</h2><p>Call or text ${phoneLabel}, or email Contact@prestigeluxor.com with the vehicle, date, and delivery area you have in mind.</p></section>` },
-  { slug: "rental-policies", title: "Rental Policies | Prestige Luxor", description: "Review the general driver, insurance, deposit, mileage, delivery, cancellation, and vehicle-use policies for Prestige Luxor rentals.", eyebrow: "Before You Book", heading: "Rental policies and requirements.", lead: "These general guidelines help you prepare. Your signed rental agreement and confirmed quote control the final terms for a specific booking.", content: `<section><h2>Driver approval</h2><ul><li>A valid driver’s license is required.</li><li>Proof of insurance or other approved coverage may be required.</li><li>Age, driving history, and additional-driver rules vary by vehicle.</li></ul></section><section><h2>Deposit, payment, and agreement</h2><p>A security deposit, signed agreement, and confirmed payment arrangement may be required before the scheduled delivery. Deposit amounts and release timing vary by vehicle and booking.</p></section><section><h2>Delivery-only service</h2><p>Prestige Luxor does not operate a customer-facing rental counter or storefront. Every approved booking includes a confirmed delivery and return plan for an eligible address. Access, timing, distance, and delivery fees vary by location.</p></section><section><h2>Mileage and vehicle use</h2><p>Your quote should identify included mileage and any additional-mileage rate. Track use, racing, reckless driving, smoking, unauthorized drivers, illegal activity, subleasing, and travel outside approved areas are prohibited unless explicitly authorized in writing.</p></section><section><h2>Fuel, damage, and cancellations</h2><p>Return condition, fuel or charge level, tolls, tickets, cleaning, damage, late returns, cancellation, and rescheduling terms are confirmed in the rental agreement.</p></section>` },
+  { slug: "about", title: "About Prestige Luxor | LA & OC Exotic Car Rentals", description: "Learn how Prestige Luxor approaches delivery-only exotic car rentals, client approval, and concierge service in LA and Orange County.", eyebrow: "About Prestige Luxor", heading: "The car is only part of the experience.", lead: "Prestige Luxor brings together distinctive vehicles, direct booking support, and planned delivery for private clients, events, brands, and productions.", content: `<section><h2>What we do</h2><p>We are a delivery-only service with no customer-facing storefront. We help clients find and reserve exotic cars, luxury SUVs, convertibles, and performance vehicles in Southern California, including Orange County, Los Angeles, San Diego and Palm Springs. Riverside County requests are reviewed for the exact address, vehicle and schedule.</p></section><section><h2>How we work</h2><p>Every request is reviewed for vehicle availability, driver requirements, dates, mileage, delivery access, and the intended experience. Our public fleet reflects vehicles marked active in the inventory system. A quote is not a guaranteed reservation until the vehicle, driver, documents, deposit, agreement, and payment details are approved.</p></section><section><h2>Talk with the team</h2><p>Call or text <a href="tel:${phoneHref}">${phoneLabel}</a>, or email <a href="mailto:Contact@prestigeluxor.com">Contact@prestigeluxor.com</a> with the vehicle, date, and delivery area you have in mind. See our <a href="https://www.instagram.com/prestige.luxor/">official Instagram profile</a> and <a href="/#customer-care">customer experience video</a>.</p></section>` },
+  { slug: "rental-policies", title: "Rental Policies | Prestige Luxor", description: "Review the general driver, insurance, deposit, mileage, delivery, cancellation, and vehicle-use policies for Prestige Luxor rentals.", eyebrow: "Before You Book", heading: "Rental policies and requirements.", lead: "These general guidelines help you prepare. Your signed rental agreement and confirmed quote control the final terms for a specific booking.", content: `<section><h2>Driver approval</h2><ul><li>A valid driver’s license is required.</li><li>Proof of full-coverage auto insurance is required before confirmation.</li><li>The minimum age starts at 18, subject to vehicle-specific approval, with at least one year of driving experience. Additional-driver rules are confirmed for each rental.</li></ul></section><section><h2>Deposit, payment, and agreement</h2><p>A security deposit, signed agreement, and confirmed payment arrangement may be required before the scheduled delivery. Security-deposit holds start at $1,000; the exact amount and release timing are confirmed for the vehicle and booking before payment.</p></section><section><h2>Delivery-only service</h2><p>Prestige Luxor does not operate a customer-facing rental counter or storefront. Every approved booking includes a confirmed delivery and return plan for an eligible address. Access, timing, distance, and delivery fees vary by location.</p></section><section><h2>Mileage and vehicle use</h2><p>The vehicle page lists its included mileage. Additional mileage is $5 per mile; your quote confirms the allowance and full charges. Track use, racing, reckless driving, smoking, unauthorized drivers, illegal activity, subleasing, and travel outside approved areas are prohibited unless explicitly authorized in writing.</p></section><section><h2>Fuel, damage, and cancellations</h2><p>Return condition, fuel or charge level, tolls, tickets, cleaning, damage, late returns, cancellation, and rescheduling terms are confirmed in the rental agreement.</p></section>` },
   { slug: "privacy", title: "Privacy Policy | Prestige Luxor", description: "Read how Prestige Luxor handles information submitted through quote requests, partner applications, calls, texts, email, and website usage.", eyebrow: "Privacy", heading: "Privacy policy.", lead: "This policy explains the information we may receive and how it may be used when you contact Prestige Luxor or use this website.", content: `<section><h2>Information you provide</h2><p>We may receive contact details, requested dates, vehicle preferences, delivery information, event details, partner-vehicle information, and messages you submit. Driver’s-license, insurance, payment, and agreement information may be requested later through an approved booking process.</p></section><section><h2>How information is used</h2><p>Information may be used to respond, verify availability, evaluate eligibility, prepare quotes, coordinate bookings, prevent fraud, meet legal obligations, and improve service. We do not claim to sell personal information.</p></section><section><h2>Service providers and retention</h2><p>Information may be processed by hosting, database, communications, analytics, payment, insurance, verification, or booking providers as needed. Records may be retained for operational, security, dispute, tax, insurance, and legal purposes.</p></section><section><h2>Your choices</h2><p>To ask about your information or request a correction or deletion where applicable, email Contact@prestigeluxor.com. Do not send sensitive identity or payment information through an unsecured website message.</p></section>` },
   { slug: "terms", title: "Website Terms | Prestige Luxor", description: "Review the website terms, quote limitations, availability notices, and acceptable-use rules for Prestige Luxor.", eyebrow: "Website Terms", heading: "Terms of use.", lead: "By using this website, you agree to these website terms. A separate signed agreement governs any approved vehicle rental.", content: `<section><h2>Website information and quotes</h2><p>Vehicle descriptions, photos, rates, promotions, and availability may change. Online rates are starting points unless expressly confirmed. A submitted form, call, text, or email does not create a reservation.</p></section><section><h2>Rental approval</h2><p>All rentals remain subject to vehicle availability, driver approval, insurance or coverage requirements, deposit, payment, identity verification, and a signed agreement.</p></section><section><h2>Acceptable use and ownership</h2><p>Do not misuse the website, attempt unauthorized access, interfere with service, scrape protected information, impersonate another person, or submit unlawful content. Website branding, design, copy, and owned media remain protected by applicable intellectual-property laws.</p></section><section><h2>Limitations and updates</h2><p>The website is provided on an “as available” basis to the extent permitted by law. These terms may be updated as the business and services change. Contact Contact@prestigeluxor.com with questions.</p></section>` }
 ];
@@ -653,9 +658,10 @@ for (const page of locationPages) {
     path: `locations/${page.slug}`,
     content: `${page.content}${locationEnhancements(page, { includeFleet: page.slug !== "orange-county-exotic-car-rental" })}`,
   };
-  const html = page.slug === "orange-county-exotic-car-rental"
+  let html = page.slug === "orange-county-exotic-car-rental"
     ? orangeCountyPage(pageOptions)
     : pageShell({ ...pageOptions, eyebrow: "Prestige Luxor Service Area", schemaType: "Service" });
+  html = refineDestinationPage(html, page, activeInventory, locationEnhancements(page, { includeFleet: false }));
   writeFileSync(join(locationsDir, `${page.slug}.html`), html);
 }
 for (const page of companyPages) {
@@ -691,66 +697,7 @@ if (existsSync(carDir)) {
       ? [...new Set([...(activeCar.car_photos || []).sort((a, b) => Number(a.position) - Number(b.position)).map(({ url }) => absoluteUrl(url)), absoluteUrl(activeCar.image_url)].filter(Boolean))]
       : [];
     const imageUrl = vehicleImages[0] || (existsSync(join(root, imagePath)) ? `${siteUrl}/${imagePath}` : `${siteUrl}/assets/prestige-luxor-hero.png`);
-    const vehicleYear = String(activeCar?.name || "").match(/^\d{4}/)?.[0] || "";
-    const vehicleSchema = isActive ? {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": ["Product", "Vehicle"],
-          "@id": `${siteUrl}/cars/${slug}#vehicle`,
-          name: activeCar.name,
-          description: publicVehicleSummary(activeCar),
-          url: `${siteUrl}/cars/${slug}`,
-          image: vehicleImages.length ? vehicleImages : [imageUrl],
-          sku: activeCar.id || slug,
-          brand: { "@type": "Brand", name: activeCar.make },
-          model: activeCar.model,
-          category: activeCar.category_label || activeCar.category,
-          ...(vehicleYear ? { vehicleModelDate: vehicleYear } : {}),
-          ...(activeCar.color ? { color: activeCar.color } : {}),
-          ...(activeCar.seats ? { vehicleSeatingCapacity: Number(activeCar.seats) } : {}),
-          additionalProperty: [
-            ...(activeCar.mileage ? [{ "@type": "PropertyValue", name: "Included mileage", value: activeCar.mileage }] : []),
-            { "@type": "PropertyValue", name: "Minimum driver age", value: "18+, subject to vehicle-specific approval" },
-            { "@type": "PropertyValue", name: "Insurance requirement", value: "Valid driver license and proof of active auto insurance required" },
-            { "@type": "PropertyValue", name: "Security deposit", value: "Vehicle- and driver-specific refundable hold disclosed before payment" },
-            { "@type": "PropertyValue", name: "Service area", value: "Los Angeles and Orange County" },
-          ],
-          offers: {
-            "@type": "Offer",
-            url: `${siteUrl}/cars/${slug}`,
-            price: Number(activeCar.price),
-            priceCurrency: "USD",
-            availability: "https://schema.org/InStock",
-            businessFunction: "http://purl.org/goodrelations/v1#LeaseOut",
-            seller: { "@id": `${siteUrl}/#business` },
-            priceSpecification: {
-              "@type": "UnitPriceSpecification",
-              price: Number(activeCar.price),
-              priceCurrency: "USD",
-              unitText: "DAY",
-            },
-          },
-        },
-        {
-          "@type": "BreadcrumbList",
-          itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Home", item: `${siteUrl}/` },
-            { "@type": "ListItem", position: 2, name: "Fleet", item: `${siteUrl}/fleet` },
-            { "@type": "ListItem", position: 3, name: activeCar.name, item: `${siteUrl}/cars/${slug}` },
-          ],
-        },
-        {
-          "@type": "FAQPage",
-          "@id": `${siteUrl}/cars/${slug}#faq`,
-          mainEntity: vehicleFaqItems(activeCar, formatUsd).map(({ question, answer }) => ({
-            "@type": "Question",
-            name: question,
-            acceptedAnswer: { "@type": "Answer", text: answer },
-          })),
-        },
-      ],
-    } : null;
+    const vehicleSchema = isActive ? { "@context": "https://schema.org", "@graph": [vehicleEntity(mapCar(activeCar))] } : null;
     html = html
       .replace(/<title>.*?<\/title>/, `<title>${escapeHtml(title)}</title>`)
       .replace(/<meta name="description" content="[^"]*"\s*\/>/i, `<meta name="description" content="${escapeHtml(description)}" />`)
@@ -954,7 +901,14 @@ for (const page of guidePages) {
   writeFileSync(join(outDir, `${page.path}.html`), pageShell({ ...page, schemaType: "Article", eyebrow: "Prestige Luxor rental guides" }));
 }
 writeFileSync(join(outDir, "guides.html"), pageShell({ path: "guides", title: "Southern California Exotic Car Rental Guides | Prestige Luxor", heading: "Plan your Southern California rental.", eyebrow: "Rental guides", description: "Compare Lamborghini rental costs, choose between Huracán and Urus, and plan hotel or airport delivery with Prestige Luxor.", lead: "Practical answers using our published fleet and booking process. Compare options, understand the quote and plan your delivery before you reserve.", content: guidePages.map(page => `<section><h2><a href="/${page.path}">${escapeHtml(page.heading)}</a></h2><p>${escapeHtml(page.description)}</p><p><a href="/${page.path}">Read the guide →</a></p></section>`).join("") }));
-const regionLinks = `<nav class="seo-delivery-nav" aria-label="Explore delivery areas"><h2>Southern California delivery</h2>${locationPages.map(page => `<a href="/locations/${page.slug}">${escapeHtml(page.area)}</a>`).join(" · ")}<p>Browse by make: <a href="/lamborghini">Lamborghini</a> · <a href="/ferrari">Ferrari</a>${brandPages.map(page => ` · <a href="/${page.slug}">${page.name}</a>`).join("")}</p><p><a href="/guides">Rental pricing, vehicle comparisons &amp; delivery guides</a></p></nav>`;
+const regionLinks = `<nav class="seo-delivery-nav" aria-label="Explore delivery areas and rental resources">
+  <div class="seo-delivery-heading"><p>KEEP EXPLORING</p><h2>Southern California delivery.</h2></div>
+  <div class="seo-delivery-columns">
+    <section class="seo-delivery-areas" aria-label="Delivery areas"><h3>Find your destination</h3><ul>${locationPages.map(page => `<li><a href="/locations/${page.slug}">${escapeHtml(page.area)}<span aria-hidden="true">↗</span></a></li>`).join("")}</ul></section>
+    <section aria-label="Car brands"><h3>Explore by make</h3><ul>${[{slug:'lamborghini',name:'Lamborghini'},{slug:'ferrari',name:'Ferrari'},...brandPages].map(page=>`<li><a href="/${page.slug}">${escapeHtml(page.name)}<span aria-hidden="true">↗</span></a></li>`).join('')}</ul></section>
+    <section class="seo-delivery-guides" aria-label="Rental guides"><h3>Plan your drive</h3><p>Rental pricing, vehicle comparisons, and delivery guides.</p><a href="/guides">Explore the guides <span aria-hidden="true">↗</span></a></section>
+  </div>
+</nav>`;
 for (const page of brandPages) {
   const html = pageShell({ path: page.slug, schemaType: "CollectionPage", collection: page.cars, title: `${page.name} Rental Los Angeles & Southern California | Prestige Luxor`, description: `Explore ${page.name} rentals with Prestige Luxor. Compare active vehicles, daily rates and delivery options across Southern California.`, eyebrow: `${page.name} collection`, heading: `${page.name} rentals in Southern California.`, lead: page.copy, content: `<section><h2>Explore available ${page.name} models</h2><div class="fleet-showroom-grid">${collectionCards(page.cars)}</div></section><section><h2>Delivery and rental requirements</h2><p>Delivery is available across Southern California, subject to the confirmed vehicle, dates and address. Your quote covers mileage, driver eligibility, insurance requirements, security deposit and any delivery fees. <a href="/rental-policies">Review rental policies</a>.</p></section>${regionLinks}` });
   writeFileSync(join(outDir, `${page.slug}.html`), html);
@@ -977,8 +931,11 @@ function normalizePublicLinks(directory, relative = "") {
   if (!/\.(html|js)$/.test(entry.name) || key.startsWith("src/admin")) continue;
   let source = readFileSync(path, "utf8");
   source = source.replace(/(href=["'](?:https:\/\/www\.prestigeluxor\.com)?\/[^"'?#]*?)\.html(?=["'?#])/g, "$1");
-  if (entry.name.endsWith(".html") && /<main/.test(source) && !source.includes('aria-label="Explore delivery areas"') && !/name="robots" content="noindex/.test(source)) source = source.replace("</main>", `${regionLinks}</main>`);
-  if (entry.name.endsWith(".html")) source = source.replace("</head>", '<link rel="stylesheet" href="/src/seo-navigation.css" /></head>');
+  if (entry.name.endsWith(".html") && /<main/.test(source) && !source.includes('class="seo-delivery-nav"') && !/name="robots" content="noindex/.test(source)) source = source.replace("</main>", `${regionLinks}</main>`);
+  if (entry.name.endsWith(".html")) {
+   source = source.replace("</head>", '<link rel="stylesheet" href="/src/seo-navigation.css" /></head>');
+   const {document}=parseHTML(source); applySearchMetadata(document); source='<!doctype html>\n'+document.documentElement.outerHTML;
+  }
   writeFileSync(path, source);
  }
 }
@@ -987,7 +944,7 @@ normalizePublicLinks(outDir);
 injectGoogleAdsTag(outDir);
 injectVercelObservability(outDir);
 const responseInventory = await loadPublicInventory().catch(() => ({special:null,month:inventoryMonth()}));
-const renderPaths = ['index','fleet','lamborghini','ferrari',...activeInventory.map(car=>'cars/'+car.slug)];
+const renderPaths = ['index','fleet','lamborghini','ferrari','wedding',...activeInventory.map(car=>'cars/'+car.slug)];
 for (const route of renderPaths) {
  const path=join(outDir,route+'.html');
  if(existsSync(path)) writeFileSync(path,renderPublicDocument(readFileSync(path,'utf8'),activeInventory,{...responseInventory,path:'/'+route}));
@@ -996,7 +953,7 @@ function addStabilityStyles(directory) {
  for(const entry of readdirSync(directory,{withFileTypes:true})) {
   const path=join(directory,entry.name);
   if(entry.isDirectory()) {if(!['assets','admin','src'].includes(entry.name))addStabilityStyles(path);}
-  else if(entry.name.endsWith('.html'))writeFileSync(path,readFileSync(path,'utf8').replace('</head>','<link rel="stylesheet" href="/src/render-stability.css" /></head>'));
+  else if(entry.name.endsWith('.html'))writeFileSync(path,readFileSync(path,'utf8').replace('</head>','<link rel="stylesheet" href="/src/render-stability.css" /><link rel="stylesheet" href="/src/vehicle-gallery.css" /></head>'));
  }
 }
 for (const page of ['quote','agreement']) {
@@ -1007,7 +964,7 @@ await inlinePublicPageStyles(outDir);
 
 writeFileSync(
   join(outDir, "robots.txt"),
-  `User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}/sitemap.xml\n`
+  `# Public pages are available to Googlebot, Bingbot, OAI-SearchBot and PerplexityBot.\n# Search access is independent of model-training crawler policies.\nUser-agent: *\nAllow: /\nDisallow: /api/\n\nSitemap: ${siteUrl}/sitemap.xml\n`
 );
 
 const sitemapPages = [
@@ -1025,16 +982,7 @@ const sitemapPages = [
   ...locationPages.map(({ slug }) => `locations/${slug}`),
 ];
 const sitemapVehicles = activeInventory.filter(({ slug }) => existsSync(join(carDir, `${slug}.html`)));
-const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${sitemapPages.map((page) => `  <url><loc>${siteUrl}/${page}</loc></url>`).join("\n")}
-${sitemapVehicles
-  .map(({ slug, updated_at: updatedAt }) => {
-    const lastmod = updatedAt ? `<lastmod>${String(updatedAt).slice(0, 10)}</lastmod>` : "";
-    return `  <url><loc>${siteUrl}/cars/${slug}</loc>${lastmod}</url>`;
-  })
-  .join("\n")}
-</urlset>\n`;
+const sitemap = sitemapXml(sitemapPages,sitemapVehicles);
 writeFileSync(join(outDir, "sitemap.xml"), sitemap);
 
 console.log(`Static site copied to dist/ with ${sitemapVehicles.length} indexable inventory pages.`);
@@ -1048,3 +996,8 @@ for(const route of [...renderPaths,'quote','agreement']) {
  mkdirSync(dirname(destination),{recursive:true});
  renameSync(join(outDir,route+'.html'),destination);
 }
+
+// A compiled vehicle shell supports active cars added after the last deployment.
+if (sitemapVehicles.length) cpSync(join(templateDir,'cars',sitemapVehicles[0].slug+'.html'),join(templateDir,'vehicle-template.html'));
+writeFileSync(join(templateDir,'seo-routes.json'),JSON.stringify({pages:sitemapPages,fleet:activeInventory.map(({slug,updated_at})=>({slug,updated_at}))}));
+renameSync(join(outDir,'sitemap.xml'),join(templateDir,'sitemap.xml'));

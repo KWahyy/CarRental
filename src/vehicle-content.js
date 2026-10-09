@@ -104,6 +104,8 @@ export function makePageLink(vehicle) {
 }
 
 export const vehicleCityLinks = [
+  { href: "/locations/irvine-exotic-car-rental", label: "Irvine" },
+  { href: "/locations/riverside-county-exotic-car-rental", label: "Riverside County" },
   { href: "/locations/san-diego-exotic-car-rental", label: "San Diego" },
   { href: "/locations/palm-springs-exotic-car-rental", label: "Palm Springs" },
   { href: "/locations/los-angeles-exotic-car-rental", label: "Los Angeles" },
@@ -119,8 +121,8 @@ export function vehicleFaqItems(vehicle, formatPrice = (value) => `$${Number(val
   return [
     { question: `What is the starting price for the ${name}?`, answer: `The current starting rate is ${price} per day. Dates, rental length, delivery, mileage, add-ons, driver approval, and availability can change the final quote.` },
     { question: `How many people and bags fit in the ${name}?`, answer: `This listing is configured for ${seatsForVehicle(vehicle)}. ${luggageGuidance(vehicle)}` },
-    { question: `What are the driver and insurance requirements?`, answer: `The starting minimum driver age is 18, subject to approval for this specific vehicle. A valid driver’s license and proof of active auto insurance are required before confirmation.` },
-    { question: `What mileage and security deposit apply?`, answer: `${mileage} is currently listed. The refundable security-deposit hold is vehicle- and driver-specific; the exact amount and release terms are disclosed before payment.` },
+    { question: `What are the driver and insurance requirements?`, answer: `The starting minimum driver age is 18, subject to approval for this specific vehicle. At least one year of driving experience, a valid driver’s license and proof of full-coverage auto insurance are required before confirmation.` },
+    { question: `What mileage and security deposit apply?`, answer: `${mileage} is currently listed. Additional mileage is $5 per mile. Refundable security-deposit holds start at $1,000; the exact amount and release terms are disclosed before payment.` },
     { question: `Where can Prestige Luxor deliver the ${name}?`, answer: `Approved delivery is available across Southern California, including Los Angeles, Orange County, San Diego and Palm Springs. Timing and any delivery charge are confirmed for the exact address.` },
     { question: `Can I see a walkaround video before renting the ${name}?`, answer: `Yes. Ask the concierge for the latest walkaround video and current-condition photos for this exact vehicle before approving the reservation.` },
   ];
@@ -145,30 +147,13 @@ export function vehicleSeoSectionMarkup(vehicle, {
   const name = vehicleDisplayName(vehicle);
   const makeLink = makePageLink(vehicle);
   const faqs = vehicleFaqItems(vehicle, formatPrice);
-  const facts = [
-    ["Year", vehicleYear(vehicle)],
-    ["Model", vehicle.model || name],
-    ["Exterior", vehicle.color || "Confirm current finish"],
-    ["Configuration", bodyTypeForVehicle(vehicle)],
-    ["Starting rate", `${formatPrice(vehicle.price)}/day`],
-    ["Seating", seatsForVehicle(vehicle)],
-    ["Luggage", luggageGuidance(vehicle)],
-    ["Included mileage", vehicle.mileage || "Confirmed by quote"],
-    ["Minimum age", "18+; vehicle approval required"],
-    ["Security deposit", "Vehicle-specific refundable hold"],
-    ["Insurance", "Active auto insurance required"],
-    ["Recommended for", recommendedUseLabel(vehicle)],
-  ];
   return `
     <section class="vehicle-seo-details" data-vehicle-seo aria-labelledby="vehicle-seo-title">
       <header class="vehicle-seo-intro">
         <p class="eyebrow">Vehicle rental guide</p>
-        <h2 id="vehicle-seo-title">${escapeHtml(name)} rental details for Los Angeles and Orange County.</h2>
-        <p>${escapeHtml(publicVehicleSummary(vehicle))}</p>
+        <h2 id="vehicle-seo-title">Plan your drive.</h2>
+        <p>${escapeHtml(`Arrange your ${name} rental in Los Angeles, Orange County or across Southern California. Your concierge will confirm delivery and the details for your trip.`)}</p>
       </header>
-      <div class="vehicle-seo-facts" aria-label="${escapeHtml(name)} rental facts">
-        ${facts.map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join("")}
-      </div>
       <div class="vehicle-seo-planning">
         <article><p class="eyebrow">Best uses</p><h3>Choose it for the right moment.</h3><p>${escapeHtml(`This ${bodyTypeForVehicle(vehicle).toLowerCase()} is recommended for ${recommendedUseLabel(vehicle)}.`)}</p></article>
         <article class="vehicle-walkaround"><p class="eyebrow">Current-condition check</p><h3>Request the walkaround.</h3><p>Ask for the latest video and current-condition photos of this exact vehicle before you approve the booking.</p><a href="sms:+19496200024?body=${encodeURIComponent(`Please send me the latest walkaround video for the ${name}.`)}">Request walkaround video <span aria-hidden="true">↗</span></a></article>
@@ -179,7 +164,7 @@ export function vehicleSeoSectionMarkup(vehicle, {
         ${vehicleCityLinks.map((link) => `<a href="${link.href}">${escapeHtml(link.label)} exotic car rentals</a>`).join("")}
       </nav>
       <section class="vehicle-private-faq" aria-labelledby="vehicle-faq-title">
-        <header><p class="eyebrow">About this vehicle</p><h2 id="vehicle-faq-title">Questions,<br /><em>answered.</em></h2></header>
+        <header><p class="eyebrow">About this vehicle</p><h2 id="vehicle-faq-title">Your questions, answered.</h2></header>
         <div class="vehicle-private-faq-list">
           ${faqs.map((faq) => `<details><summary>${escapeHtml(faq.question)}<span>+</span></summary><p>${escapeHtml(faq.answer)}</p></details>`).join("")}
         </div>

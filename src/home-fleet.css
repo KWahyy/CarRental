@@ -1,6 +1,6 @@
 .home-fleet { margin:64px 0; color:#f4f1e9; }
 .home-fleet-kicker { margin:0 0 14px; color:#d8c9a9; font:500 11px Arial,sans-serif; letter-spacing:.22em; text-transform:uppercase; }
-.home-page .home-fleet h2 { margin:0 0 26px; font:400 clamp(30px,3vw,46px)/1.15 Arial,sans-serif; letter-spacing:-.035em; }
+.home-page .home-fleet h2 { margin:0 0 26px; font:400 clamp(36px,3.5vw,52px)/1.1 Georgia,"Times New Roman",serif; letter-spacing:-.035em; }
 .home-fleet-search { display:flex; align-items:center; gap:14px; width:100%; min-height:56px; padding:0 18px; border:1px solid #ffffff28; border-radius:12px; background:#111113; }
 .home-fleet-search svg { width:20px; height:20px; flex-shrink:0; fill:none; stroke:#99958d; stroke-width:1.5; }
 .home-fleet-search input { width:100%; min-width:0; padding:14px 0; border:0; background:transparent; color:#f4f1e9; font:400 16px Arial,sans-serif; outline:none; }
@@ -29,7 +29,7 @@
 .home-fleet-card-body > p { margin:0 0 20px; color:#aaa69d; font:400 12px/1.5 Arial,sans-serif; letter-spacing:.01em; }
 .home-fleet-card-bottom { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-top:auto; padding-top:16px; border-top:1px solid #ffffff12; color:#aaa69d; font:400 11px/1.2 Arial,sans-serif; }
 .home-fleet-card-bottom > span:first-child { display:inline-flex; align-items:baseline; gap:4px; white-space:nowrap; }
-.home-fleet-card-bottom strong { margin-left:2px; color:#f4f1e9; font-size:24px; font-weight:600; letter-spacing:-.035em; font-variant-numeric:tabular-nums; }
+.home-fleet-card .home-fleet-card-bottom strong { margin-inline:4px 3px; color:#f4f1e9; font:400 26px/1.15 Georgia,"Times New Roman",serif; letter-spacing:-.025em; font-variant-numeric:lining-nums tabular-nums; }
 .home-fleet-card-cta { display:inline-flex; align-items:center; gap:10px; color:#d8c9a9; font-size:10px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; white-space:nowrap; }
 .home-fleet-card-cta span { font-size:20px; font-weight:400; line-height:1; }
 .home-fleet-footer { display:flex; justify-content:center; margin-top:26px; }
@@ -164,3 +164,8 @@
 }
 
 @media(prefers-reduced-motion:reduce) { .home-page .arrival-statement .arrival-highlight { transition:none; } }
+
+/* Longer, counted categories stay accessible without squeezing the labels. */
+.home-fleet .home-fleet-categories { max-width: 100%; min-width: 0; flex-wrap: wrap; }
+.home-fleet .home-fleet-categories button { flex: 0 0 auto; padding-inline: 13px; white-space: nowrap; }
+@media(max-width:640px) { .home-fleet .home-fleet-categories { justify-content: flex-start; } }

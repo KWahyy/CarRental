@@ -837,9 +837,20 @@
   "functions": {
     "api/public-page.js": {
       "includeFiles": "server-pages/**/*.html"
+    },
+    "api/sitemap.js": {
+      "includeFiles": "server-pages/seo-routes.json"
     }
   },
   "rewrites": [
+    {
+      "source": "/wedding",
+      "destination": "/api/public-page?page=wedding"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
     {
       "source": "/",
       "destination": "/api/public-page?page=index"
