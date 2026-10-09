@@ -1,0 +1,15 @@
+/* Preserve the mobile reading order without moving elements after first paint. */
+@media (max-width: 680px) {
+ .vehicle-page .vehicle-private-information { display: contents; }
+ .vehicle-page .vehicle-private-overview { order: 3; }
+}
+/* CSS owns the responsive optional fields from the first frame. */
+@media (max-width: 640px) {
+ .quote-optional:not([data-interacted]) > .quote-optional-body { display: none; }
+ .quote-optional:not([data-interacted]) summary svg { transform: none; }
+}
+
+/* All rotating phrases share a sized grid cell, so animation cannot reflow the headline. */
+.home-page .arrival-statement .arrival-highlight { display: inline-grid; }
+.arrival-highlight > span { grid-area: 1 / 1; }
+.arrival-highlight .arrival-phrase-reserve { visibility: hidden; pointer-events: none; }

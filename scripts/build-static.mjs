@@ -1,8 +1,11 @@
+import { renderPrivateDocument } from '../src/private-render.js';
+import { renderPublicDocument } from '../src/public-render.js';
+import { loadPublicInventory, inventoryMonth } from '../src/public-inventory.js';
 import { homeFleetCard, sortHomeFleet } from "../src/home-fleet-model.js";
 import { rentalGuides } from "./rental-guides.mjs";
 import { vehicleShellMarkup } from "../src/vehicle-shell.js";
 import { vehicleYear as getVehicleYear, vehicleDisplayName, bodyTypeForVehicle, seatsForVehicle, engineForVehicle, accelerationForVehicle } from "../src/vehicle-content.js";
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { PurgeCSS } from "purgecss";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "../src/supabase-config.js";
@@ -983,6 +986,23 @@ normalizePublicLinks(outDir);
 
 injectGoogleAdsTag(outDir);
 injectVercelObservability(outDir);
+const responseInventory = await loadPublicInventory().catch(() => ({special:null,month:inventoryMonth()}));
+const renderPaths = ['index','fleet','lamborghini','ferrari',...activeInventory.map(car=>'cars/'+car.slug)];
+for (const route of renderPaths) {
+ const path=join(outDir,route+'.html');
+ if(existsSync(path)) writeFileSync(path,renderPublicDocument(readFileSync(path,'utf8'),activeInventory,{...responseInventory,path:'/'+route}));
+}
+function addStabilityStyles(directory) {
+ for(const entry of readdirSync(directory,{withFileTypes:true})) {
+  const path=join(directory,entry.name);
+  if(entry.isDirectory()) {if(!['assets','admin','src'].includes(entry.name))addStabilityStyles(path);}
+  else if(entry.name.endsWith('.html'))writeFileSync(path,readFileSync(path,'utf8').replace('</head>','<link rel="stylesheet" href="/src/render-stability.css" /></head>'));
+ }
+}
+for (const page of ['quote','agreement']) {
+ const path=join(outDir,page+'.html');writeFileSync(path,renderPrivateDocument(readFileSync(path,'utf8'),page));
+}
+addStabilityStyles(outDir);
 await inlinePublicPageStyles(outDir);
 
 writeFileSync(
@@ -1018,3 +1038,13 @@ ${sitemapVehicles
 writeFileSync(join(outDir, "sitemap.xml"), sitemap);
 
 console.log(`Static site copied to dist/ with ${sitemapVehicles.length} indexable inventory pages.`);
+
+// Vercel gives files precedence over rewrites. Keep response templates private so
+// the public route always reaches the handler (including quotes and agreements).
+const templateDir=join(root,'server-pages');
+rmSync(templateDir,{recursive:true,force:true});
+for(const route of [...renderPaths,'quote','agreement']) {
+ const destination=join(templateDir,route+'.html');
+ mkdirSync(dirname(destination),{recursive:true});
+ renameSync(join(outDir,route+'.html'),destination);
+}

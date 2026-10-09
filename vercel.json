@@ -792,6 +792,81 @@
       "source": "/cars/tesla-plaid-model-s.html",
       "destination": "/fleet",
       "permanent": true
+    },
+    {
+      "source": "/index",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/fleet.html",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/lamborghini.html",
+      "destination": "/lamborghini",
+      "permanent": true
+    },
+    {
+      "source": "/ferrari.html",
+      "destination": "/ferrari",
+      "permanent": true
+    },
+    {
+      "source": "/quote.html",
+      "destination": "/quote",
+      "permanent": true
+    },
+    {
+      "source": "/agreement.html",
+      "destination": "/agreement",
+      "permanent": true
+    },
+    {
+      "source": "/cars/:slug.html",
+      "destination": "/cars/:slug",
+      "permanent": true
+    }
+  ],
+  "functions": {
+    "api/public-page.js": {
+      "includeFiles": "server-pages/**/*.html"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/api/public-page?page=index"
+    },
+    {
+      "source": "/fleet",
+      "destination": "/api/public-page?page=fleet"
+    },
+    {
+      "source": "/lamborghini",
+      "destination": "/api/public-page?page=lamborghini"
+    },
+    {
+      "source": "/ferrari",
+      "destination": "/api/public-page?page=ferrari"
+    },
+    {
+      "source": "/cars/:slug",
+      "destination": "/api/public-page?page=cars/:slug"
+    },
+    {
+      "source": "/quote",
+      "destination": "/api/public-page?page=quote"
+    },
+    {
+      "source": "/agreement",
+      "destination": "/api/public-page?page=agreement"
     }
   ]
 }

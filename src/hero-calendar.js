@@ -5,13 +5,13 @@ const today = () => localDate(new Date());
 export function enhanceDatePicker(input) {
   const field = input.parentElement;
   const label = input.getAttribute('aria-label');
-  const trigger = document.createElement('button');
+  const trigger = field.querySelector('.hero-date-trigger') || document.createElement('button');
   trigger.type = 'button';
   trigger.className = 'hero-date-trigger';
   trigger.setAttribute('aria-haspopup','dialog');
   trigger.setAttribute('aria-expanded','false');
-  const text = document.createElement('span');
-  const icon = document.createElement('span');
+  const text = trigger.firstElementChild || document.createElement('span');
+  const icon = trigger.querySelector('.hero-calendar-icon') || document.createElement('span');
   icon.className = 'hero-calendar-icon';
   icon.setAttribute('aria-hidden','true');
   trigger.append(text,icon);

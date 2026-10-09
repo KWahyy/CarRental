@@ -21,7 +21,7 @@ async function getSupabase() {
   return supabasePromise;
 }
 
-function mapCar(row) {
+export function mapCar(row) {
   const photos = [...(row.car_photos || [])].sort((a, b) => Number(a.position) - Number(b.position));
   const gallery = photos.map((photo) => photo.url).filter(Boolean).slice(0, MAX_LISTING_PHOTOS);
   const image = gallery[0] || row.image_url || "/assets/prestige-luxor-hero.png";
@@ -55,7 +55,7 @@ export function cacheSafeFleetImageUrl(url, updatedAt = "") {
   if (!source || !updatedAt || !source.includes("/storage/v1/object/public/")) return source;
 
   try {
-    const parsed = new URL(source, window.location.origin);
+    const parsed = new URL(source, (typeof window !== "undefined" ? window.location.origin : "https://www.prestigeluxor.com"));
     parsed.searchParams.set("v", String(Date.parse(updatedAt) || updatedAt));
     return parsed.href;
   } catch {
@@ -69,7 +69,7 @@ export function optimizedFleetImageUrl(url, { width = 900, height = 675, quality
 
   if (source.includes("/storage/v1/object/public/")) {
     try {
-      const parsed = new URL(source, window.location.origin);
+      const parsed = new URL(source, (typeof window !== "undefined" ? window.location.origin : "https://www.prestigeluxor.com"));
       parsed.pathname = parsed.pathname.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
       parsed.searchParams.set("width", String(width));
       parsed.searchParams.set("height", String(height));

@@ -4,7 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/build-static.mjs"
+    "build": "node scripts/build-static.mjs",
+    "preview": "node scripts/preview-production.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:seo": "node scripts/check-seo.mjs",
+    "test:render": "node scripts/test-render-stability.mjs",
+    "test:booking": "node scripts/test-booking-rendering.mjs",
+    "test:scenes": "node scripts/test-render-scenes.mjs"
   },
   "engines": {
     "node": ">=18"
@@ -12,10 +18,12 @@
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
+    "linkedom": "^0.18.13",
     "pdf-lib": "^1.17.1"
   },
   "devDependencies": {
     "lightningcss": "^1.33.0",
+    "playwright": "1.62.1",
     "purgecss": "^8.0.0"
   }
 }

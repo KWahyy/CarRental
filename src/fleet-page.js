@@ -1,6 +1,6 @@
 import { FEATURED_FLEET_SLUGS, sortHomeFleet } from './home-fleet-model.js';
 import { initFleetTrip, applyTripToForm } from "./rental-search.js";
-import { fleet as websiteFleet, formatPrice } from "./live-fleet.js";
+import { fleet as websiteFleet, formatPrice, publicPageState } from "./live-fleet.js";
 import { fleetPictureMarkup, isSupabaseFleetConfigured, loadMonthlySpecialFromSupabase, optimizedFleetImageUrl, recordFleetEvent } from "./supabase-fleet.js?v=native-picture-flow-20260901";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260906";
 
@@ -778,7 +778,7 @@ function monthlyFallbackSlugs(source, month) {
 
 async function hydrateMonthlyDeals() {
   const month = currentSpecialMonth();
-  const configuredSpecial = isSupabaseFleetConfigured ? await loadMonthlySpecialFromSupabase(month) : null;
+  const configuredSpecial = publicPageState ? publicPageState.special : isSupabaseFleetConfigured ? await loadMonthlySpecialFromSupabase(month) : null;
   const activeSlugs = new Set(baseFleet.map(vehicleSlug));
   const configuredSlugs = Array.isArray(configuredSpecial?.car_slugs)
     ? configuredSpecial.car_slugs.filter((slug) => activeSlugs.has(slug)).slice(0, 2)
@@ -787,7 +787,9 @@ async function hydrateMonthlyDeals() {
 }
 
 async function initFleetPage() {
-  renderFleet();
+  if (!document.documentElement.dataset.publicRendered) renderFleet();
+  popularSlugs = new Set(POPULAR_VEHICLE_SLUGS.filter(slug => cars.some(car => vehicleSlug(car) === slug)).slice(0, 6));
+  observeCardImpressions();
   trackFleetEvent("view_item_list", { vehicle_count: baseFleet.length });
   await hydrateMonthlyDeals();
 }

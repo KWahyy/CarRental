@@ -1,4 +1,4 @@
-import { fleet } from './live-fleet.js';
+import { fleet, isPublicRendered } from './live-fleet.js';
 import { fleetPictureMarkup } from './supabase-fleet.js';
 import { filterHomeFleet, fleetCategory, homeFleetCard, sortHomeFleet } from './home-fleet-model.js';
 import { readTripSearch, tripSearchParams } from './rental-search.js';
@@ -15,13 +15,13 @@ if (root) {
   const trip = tripSearchParams(readTripSearch(location.search));
   for (const category of ['All','Exotic','Luxury','SUV','Classic','Truck']) {
     if (category !== 'All' && !cars.some(car=>fleetCategory(car) === category)) continue;
-    const button = document.createElement('button');
+    const button = categories.querySelector(`[data-category="${category}"]`) || document.createElement('button');
     button.type = 'button';
     button.textContent = category;
     button.dataset.category = category;
     button.setAttribute('aria-pressed',String(category === active));
     button.addEventListener('click',()=>{active=category;limit=9;render();});
-    categories.append(button);
+    if (!button.parentElement) categories.append(button);
   }
   function render() {
     const filtered = filterHomeFleet(cars,search.value,active);
@@ -54,5 +54,6 @@ if (root) {
     active = /suv/.test(filter) ? 'SUV' : /luxury/.test(filter) ? 'Luxury' : /supercar|exotic/.test(filter) ? 'Exotic' : 'All';
     limit=9;render();
   });
-  render();
+  if (!isPublicRendered) render();
+  else if (trip.size) for (const link of grid.querySelectorAll('a')) link.href += `?${trip}`;
 }

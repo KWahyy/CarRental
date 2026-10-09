@@ -145,7 +145,7 @@ function renderInventory(source) {
 }
 
 function hydrateInventory() {
-  renderInventory(bundledFleet);
+  if (!document.documentElement.dataset.publicRendered) renderInventory(bundledFleet);
 }
 
 function localDateValue(date = new Date()) {

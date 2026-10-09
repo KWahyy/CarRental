@@ -800,13 +800,14 @@ function hydrateDiaText() {
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (words.length < 2 || reduceMotion) return;
 
+  const phrase = diaText.querySelector("[data-arrival-current]") || diaText;
   let index = 0;
   window.setInterval(() => {
     diaText.classList.add("swapping");
 
     window.setTimeout(() => {
       index = (index + 1) % words.length;
-      diaText.textContent = words[index];
+      phrase.textContent = words[index];
       diaText.classList.remove("swapping");
     }, 220);
   }, 3000);
@@ -1037,12 +1038,10 @@ if (quoteForm) {
 }
 
 if (quoteOptional) {
-  const quoteMobileMedia = window.matchMedia("(max-width: 640px)");
-  const syncOptionalDetails = (event) => {
-    quoteOptional.open = !event.matches;
-  };
-  syncOptionalDetails(quoteMobileMedia);
-  quoteMobileMedia.addEventListener?.("change", syncOptionalDetails);
+  quoteOptional.querySelector('summary')?.addEventListener('click', () => {
+    if (!quoteOptional.dataset.interacted && window.matchMedia('(max-width: 640px)').matches) quoteOptional.open = false;
+    quoteOptional.dataset.interacted = 'true';
+  });
 }
 
 let baseFleet = fleet.slice();
@@ -1051,8 +1050,8 @@ observeReveals();
 initLazyMedia();
 
 function initFleetSections() {
-  // live-fleet resolves current Supabase inventory before these sections render.
-  refreshFleetFromBase();
+  // Server-rendered sections already contain the response inventory.
+  if (!document.documentElement.dataset.publicRendered) refreshFleetFromBase();
 }
 
 initFleetSections();

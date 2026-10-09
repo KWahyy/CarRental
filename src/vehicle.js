@@ -1,6 +1,6 @@
 import { applyTripToForm } from "./rental-search.js";
 import { vehicleShellMarkup } from "./vehicle-shell.js";
-import { fleet, formatPrice, getVehicle } from "./live-fleet.js";
+import { fleet, formatPrice, getVehicle, isPublicRendered } from "./live-fleet.js";
 import {
   cacheSafeFleetImageUrl,
   fleetImageSources,
@@ -201,10 +201,11 @@ function renderGallery(gallery) {
   }
 
   if (mainImage) {
-    if (gallery.length) setActiveImage(0);
+    mainImage.draggable = false;
+    if (gallery.length && !isPublicRendered) setActiveImage(0);
   }
 
-  if (galleryThumbs) {
+  if (galleryThumbs && !isPublicRendered) {
     galleryThumbs.innerHTML = gallery
       .map(
         (image, index) => `
@@ -215,7 +216,7 @@ function renderGallery(gallery) {
       )
       .join("");
   }
-  if (galleryDots) galleryDots.innerHTML = gallery.map((_, index) => `<span class="${index === 0 ? "active" : ""}"></span>`).join("");
+  if (galleryDots && !isPublicRendered) galleryDots.innerHTML = gallery.map((_, index) => `<span class="${index === 0 ? "active" : ""}"></span>`).join("");
 
 
   document.querySelectorAll("[data-gallery-image]").forEach((button) => {
@@ -232,7 +233,7 @@ function renderGallery(gallery) {
 
   if (galleryStage && mainImage && gallery.length > 1) {
     galleryStage.addEventListener("pointerdown", (event) => {
-      if (!event.isPrimary) return;
+      if (!event.isPrimary || event.target.closest("button, a")) return;
       activePointerId = event.pointerId;
       pointerStartX = event.clientX;
       pointerStartY = event.clientY;
@@ -372,18 +373,6 @@ function bindVehicleRequestForm() {
   });
 }
 
-function syncVehicleRequestPlacement() {
-  if (slug === "2022-lamborghini-huracan") return;
-  const request = document.querySelector(".vehicle-private-request");
-  const information = document.querySelector(".vehicle-private-information");
-  const hero = document.querySelector(".vehicle-private-hero");
-  if (!request || !information || !hero) return;
-  if (window.matchMedia("(max-width: 680px)").matches) {
-    if (request.previousElementSibling !== hero) hero.after(request);
-  } else if (request.parentElement !== information) {
-    information.append(request);
-  }
-}
 
 function renderVehicle() {
   ensureVehicleShell();
@@ -398,7 +387,6 @@ function renderVehicle() {
     return;
   }
 
-  syncVehicleRequestPlacement();
 
   document.title = vehicleSeoTitle(car);
   const metaDescription = document.querySelector('meta[name="description"]');
@@ -528,9 +516,12 @@ window.addEventListener(
 );
 
 function initVehicle() {
-  renderVehicle();
+  if (isPublicRendered && car) {
+    bindVehicleRequestForm();
+    renderGallery(listingGallery(car));
+  } else renderVehicle();
   document.body.classList.remove("is-loading-vehicle");
-  void hydrateMonthlySpecialPrice();
+  if (!isPublicRendered) void hydrateMonthlySpecialPrice();
   setVehicleIndexing(Boolean(car));
   void recordFleetEvent("vehicle_detail_view", {
     carSlug: slug,
@@ -539,5 +530,3 @@ function initVehicle() {
 }
 
 initVehicle();
-
-window.matchMedia("(max-width: 680px)").addEventListener("change", syncVehicleRequestPlacement);

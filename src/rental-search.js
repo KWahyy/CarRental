@@ -17,7 +17,7 @@ export function tripSearchParams(trip) {
   if (trip.returnDate) params.set('return',trip.returnDate);
   return params;
 }
-function tripSummary(trip) {
+export function tripSummary(trip) {
   const format = value => new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'}).format(new Date(`${value}T12:00:00`));
   return [trip.city,trip.pickup && format(trip.pickup),trip.returnDate && `to ${format(trip.returnDate)}`].filter(Boolean).join(' · ');
 }
@@ -45,7 +45,7 @@ export function applyTripToForm(form) {
 export function initFleetTrip() {
   const trip = readTripSearch(window.location.search);
   if (!trip.city && !trip.pickup) return;
-  const note = document.createElement('aside');
+  const note = document.querySelector('.rental-trip-banner') || document.createElement('aside');
   note.className = 'rental-trip-banner';
   note.setAttribute('aria-label','Your rental plans');
   const summary = document.createElement('strong');
@@ -55,7 +55,7 @@ export function initFleetTrip() {
   const edit = document.createElement('a');
   edit.href = `/?${tripSearchParams(trip)}#rental-search`;
   edit.textContent = 'Edit trip';
-  note.append(summary,detail,edit);
+  note.replaceChildren(summary,detail,edit);
   document.querySelector('.fleet-editorial-hero')?.after(note);
   const decorateLinks = () => {
     for (const link of document.querySelectorAll('a[href*="/cars/"]')) {
@@ -73,14 +73,14 @@ function enhanceCitySelect(select) {
   if (!select || select.dataset.enhanced) return;
   select.dataset.enhanced = 'true';
   const field = select.parentElement;
-  const trigger = document.createElement('button');
+  const trigger = field.querySelector('.hero-city-trigger') || document.createElement('button');
   trigger.type = 'button';
   trigger.className = 'hero-city-trigger';
   trigger.setAttribute('aria-haspopup', 'listbox');
   trigger.setAttribute('aria-expanded', 'false');
   trigger.setAttribute('aria-controls', 'hero-city-options');
-  const value = document.createElement('span');
-  const chevron = document.createElement('span');
+  const value = trigger.firstElementChild || document.createElement('span');
+  const chevron = trigger.querySelector('.hero-city-chevron') || document.createElement('span');
   chevron.className = 'hero-city-chevron';
   chevron.setAttribute('aria-hidden', 'true');
   trigger.append(value, chevron);
