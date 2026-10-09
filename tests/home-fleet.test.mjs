@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { filterHomeFleet, fleetCategory, homeFleetCard } from '../src/home-fleet-model.js';
+import { filterHomeFleet, fleetCategory, homeFleetCard, sortHomeFleet } from '../src/home-fleet-model.js';
 const cars = [
  {name:'Cadillac Escalade',color:'Black',category:'suv luxury'},
  {name:'Cadillac Escalade',color:'White',category:'suv luxury'},
@@ -19,4 +19,19 @@ test('card escapes inventory text and keeps the supplied rate',()=>{
  assert.ok(html.includes('Test &lt;car&gt;'));
  assert.ok(html.includes('$495'));
  assert.ok(html.includes('href="/cars/test"'));
+});
+
+test('featured mix leads with requested exotics without losing or duplicating inventory',()=>{
+ const inventory=[
+  {slug:'audi-r8-rental',name:'Audi R8',make:'Audi',model:'R8'},
+  {slug:'lamborghini-urus-performante-rental',name:'Lamborghini Urus Performante'},
+  {slug:'porsche-911-gt3-rs-rental',name:'Porsche 911 GT3 RS'},
+  {slug:'lamborghini-huracan-evo-spyder-rental',name:'Lamborghini Huracan EVO Spyder'},
+  {slug:'mclaren-720s-spider-rental',name:'McLaren 720S Spider'},
+ ];
+ const result=sortHomeFleet(inventory);
+ assert.deepEqual(result.map(c=>c.slug),[inventory[4].slug,inventory[2].slug,inventory[3].slug,inventory[1].slug,inventory[0].slug]);
+ assert.equal(new Set(result).size,inventory.length);
+ assert.equal(inventory[0].slug,'audi-r8-rental');
+ assert.deepEqual(sortHomeFleet(inventory.filter(c=>!c.slug.includes('mclaren'))).map(c=>c.slug),result.slice(1).map(c=>c.slug));
 });

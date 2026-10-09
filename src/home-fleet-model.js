@@ -15,7 +15,25 @@ export function filterHomeFleet(cars, query = '', category = 'All') {
     return (category === 'All' || fleetCategory(car) === category) && words.every(word=>haystack.includes(word));
   });
 }
-export const sortHomeFleet = cars => [...cars].sort((a,b)=>`${a.make} ${a.model} ${a.name}`.localeCompare(`${b.make} ${b.model} ${b.name}`));
+// Curated merchandising order; availability and prices still come from Supabase.
+export const FEATURED_FLEET_SLUGS = Object.freeze([
+  'mclaren-720s-spider-rental',
+  'porsche-911-gt3-rs-rental',
+  'lamborghini-huracan-evo-spyder-rental',
+  'lamborghini-urus-performante-rental',
+  'ferrari-f8-tributo-rental',
+  'mclaren-750s-rental',
+  'mercedes-amg-g63-rental',
+  'ferrari-roma-rental',
+  'rolls-royce-cullinan-black-badge-rental',
+  'lamborghini-urus-s-rental',
+  'mclaren-570s-rental',
+]);
+const featuredRank = new Map(FEATURED_FLEET_SLUGS.map((slug,index)=>[slug,index]));
+export const sortHomeFleet = cars => [...cars].sort((a,b)=>
+  (featuredRank.get(a.slug) ?? Infinity) - (featuredRank.get(b.slug) ?? Infinity)
+  || `${a.make || ''} ${a.model || ''} ${a.name}`.localeCompare(`${b.make || ''} ${b.model || ''} ${b.name}`)
+);
 export function homeFleetCard(car, picture) {
   const esc = escapeFleetText;
   const name = String(car.name || '').replace(/^\d{4}\s+/, '');

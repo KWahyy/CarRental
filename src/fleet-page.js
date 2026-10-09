@@ -1,3 +1,4 @@
+import { FEATURED_FLEET_SLUGS, sortHomeFleet } from './home-fleet-model.js';
 import { initFleetTrip, applyTripToForm } from "./rental-search.js";
 import { fleet as websiteFleet, formatPrice } from "./live-fleet.js";
 import { fleetPictureMarkup, isSupabaseFleetConfigured, loadMonthlySpecialFromSupabase, optimizedFleetImageUrl, recordFleetEvent } from "./supabase-fleet.js?v=native-picture-flow-20260901";
@@ -51,14 +52,7 @@ if (initialFleetSearch) {
   searchQuery = initialFleetSearch.toLowerCase();
   if (searchInput) searchInput.value = initialFleetSearch;
 }
-const POPULAR_VEHICLE_SLUGS = [
-  "2021-bmw-m3-comp",
-  "2022-porsche-911-carrera",
-  "2017-audi-r8",
-  "2015-lamborghini-huracan-lp-610-4",
-  "2022-lamborghini-huracan",
-  "2016-ferrari-488-gtb",
-];
+const POPULAR_VEHICLE_SLUGS = FEATURED_FLEET_SLUGS;
 
 function slugify(value) {
   return String(value || "")
@@ -251,12 +245,7 @@ function sortedCars(source) {
   if (sortMode === "price-low") return next.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
   if (sortMode === "price-high") return next.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
   if (sortMode === "name") return next.sort((a, b) => a.name.localeCompare(b.name));
-  const popularRank = new Map(POPULAR_VEHICLE_SLUGS.map((slug, index) => [slug, index]));
-  return next.sort((a, b) => {
-    const aRank = popularRank.has(vehicleSlug(a)) ? popularRank.get(vehicleSlug(a)) : Number.MAX_SAFE_INTEGER;
-    const bRank = popularRank.has(vehicleSlug(b)) ? popularRank.get(vehicleSlug(b)) : Number.MAX_SAFE_INTEGER;
-    return aRank - bRank;
-  });
+  return sortHomeFleet(next);
 }
 
 function originalCarImage(car) {
