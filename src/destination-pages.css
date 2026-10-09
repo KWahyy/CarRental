@@ -126,3 +126,31 @@ body.destination-desert .destination-closing { background:#e5c6ae; }
  body.destination-desert .destination-hero-copy { grid-column:1; grid-row:1; padding:40px 22px 25px; }
  body.destination-desert .destination-scene { grid-column:1; grid-row:2; min-height:360px; margin:0 22px 40px; border-radius:180px 180px 3px 3px; }
 }
+/* San Diego: Pacific blue, sunlit ivory and a wide coastal horizon. */
+body.destination-coast { --destination-ink:#123544; --destination-accent:#bdcfc6; --destination-paper:#f6f2e9; }
+body.destination-coast .destination-hero { background:#102f40; grid-template-columns:1fr 1.12fr; }
+body.destination-coast .destination-hero h1 em { color:#d2e1d9; }
+body.destination-coast .destination-hero h1 { max-width:11ch; }
+body.destination-coast .destination-description { color:#c5d2d7; }
+body.destination-coast .destination-note { color:#c0d2d7; }
+body.destination-coast .destination-scene { min-height:700px; }
+body.destination-coast .destination-scene img { object-position:60% center; }
+body.destination-coast .destination-primary { background:#f2e6ce; color:#173542; }
+body.destination-coast .destination-story { background:#e1ebe6; color:#123544; }
+body.destination-coast .destination-story .destination-kicker { color:#426a71; }
+body.destination-coast .destination-story-intro > p:not(.destination-kicker),
+body.destination-coast .destination-local-details p { color:#45616a; }
+body.destination-coast .destination-local-details > section { border-color:#12354430; }
+body.destination-coast .destination-story-intro > a { border-color:#12354450; }
+body.destination-coast .location-quote-section { background:#102f40; }
+body.destination-coast .location-quote-form { background:#173d4e; }
+body.destination-coast .location-quote-form input,
+body.destination-coast .location-quote-form select,
+body.destination-coast .location-quote-form textarea { background:#102f40; }
+body.destination-coast .destination-closing { background:#ddd2ba; color:#123544; }
+body.destination-coast .destination-closing .destination-primary { background:#123544; color:#fff; }
+@media(max-width:760px) {
+ body.destination-coast .destination-hero { grid-template-columns:1fr; }
+ body.destination-coast .destination-scene { min-height:360px; }
+ body.destination-coast .destination-hero h1 { max-width:14ch; }
+}

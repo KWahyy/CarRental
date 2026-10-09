@@ -393,7 +393,7 @@ function bindVehicleRequestForm() {
       vehicle: car?.name || data.get("vehicle") || "Vehicle request",
       addons: alternatives ? ["Similar options approved"] : [],
       message: [
-        "Vehicle product-page availability request.",
+        "Reservation request — pending team confirmation.",
         `Return date: ${data.get("returnDate") || "Not decided yet"}`,
         `Delivery city or ZIP: ${data.get("deliveryLocation") || "Not provided"}`,
         `Similar options approved: ${alternatives ? "Yes" : "No"}`,
@@ -405,7 +405,7 @@ function bindVehicleRequestForm() {
     submit.disabled = true;
     submit.firstChild.textContent = "Sending request ";
     status.dataset.tone = "";
-    status.textContent = "Saving your request for a personal availability check...";
+    status.textContent = "Submitting your reservation request...";
     try {
       const result = await submitQuoteRequest(payload);
       try {
@@ -416,13 +416,13 @@ function bindVehicleRequestForm() {
         // The local Admin mirror is best-effort; Supabase remains authoritative.
       }
       status.dataset.tone = "success";
-      status.textContent = "Request received. Your concierge will verify the vehicle and contact you personally.";
+      status.textContent = `Reservation request received for ${payload.vehicle}. Pending confirmation — a team member will contact you to confirm availability, the final price, and next steps. No payment has been taken.`;
       submit.firstChild.textContent = "Request received ";
       void recordFleetEvent("availability_success", { carSlug: slug, metadata: { vehicle: payload.vehicle } });
     } catch (error) {
       status.dataset.tone = "error";
       status.textContent = error.message || "Please call us directly to request this vehicle.";
-      submit.firstChild.textContent = "Request This Vehicle ";
+      submit.firstChild.textContent = "Request reservation ";
     } finally {
       submit.disabled = status.dataset.tone === "success";
     }

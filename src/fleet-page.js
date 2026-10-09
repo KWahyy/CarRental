@@ -323,7 +323,7 @@ function cardMarkup(car, variant = "collection", highPriority = false) {
         <strong>${escapeHtml(formatPrice(car.price))}<small>/day</small></strong>
       </div>
       <button class="showroom-request" type="button" data-check-availability data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${escapeHtml(slug)}">
-        Request This Vehicle <span aria-hidden="true">↗</span>
+        Start reservation <span aria-hidden="true">↗</span>
       </button>
     </article>`;
 }
@@ -438,7 +438,7 @@ function openAvailabilityDrawer(vehicleName, trigger) {
   applyTripToForm(availabilityForm);
   availabilityVehicle.querySelector("strong").textContent = vehicleName;
   availabilityStatus.dataset.tone = "";
-  availabilityStatus.textContent = "No charge today. We will verify the vehicle and contact you before any booking step.";
+  availabilityStatus.textContent = "No payment now. Your car is reserved only after our team confirms availability and the final price with you.";
   availabilityDrawer.hidden = false;
   document.body.classList.add("availability-open");
   availabilityForm.elements.date.focus();
@@ -472,7 +472,7 @@ availabilityForm?.addEventListener("submit", async (event) => {
   const formData = new FormData(availabilityForm);
   const alternativesApproved = Boolean(formData.get("alternatives"));
   const message = [
-    "Personal vehicle availability check requested.",
+    "Reservation request — pending team confirmation.",
     `Return date: ${formData.get("returnDate") || "Not provided"}`,
     `Delivery city or ZIP: ${formData.get("deliveryLocation") || "Not provided"}`,
     `Similar vehicles approved: ${alternativesApproved ? "Yes" : "No"}`,
@@ -492,9 +492,9 @@ availabilityForm?.addEventListener("submit", async (event) => {
   };
 
   submitButton.disabled = true;
-  submitButton.textContent = "Sending availability request...";
+  submitButton.textContent = "Sending reservation request...";
   availabilityStatus.dataset.tone = "";
-  availabilityStatus.textContent = "Saving your request for a personal availability check...";
+  availabilityStatus.textContent = "Submitting your reservation request...";
   trackFleetEvent("availability_request_submit", {
     vehicle: payload.vehicle,
     vehicle_slug: availabilityTrigger?.dataset.vehicleSlug || "",
@@ -525,7 +525,7 @@ availabilityForm?.addEventListener("submit", async (event) => {
     }
 
     availabilityStatus.dataset.tone = "success";
-    availabilityStatus.textContent = "Request received. We will verify the exact vehicle and dates, then contact you with the result or similar options.";
+    availabilityStatus.textContent = `Reservation request received for ${payload.vehicle}. Pending confirmation — a team member will contact you to confirm availability, the final price, and next steps. No payment has been taken.`;
     trackFleetEvent("availability_request_success", {
       vehicle: payload.vehicle,
       vehicle_slug: availabilityTrigger?.dataset.vehicleSlug || "",
@@ -538,8 +538,8 @@ availabilityForm?.addEventListener("submit", async (event) => {
     availabilityStatus.textContent = error.message || "We could not save this request. Please call us directly.";
     trackFleetEvent("availability_request_error", { vehicle: payload.vehicle });
   } finally {
-    submitButton.disabled = false;
-    submitButton.textContent = availabilityStatus.dataset.tone === "success" ? "Request received" : "Request availability check";
+    submitButton.disabled = availabilityStatus.dataset.tone === "success";
+    submitButton.textContent = availabilityStatus.dataset.tone === "success" ? "Request received" : "Request reservation";
   }
 });
 

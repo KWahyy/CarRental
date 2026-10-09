@@ -134,8 +134,8 @@
 @media(prefers-reduced-motion:reduce) { #specials .special-card img { transition:none; } #specials .special-card:hover img { transform:none; } #specials .specials-viewport { scroll-behavior:auto; } }
 #specials .monthly-specials-notes span { display:block; min-height:0; height:auto; }
 
-.home-delivery-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; margin:32px 0 48px; }
-.home-delivery-card { position:relative; display:flex; align-items:flex-end; min-width:0; min-height:380px; aspect-ratio:4 / 5; overflow:hidden; isolation:isolate; border:1px solid #ffffff28; border-radius:19px; background:#171315; color:#f4f1e9; text-decoration:none; transition:border-color .25s ease,box-shadow .25s ease,transform .25s ease; }
+.home-delivery-cards { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:20px; margin:32px 0 48px; }
+.home-delivery-card { position:relative; display:flex; align-items:flex-end; width:100%; min-width:0; min-height:380px; aspect-ratio:4 / 5; overflow:hidden; isolation:isolate; border:1px solid #ffffff28; border-radius:19px; background:#171315; color:#f4f1e9; text-decoration:none; transition:border-color .25s ease,box-shadow .25s ease,transform .25s ease; }
 .home-delivery-card > img { position:absolute; inset:0; z-index:-2; display:block; width:100%; height:100%; object-fit:cover; transition:transform .5s ease; }
 .home-delivery-card::after { content:''; position:absolute; inset:0; z-index:-1; background:linear-gradient(180deg,#0b070912 25%,#0b07091a 44%,#0b070995 72%,#0b0709f2 100%); pointer-events:none; }
 .home-delivery-copy { width:100%; padding:24px; }
@@ -169,3 +169,5 @@
 .home-fleet .home-fleet-categories { max-width: 100%; min-width: 0; flex-wrap: wrap; }
 .home-fleet .home-fleet-categories button { flex: 0 0 auto; padding-inline: 13px; white-space: nowrap; }
 @media(max-width:640px) { .home-fleet .home-fleet-categories { justify-content: flex-start; } }
+
+@media (min-width:641px) and (max-width:1100px) { .home-delivery-cards { grid-template-columns:repeat(2,minmax(0,1fr)); } }

@@ -91,12 +91,12 @@
             "name": "Do I need my own auto insurance?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Proof of active auto insurance is reviewed later during rental approval. You do not need to provide insurance details when requesting an initial quote."
+              "text": "Proof of active auto insurance is reviewed later during rental approval. You do not need to provide insurance details when submitting your reservation request."
             }
           },
           {
             "@type": "Question",
-            "name": "How quickly will I receive a quote?",
+            "name": "What happens after I request a reservation?",
             "acceptedAnswer": {
               "@type": "Answer",
               "text": "After you submit the vehicle, rental date, and contact information, the team checks current availability and follows up with pricing and approval steps. Response time can vary with demand and vehicle availability."
@@ -107,7 +107,7 @@
             "name": "Are the prices shown online the final rental price?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Online prices are starting daily rates. Your final quote may change based on the vehicle, date, rental length, mileage allowance, delivery location, deposit, and selected add-ons."
+              "text": "Online prices are starting daily rates. Your final rental price may change based on the vehicle, date, rental length, mileage allowance, delivery location, deposit, and selected add-ons."
             }
           },
           {
@@ -115,7 +115,7 @@
             "name": "Can I add a photographer to my rental?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes. Select Photographer under Add-ons when requesting a quote. The team will confirm photographer availability, timing, package details, and pricing before the reservation is finalized."
+              "text": "Yes. Select Photographer under Add-ons when requesting a reservation. The team will confirm photographer availability, timing, package details, and pricing before the reservation is finalized."
             }
           }
         ]
@@ -183,12 +183,12 @@
           <h1 id="home-hero-title">Your next drive,<br class="hero-mobile-break" /> <em>delivered.</em></h1>
           <p class="hero-copy"><strong>Book in minutes.</strong> Choose your car and dates.<span class="hero-delivery-copy"> We’ll arrange your Southern California delivery.</span></p>
           <form id="rental-search" class="hero-rental-search" data-hero-search action="/fleet" method="get" aria-label="Plan your car rental">
-            <div class="hero-search-city"><span>Delivery city</span><select name="deliveryCity" aria-label="Delivery city" required><option value="Los Angeles">Los Angeles</option><option value="Palm Springs">Palm Springs</option><option value="Orange County">Orange County</option></select></div>
+            <div class="hero-search-city"><span>Delivery city</span><select name="deliveryCity" aria-label="Delivery city" required><option value="Los Angeles">Los Angeles</option><option value="Palm Springs">Palm Springs</option><option value="Orange County">Orange County</option><option value="San Diego">San Diego</option></select></div>
             <label><span>Pickup</span><div class="hero-date-control"><input name="pickup" type="date" aria-label="Pickup date" data-empty required /><span class="hero-date-placeholder" aria-hidden="true">Select date</span></div></label>
             <label><span>Return</span><div class="hero-date-control"><input name="return" type="date" aria-label="Return date" data-empty required /><span class="hero-date-placeholder" aria-hidden="true">Select date</span></div></label>
             <button type="submit">Book in minutes <span aria-hidden="true">↗</span></button>
           </form>
-          <p class="hero-search-note">Delivery by arrangement. Availability confirmed personally. <a href="/fleet">Just browsing? View the fleet.</a></p>
+          <p class="hero-search-note">Request online. Our team confirms availability and the final price. <a href="/fleet">Just browsing? View the fleet.</a></p>
         </div>
       </section>
 
@@ -239,6 +239,7 @@
           <a class="home-delivery-card" href="/locations/orange-county-exotic-car-rental"><img src="/assets/locations/orange-county-sunset.webp" alt="" width="900" height="1100" loading="lazy" decoding="async" /><div class="home-delivery-copy"><h2>Orange County</h2><p>Exotic and luxury rentals across OC.</p><span class="home-delivery-link">Browse the fleet <span aria-hidden="true">→</span></span></div></a>
           <a class="home-delivery-card" href="/locations/los-angeles-exotic-car-rental"><img src="/assets/locations/los-angeles-sunset.webp" alt="" width="900" height="1100" loading="lazy" decoding="async" /><div class="home-delivery-copy"><h2>Los Angeles</h2><p>Your next drive, delivered across LA.</p><span class="home-delivery-link">Browse the fleet <span aria-hidden="true">→</span></span></div></a>
           <a class="home-delivery-card" href="/locations/palm-springs-exotic-car-rental"><img src="/assets/locations/palm-springs-sunset.webp" alt="" width="900" height="1100" loading="lazy" decoding="async" /><div class="home-delivery-copy"><h2>Palm Springs</h2><p>Exotics and convertibles for a desert escape.</p><span class="home-delivery-link">Browse the fleet <span aria-hidden="true">→</span></span></div></a>
+          <a class="home-delivery-card" href="/locations/san-diego-exotic-car-rental"><img src="/assets/locations/san-diego-coast.webp" alt="" width="1122" height="1402" loading="lazy" decoding="async" /><div class="home-delivery-copy"><h2>San Diego</h2><p>Coastal escapes. Exceptional cars.</p><span class="home-delivery-link">Browse the fleet <span aria-hidden="true">→</span></span></div></a>
         </nav>
 
         <section class="home-fleet" data-home-fleet aria-labelledby="home-fleet-title">
@@ -390,27 +391,26 @@
       <section class="quote-section reveal" id="quote" aria-labelledby="quote-title">
         <div class="quote-copy">
           <p class="quote-kicker">Private Reservation Desk</p>
-          <h2 id="quote-title"><span>Request your</span> <span>arrival.</span></h2>
+          <h2 id="quote-title"><span>Your next</span> <span>reservation.</span></h2>
           <p>
-            Share the vehicle and timing you have in mind. Your concierge will confirm availability, arrange the details,
-            and return with a private proposal.
+            Send your preferred car and dates. A Prestige Luxor team member will contact you to confirm availability, the final price, and your reservation. No payment is taken here.
           </p>
-          <div class="quote-proof" aria-label="Quote benefits">
+          <div class="quote-proof" aria-label="Reservation benefits">
             <span data-index="01">Availability confirmed personally</span>
             <span data-index="02">Every detail handled privately</span>
             <span data-index="03">No payment collected here</span>
           </div>
         </div>
 
-        <form class="quote-form" data-quote-form aria-label="Request a rental quote">
+        <form class="quote-form" data-quote-form aria-label="Request a reservation">
           <div class="quote-form-head">
-            <p>Confidential Inquiry</p>
-            <strong>Check availability</strong>
-            <span class="quote-typing-line" aria-label="We personally confirm availability before anything is charged.">
-              <span data-quote-typing aria-hidden="true">We personally confirm availability before anything is charged.</span>
+            <p>Reservation request</p>
+            <strong>Start your reservation</strong>
+            <span class="quote-typing-line" aria-label="Our team will contact you to confirm your car, dates, and final price.">
+              <span data-quote-typing aria-hidden="true">Our team will contact you to confirm your car, dates, and final price.</span>
               <i aria-hidden="true"></i>
             </span>
-            <div class="quote-completion" aria-label="Quote form completion">
+            <div class="quote-completion" aria-label="Reservation form completion">
               <span data-quote-progress-text>0 of 4 details complete</span>
               <strong data-quote-progress-percent>0%</strong>
               <i aria-hidden="true"><b data-quote-progress-bar></b></i>
@@ -464,8 +464,8 @@
             <input name="company" type="text" tabindex="-1" autocomplete="off" />
           </label>
 
-          <button class="quote-submit" type="submit">Check Availability</button>
-          <p class="quote-status" data-quote-status role="status">No payment today. We will personally confirm availability and your exact rate.</p>
+          <button class="quote-submit" type="submit">Request reservation</button>
+          <p class="quote-status" data-quote-status role="status">No payment now. Your car is reserved only after our team confirms availability and the final price with you.</p>
         </form>
       </section>
 
@@ -476,7 +476,7 @@
             <h2 id="customer-satisfaction-title">Happy clients start with a smooth rental.</h2>
           </div>
           <p>
-            From the first quote to vehicle pickup, we focus on the details that make every booking feel simple,
+            From your reservation request to vehicle pickup, we focus on the details that make every booking feel simple,
             personal, and worth remembering.
           </p>
         </div>
@@ -543,19 +543,19 @@
           </details>
           <details name="rental-faq">
             <summary><span class="faq-index">03</span><span class="faq-question">Do I need my own auto insurance?</span></summary>
-            <p>Proof of active auto insurance is reviewed later during rental approval. You do not need to provide insurance details when requesting an initial quote.</p>
+            <p>Proof of active auto insurance is reviewed later during rental approval. You do not need to provide insurance details when submitting your reservation request.</p>
           </details>
           <details name="rental-faq">
-            <summary><span class="faq-index">04</span><span class="faq-question">How quickly will I receive a quote?</span></summary>
-            <p>After you submit the vehicle, rental date, and contact information, we check current availability and follow up with pricing and approval steps. Response time can vary with demand and vehicle availability.</p>
+            <summary><span class="faq-index">04</span><span class="faq-question">What happens after I request a reservation?</span></summary>
+            <p>You will see a request-received message. A team member will then contact you to confirm your car, dates, final price, and approval steps. Your reservation remains pending until we confirm it with you.</p>
           </details>
           <details name="rental-faq">
             <summary><span class="faq-index">05</span><span class="faq-question">Are the prices shown online the final rental price?</span></summary>
-            <p>Online prices are starting daily rates. Your final quote may change based on the vehicle, date, rental length, mileage allowance, delivery location, deposit, and selected add-ons.</p>
+            <p>Online prices are starting daily rates. Your final rental price may change based on the vehicle, date, rental length, mileage allowance, delivery location, deposit, and selected add-ons.</p>
           </details>
           <details name="rental-faq">
             <summary><span class="faq-index">06</span><span class="faq-question">Can I add a photographer to my rental?</span></summary>
-            <p>Yes. Select <strong>Photographer</strong> under Add-ons when requesting a quote. We will confirm photographer availability, timing, package details, and pricing before your reservation is finalized.</p>
+            <p>Yes. Select <strong>Photographer</strong> under Add-ons when requesting a reservation. We will confirm photographer availability, timing, package details, and pricing before your reservation is finalized.</p>
           </details>
         </div>
       </section>

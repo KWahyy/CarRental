@@ -31406,3 +31406,37 @@ html:has(body.admin-page) {
 .admin-page .fleet-form-dialog > form > header h2 { margin:4px 0 8px; font:600 clamp(22px,2.4vw,30px)/1.2 Arial,sans-serif; letter-spacing:-.02em; overflow-wrap:anywhere; }
 .admin-page .fleet-form-dialog > form > header > div { min-width:0; }
 .admin-page .fleet-form-dialog > form > header > button { flex-shrink:0; }
+
+/* Reserve separate rows so tall brand marks never crowd their labels. */
+.home-page [data-brand-grid] .brand-tile {
+  grid-template-rows: 80px minmax(30px, auto) 18px;
+  align-content: start;
+  align-items: center;
+  row-gap: 12px;
+  min-height: 192px;
+  padding: 18px 10px 22px;
+}
+.home-page [data-brand-grid] .brand-logo-mark {
+  display: block;
+  width: min(112px, 100%);
+  height: 72px;
+  max-height: 72px;
+  object-fit: contain;
+  align-self: center;
+}
+.home-page [data-brand-grid] .brand-logo-text {
+  min-height: 0;
+  height: 72px;
+  max-width: 100%;
+}
+.home-page [data-brand-grid] .brand-name {
+  display: grid;
+  align-items: center;
+  min-height: 30px;
+  margin: 0;
+  line-height: 1.35;
+}
+.home-page [data-brand-grid] .brand-tile > strong {
+  margin: 0;
+  line-height: 18px;
+}

@@ -361,7 +361,7 @@ function cardMarkup(car, variant = "collection", highPriority = false) {
         <strong>${escapeHtml(formatPrice(car.price))}<small>/day</small></strong>
       </div>
       <button class="showroom-request" type="button" data-check-availability data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${escapeHtml(slug)}">
-        Request This Vehicle <span aria-hidden="true">↗</span>
+        Start reservation <span aria-hidden="true">↗</span>
       </button>
     </article>`;
 }
