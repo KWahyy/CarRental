@@ -152,9 +152,9 @@
 
 /* Editorial typography with a stable rotating phrase. */
 .home-page .arrival-statement { width:100%; margin:0 auto 24px; padding:32px 0 24px; }
-.home-page .arrival-statement h2 { display:flex; flex-wrap:wrap; justify-content:center; align-items:baseline; gap:6px 14px; margin:0; color:#f4f1e9; font:700 clamp(28px,3.4vw,48px)/1.2 Georgia,"Times New Roman",serif; letter-spacing:-.04em; text-transform:none; text-shadow:none; }
+.home-page .arrival-statement h2 { display:flex; flex-wrap:wrap; justify-content:center; align-items:baseline; gap:6px 14px; margin:0; color:#f4f1e9; font:700 clamp(28px,3.4vw,48px)/1.2 Arial,sans-serif; letter-spacing:-.035em; text-transform:none; text-shadow:none; }
 .home-page .arrival-statement h2 > span { white-space:nowrap; }
-.home-page .arrival-statement .arrival-highlight { display:inline-block; width:19ch; min-width:0; max-width:100%; min-height:1.25em; padding:0 .08em .08em; border:0; border-radius:0; background:none; color:#d8c9a9; font-style:italic; text-align:left; filter:none; transition:opacity 220ms ease,transform 220ms ease; }
+.home-page .arrival-statement .arrival-highlight { display:inline-block; width:19ch; min-width:0; max-width:100%; min-height:1.25em; padding:0 .08em .08em; border:0; border-radius:0; background:none; color:#e8d8b7; font-family:"Iowan Old Style","Baskerville","Times New Roman",Georgia,serif; font-weight:400; font-style:italic; letter-spacing:-.045em; text-align:center; filter:none; transition:opacity 220ms ease,transform 220ms ease; }
 .home-page .arrival-statement .arrival-highlight.swapping { filter:none; transform:translateY(4px); }
 @media(max-width:640px) {
  .home-page .arrival-statement { margin-bottom:18px; padding:20px 0 12px; }
