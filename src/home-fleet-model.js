@@ -1,7 +1,7 @@
 export const escapeFleetText = value => String(value ?? '').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 export function fleetCategory(car) {
   const category = String(car.category || '').toLowerCase();
-  if (/truck/i.test(car.name)) return 'Truck';
+  if (/truck/i.test(`${car.name} ${category}`)) return 'Truck';
   if (/classic/.test(category)) return 'Classic';
   if (/suv/.test(category)) return 'SUV';
   if (/luxury/.test(category)) return 'Luxury';

@@ -69,7 +69,7 @@ async function hydrateMonthlySpecialPrice() {
   const configuredSlugs = Array.isArray(configuredSpecial?.car_slugs)
     ? configuredSpecial.car_slugs.filter((vehicleSlug) => activeSlugs.has(vehicleSlug)).slice(0, 2)
     : [];
-  const specialSlugs = configuredSlugs.length ? configuredSlugs : monthlyFallbackSlugs(vehicleFleet, month);
+  const specialSlugs = isSupabaseFleetConfigured ? configuredSlugs : monthlyFallbackSlugs(vehicleFleet, month);
   if (!specialSlugs.includes(slug)) return;
 
   const originalRate = Math.max(Number(car.price || 0), 0);

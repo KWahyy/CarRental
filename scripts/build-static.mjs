@@ -100,6 +100,10 @@ const phoneLabel = "(949) 620-0024";
 const retiredVehicleSlugs = new Set(["porschepanamera"]);
 
 async function loadActiveInventory() {
+  if (process.env.FLEET_PREVIEW_FILE) {
+    if (process.env.VERCEL) throw new Error("Draft inventory previews cannot run on Vercel.");
+    return JSON.parse(readFileSync(resolve(process.env.FLEET_PREVIEW_FILE), "utf8"));
+  }
   if (!SUPABASE_URL?.startsWith("https://") || !SUPABASE_PUBLISHABLE_KEY) {
     throw new Error("Supabase fleet configuration is required to build indexable vehicle pages.");
   }
@@ -653,6 +657,14 @@ for (const page of locationPages) {
 }
 for (const page of companyPages) {
   writeFileSync(join(outDir, `${page.slug}.html`), pageShell({ ...page, path: page.slug }));
+}
+
+// New Supabase listings must receive a product page even without a checked-in HTML file.
+mkdirSync(carDir, { recursive: true });
+const vehiclePageTemplate = readFileSync(join(root, "scripts", "vehicle-page-template.html"), "utf8");
+for (const car of activeInventory) {
+  const target = join(carDir, `${car.slug}.html`);
+  if (!existsSync(target)) writeFileSync(target, vehiclePageTemplate.replaceAll("__VEHICLE_SLUG__", car.slug));
 }
 
 if (existsSync(carDir)) {

@@ -794,7 +794,7 @@ async function hydrateMonthlyDeals() {
   const configuredSlugs = Array.isArray(configuredSpecial?.car_slugs)
     ? configuredSpecial.car_slugs.filter((slug) => activeSlugs.has(slug)).slice(0, 2)
     : [];
-  monthlySpecialSlugs = new Set(configuredSlugs.length ? configuredSlugs : monthlyFallbackSlugs(baseFleet, month));
+  monthlySpecialSlugs = new Set(isSupabaseFleetConfigured ? configuredSlugs : monthlyFallbackSlugs(baseFleet, month));
 }
 
 async function initFleetPage() {

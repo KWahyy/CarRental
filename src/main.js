@@ -714,7 +714,7 @@ async function renderMonthlySpecials() {
   const selectedCars = Array.isArray(configuredSpecial?.car_slugs)
     ? configuredSpecial.car_slugs.map((slug) => carsBySlug.get(slug)).filter(Boolean).slice(0, 2)
     : [];
-  const specialCars = selectedCars.length ? selectedCars : monthlyFallbackCars(fleetSnapshot, month);
+  const specialCars = isSupabaseFleetConfigured ? selectedCars : monthlyFallbackCars(fleetSnapshot, month);
 
   specialsTitle.textContent = configuredSpecial?.headline?.trim() || `${monthLabel} special`;
   specialsDescription.textContent = configuredSpecial?.description?.trim() || "This month's featured active inventory is available for delivery across Los Angeles and Orange County. Ask for current dates and rates.";

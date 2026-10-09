@@ -12,6 +12,7 @@ test('search combines terms across fields and respects category filters',()=>{
  assert.deepEqual(filterHomeFleet(cars,'huracan','Exotic'),[cars[2]]);
  assert.equal(filterHomeFleet(cars,'Escalade','Exotic').length,0);
  assert.equal(fleetCategory(cars[3]),'Truck');
+ assert.equal(fleetCategory({name:'Ford F-150 Raptor R',category:'truck'}),'Truck');
 });
 test('card escapes inventory text and keeps the supplied rate',()=>{
  const html=homeFleetCard({name:'2026 Test <car>',slug:'test',price:495,color:'Black',image:'/car.jpg',category:'exotic'});
