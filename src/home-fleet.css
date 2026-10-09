@@ -150,14 +150,12 @@
 @media(max-width:640px) { .home-delivery-cards { grid-template-columns:1fr; gap:18px; margin:24px 0 36px; } .home-delivery-card { min-height:360px; aspect-ratio:1; } .home-page .home-delivery-card h2 { font-size:27px; } }
 @media(prefers-reduced-motion:reduce) { .home-delivery-card,.home-delivery-card > img,.home-delivery-link > span { transition:none; } .home-delivery-card:hover,.home-delivery-card:hover > img { transform:none; } }
 
-/* A quiet introduction to the delivery locations. */
-.home-page .arrival-statement { width:100%; margin:0 auto 24px; padding:32px 0 28px; }
-.home-page .arrival-statement h2 { display:flex; flex-wrap:nowrap; justify-content:center; align-items:baseline; gap:24px; margin:0; color:#f4f1e9; font:700 clamp(24px,3.1vw,44px)/1.2 Arial,sans-serif; letter-spacing:-.035em; text-transform:none; text-shadow:none; }
-.home-page .arrival-statement .dia-text { width:11.5ch; min-width:11.5ch; max-width:11.5ch; min-height:1.2em; padding:0; border:0; border-radius:0; color:#d8c9a9; text-align:center; filter:none; transition:opacity 220ms ease,transform 220ms ease; }
-.home-page .arrival-statement .dia-text.swapping { filter:none; transform:translateY(4px); }
+/* A clear, steady promise above the delivery locations. */
+.home-page .arrival-statement { width:100%; margin:0 auto 24px; padding:32px 0 24px; }
+.home-page .arrival-statement h2 { display:flex; flex-wrap:wrap; justify-content:center; align-items:baseline; gap:6px 14px; margin:0; color:#f4f1e9; font:700 clamp(28px,3.4vw,48px)/1.15 Arial,sans-serif; letter-spacing:-.035em; text-transform:none; text-shadow:none; }
+.home-page .arrival-statement h2 > span { white-space:nowrap; }
+.home-page .arrival-statement .arrival-highlight { color:#d8c9a9; }
 @media(max-width:640px) {
- .home-page .arrival-statement { margin-bottom:20px; padding:18px 0 12px; }
- .home-page .arrival-statement h2 { display:grid; grid-template-columns:1fr; justify-items:center; gap:10px; font-size:29px; }
- .home-page .arrival-statement h2 > span:first-child,.home-page .arrival-statement h2 > span:last-child { font-size:20px; color:#b1ada6; }
+ .home-page .arrival-statement { margin-bottom:18px; padding:20px 0 12px; }
+ .home-page .arrival-statement h2 { flex-direction:column; align-items:center; gap:5px; font-size:clamp(26px,7.5vw,36px); }
 }
-@media(prefers-reduced-motion:reduce) { .home-page .arrival-statement .dia-text { transition:none; } }
