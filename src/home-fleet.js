@@ -1,4 +1,4 @@
-import { fleet } from './fleet-data.js';
+import { fleet } from './live-fleet.js';
 import { fleetPictureMarkup } from './supabase-fleet.js';
 import { filterHomeFleet, fleetCategory, homeFleetCard, sortHomeFleet } from './home-fleet-model.js';
 import { readTripSearch, tripSearchParams } from './rental-search.js';

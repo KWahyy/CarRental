@@ -1,6 +1,6 @@
 import { applyTripToForm } from "./rental-search.js";
 import { vehicleShellMarkup } from "./vehicle-shell.js";
-import { fleet, formatPrice, getVehicle } from "./fleet-data.js?v=fleet-consistency-20260715";
+import { fleet, formatPrice, getVehicle } from "./live-fleet.js";
 import {
   cacheSafeFleetImageUrl,
   fleetImageSources,

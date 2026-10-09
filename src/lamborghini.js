@@ -1,4 +1,4 @@
-import { fleet as bundledFleet, formatPrice } from "./fleet-data.js?v=fleet-consistency-20260715";
+import { fleet as bundledFleet, formatPrice } from "./live-fleet.js";
 import { fleetPictureMarkup, recordFleetEvent } from "./supabase-fleet.js?v=native-picture-flow-20260901";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260906";
 

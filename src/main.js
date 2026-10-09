@@ -1,4 +1,4 @@
-import { fleet as websiteFleet } from "./fleet-data.js?v=fleet-consistency-20260715";
+import { fleet as websiteFleet } from "./live-fleet.js";
 import { cacheSafeFleetImageUrl, fleetPictureMarkup, isSupabaseFleetConfigured, loadMonthlySpecialFromSupabase, optimizedFleetImageUrl } from "./supabase-fleet.js?v=native-picture-flow-20260901";
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260906";
 
@@ -1051,8 +1051,7 @@ observeReveals();
 initLazyMedia();
 
 function initFleetSections() {
-  // The production build snapshots active Supabase inventory so visitors get
-  // one stable image tree with no client-side replacement after first paint.
+  // live-fleet resolves current Supabase inventory before these sections render.
   refreshFleetFromBase();
 }
 
