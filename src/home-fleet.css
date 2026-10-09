@@ -150,11 +150,11 @@
 @media(max-width:640px) { .home-delivery-cards { grid-template-columns:1fr; gap:18px; margin:24px 0 36px; } .home-delivery-card { min-height:360px; aspect-ratio:1; } .home-page .home-delivery-card h2 { font-size:27px; } }
 @media(prefers-reduced-motion:reduce) { .home-delivery-card,.home-delivery-card > img,.home-delivery-link > span { transition:none; } .home-delivery-card:hover,.home-delivery-card:hover > img { transform:none; } }
 
-/* Editorial typography with a stable rotating phrase. */
+/* Keep each rotating phrase close to the centered headline. */
 .home-page .arrival-statement { width:100%; margin:0 auto 24px; padding:32px 0 24px; }
-.home-page .arrival-statement h2 { display:flex; flex-wrap:wrap; justify-content:center; align-items:baseline; gap:6px 14px; margin:0; color:#f4f1e9; font:700 clamp(28px,3.4vw,48px)/1.2 Arial,sans-serif; letter-spacing:-.035em; text-transform:none; text-shadow:none; }
+.home-page .arrival-statement h2 { display:flex; flex-wrap:wrap; justify-content:center; align-items:baseline; gap:6px .3em; margin:0; color:#f4f1e9; font:700 clamp(28px,3.4vw,48px)/1.2 Arial,sans-serif; letter-spacing:-.035em; text-transform:none; text-shadow:none; }
 .home-page .arrival-statement h2 > span { white-space:nowrap; }
-.home-page .arrival-statement .arrival-highlight { display:inline-block; width:19ch; min-width:0; max-width:100%; min-height:1.25em; padding:0 .08em .08em; border:0; border-radius:0; background:none; color:#e8d8b7; font-family:"Iowan Old Style","Baskerville","Times New Roman",Georgia,serif; font-weight:400; font-style:italic; letter-spacing:-.045em; text-align:center; filter:none; transition:opacity 220ms ease,transform 220ms ease; }
+.home-page .arrival-statement .arrival-highlight { display:inline-block; width:auto; min-width:0; max-width:100%; min-height:1.25em; padding:0 .03em .08em; border:0; border-radius:0; background:none; color:#e8d8b7; font-family:"Iowan Old Style","Baskerville","Times New Roman",Georgia,serif; font-weight:400; font-style:italic; letter-spacing:-.045em; text-align:center; filter:none; transition:opacity 220ms ease,transform 220ms ease; }
 .home-page .arrival-statement .arrival-highlight.swapping { filter:none; transform:translateY(4px); }
 @media(max-width:640px) {
  .home-page .arrival-statement { margin-bottom:18px; padding:20px 0 12px; }
