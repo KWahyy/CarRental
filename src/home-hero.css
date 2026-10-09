@@ -159,19 +159,19 @@
   .home-page .cinematic-home-hero { min-height: 100svh; }
   .home-page .cinematic-home-hero .hero-content {
     width: min(560px, calc(100% - 40px));
-    padding: clamp(230px, 32svh, 320px) 0 32px;
+    padding: clamp(196px, 27svh, 280px) 0 24px;
   }
   .home-page .cinematic-home-hero .hero-scrim {
-    background: linear-gradient(180deg, #0008 0%, #0001 18%, #05050570 30%, #050505e8 53%, #050505 78%);
+    background: linear-gradient(180deg, #0009 0%, #0002 16%, #05050599 32%, #050505ee 56%, #050505 80%);
   }
   .home-page .cinematic-home-hero h1#home-hero-title {
-    font-size: clamp(34px, 9.7vw, 54px);
-    line-height: 1.08;
-    letter-spacing: -.035em;
+    font-size: clamp(35px, 11.25vw, 58px);
+    line-height: 1.04;
+    letter-spacing: -.045em;
   }
   .home-page .cinematic-home-hero .hero-private-label {
     max-width: none;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
     font-size: 9px;
     line-height: 1.6;
     letter-spacing: .16em;
@@ -180,22 +180,28 @@
     max-width: 40ch;
     font-size: 14px;
     line-height: 1.6;
-    margin: 16px 0 22px;
+    margin: 16px 0 24px;
   }
+  .home-page .hero-delivery-copy { display: none; }
   .home-page .hero-rental-search {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     padding: 0;
-    border-radius: 8px;
-    background: #191917eb;
-    border-color: #d8c7a140;
+    border-radius: 10px;
+    background: #1b1b19d9;
+    border-color: #d8c7a133;
     box-shadow: none;
   }
   .home-page .hero-rental-search label,
   .home-page .hero-rental-search .hero-search-city {
     gap: 2px;
-    padding: 12px 16px 8px;
+    padding: 12px 16px 10px;
   }
   .home-page .hero-rental-search .hero-search-city {
+    display: grid;
+    grid-template-columns: 1fr 1.35fr;
+    align-items: center;
+    gap: 12px;
+    padding-block: 8px;
     margin: 0;
     border-bottom: 1px solid #ffffff20;
   }
@@ -207,15 +213,16 @@
   .home-page .hero-calendar-icon { flex-basis: 14px; width: 14px; height: 14px; }
   .home-page .hero-rental-search > button {
     min-height: 52px;
-    margin: 4px 10px 10px;
+    margin: 2px 10px 10px;
     padding-inline: 18px;
-    border-radius: 4px;
+    border-radius: 5px;
     font-size: 15px;
+    font-weight: 600;
     background: #f2ede2;
   }
   .home-page .cinematic-home-hero .hero-search-note {
     max-width: none;
-    margin: 14px 0 0;
+    margin: 12px 0 0;
     font-size: 11px;
     line-height: 1.65;
   }
@@ -224,7 +231,7 @@
     align-items: center;
     width: fit-content;
     min-height: 44px;
-    margin: 6px 0 0;
+    margin: 4px 0 0;
     color: #d8c7a1;
     font-size: 12px;
     text-decoration: underline;
