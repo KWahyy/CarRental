@@ -13,13 +13,18 @@ body .content-wedding-copy h2 span:last-child { color: #80633b; font-style: ital
 .wedding-enquiry:focus-visible { outline: 2px solid #80633b; outline-offset: 5px; }
 @media(max-width:900px) { body .content-wedding-copy { left: 28px; width: 48%; } body .content-wedding-copy h2 { font-size: 42px; } }
 @media(max-width:640px) {
- body .content-experience-promo { height: 680px; min-height: 0; }
- body .content-wedding-copy { top: 40px; left: 24px; width: calc(100% - 48px); transform: none; }
- body .content-wedding-copy h2 { font-size: clamp(35px,9vw,44px); margin: 21px 0 24px; }
- body .content-wedding-kicker { gap: 10px; }
- body .content-wedding-kicker p { font-size: 9px; letter-spacing: .16em; }
- body .content-wedding-kicker span { flex-basis: 24px; }
- body .content-experience-promo::after { background: linear-gradient(180deg,#fffaf3 0%,#fffaf3f5 31%,#fffaf36b 46%,transparent 62%); }
- body .content-experience-bg { object-position: 65% bottom; }
+ body .content-experience-promo { display:flex; flex-direction:column; height:auto; min-height:0; background:#fffaf3; }
+ body .content-experience-promo::before,
+ body .content-experience-promo::after { display:none; }
+ body .content-wedding-copy { position:relative; order:0; top:auto; left:auto; width:100%; padding:34px 24px 28px; box-sizing:border-box; transform:none; }
+ body .content-wedding-copy h2 { font-size:clamp(32px,8.6vw,44px); line-height:1.12; margin:18px 0 22px; letter-spacing:-.045em; }
+ body .content-wedding-kicker { gap:10px; }
+ body .content-wedding-kicker p { font-size:8px; letter-spacing:.16em; }
+ body .content-wedding-kicker span { flex-basis:20px; }
+ body .content-wedding-copy .wedding-enquiry { min-height:46px; padding:11px 16px; gap:22px; border-radius:2px; font-size:11px; }
+ body .content-wedding-copy .wedding-enquiry span { font-size:19px; }
+ body .content-experience-promo > .native-picture { display:block; position:relative; order:1; width:100%; height:clamp(310px,90vw,460px); overflow:hidden; isolation:isolate; }
+ body .content-experience-bg { z-index:0; object-position:68% center; }
+ body .content-experience-promo > .native-picture::after { content:""; position:absolute; inset:0 0 auto; height:35px; background:linear-gradient(#fffaf3,transparent); pointer-events:none; }
 }
 @media(prefers-reduced-motion:reduce) { .wedding-enquiry { transition: none; } }

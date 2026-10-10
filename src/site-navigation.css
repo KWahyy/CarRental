@@ -38,3 +38,52 @@ body :is(.shared-site-header,.shared-mobile-menu,.shared-site-footer) a:focus-vi
 }
 @media(max-width:380px) { body .shared-site-header { padding-inline:14px; gap:10px; } body .shared-site-header .brand-logo { width:155px; } body .shared-site-footer .footer-columns { grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:28px; } }
 body .shared-site-header .menu-toggle span { display:block; flex:0 0 1px; min-height:1px; margin:0; padding:0; border:0; }
+/* Empty dates use readable copy while the native calendar remains interactive. */
+body .site-date-control { position:relative; min-width:0; width:100%; }
+body .site-date-placeholder { position:absolute; left:13px; top:50%; transform:translateY(-50%); pointer-events:none; font:400 14px/1.2 Arial,sans-serif; color:inherit; text-transform:none; letter-spacing:normal; }
+body .site-date-control input[data-date-empty]:not(:focus) { color:transparent; }
+body .site-date-control input[data-date-empty]:not(:focus)::-webkit-datetime-edit { opacity:0; }
+body .site-date-control:has(input:not([data-date-empty])) .site-date-placeholder,
+body .site-date-control:focus-within .site-date-placeholder { display:none; }
+
+/* Compact mobile navigation with a quiet header and a spacious menu. */
+@media (max-width:900px) {
+ body .shared-site-header { height:calc(72px + env(safe-area-inset-top,0px)); padding:calc(12px + env(safe-area-inset-top,0px)) 20px 12px; gap:10px; background:#10110ff5; border-bottom-color:#d8c9a91c; }
+ body .shared-site-header[data-home=true]:not(.scrolled) { background:linear-gradient(180deg,#080908e6,#0809089c); border-bottom-color:#ffffff14; }
+ body .shared-site-header .brand { min-width:0; }
+ body .shared-site-header .brand-logo { width:clamp(155px,43vw,185px); max-width:100%; max-height:36px; }
+ body .shared-site-header .mobile-header-call { flex-shrink:0; min-width:48px; height:44px; min-height:44px; box-sizing:border-box; padding:0 10px; color:#dfd1b5; border:0; background:none; font:500 10px/1 Arial,sans-serif; letter-spacing:.12em; }
+ body .shared-site-header .menu-toggle { flex:0 0 44px; width:44px; height:44px; min-height:44px; padding:10px; gap:6px; border:1px solid #d8c9a930; border-radius:50%; background:#ffffff05; }
+ body .shared-site-header .menu-toggle span { width:18px; background:#eee8dc; transition:transform 180ms ease; }
+ body .shared-site-header .menu-toggle[aria-expanded=true] span:first-child { transform:translateY(3.5px) rotate(45deg); }
+ body .shared-site-header .menu-toggle[aria-expanded=true] span:last-child { transform:translateY(-3.5px) rotate(-45deg); }
+ body .shared-site-header:has([aria-expanded=true]) { background:#10110f; }
+ body .shared-site-header .menu-toggle:focus-visible { outline:2px solid #d6c49d; outline-offset:3px; }
+ body .shared-mobile-menu { top:calc(72px + env(safe-area-inset-top,0px)); box-sizing:border-box; padding:18px 24px calc(24px + env(safe-area-inset-bottom,0px)); max-height:calc(100dvh - 72px - env(safe-area-inset-top,0px)); background:#f3f0e9; color:#24251f; border-bottom:1px solid #d6cdbb; box-shadow:0 24px 48px #0004; }
+ body .shared-mobile-menu.open { grid-template-columns:1fr 1fr; column-gap:12px; }
+ body .shared-mobile-menu > a { grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; min-height:66px; padding:12px 0; box-sizing:border-box; color:#24251f; border-bottom:1px solid #29271924; font:400 28px/1.2 Georgia,serif; letter-spacing:-.025em; text-decoration:none; }
+ body .shared-mobile-menu > a:nth-child(-n+3)::after { content:''; width:10px; height:10px; border-top:1px solid #95805b; border-right:1px solid #95805b; background:linear-gradient(135deg,transparent 46%,#95805b 47%,#95805b 53%,transparent 54%); }
+ body .shared-mobile-menu > a[aria-current=page] { color:#80653b; }
+ body .shared-mobile-menu > a:nth-last-child(-n+2) { grid-column:auto; justify-content:center; min-height:48px; margin-top:24px; padding:12px; border:1px solid #bfb7a6; border-radius:3px; font:500 11px/1.3 Arial,sans-serif; letter-spacing:.08em; text-transform:uppercase; }
+ body .shared-mobile-menu > a:last-child { background:#24251f; border-color:#24251f; color:#fffaf0; }
+}
+@media(max-width:360px) {
+ body .shared-site-header { padding-inline:14px; gap:6px; }
+ body .shared-site-header .brand-logo { width:155px; }
+ body .shared-mobile-menu { padding-inline:20px; }
+}
+@media(prefers-reduced-motion:reduce) { body .shared-site-header .menu-toggle span { transition:none; } }
+@media(max-width:900px) {
+ body .shared-mobile-menu { transform:none; border-radius:0; backdrop-filter:none; }
+ body .shared-mobile-menu::before,body .shared-mobile-menu::after { display:none; }
+}
+@media(max-width:900px) {
+ body[class] .shared-site-header { min-height:0; height:calc(72px + env(safe-area-inset-top,0px)); padding:calc(12px + env(safe-area-inset-top,0px)) 20px 12px; }
+ body .shared-site-header[data-home]:has([aria-expanded=true]) { background:#10110f; }
+}
+@media(max-width:360px) { body[class] .shared-site-header { padding-inline:14px; } }
+/* Override legacy logo sizing so the wordmark shares the controls' centerline. */
+@media(max-width:900px) {
+ body[class] .shared-site-header .brand { display:flex; align-items:center; justify-content:flex-start; flex:0 0 auto; width:auto; height:44px; min-height:44px; padding:0; margin:0; }
+ body[class] .shared-site-header .brand-logo[src] { display:block; width:clamp(155px,43vw,185px); height:auto; max-width:100%; max-height:36px; margin:0; object-fit:contain; }
+}

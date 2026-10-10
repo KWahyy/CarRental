@@ -1,3 +1,5 @@
+import { initDateFields } from './date-fields.js';
+initDateFields();
 const header=document.querySelector('[data-shared-header]');
 if(header) {
  const button=header.querySelector('[data-menu-toggle]'),menu=document.querySelector('#site-mobile-menu');

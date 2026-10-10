@@ -981,6 +981,16 @@ if (quoteForm?.querySelector('[data-reservation-step]')) {
   const trip = readTripSearch(location.search);
   quoteForm.elements.date.value = trip.pickup;
   quoteForm.elements.returnDate.value = trip.returnDate;
+  const syncDatePlaceholders = () => {
+    for (const name of ['date', 'returnDate']) {
+      const field = quoteForm.elements[name];
+      field.toggleAttribute('data-empty', !field.value);
+    }
+  };
+  quoteForm.addEventListener('input', syncDatePlaceholders);
+  quoteForm.addEventListener('change', syncDatePlaceholders);
+  window.addEventListener('pageshow', syncDatePlaceholders);
+  syncDatePlaceholders();
   const validateDates = () => {
     const pickup = quoteForm.elements.date, end = quoteForm.elements.returnDate;
     end.min = pickup.value || localDateValue();

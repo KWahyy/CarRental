@@ -1,3 +1,4 @@
+import { decorateDateFields } from './date-fields.js';
 // Public navigation has one source of truth. Private documents/admin deliberately opt out.
 export const primaryNavigation = [
   ['Fleet','/fleet'],['Weddings','/wedding'],['Consignment','/partner'],
@@ -12,6 +13,7 @@ export function applySiteChrome(document,{path='/',year=2026}={}) {
  path=path.replace(/\.html$/,'').replace(/\/index$/,'/')||'/';
  if(/^\/(admin(?:\/|$)|quote$|agreement$)/.test(path)) return;
  if(!document.querySelector('main')) return;
+ decorateDateFields(document);
  const home=path==='/';
  const reserve=document.querySelector('#vehicle-request')?'#vehicle-request':document.querySelector('#location-quote')?'#location-quote':'/#quote';
  const header=`<header class="site-header shared-site-header${home?'':' scrolled'}" data-header data-shared-header data-home="${home}">

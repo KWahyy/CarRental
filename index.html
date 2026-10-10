@@ -418,8 +418,8 @@
                 </div>
                 <p class="reservation-car-error" data-car-error hidden role="alert">Choose your car to continue.</p>
               </div>
-              <label><span>Pickup date</span><input name="date" type="date" required /></label>
-              <label><span>Return date <small>Optional</small></span><input name="returnDate" type="date" /></label>
+              <label><span>Pickup date</span><div class="reservation-date-control"><input name="date" type="date" data-empty required /><span class="reservation-date-placeholder" aria-hidden="true">Select date</span></div></label>
+              <label><span>Return date <small>Optional</small></span><div class="reservation-date-control"><input name="returnDate" type="date" data-empty /><span class="reservation-date-placeholder" aria-hidden="true">Select date</span></div></label>
             </div>
             <button type="button" class="reservation-next" data-reservation-next>Continue <span aria-hidden="true">→</span></button>
           </div>

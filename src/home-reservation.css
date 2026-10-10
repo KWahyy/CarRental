@@ -51,3 +51,10 @@
 #quote .reservation-car-result img { width:88px; height:60px; object-fit:cover; border-radius:4px; flex-shrink:0; }
 #quote .reservation-car-empty,#quote .reservation-car-error { margin:10px 0 0; font:400 12px/1.5 Arial,sans-serif; color:#72776b; }
 #quote .reservation-car-error { color:#a63b30; }
+
+#quote .reservation-date-control { position:relative; min-width:0; }
+#quote .reservation-date-placeholder { position:absolute; top:50%; left:13px; transform:translateY(-50%); pointer-events:none; color:#65685e; font:400 14px/1.2 Arial,sans-serif; }
+#quote .reservation-date-control input[data-empty]:not(:focus) { color:transparent; }
+#quote .reservation-date-control input[data-empty]:not(:focus)::-webkit-datetime-edit { opacity:0; }
+#quote .reservation-date-control:has(input:not([data-empty])) .reservation-date-placeholder,
+#quote .reservation-date-control:focus-within .reservation-date-placeholder { display:none; }
