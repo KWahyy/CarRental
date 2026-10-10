@@ -600,3 +600,8 @@
 }
 .vehicle-page .vehicle-listing-disclosure { max-width:65ch; margin:18px 0 0; padding-left:16px; border-left:2px solid #b5a17a; color:#686458; font:400 13px/1.7 Arial,sans-serif; }
 .vehicle-page .vehicle-private-specs > [hidden],.vehicle-page [data-vehicle-year][hidden] { display:none!important; }
+
+.vehicle-page .vehicle-private-specs > [data-spec-last] { grid-column:span var(--spec-end-desktop,1); }
+@media(max-width:680px) {
+ .vehicle-page .vehicle-private-specs > [data-spec-last] { grid-column:span var(--spec-end-mobile,1); }
+}

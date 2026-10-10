@@ -1,3 +1,4 @@
+import { additionalMileageRate } from './vehicle-rental-info.js';
 export function vehicleShellMarkup(seoMarkup = "") {
   return `
     <div class="vehicle-private-page">
@@ -64,6 +65,7 @@ export function vehicleShellMarkup(seoMarkup = "") {
             <div><span>Body</span><strong data-vehicle-type></strong></div>
             <div><span>Exterior</span><strong data-vehicle-color></strong></div>
             <div><span>Included mileage</span><strong data-vehicle-mileage></strong></div>
+            <div><span>Additional mileage</span><strong>${additionalMileageRate}</strong></div>
           </div>
 
           <div class="vehicle-private-inclusions">

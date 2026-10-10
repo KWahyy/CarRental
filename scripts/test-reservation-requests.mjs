@@ -6,7 +6,7 @@ for(const width of [390,1440]){
  for(const flow of ['home','fleet','car']){
   await p.goto(base+(flow==='home'?'/':flow==='fleet'?'/fleet':'/cars/ferrari-f8-tributo-rental'));
   if(flow==='home'){assert.equal((await p.locator('.hero-rental-search > button').innerText()).replace(/\s+/g,' '),'Book in minutes ↗');assert.match(await p.locator('.hero-search-note').innerText(),/Request online.*confirms availability and the final price/s);}
-  if(flow==='fleet')await p.locator('[data-check-availability]').first().click();
+  if(flow==='fleet')await p.locator('[data-fleet-grid] [data-check-availability]').first().click();
   const selector=flow==='home'?'[data-quote-form]':flow==='fleet'?'[data-availability-form]':'[data-vehicle-request-form]';const form=p.locator(selector);
   if(flow==='home') {
    await form.locator('[data-reservation-next]').click();

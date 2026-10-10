@@ -31440,3 +31440,55 @@ html:has(body.admin-page) {
   margin: 0;
   line-height: 18px;
 }
+
+/* Mobile customer benefits: readable editorial heading and compact service rows. */
+@media (max-width:800px) {
+ .home-page .customer-satisfaction { box-sizing:border-box; padding:48px 24px; gap:28px; background:#faf9f5; }
+ .home-page .customer-satisfaction-head { width:100%; max-width:560px; justify-items:start; gap:16px; text-align:left; }
+ .home-page .customer-satisfaction-head > div { justify-items:start; gap:14px; }
+ .home-page .customer-satisfaction .quote-kicker { margin:0; color:#85734f; font:600 9px/1.6 Arial,sans-serif; letter-spacing:.13em; }
+ .home-page .customer-satisfaction-head h2 { max-width:18ch; font:400 clamp(30px,8vw,38px)/1.13 Georgia,serif; letter-spacing:-.035em; text-transform:none; text-wrap:pretty; color:#252720; }
+ .home-page .customer-satisfaction-head > p { max-width:44ch; font:400 14px/1.7 Arial,sans-serif; color:#64645b; }
+ .home-page .satisfaction-list { width:100%; max-width:560px; grid-template-columns:1fr; gap:0; }
+ .home-page .satisfaction-list li { grid-template-columns:32px minmax(0,1fr); justify-items:start; align-items:start; gap:14px; padding:21px 0; border-top:1px solid #dedbd1; text-align:left; }
+ .home-page .satisfaction-list li:last-child { padding-bottom:0; }
+ .home-page .satisfaction-icon { width:32px; height:32px; border:1px solid #b2a487; background:#eeeade; color:#7a6845; filter:none; }
+ .home-page .satisfaction-icon svg { width:15px; height:15px; stroke-width:1.8; }
+ .home-page .satisfaction-list h3 { margin:2px 0 7px; font:600 15px/1.4 Arial,sans-serif; text-transform:none; letter-spacing:-.01em; color:#282a22; }
+ .home-page .satisfaction-list p { font:400 13px/1.65 Arial,sans-serif; color:#67685f; }
+}
+
+/* Wedding hero: restrained editorial type with space for the film. */
+.wedding-hero { min-height: min(900px,100svh); }
+.wedding-hero-frame,.wedding-hero-grain { display:none; }
+.wedding-hero-inner { width:min(1320px,calc(100% - 112px)); padding:180px 0 88px; }
+.wedding-hero h1 { max-width:12ch; font-size:clamp(64px,7vw,108px); line-height:1.02; letter-spacing:-.045em; }
+.wedding-hero h1 > span { overflow:visible; padding:0; }
+.wedding-hero h1 > span > span { animation:none; }
+.wedding-hero h1 > span:nth-child(2) > span { padding-left:0; color:#eee8dc; }
+.wedding-hero .partner-private-kicker { margin-bottom:22px; font:500 10px/1.5 Arial,sans-serif; letter-spacing:.18em; }
+.wedding-hero .partner-private-kicker::before { width:28px; }
+.wedding-hero-copy { max-width:440px; margin-top:24px; font:400 15px/1.75 Arial,sans-serif; color:#d1d1d1; }
+.wedding-hero .partner-private-actions { align-items:center; gap:24px; margin-top:28px; }
+.wedding-hero .partner-private-button { min-height:52px; font:500 12px/1.4 Arial,sans-serif; text-transform:none; letter-spacing:.01em; border-radius:3px; }
+.wedding-hero .partner-private-button-ghost { min-height:44px; padding:0; border:0; border-bottom:1px solid #ffffff55; border-radius:0; background:transparent; }
+.wedding-hero .partner-private-button-ghost:hover { color:white; border-color:white; background:transparent; }
+.wedding-hero .partner-private-trust { margin-top:30px; color:#adadad; font:400 10px/1.6 Arial,sans-serif; letter-spacing:.02em; text-transform:none; }
+.wedding-hero .partner-private-scroll { right:56px; }
+@media(max-width:760px) {
+ .wedding-hero { min-height: min(800px,100svh); }
+ .wedding-hero-inner { width:calc(100% - 48px); padding:220px 0 36px; }
+ .wedding-hero-media { object-position:62% center; filter:grayscale(1) contrast(1.04) brightness(.92); }
+ .wedding-hero-shade { background:linear-gradient(0deg,rgba(0,0,0,.96),rgba(0,0,0,.75) 38%,rgba(0,0,0,.18) 78%,rgba(0,0,0,.25)); }
+ .wedding-hero .partner-private-kicker { font-size:9px; gap:12px; margin-bottom:18px; }
+ .wedding-hero h1 { font-size:clamp(42px,12.2vw,60px); line-height:1.06; }
+ .wedding-hero-copy { margin-top:20px; max-width:36ch; font-size:13px; line-height:1.7; }
+ .wedding-hero .partner-private-actions { display:flex; flex-direction:column; align-items:stretch; gap:8px; margin-top:24px; }
+ .wedding-hero .partner-private-button-light { width:100%; }
+ .wedding-hero .partner-private-button-ghost { align-self:center; min-height:44px; border-bottom:0; color:#ccc; }
+ .wedding-hero .partner-private-trust { justify-content:flex-start; gap:6px 14px; margin-top:20px; font-size:9px; }
+ .wedding-hero .partner-private-trust span { white-space:nowrap; }
+}
+.wedding-hero .partner-private-kicker,
+.wedding-hero .partner-private-actions,
+.wedding-hero .partner-private-trust { animation:none; opacity:1; transform:none; }

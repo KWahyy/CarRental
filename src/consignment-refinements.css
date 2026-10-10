@@ -1,0 +1,102 @@
+/* Consignment layout, scoped to the owner program. */
+
+body.partner-page.partner-private-page main .partner-private-hero { min-height:min(850px,100svh); }
+body.partner-page.partner-private-page main .partner-private-hero-frame { display:none; }
+body.partner-page.partner-private-page main .partner-private-hero-inner { width:min(1320px,calc(100% - 112px)); padding:180px 0 88px; }
+body.partner-page.partner-private-page main .partner-private-hero h1 { width:auto; font:400 clamp(64px,7.5vw,108px)/1.04 Georgia,serif; letter-spacing:-.045em; text-transform:none; }
+body.partner-page.partner-private-page main .partner-private-hero h1 > span { padding:0; overflow:visible; }
+body.partner-page.partner-private-page main .partner-private-hero h1 > span:nth-child(2) { font-style:italic; color:#dedede; }
+body.partner-page.partner-private-page main .partner-private-hero h1 > span > span,
+body.partner-page.partner-private-page main .partner-private-kicker,
+body.partner-page.partner-private-page main .partner-private-hero-copy,
+body.partner-page.partner-private-page main .partner-private-actions,
+body.partner-page.partner-private-page main .partner-private-trust { opacity:1; transform:none; animation:none; }
+body.partner-page.partner-private-page main .partner-private-kicker { font-size:10px; letter-spacing:.16em; margin-bottom:22px; }
+body.partner-page.partner-private-page main .partner-private-hero-copy { max-width:440px; margin-top:24px; font:400 15px/1.75 Arial,sans-serif; }
+body.partner-page.partner-private-page main .partner-private-actions { margin-top:28px; gap:20px; align-items:center; }
+body.partner-page.partner-private-page main .partner-private-button { min-height:52px; border-radius:3px; font:500 12px/1.4 Arial,sans-serif; letter-spacing:0; text-transform:none; }
+body.partner-page.partner-private-page main .partner-private-button-ghost { border:0; border-bottom:1px solid #ffffff55; border-radius:0; padding:0; min-height:44px; }
+body.partner-page.partner-private-page main .partner-private-trust { margin-top:28px; font:400 10px/1.6 Arial,sans-serif; letter-spacing:.02em; text-transform:none; }
+body.partner-page.partner-private-page main .partner-private-process,
+body.partner-page.partner-private-page main .partner-private-application { padding:clamp(64px,7vw,104px) max(24px,calc((100vw - 1320px)/2)); }
+body.partner-page.partner-private-page main .partner-private-section-head h2,
+body.partner-page.partner-private-page main .partner-private-standard-copy h2,
+body.partner-page.partner-private-page main .partner-private-application-copy h2 { font:400 clamp(34px,4.5vw,62px)/1.12 Georgia,serif; letter-spacing:-.04em; text-transform:none; }
+body.partner-page.partner-private-page main .partner-private-process .partner-private-section-head { grid-template-columns:1fr 2fr; gap:32px; }
+body.partner-page.partner-private-page main .partner-private-steps { margin-top:40px; }
+body.partner-page.partner-private-page main .partner-private-steps li { min-height:0; gap:28px; padding:28px; }
+body.partner-page.partner-private-page main .partner-private-steps h3,
+body.partner-page.partner-private-page main .partner-private-standards h3 { font:500 20px/1.3 Arial,sans-serif; }
+body.partner-page.partner-private-page main .partner-private-steps p,
+body.partner-page.partner-private-page main .partner-private-standards p { font:400 14px/1.7 Arial,sans-serif; }
+body.partner-page.partner-private-page main .partner-private-standard-copy { padding:80px 24px; max-width:780px; }
+body.partner-page.partner-private-page main .partner-private-standard-copy > p:not(:first-child) { font:400 15px/1.75 Arial,sans-serif; }
+body.partner-page.partner-private-page main .partner-private-standard-copy > a { min-height:44px; display:inline-flex; align-items:center; }
+body.partner-page.partner-private-page main .partner-private-standards article { min-height:0; padding:32px; }
+body.partner-page.partner-private-page main .partner-private-standards h3 { margin-top:32px; }
+body.partner-page.partner-private-page main .partner-private-application { gap:48px; scroll-margin-top:84px; }
+body.partner-page.partner-private-page main .partner-private-application-copy > p:nth-of-type(2) { font:400 15px/1.75 Arial,sans-serif; }
+body.partner-page.partner-private-page main .partner-private-form { min-width:0; background:#111; padding:30px; gap:24px; border-radius:6px; }
+body.partner-page.partner-private-page main .partner-private-form label { font:500 12px/1.5 Arial,sans-serif; letter-spacing:0; text-transform:none; color:#ccc; }
+body.partner-page.partner-private-page main .partner-private-form input,
+body.partner-page.partner-private-page main .partner-private-form select,
+body.partner-page.partner-private-page main .partner-private-form textarea { min-width:0; min-height:50px; padding:12px; border:1px solid #ffffff30; border-radius:4px; background:#1a1a1a; font:400 16px/1.5 Arial,sans-serif; }
+body.partner-page.partner-private-page main .partner-private-form input::placeholder,
+body.partner-page.partner-private-page main .partner-private-form textarea::placeholder { color:#999; }
+body.partner-page.partner-private-page main .partner-private-form input:focus-visible,
+body.partner-page.partner-private-page main .partner-private-form select:focus-visible,
+body.partner-page.partner-private-page main .partner-private-form textarea:focus-visible { outline:2px solid #eee; outline-offset:2px; }
+body.partner-page.partner-private-page main .partner-private-form select option { background:#1a1a1a; }
+body.partner-page.partner-private-page main .partner-private-form-head { gap:10px; flex-wrap:wrap; }
+body.partner-page.partner-private-page main .partner-private-form-head span { color:#aaa; }
+body.partner-page.partner-private-page main .partner-form-actions { grid-template-columns:1fr; gap:14px; }
+body.partner-page.partner-private-page main .partner-private-submit { min-height:52px; border-radius:3px; font-size:12px; letter-spacing:.03em; }
+@media(max-width:760px) {
+body.partner-page.partner-private-page main .partner-private-hero { min-height:min(780px,100svh); }
+body.partner-page.partner-private-page main .partner-private-hero-inner { width:calc(100% - 48px); padding:200px 0 36px; }
+body.partner-page.partner-private-page main .partner-private-hero h1 { font-size:clamp(44px,13vw,62px); line-height:1.07; }
+body.partner-page.partner-private-page main .partner-private-hero-copy { font-size:13px; line-height:1.7; margin-top:20px; }
+body.partner-page.partner-private-page main .partner-private-hero-shade { background:linear-gradient(0deg,#000000f5,#000000a6 45%,#00000033); }
+body.partner-page.partner-private-page main .partner-private-actions { display:flex; flex-direction:column; align-items:stretch; gap:8px; margin-top:24px; }
+body.partner-page.partner-private-page main .partner-private-button-ghost { align-self:center; border:0; }
+body.partner-page.partner-private-page main .partner-private-trust { gap:8px 14px; flex-wrap:wrap; font-size:9px; margin-top:20px; }
+body.partner-page.partner-private-page main .partner-private-trust span { padding:0; border:0; }
+body.partner-page.partner-private-page main .partner-private-scroll { display:none; }
+body.partner-page.partner-private-page main .partner-private-process,
+body.partner-page.partner-private-page main .partner-private-application { padding:52px 24px; }
+body.partner-page.partner-private-page main .partner-private-process .partner-private-section-head { grid-template-columns:minmax(0,1fr); gap:16px; }
+body.partner-page.partner-private-page main .partner-private-section-head > p,
+body.partner-page.partner-private-page main .partner-private-standard-copy > p:first-child,
+body.partner-page.partner-private-page main .partner-private-application-copy > p:first-child { font-size:9px; line-height:1.6; letter-spacing:.14em; margin-bottom:0; }
+body.partner-page.partner-private-page main .partner-private-section-head h2,
+body.partner-page.partner-private-page main .partner-private-standard-copy h2,
+body.partner-page.partner-private-page main .partner-private-application-copy h2 { font-size:34px; line-height:1.13; }
+body.partner-page.partner-private-page main .partner-private-steps { grid-template-columns:minmax(0,1fr); margin-top:28px; }
+body.partner-page.partner-private-page main .partner-private-steps li,
+body.partner-page.partner-private-page main .partner-private-steps li:first-child,
+body.partner-page.partner-private-page main .partner-private-steps li:last-child { display:grid; grid-template-columns:24px minmax(0,1fr); gap:16px; padding:24px 0; min-height:0; border-right:0; border-bottom:1px solid #00000020; }
+body.partner-page.partner-private-page main .partner-private-steps h3 { font-size:17px; margin:0 0 10px; }
+body.partner-page.partner-private-page main .partner-private-steps p { font-size:13px; margin:0; }
+body.partner-page.partner-private-page main .partner-collection-banner { height:auto; min-height:0; aspect-ratio:4/3; }
+body.partner-page.partner-private-page main .partner-collection-banner img { height:100%; object-fit:cover; }
+body.partner-page.partner-private-page main .partner-private-standard-copy { padding:52px 24px; text-align:left; }
+body.partner-page.partner-private-page main .partner-private-standard-copy h2 { margin-top:16px; }
+body.partner-page.partner-private-page main .partner-private-standard-copy > p:not(:first-child) { font-size:14px; margin-top:20px; }
+body.partner-page.partner-private-page main .partner-private-standard-copy > a { margin-top:20px; font-size:11px; }
+body.partner-page.partner-private-page main .partner-private-standards { grid-template-columns:minmax(0,1fr); padding:12px 24px; }
+body.partner-page.partner-private-page main .partner-private-standards article,
+body.partner-page.partner-private-page main .partner-private-standards article:last-child { display:grid; grid-template-columns:24px minmax(0,1fr); gap:8px 16px; padding:24px 0; min-height:0; border-right:0; border-bottom:1px solid #ffffff22; }
+body.partner-page.partner-private-page main .partner-private-standards article > span { grid-row:1/3; margin:0; padding-top:3px; }
+body.partner-page.partner-private-page main .partner-private-standards h3 { margin:0; font-size:17px; }
+body.partner-page.partner-private-page main .partner-private-standards p { grid-column:2; margin:0; font-size:13px; color:#bbb; }
+body.partner-page.partner-private-page main .partner-private-application { grid-template-columns:minmax(0,1fr); gap:28px; }
+body.partner-page.partner-private-page main .partner-private-application-copy h2 { margin-top:16px; }
+body.partner-page.partner-private-page main .partner-private-application-copy { position:static; }
+body.partner-page.partner-private-page main .partner-private-review-note { margin-top:24px; }
+body.partner-page.partner-private-page main .partner-private-form { padding:22px 18px; gap:18px; }
+body.partner-page.partner-private-page main .partner-form-grid { grid-template-columns:minmax(0,1fr); gap:18px; }
+body.partner-page.partner-private-page main .partner-private-form-head p,
+body.partner-page.partner-private-page main .partner-private-form-head span { font-size:9px; letter-spacing:.08em; }
+body.partner-page.partner-private-page main .partner-private-submit { width:100%; }
+body.partner-page.partner-private-page main .partner-form-actions p { font-size:12px; line-height:1.6; }
+}

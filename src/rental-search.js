@@ -56,7 +56,7 @@ export function initFleetTrip() {
   edit.href = `/?${tripSearchParams(trip)}#rental-search`;
   edit.textContent = 'Edit trip';
   note.replaceChildren(summary,detail,edit);
-  document.querySelector('.fleet-editorial-hero')?.after(note);
+  document.querySelector('.fleet-collection-heading')?.after(note);
   const decorateLinks = () => {
     for (const link of document.querySelectorAll('a[href*="/cars/"]')) {
       const url = new URL(link.href,window.location.origin);

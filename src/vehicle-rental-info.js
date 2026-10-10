@@ -1,3 +1,4 @@
+export const additionalMileageRate = '$5/mile';
 const escape = value => String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const money = value => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(value);
 export function vehicleRentalInfoMarkup(car) {
@@ -11,7 +12,7 @@ export function vehicleRentalInfoMarkup(car) {
     ['Price per 6–7 days', taggedRate(6,7)],
     ['Price for 8+ days', 'Contact us'],
     ['Included mileage', car.mileage || 'Confirm with concierge'],
-    ['Additional mileage', '$5/mile'],
+    ['Additional mileage', additionalMileageRate],
     ['Security deposit', 'From $1,000'],
   ];
   const terms = [

@@ -1,0 +1,107 @@
+/* Wedding collection: readable editorial rhythm across screen sizes. */
+body.wedding-page .wedding-reasons,body.wedding-page .wedding-fleet-showcase,body.wedding-page .wedding-packages,body.wedding-page .wedding-inquiry,body.wedding-page .wedding-planning {
+ padding:clamp(64px,7vw,104px) max(24px,calc((100vw - 1320px)/2));
+}
+body.wedding-page .wedding-reasons-head h2,body.wedding-page .wedding-fleet-showcase-head h2,body.wedding-page .wedding-packages-head h2,body.wedding-page .wedding-inquiry-copy h2,body.wedding-page .wedding-planning h2 {
+ max-width:20ch; font:400 clamp(34px,4.6vw,64px)/1.1 Georgia,serif; letter-spacing:-.04em; text-transform:none;
+}
+body.wedding-page .wedding-reasons-head,body.wedding-page .wedding-fleet-showcase-head,body.wedding-page .wedding-packages-head { gap:32px; }
+body.wedding-page .wedding-reasons-head > p { color:#706d66; }
+body.wedding-page .wedding-reasons-grid { margin-top:44px; }
+body.wedding-page .wedding-reasons-grid article { min-height:0; padding:28px; }
+body.wedding-page .wedding-reasons-grid h3 { margin:24px 0 12px; font:500 19px/1.3 Arial,sans-serif; max-width:24ch; }
+body.wedding-page .wedding-reasons-grid p { font:400 14px/1.7 Arial,sans-serif; }
+body.wedding-page .wedding-reason-icon { border:0; width:32px; height:32px; color:#666; }
+body.wedding-page .wedding-fleet-showcase-head,body.wedding-page .wedding-packages-head { margin-bottom:36px; }
+body.wedding-page .wedding-fleet-showcase-head > p,body.wedding-page .wedding-packages-head > p { font:400 14px/1.7 Arial,sans-serif; }
+body.wedding-page .wedding-fleet-car-copy h3 { font-family:Georgia,serif; line-height:1.12; }
+body.wedding-page .wedding-package { min-height:0; padding:30px; }
+body.wedding-page .wedding-package-number { margin-bottom:24px; width:34px; height:34px; }
+body.wedding-page .wedding-package h3 { font-size:32px; line-height:1.12; max-width:18ch; }
+body.wedding-page .wedding-package ul { font:400 14px/1.7 Arial,sans-serif; }
+body.wedding-page .wedding-package footer a,body.wedding-page .wedding-fleet-showcase-footer a { display:inline-flex; align-items:center; min-height:44px; }
+body.wedding-page .wedding-planning { max-width:none; margin:0; }
+body.wedding-page .wedding-planning p,body.wedding-page .wedding-planning li { font:400 14px/1.8 Arial,sans-serif; }
+body.wedding-page .wedding-planning .rental-planning-columns { gap:32px; }
+body.wedding-page .wedding-planning h3 { font:500 20px/1.35 Arial,sans-serif; }
+body.wedding-page .wedding-inquiry { gap:48px; scroll-margin-top:72px; }
+body.wedding-page .wedding-inquiry-copy > p:not(:first-child) { font:400 15px/1.75 Arial,sans-serif; }
+body.wedding-page .wedding-form label { font:500 12px/1.5 Arial,sans-serif; letter-spacing:0; text-transform:none; color:#ccc; }
+body.wedding-page .wedding-form input,body.wedding-page .wedding-form select,body.wedding-page .wedding-form textarea { min-width:0; font:400 16px/1.5 Arial,sans-serif; padding:12px; border:1px solid #ffffff30; border-radius:4px; background:#191919; }
+body.wedding-page .wedding-form :is(input,select,textarea):focus-visible { outline:2px solid #eee; outline-offset:2px; }
+body.wedding-page .wedding-form select option { background:#191919; }
+body.wedding-page .wedding-form input::placeholder,body.wedding-page .wedding-form textarea::placeholder { color:#999; }
+body.wedding-page .wedding-form .site-date-control { min-width:0; }
+body.wedding-page .wedding-form .site-date-control > span { padding-left:12px; }
+body.wedding-page .wedding-form-head { margin-bottom:24px; }
+body.wedding-page .wedding-inquiry-assurance { color:#aaa; font:400 12px/1.7 Arial,sans-serif; }
+@media(max-width:760px) {body.wedding-page .wedding-reasons,body.wedding-page .wedding-fleet-showcase,body.wedding-page .wedding-packages,body.wedding-page .wedding-inquiry,body.wedding-page .wedding-planning { padding:52px 24px; }
+body.wedding-page .wedding-reasons-head,body.wedding-page .wedding-fleet-showcase-head,body.wedding-page .wedding-packages-head { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; }
+body.wedding-page .wedding-reasons-head > p,body.wedding-page .wedding-fleet-showcase-head > div > p,body.wedding-page .wedding-packages-head > div > p { margin:0 0 12px; padding:0; font-size:9px; letter-spacing:.15em; }
+body.wedding-page .wedding-reasons-head h2,body.wedding-page .wedding-fleet-showcase-head h2,body.wedding-page .wedding-packages-head h2,body.wedding-page .wedding-inquiry-copy h2,body.wedding-page .wedding-planning h2 { font-size:34px; line-height:1.12; max-width:20ch; }
+body.wedding-page .wedding-reasons-grid { grid-template-columns:minmax(0,1fr); margin-top:28px; border-bottom:0; }
+body.wedding-page .wedding-reasons-grid article { display:grid; grid-template-columns:30px minmax(0,1fr); gap:8px 16px; padding:22px 0; border:0; border-bottom:1px solid #00000020; }
+body.wedding-page .wedding-reasons-grid article:nth-child(-n+3) { border-bottom:1px solid #00000020; }
+body.wedding-page .wedding-reason-icon { grid-row:1/3; }
+body.wedding-page .wedding-reason-number { display:none; }
+body.wedding-page .wedding-reasons-grid h3 { margin:0; max-width:none; font-size:16px; }
+body.wedding-page .wedding-reasons-grid p { grid-column:2; max-width:none; font-size:13px; }
+body.wedding-page .wedding-image-break-frame { aspect-ratio:4/3; }
+body.wedding-page .wedding-image-break-frame img { object-position:60% center; }
+body.wedding-page .wedding-image-break-copy { max-width:100%; padding:24px; }
+body.wedding-page .wedding-image-break-copy strong { font-size:clamp(44px,16vw,72px); }
+body.wedding-page .wedding-image-subtitle { font-size:9px; letter-spacing:.08em; }
+body.wedding-page .wedding-fleet-showcase-head > p,body.wedding-page .wedding-packages-head > p { border:0; padding:0; margin:0; font-size:13px; }
+body.wedding-page .wedding-fleet-lookbook { grid-template-columns:minmax(0,1fr); gap:18px; }
+body.wedding-page .wedding-fleet-car { aspect-ratio:4/3.8; }
+body.wedding-page .wedding-fleet-car-copy { inset:auto 20px 20px; grid-template-columns:minmax(0,1fr); gap:8px; }
+body.wedding-page .wedding-fleet-car-copy span { font-size:9px; }
+body.wedding-page .wedding-fleet-car-copy h3 { font-size:28px; }
+body.wedding-page .wedding-fleet-car-copy em { justify-self:start; margin-top:4px; font-size:9px; }
+body.wedding-page .wedding-fleet-showcase-footer { align-items:flex-start; flex-direction:column; gap:8px; margin-top:26px; padding-top:20px; }
+body.wedding-page .wedding-fleet-showcase-footer a { font-size:11px; letter-spacing:.03em; }
+body.wedding-page .wedding-package-grid { grid-template-columns:minmax(0,1fr); gap:18px; }
+body.wedding-page .wedding-package { padding:24px; min-height:0; }
+body.wedding-page .wedding-package h3 { font-size:28px; max-width:none; }
+body.wedding-page .wedding-package-perfect,body.wedding-page .wedding-package footer p { font-size:13px; line-height:1.65; }
+body.wedding-page .wedding-package ul { padding-top:18px; margin-top:18px; font-size:13px; }
+body.wedding-page .wedding-package footer { margin-top:24px; padding-top:20px; }
+body.wedding-page .wedding-package footer a { font-size:10px; letter-spacing:.03em; }
+body.wedding-page .wedding-addons { margin-top:28px; padding:24px 0 0; grid-template-columns:minmax(0,1fr); gap:20px; }
+body.wedding-page .wedding-addons ul { grid-template-columns:minmax(0,1fr); gap:12px; font-size:13px; }
+body.wedding-page .wedding-arrival { min-height:520px; }
+body.wedding-page .wedding-arrival-copy { width:calc(100% - 48px); padding:80px 0 36px; }
+body.wedding-page .wedding-arrival h2 { font:400 36px/1.12 Georgia,serif; letter-spacing:-.04em; }
+body.wedding-page .wedding-arrival-footer { flex-direction:column; align-items:flex-start; gap:18px; }
+body.wedding-page .wedding-arrival-footer p { font-size:13px; line-height:1.7; }
+body.wedding-page .wedding-arrival-footer a { min-height:44px; display:inline-flex; align-items:center; }
+body.wedding-page .wedding-planning .rental-planning-columns { grid-template-columns:minmax(0,1fr); gap:20px; }
+body.wedding-page .wedding-planning ol { padding-left:20px; }
+body.wedding-page .wedding-planning li { padding-left:4px; margin-bottom:12px; }
+body.wedding-page .wedding-planning .primary-button { width:100%; min-height:48px; font-size:12px; }
+body.wedding-page .wedding-inquiry { grid-template-columns:minmax(0,1fr); gap:28px; }
+body.wedding-page .wedding-inquiry-copy { position:static; }
+body.wedding-page .wedding-inquiry-copy > p:first-child { font-size:9px; margin-bottom:16px; }
+body.wedding-page .wedding-inquiry-note { margin-top:22px; }
+body.wedding-page .wedding-form { padding:22px 18px; border-radius:6px; }
+body.wedding-page .wedding-form-grid { grid-template-columns:minmax(0,1fr); gap:18px; }
+body.wedding-page .wedding-form-head { gap:8px; }
+body.wedding-page .wedding-form-head p,body.wedding-page .wedding-form-head span { font-size:9px; }
+body.wedding-page .wedding-form-actions { grid-template-columns:minmax(0,1fr); gap:14px; margin-top:24px; }
+body.wedding-page .wedding-submit { width:100%; min-height:52px; font-size:11px; letter-spacing:.04em; }
+body.wedding-page .wedding-form-actions > p { font-size:12px; }
+}
+body.wedding-page .wedding-reasons { display:block; min-height:0; }
+body.wedding-page .wedding-reasons-head { min-height:0; padding:0; background:none; color:#111; border:0; }
+body.wedding-page .wedding-reasons-head::before,body.wedding-page .wedding-reasons-head::after { display:none; }
+body.wedding-page .wedding-reasons-head > p { position:static; color:#777; }
+body.wedding-page .wedding-reasons-head h2,body.wedding-page .wedding-reasons-head h2 em { color:#111; }
+body.wedding-page .wedding-reasons-grid { grid-template-rows:auto; gap:0; background:none; }
+body.wedding-page .wedding-reasons-grid article:nth-child(n) { min-height:0; background:none; color:#111; }
+body.wedding-page .wedding-reasons-grid article:nth-child(n) p { color:#666; padding:0; }
+@media(min-width:761px) {body.wedding-page .wedding-reasons-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media(max-width:760px) {body.wedding-page .wedding-reasons-grid article:nth-child(n) { grid-template-columns:30px minmax(0,1fr); padding:22px 0; gap:8px 16px; border:0; border-bottom:1px solid #00000020; }
+body.wedding-page .wedding-reasons-grid article:nth-child(n) .wedding-reason-icon { color:#666; border:0; background:none; }
+}
+
+body.wedding-page .wedding-reasons-grid { display:grid; }

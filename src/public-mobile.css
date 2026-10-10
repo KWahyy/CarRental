@@ -1,0 +1,43 @@
+/* Mobile refinements for supporting public pages. */
+@media(max-width:760px) {
+ body.site-content-page:not(.destination-page) .seo-page-main { padding:110px 24px 52px; }
+ body.site-content-page:not(.destination-page) .seo-page-hero { padding:0 0 32px; }
+ body.site-content-page:not(.destination-page) .seo-page-hero h1 { font:400 clamp(32px,9vw,42px)/1.12 Georgia,serif; letter-spacing:-.035em; text-transform:none; max-width:20ch; margin:16px 0 20px; }
+ body.site-content-page .seo-page-lead { font:400 14px/1.75 Arial,sans-serif; }
+ body.site-content-page .seo-page-hero .eyebrow { font:500 9px/1.6 Arial,sans-serif; letter-spacing:.14em; }
+ body.site-content-page .seo-page-actions { gap:10px; margin-top:24px; }
+ body.site-content-page .seo-page-actions a { min-height:48px; font:500 13px/1.4 Arial,sans-serif; }
+ body.site-content-page .seo-copy h2 { font:400 28px/1.2 Georgia,serif; letter-spacing:-.025em; text-transform:none; overflow-wrap:break-word; }
+ body.site-content-page .seo-copy h3 { font:500 18px/1.35 Arial,sans-serif; text-transform:none; }
+ body.site-content-page .seo-copy p,body.site-content-page .seo-copy li { font-size:14px; line-height:1.8; overflow-wrap:break-word; }
+ body.site-content-page .seo-copy > section { padding-block:28px; }
+ body.site-content-page .seo-card-grid { grid-template-columns:minmax(0,1fr); gap:14px; }
+ body.site-content-page .seo-card { min-width:0; padding:22px; }
+ body.site-content-page .seo-copy table { display:block; max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; font-size:13px; }
+ body.site-content-page .seo-copy th,body.site-content-page .seo-copy td { min-width:120px; padding:12px; line-height:1.6; }
+ body.site-content-page .fleet-showroom-grid { grid-template-columns:minmax(0,1fr); gap:24px; }
+ body.site-content-page .showroom-card-body { gap:12px; padding:16px; }
+ body.site-content-page .showroom-card-body h3 { font:400 23px/1.2 Georgia,serif; }
+ body.site-content-page .showroom-card-body > strong { font-size:20px; }
+ body.site-content-page .location-quote-section { grid-template-columns:minmax(0,1fr); gap:24px; scroll-margin-top:88px; }
+ body.site-content-page .location-quote-copy { position:static; }
+ body.site-content-page .location-quote-form { padding:22px 18px; border-radius:5px; }
+ body.site-content-page .location-form-grid { grid-template-columns:minmax(0,1fr); gap:18px; }
+ body.site-content-page .location-quote-form input,body.site-content-page .location-quote-form select,body.site-content-page .location-quote-form textarea { min-width:0; font-size:16px; }
+ body.faq-guide-page .faq-guide-hero { padding:110px 24px 48px; gap:28px; }
+ body.faq-guide-page .faq-guide-hero-copy h1 { font:400 clamp(34px,10vw,44px)/1.12 Georgia,serif; letter-spacing:-.035em; text-transform:none; max-width:16ch; }
+ body.faq-guide-page .faq-guide-lead { font-size:14px; line-height:1.75; }
+ body.faq-guide-page .faq-guide-actions a { min-height:48px; font-size:12px; }
+ body.faq-guide-page .faq-guide-hero-media { min-height:0; height:260px; }
+ body.faq-guide-page .faq-guide-workspace { padding:48px 24px; }
+ body.faq-guide-page .faq-library-head h2,body.faq-guide-page .faq-final-cta h2 { font:400 32px/1.15 Georgia,serif; letter-spacing:-.03em; text-transform:none; max-width:20ch; }
+ body.faq-guide-page .faq-library-head > p { font-size:14px; line-height:1.7; }
+ body.faq-guide-page .faq-search-shell { position:static; grid-template-columns:minmax(0,1fr); margin:0 0 28px; }
+ body.faq-guide-page .faq-search input { font-size:16px; min-height:48px; }
+ body.faq-guide-page .faq-category-questions summary { font:500 15px/1.45 Arial,sans-serif; padding-block:20px; min-height:60px; }
+ body.faq-guide-page .faq-category-questions details > p { font-size:14px; line-height:1.75; }
+ body.faq-guide-page .faq-final-cta { padding:36px 24px; gap:24px; }
+ body.lamborghini-page .lambo-process h2,body.lamborghini-page .lambo-faq h2,body.lamborghini-page .lambo-final-cta h2 { font:400 32px/1.15 Georgia,serif; letter-spacing:-.03em; text-transform:none; }
+ body.lamborghini-page .lambo-card-body h3 { font:400 24px/1.2 Georgia,serif; }
+ body.lamborghini-page main input,body.lamborghini-page main select { min-width:0; font-size:16px; min-height:48px; }
+}

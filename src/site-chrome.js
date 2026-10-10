@@ -28,5 +28,6 @@ export function applySiteChrome(document,{path='/',year=2026}={}) {
  document.body.insertAdjacentHTML('afterbegin',header+mobile);
  document.body.insertAdjacentHTML('beforeend',footer);
  if(!document.querySelector('[data-shared-nav-script]'))document.body.insertAdjacentHTML('beforeend','<script type="module" src="/src/site-navigation.js" data-shared-nav-script></script>');
+ if(!document.querySelector('[data-public-mobile-style]'))document.head.insertAdjacentHTML('beforeend','<link rel="stylesheet" href="/src/public-mobile.css" data-public-mobile-style />');
  if(!document.querySelector('[data-shared-nav-style]'))document.head.insertAdjacentHTML('beforeend','<link rel="stylesheet" href="/src/site-navigation.css" data-shared-nav-style />');
 }

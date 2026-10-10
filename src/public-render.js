@@ -564,7 +564,7 @@ export function renderPublicDocument(html, rows, {special=null,month=new Date().
     const trigger=input.parentElement.querySelector('.hero-date-trigger');trigger.classList.add('has-date');trigger.firstElementChild.textContent=tripSummary({pickup:value});trigger.setAttribute('aria-label',input.getAttribute('aria-label')+': '+trigger.firstElementChild.textContent);
    }
   }
-  const fleetHero=document.querySelector('.fleet-editorial-hero');
+  const fleetHero=document.querySelector('.fleet-collection-heading');
   if(fleetHero){document.querySelector('.rental-trip-banner')?.remove();fleetHero.insertAdjacentHTML('afterend',`<aside class="rental-trip-banner" aria-label="Your rental plans"><strong>${escapeHtml(summary)}</strong><span>Browse the collection below. Your dates and delivery are confirmed after you request a car.</span><a href="/?${escapeHtml(tripSearchParams(trip).toString())}#rental-search">Edit trip</a></aside>`);}
   document.querySelectorAll('[data-vehicle-request-form],[data-availability-form]').forEach(form=>{
    for(const [name,value] of [['deliveryLocation',trip.city],['date',trip.pickup],['returnDate',trip.returnDate]]){

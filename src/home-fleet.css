@@ -148,7 +148,20 @@
 .home-delivery-card:hover .home-delivery-link > span { transform:translateX(3px); }
 .home-delivery-card:focus-visible { outline:2px solid #d8c9a9; outline-offset:4px; }
 @media(max-width:900px) { .home-delivery-card { min-height:330px; } .home-delivery-copy { padding:20px; } }
-@media(max-width:640px) { .home-delivery-cards { grid-template-columns:1fr; gap:18px; margin:24px 0 36px; } .home-delivery-card { min-height:360px; aspect-ratio:1; } .home-page .home-delivery-card h2 { font-size:27px; } }
+.city-swipe-hint { display:none; }
+@media(max-width:640px) {
+ .home-delivery-cards { grid-template-columns:none; grid-auto-flow:column; grid-auto-columns:86%; gap:14px; margin:20px 0 8px; padding:5px 3px 12px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory; scroll-padding-inline:3px; scrollbar-width:thin; scrollbar-color:#a08c674d transparent; }
+ .home-delivery-card { min-height:0; height:clamp(300px,85vw,360px); aspect-ratio:auto; border-radius:12px; scroll-snap-align:start; }
+ .home-delivery-copy { box-sizing:border-box; padding:22px 20px; }
+ .home-page .home-delivery-card h2 { font:400 clamp(25px,7vw,30px)/1.1 Georgia,serif; letter-spacing:-.03em; margin-bottom:10px; }
+ .home-delivery-copy p { min-height:40px; margin-bottom:20px; font-size:13px; line-height:1.55; color:#e1dcd2; }
+ .home-delivery-link { justify-content:space-between; font-size:9px; letter-spacing:.13em; padding-top:14px; border-top:1px solid #f4f1e933; }
+ .home-delivery-link > span { font-size:19px; }
+ .home-delivery-card::after { background:linear-gradient(180deg,#08090900 15%,#08090920 36%,#080909b8 70%,#080909f2 100%); }
+ .home-delivery-card:hover { transform:none; }
+ .city-swipe-hint { display:flex; justify-content:flex-end; align-items:center; gap:10px; margin:0 3px 32px; color:#a9a397; font:400 10px/1.5 Arial,sans-serif; letter-spacing:.04em; }
+ .city-swipe-hint span { color:#d8c9a9; font-size:16px; }
+}
 @media(prefers-reduced-motion:reduce) { .home-delivery-card,.home-delivery-card > img,.home-delivery-link > span { transition:none; } .home-delivery-card:hover,.home-delivery-card:hover > img { transform:none; } }
 
 /* Keep each rotating phrase close to the centered headline. */

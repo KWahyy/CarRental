@@ -158,29 +158,33 @@
 @media (max-width: 800px) {
   .home-page .cinematic-home-hero { min-height: 100svh; }
   .home-page .cinematic-home-hero .hero-content {
-    width: min(560px, calc(100% - 40px));
+    width: min(560px, calc(100% - 48px));
     padding: clamp(196px, 27svh, 280px) 0 24px;
   }
   .home-page .cinematic-home-hero .hero-scrim {
     background: linear-gradient(180deg, #0009 0%, #0002 16%, #05050599 32%, #050505ee 56%, #050505 80%);
   }
   .home-page .cinematic-home-hero h1#home-hero-title {
-    font-size: clamp(35px, 11.25vw, 58px);
-    line-height: 1.04;
-    letter-spacing: -.045em;
+    font-size: clamp(34px, 10.4vw, 48px);
+    line-height: 1.1;
+    letter-spacing: -.035em;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+    width: 100%;
   }
   .home-page .cinematic-home-hero .hero-private-label {
     max-width: none;
-    margin-bottom: 16px;
-    font-size: 9px;
+    margin-bottom: 18px;
+    font-size: 8px;
     line-height: 1.6;
     letter-spacing: .16em;
   }
   .home-page .cinematic-home-hero .hero-copy {
     max-width: 40ch;
-    font-size: 14px;
-    line-height: 1.6;
-    margin: 16px 0 24px;
+    font-size: 13px;
+    line-height: 1.65;
+    margin: 18px 0 24px;
   }
   .home-page .hero-delivery-copy { display: none; }
   .home-page .hero-rental-search {
@@ -240,3 +244,8 @@
 }
 
 .home-page .cinematic-home-hero .hero-copy strong { color: #f3f0e8; font-weight: 600; }
+
+@media(max-width:800px) {
+ .home-page .cinematic-home-hero .hero-copy strong { display:block; margin-bottom:3px; font-size:14px; font-weight:500; }
+ .home-page .cinematic-home-hero h1#home-hero-title em { display:inline-block; margin-top:2px; }
+}

@@ -55,6 +55,12 @@ export function applyVehicleFactVisibility(root) {
   root.querySelectorAll('.vehicle-private-specs > div').forEach(node => {
     node.hidden = !node.querySelector('strong')?.textContent.trim();
   });
+  root.querySelectorAll('.vehicle-private-specs').forEach(grid => {
+    const visible = [...grid.children].filter(node => !node.hidden);
+    grid.style.setProperty('--spec-end-desktop', String((3 - visible.length % 3) % 3 + 1));
+    grid.style.setProperty('--spec-end-mobile', String((2 - visible.length % 2) % 2 + 1));
+    [...grid.children].forEach(node => node.toggleAttribute('data-spec-last', node === visible.at(-1)));
+  });
 }
 
 function cleanPublicText(value) {
