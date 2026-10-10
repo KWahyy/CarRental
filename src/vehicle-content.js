@@ -1,7 +1,9 @@
+import { verifiedVehicleFacts } from './verified-vehicle-facts.js';
 const INTERNAL_COPY = /pixieset|digitlcars|admin crm|rate to confirm|photo set imported/i;
 
 export function vehicleYear(vehicle) {
-  return String(vehicle?.year || vehicle?.name?.match(/^(\d{4})/)?.[1] || "Year confirmed with availability");
+  if (isVehicleCategory(vehicle)) return "Vehicle category";
+  return String(vehicle?.year || vehicle?.name?.match(/^(\d{4})/)?.[1] || verifiedVehicleFacts[vehicle?.slug]?.year || "");
 }
 
 export function vehicleDisplayName(vehicle) {
@@ -22,15 +24,37 @@ export function bodyTypeForVehicle(vehicle) {
 export function seatsForVehicle(vehicle) {
   const exactSeats = Number(vehicle?.seats);
   if (Number.isFinite(exactSeats) && exactSeats > 0) return `${exactSeats} seats`;
-  return "Confirm seating";
+  return "";
 }
 
 export function engineForVehicle(vehicle) {
-  return vehicle?.engine || "Confirm exact specification";
+  return vehicle?.engine || verifiedVehicleFacts[vehicle?.slug]?.engine || "";
 }
 
 export function accelerationForVehicle(vehicle) {
-  return vehicle?.acceleration || "Configuration dependent";
+  return vehicle?.acceleration || "";
+}
+
+
+export function isVehicleCategory(vehicle) {
+  return (vehicle?.listingType || vehicle?.listing_type) === 'category';
+}
+
+export function exteriorForVehicle(vehicle) {
+  return vehicle?.color || (!isVehicleCategory(vehicle) && verifiedVehicleFacts[vehicle?.slug]?.picturedExterior) || '';
+}
+
+export function vehicleListingDisclosure(vehicle) {
+  if (isVehicleCategory(vehicle)) return 'Vehicle category listing. Photos are representative; model year, exterior, and exact specification vary. We confirm the assigned vehicle and its details before you reserve.';
+  return 'This listing features the pictured vehicle. Availability is confirmed for your dates; any alternative vehicle requires your approval.';
+}
+
+// Shared by server and browser so missing fields never flash into placeholder cells.
+export function applyVehicleFactVisibility(root) {
+  root.querySelectorAll('[data-vehicle-year]').forEach(node => { node.hidden = !node.textContent.trim(); });
+  root.querySelectorAll('.vehicle-private-specs > div').forEach(node => {
+    node.hidden = !node.querySelector('strong')?.textContent.trim();
+  });
 }
 
 function cleanPublicText(value) {
@@ -64,11 +88,11 @@ export function publicVehicleDetails(vehicle) {
   const details = Array.isArray(vehicle?.details) ? vehicle.details.map(cleanPublicText).filter(isUsefulPublicFact) : [];
   const tags = Array.isArray(vehicle?.tags) ? vehicle.tags.map(cleanPublicText).filter(isUsefulPublicFact) : [];
   const base = [
-    vehicle?.color ? `${cleanPublicText(vehicle.color)} exterior configuration` : "Exterior finish confirmed with current availability",
-    `${seatsForVehicle(vehicle)} in the listed configuration`,
+    exteriorForVehicle(vehicle) ? `Exterior: ${cleanPublicText(exteriorForVehicle(vehicle))}` : "",
+    seatsForVehicle(vehicle) ? `${seatsForVehicle(vehicle)} in the listed configuration` : "",
     `${bodyTypeForVehicle(vehicle)} selected for ${recommendedUseLabel(vehicle)}`,
   ];
-  return [...new Set([...details, ...tags, ...base])].slice(0, 6);
+  return [...new Set([...details, ...tags, ...base].filter(Boolean))].slice(0, 6);
 }
 
 export function publicVehicleTags(vehicle) {

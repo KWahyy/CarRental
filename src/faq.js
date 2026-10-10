@@ -1,17 +1,9 @@
-const menuToggle = document.querySelector("[data-menu-toggle]");
-const mobileMenu = document.querySelector("[data-mobile-menu]");
 const searchInput = document.querySelector("[data-faq-search]");
 const filterButtons = [...document.querySelectorAll("[data-faq-filter]")];
 const categories = [...document.querySelectorAll("[data-faq-category]")];
 const emptyState = document.querySelector("[data-faq-empty]");
 let activeFilter = "all";
 
-if (menuToggle && mobileMenu) {
-  menuToggle.addEventListener("click", () => {
-    const isOpen = mobileMenu.classList.toggle("open");
-    menuToggle.setAttribute("aria-expanded", String(isOpen));
-  });
-}
 
 function normalize(value) {
   return String(value || "").toLowerCase().trim();

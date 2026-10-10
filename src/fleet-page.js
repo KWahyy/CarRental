@@ -22,9 +22,6 @@ const searchInput = document.querySelector("[data-fleet-search]");
 const clearSearchButton = document.querySelector("[data-clear-search]");
 const sortSelect = document.querySelector("[data-fleet-sort]");
 const quickFilterButtons = [...document.querySelectorAll("[data-quick-filter]")];
-const menuToggle = document.querySelector("[data-menu-toggle]");
-const mobileMenu = document.querySelector("[data-mobile-menu]");
-const header = document.querySelector("[data-header]");
 const availabilityDrawer = document.querySelector("[data-availability-drawer]");
 const availabilityForm = document.querySelector("[data-availability-form]");
 const availabilityVehicle = document.querySelector("[data-availability-vehicle]");
@@ -742,26 +739,6 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-menuToggle.addEventListener("click", () => {
-  const isOpen = menuToggle.getAttribute("aria-expanded") === "true";
-  menuToggle.setAttribute("aria-expanded", String(!isOpen));
-  mobileMenu.classList.toggle("open");
-});
-
-mobileMenu.querySelectorAll("a").forEach((link) => {
-  link.addEventListener("click", () => {
-    menuToggle.setAttribute("aria-expanded", "false");
-    mobileMenu.classList.remove("open");
-  });
-});
-
-window.addEventListener(
-  "scroll",
-  () => {
-    header.classList.toggle("scrolled", window.scrollY > 12);
-  },
-  { passive: true },
-);
 
 function currentSpecialMonth() {
   const now = new Date();

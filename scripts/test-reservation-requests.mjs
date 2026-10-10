@@ -8,8 +8,28 @@ for(const width of [390,1440]){
   if(flow==='home'){assert.equal((await p.locator('.hero-rental-search > button').innerText()).replace(/\s+/g,' '),'Book in minutes ↗');assert.match(await p.locator('.hero-search-note').innerText(),/Request online.*confirms availability and the final price/s);}
   if(flow==='fleet')await p.locator('[data-check-availability]').first().click();
   const selector=flow==='home'?'[data-quote-form]':flow==='fleet'?'[data-availability-form]':'[data-vehicle-request-form]';const form=p.locator(selector);
-  if(flow==='home')await form.locator('[name="vehicle"]').selectOption({index:1});
+  if(flow==='home') {
+   await form.locator('[data-reservation-next]').click();
+   assert.ok(await form.locator('[data-car-error]').isVisible());
+   await form.locator('[data-car-trigger]').click();
+   await form.locator('[data-car-search]').fill('not-a-real-car');
+   assert.ok(await form.locator('[data-car-empty]').isVisible());
+   await form.locator('[data-car-search]').fill('ferrari');
+   await form.locator('.reservation-car-result').first().click();
+   assert.match(await form.locator('[name="vehicle"]').inputValue(),/Ferrari/i);
+   assert.equal(await form.locator('#reservation-car-panel').isVisible(),false);
+  }
   await form.locator('[name="date"]').fill(flow==='car'?'2026-11-10T10:00':'2026-11-10');
+  if(flow==='home') {
+   await form.locator('[name="returnDate"]').fill('2026-11-09');
+   await form.locator('[data-reservation-next]').click();
+   assert.equal(await form.locator('[data-reservation-step="2"]').isVisible(),false);
+   await form.locator('[name="returnDate"]').fill('2026-11-12');
+   await form.locator('[data-reservation-next]').click();
+   await form.locator('[data-reservation-back]').click();
+   assert.equal(await form.locator('[name="returnDate"]').inputValue(),'2026-11-12');
+   await form.locator('[data-reservation-next]').click();
+  }
   if(flow!=='home')await form.locator('[name="deliveryLocation"]').fill('Los Angeles');
   if(flow==='car'&&await form.locator('[data-request-continue]').isVisible())await form.locator('[data-request-continue]').click();
   await form.locator('[name="name"]').fill('Reservation Test');await form.locator('[name="phone"]').fill('9495550100');
@@ -17,5 +37,5 @@ for(const width of [390,1440]){
   assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await status.scrollIntoViewIfNeeded();await p.screenshot({path:`output/reservation-requests/${flow}-${width}.png`});
  }
- assert.equal(requests.length,3);console.log(width,'passed: homepage, fleet and vehicle reservation requests (mocked)');await p.close();
+ assert.match(requests[0].message,/Return date: 2026-11-12/); assert.equal(requests.length,3);console.log(width,'passed: homepage, fleet and vehicle reservation requests (mocked)');await p.close();
 }await b.close();

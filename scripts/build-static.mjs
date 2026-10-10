@@ -1,3 +1,4 @@
+import { applySiteChrome } from '../src/site-chrome.js';
 import { refineDestinationPage } from './destination-pages.mjs';
 import { mapCar, optimizedFleetImageUrl, fleetPictureMarkup } from '../src/supabase-fleet.js';
 import { parseHTML } from 'linkedom';
@@ -65,6 +66,7 @@ async function buildHomepageStyles() {
   const homepageContent = [
     "index.html",
     "src/main.js",
+    "src/site-chrome.js",
     "src/admin-store.js",
     "src/fleet-data.js",
     "src/supabase-fleet.js",
@@ -934,7 +936,7 @@ function normalizePublicLinks(directory, relative = "") {
   if (entry.name.endsWith(".html") && /<main/.test(source) && !source.includes('class="seo-delivery-nav"') && !/name="robots" content="noindex/.test(source)) source = source.replace("</main>", `${regionLinks}</main>`);
   if (entry.name.endsWith(".html")) {
    source = source.replace("</head>", '<link rel="stylesheet" href="/src/seo-navigation.css" /></head>');
-   const {document}=parseHTML(source); applySearchMetadata(document); source='<!doctype html>\n'+document.documentElement.outerHTML;
+   const {document}=parseHTML(source); applySiteChrome(document,{path:'/'+key.replace(/\.html$/,'')}); applySearchMetadata(document); source='<!doctype html>\n'+document.documentElement.outerHTML;
   }
   writeFileSync(path, source);
  }

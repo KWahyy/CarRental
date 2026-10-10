@@ -3394,7 +3394,7 @@ h3 {
   position: relative;
   width: 100vw;
   min-height: clamp(330px, 46vw, 560px);
-  margin: 0 calc(50% - 50vw) clamp(42px, 6vw, 76px);
+  margin: 0 calc(50% - 50vw);
   overflow: hidden;
   background: #050505;
   color: #fff;
@@ -7928,7 +7928,7 @@ details p {
 
   .video-banner {
     min-height: 430px;
-    margin: 0 calc(50% - 50vw) 42px;
+    margin: 0 calc(50% - 50vw);
   }
 
   .video-banner-media {

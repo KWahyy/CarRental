@@ -1,4 +1,5 @@
 import './brand-carousel.js';
+import { readTripSearch } from './rental-search.js';
 import { brandFor, sortBrands } from './vehicle-brands.js';
 import { fleet as websiteFleet } from "./live-fleet.js";
 import { cacheSafeFleetImageUrl, fleetPictureMarkup, isSupabaseFleetConfigured, loadMonthlySpecialFromSupabase, optimizedFleetImageUrl } from "./supabase-fleet.js?v=native-picture-flow-20260901";
@@ -150,9 +151,6 @@ const specialsTitle = document.querySelector("[data-specials-title]");
 const specialsDescription = document.querySelector("[data-specials-description]");
 const vehicleSelects = document.querySelectorAll("[data-vehicle-select]");
 const filterButtons = document.querySelectorAll("[data-filter]");
-const menuToggle = document.querySelector("[data-menu-toggle]");
-const mobileMenu = document.querySelector("[data-mobile-menu]");
-const header = document.querySelector("[data-header]");
 const form = document.querySelector(".booking-form");
 const formStatus = document.querySelector("[data-form-status]");
 const quoteForm = document.querySelector("[data-quote-form]");
@@ -752,11 +750,14 @@ function hydrateVehicleSelect() {
   const requestedVehicle = new URLSearchParams(window.location.search).get("vehicle");
 
   vehicleSelects.forEach((select) => {
+    const previousValue = select.value;
     select.innerHTML = `<option value="">Select a vehicle</option>${options}`;
+    if ([...select.options].some(option => option.value === previousValue)) select.value = previousValue;
     if (!requestedVehicle) return;
     const matchingOption = [...select.options].find((option) => option.textContent.startsWith(requestedVehicle));
     if (matchingOption) select.value = matchingOption.value;
   });
+  updateReservationPreview();
 }
 
 function hydrateDiaText() {
@@ -794,22 +795,6 @@ function refreshFleetFromBase(nextBaseFleet = baseFleet) {
   renderMonthlySpecials();
 }
 
-function observeReveals() {
-  const revealEls = document.querySelectorAll(".reveal:not(.revealed)");
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("revealed");
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.16, rootMargin: "0px 0px -40px" },
-  );
-
-  revealEls.forEach((el) => observer.observe(el));
-}
 
 filterButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -866,26 +851,6 @@ typeNext?.addEventListener("click", () => scrollTypeBrowser(1));
 specialPrev?.addEventListener("click", () => scrollSpecials(-1));
 specialNext?.addEventListener("click", () => scrollSpecials(1));
 window.addEventListener("resize", updateFanCarousel);
-menuToggle.addEventListener("click", () => {
-  const isOpen = menuToggle.getAttribute("aria-expanded") === "true";
-  menuToggle.setAttribute("aria-expanded", String(!isOpen));
-  mobileMenu.classList.toggle("open");
-});
-
-mobileMenu.querySelectorAll("a").forEach((link) => {
-  link.addEventListener("click", () => {
-    menuToggle.setAttribute("aria-expanded", "false");
-    mobileMenu.classList.remove("open");
-  });
-});
-
-window.addEventListener(
-  "scroll",
-  () => {
-    header.classList.toggle("scrolled", window.scrollY > 24);
-  },
-  { passive: true },
-);
 
 if (form) {
   form.addEventListener("submit", (event) => {
@@ -938,6 +903,128 @@ function initQuoteTyping() {
   quoteTyping.closest(".quote-typing-line")?.classList.add("typing-complete");
 }
 
+function syncReservationCarPicker() {
+  const trigger = quoteForm?.querySelector('[data-car-trigger]');
+  if (!trigger) return;
+  const value = quoteForm.elements.vehicle.value;
+  const car = fleet.find(car => value === `${car.name} - ${formatPrice(car.price)}/day` || value === car.name);
+  quoteForm.querySelector('#reservation-car-choice').textContent = car ? car.name.replace(/^\d{4}\s+/, '') : 'Search by make or model';
+  trigger.classList.toggle('has-selection',Boolean(car));
+}
+
+if (quoteForm?.querySelector('[data-car-picker]')) {
+  const picker = quoteForm.querySelector('[data-car-picker]');
+  const trigger = picker.querySelector('[data-car-trigger]');
+  const panel = picker.querySelector('[data-car-panel]') || picker.querySelector('#reservation-car-panel');
+  const search = picker.querySelector('[data-car-search]');
+  const results = picker.querySelector('[data-car-results]');
+  const close = (focus = false) => { panel.hidden = true; trigger.setAttribute('aria-expanded','false'); if (focus) trigger.focus(); };
+  const render = () => {
+    const terms = search.value.toLowerCase().trim().split(/\s+/);
+    const cars = fleet.filter(car => terms.every(term => car.name.toLowerCase().includes(term)));
+    results.replaceChildren();
+    for (const car of cars) {
+      const button = document.createElement('button'); button.type = 'button';
+      button.className = 'reservation-car-result';
+      const img = document.createElement('img'); img.src = cacheSafeFleetImageUrl(car.image); img.alt = ''; img.width = 88; img.height = 60; img.loading = 'lazy';
+      const text = document.createElement('span'); text.textContent = car.name.replace(/^\d{4}\s+/, '');
+      const value = `${car.name} - ${formatPrice(car.price)}/day`;
+      button.setAttribute('aria-pressed',String(quoteForm.elements.vehicle.value === value));
+      button.append(img,text);
+      button.addEventListener('click', () => {
+        const select = quoteForm.elements.vehicle;
+        if (![...select.options].some(option => option.value === value)) select.add(new Option(value,value));
+        select.value = value;
+        quoteForm.elements.vehicle.dispatchEvent(new Event('change',{bubbles:true}));
+        picker.querySelector('[data-car-error]').hidden = true;
+        trigger.removeAttribute('aria-invalid'); close(true);
+      });
+      results.append(button);
+    }
+    picker.querySelector('[data-car-empty]').hidden = cars.length > 0;
+  };
+  trigger.addEventListener('click', () => {
+    if (!panel.hidden) { close(); return; }
+    search.value = ''; render(); panel.hidden = false; trigger.setAttribute('aria-expanded','true'); search.focus();
+  });
+  search.addEventListener('input',render);
+  picker.addEventListener('keydown', event => {
+    if (panel.hidden) return;
+    if (event.key === 'Escape') { event.preventDefault(); close(true); }
+    if (event.target === search && event.key === 'Enter') { event.preventDefault(); results.querySelector('button')?.click(); }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault(); const buttons = [...results.querySelectorAll('button')];
+      const current = buttons.indexOf(document.activeElement);
+      buttons[Math.max(0,Math.min(buttons.length-1,current+(event.key === 'ArrowDown' ? 1 : -1)))]?.focus();
+    }
+    event.stopPropagation();
+  });
+  picker.addEventListener('focusout', event => { if (event.relatedTarget && !picker.contains(event.relatedTarget)) close(); });
+  document.addEventListener('click', event => { if (!picker.contains(event.target)) close(); });
+}
+
+function updateReservationPreview() {
+  if (!quoteForm?.querySelector('[data-reservation-step]')) return;
+  syncReservationCarPicker();
+  const choice = quoteForm.elements.vehicle.value;
+  const car = fleet.find(car => choice === `${car.name} - ${formatPrice(car.price)}/day` || choice === car.name);
+  const image = document.querySelector('[data-reservation-image]');
+  document.querySelector('[data-reservation-car]').textContent = car?.name || 'It starts with the right car.';
+  document.querySelector('[data-reservation-price]').textContent = car ? `From ${formatPrice(car.price)}/day · Final pricing confirmed personally` : 'Choose from our current collection.';
+  if (car?.image) { image.src = cacheSafeFleetImageUrl(car.image); image.alt = car.name; image.hidden = false; }
+  else { image.hidden = true; image.removeAttribute('src'); }
+}
+
+if (quoteForm?.querySelector('[data-reservation-step]')) {
+  const first = quoteForm.querySelector('[data-reservation-step="1"]');
+  const second = quoteForm.querySelector('[data-reservation-step="2"]');
+  const trip = readTripSearch(location.search);
+  quoteForm.elements.date.value = trip.pickup;
+  quoteForm.elements.returnDate.value = trip.returnDate;
+  const validateDates = () => {
+    const pickup = quoteForm.elements.date, end = quoteForm.elements.returnDate;
+    end.min = pickup.value || localDateValue();
+    end.setCustomValidity(end.value && pickup.value && end.value <= pickup.value ? 'Choose a return date after your pickup date.' : '');
+  };
+  const showStep = step => {
+    first.hidden = step === 2;
+    second.hidden = step === 1;
+    second.querySelectorAll('input').forEach(input => input.disabled = step === 1);
+    quoteForm.querySelectorAll('[data-reservation-step-label]').forEach(label => {
+      if (Number(label.dataset.reservationStepLabel) === step) label.setAttribute('aria-current','step');
+      else label.removeAttribute('aria-current');
+    });
+    if (step === 2) {
+      const format = value => value ? new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric'}).format(new Date(`${value}T12:00:00`)) : '';
+      quoteForm.querySelector('[data-reservation-summary]').textContent = `${quoteForm.elements.vehicle.value} · ${format(quoteForm.elements.date.value)}${quoteForm.elements.returnDate.value ? ' – '+format(quoteForm.elements.returnDate.value) : ''}`;
+      quoteForm.elements.name.focus();
+    } else quoteForm.querySelector('[data-car-trigger]').focus();
+  };
+  quoteForm.querySelector('[data-reservation-next]').addEventListener('click', () => {
+    validateDates();
+    if (!quoteForm.elements.vehicle.value) {
+      quoteForm.querySelector('[data-car-error]').hidden = false;
+      const trigger = quoteForm.querySelector('[data-car-trigger]');
+      trigger.setAttribute('aria-invalid','true'); trigger.focus(); return;
+    }
+    const invalid = [...first.querySelectorAll('input,select')].find(field => !field.checkValidity());
+    if (invalid) { invalid.reportValidity(); return; }
+    showStep(2);
+  });
+  quoteForm.querySelector('[data-reservation-back]').addEventListener('click', () => showStep(1));
+  quoteForm.addEventListener('change', () => { validateDates(); updateReservationPreview(); });
+  quoteForm.addEventListener('invalid', event => {
+    if (first.contains(event.target) && first.hidden) showStep(1);
+  },true);
+  quoteForm.addEventListener('keydown', event => {
+    if (event.key === 'Enter' && !first.hidden && event.target.tagName === 'INPUT') {
+      event.preventDefault(); quoteForm.querySelector('[data-reservation-next]').click();
+    }
+  });
+  document.querySelector('[data-reservation-image]')?.addEventListener('error', event => { event.target.hidden = true; });
+  validateDates();
+}
+
 if (quoteForm) {
   const rentalDate = quoteForm.elements.date;
   if (rentalDate) rentalDate.min = localDateValue();
@@ -962,6 +1049,10 @@ if (quoteForm) {
 
   quoteForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (quoteForm.querySelector('[data-reservation-step="2"]')?.hidden) {
+      quoteForm.querySelector('[data-reservation-next]').click();
+      return;
+    }
     const submitButton = quoteForm.querySelector("button[type='submit']");
     const formData = new FormData(quoteForm);
     const addons = ["photographer", "delivery", "chauffeur"]
@@ -985,7 +1076,7 @@ if (quoteForm) {
       date: formData.get("date") || "",
       vehicle: formData.get("vehicle") || "Vehicle TBD",
       addons,
-      message: formData.get("message") || "",
+      message: [formData.get("message"), formData.get("returnDate") && `Return date: ${formData.get("returnDate")}`, readTripSearch(location.search).city && `Delivery city: ${readTripSearch(location.search).city}`].filter(Boolean).join('\n'),
       company: formData.get("company") || "",
       pageUrl: window.location.href,
     };
@@ -1017,6 +1108,8 @@ if (quoteForm) {
         quoteStatus.textContent = `Reservation request received for ${payload.vehicle}. Pending confirmation — a Prestige Luxor team member will contact you to confirm availability, the final price, and next steps. No payment has been taken.`;
       }
       quoteForm.querySelectorAll("input, select, textarea").forEach(field => { field.disabled = true; });
+      const back = quoteForm.querySelector('[data-reservation-back]');
+      if (back) back.hidden = true;
       quoteForm.querySelectorAll("[aria-invalid]").forEach((field) => field.removeAttribute("aria-invalid"));
       quoteForm.querySelectorAll(".is-invalid").forEach((label) => label.classList.remove("is-invalid"));
       window.setTimeout(updateQuoteProgress, 0);
@@ -1043,7 +1136,6 @@ if (quoteOptional) {
 
 let baseFleet = fleet.slice();
 hydrateDiaText();
-observeReveals();
 initLazyMedia();
 
 function initFleetSections() {

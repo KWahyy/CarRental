@@ -1,0 +1,87 @@
+/* Native scroll choreography: no timers, reveal states, or scroll interception.
+   Unsupported browsers show the complete static composition. */
+.home-page .content-experience-bg { animation: none; }
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* Keep timeline declarations separate from animation shorthands through the
+       CSS optimizer: browsers do not yet parse named timelines in shorthand. */
+    /* Use the fixed-size frame as the timeline, never the transformed media. */
+    .home-page .cinematic-home-hero { view-timeline-name: --hero-film; }
+    .home-page .home-delivery-card { view-timeline-name: --destination-film; }
+    .home-page .content-experience-promo { view-timeline-name: --wedding-film; }
+    .home-page .video-banner { view-timeline-name: --drive-film; }
+    .home-page .delivery-editorial-visual { view-timeline-name: --coast-film; }
+
+    .home-page .cinematic-home-hero .hero-media {
+      animation: prestige-hero-dolly linear both;
+      animation-timeline: --hero-film !important;
+      animation-range: exit 0% exit 100%;
+    }
+    .home-page .home-delivery-card > img {
+      transition: none;
+      animation: prestige-destination-pan linear both;
+      animation-timeline: --destination-film !important;
+      animation-range: cover 0% cover 100%;
+    }
+    .home-page .content-experience-bg {
+      animation: prestige-wedding-dolly linear both;
+      animation-timeline: --wedding-film !important;
+      animation-range: cover 0% cover 100%;
+    }
+    .home-page .video-banner-media {
+      animation: prestige-drive-dolly linear both;
+      animation-timeline: --drive-film !important;
+      animation-range: cover 0% cover 100%;
+    }
+    .home-page .delivery-editorial-visual img {
+      transition: none;
+      animation: prestige-destination-pan linear both;
+      animation-timeline: --coast-film !important;
+      animation-range: cover 0% cover 100%;
+    }
+    /* Hover feedback lives on the border and arrow; the card itself stays put. */
+    .home-page .home-delivery-card:hover { transform: none; }
+    @keyframes prestige-hero-dolly {
+      from { transform: scale(1); }
+      to { transform: scale(1.065); }
+    }
+    @keyframes prestige-destination-pan {
+      from { transform: scale(1.075) translateY(-1.5%); }
+      to { transform: scale(1.075) translateY(1.5%); }
+    }
+    @keyframes prestige-wedding-dolly {
+      from { transform: scale(1.07); }
+      to { transform: scale(1.005); }
+    }
+    @keyframes prestige-drive-dolly {
+      from { transform: scale(1.025); }
+      to { transform: scale(1.085); }
+    }
+    /* Touch screens get a smaller camera movement, with the same native timing. */
+    @media (max-width: 800px), (pointer: coarse) {
+      @keyframes prestige-hero-dolly {
+        from { transform: scale(1); }
+        to { transform: scale(1.025); }
+      }
+      @keyframes prestige-destination-pan {
+        from { transform: scale(1.035) translateY(-.65%); }
+        to { transform: scale(1.035) translateY(.65%); }
+      }
+      @keyframes prestige-wedding-dolly {
+        from { transform: scale(1.03); }
+        to { transform: scale(1); }
+      }
+      @keyframes prestige-drive-dolly {
+        from { transform: scale(1); }
+        to { transform: scale(1.035); }
+      }
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-page :is(.hero-media, .home-delivery-card > img, .content-experience-bg,
+    .video-banner-media, .delivery-editorial-visual img) {
+    animation: none; transform: none; transition: none;
+  }
+}

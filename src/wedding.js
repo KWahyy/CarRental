@@ -1,7 +1,5 @@
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260906";
 
-const menuToggle = document.querySelector("[data-menu-toggle]");
-const mobileMenu = document.querySelector("[data-mobile-menu]");
 const form = document.querySelector("[data-wedding-form]");
 const status = document.querySelector("[data-wedding-status]");
 const reveals = document.querySelectorAll(".reveal");
@@ -23,12 +21,6 @@ if (heroVideo) {
   }
 }
 
-if (menuToggle && mobileMenu) {
-  menuToggle.addEventListener("click", () => {
-    const isOpen = mobileMenu.classList.toggle("open");
-    menuToggle.setAttribute("aria-expanded", String(isOpen));
-  });
-}
 
 if ("IntersectionObserver" in window) {
   const observer = new IntersectionObserver(

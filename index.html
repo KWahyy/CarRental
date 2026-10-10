@@ -135,6 +135,8 @@
   <link rel="stylesheet" href="/src/customer-care.css" />
   <link rel="stylesheet" href="/src/home-faq.css" />
   <link rel="stylesheet" href="/src/home-wedding.css" />
+  <link rel="stylesheet" href="/src/home-reservation.css" />
+  <link rel="stylesheet" href="/src/home-motion.css" />
   </head>
   <body class="site-theme home-page">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -228,7 +230,7 @@
       </section>
 
       <section id="fleet" class="section fleet-section">
-        <section class="arrival-statement reveal" aria-labelledby="arrival-statement-title">
+        <section class="arrival-statement" aria-labelledby="arrival-statement-title">
           <h2 id="arrival-statement-title">
             <span>The car you want.</span>
             <span class="arrival-highlight dia-text" data-dia-words="Delivered to you.,Ready for your escape.,Made for your moment.">Delivered to you.</span>
@@ -255,7 +257,7 @@
           <noscript><p><a href="/fleet">View the full fleet</a></p></noscript>
         </section>
 
-        <div class="shop-browse reveal">
+        <div class="shop-browse">
           <section class="shop-panel" aria-labelledby="shop-brand-title">
             <div class="shop-panel-head">
               <h3 id="shop-brand-title">Our car brands</h3>
@@ -300,7 +302,7 @@
         </div>
       </section>
 
-      <section class="content-experience-promo reveal" aria-labelledby="content-experience-title">
+      <section class="content-experience-promo" aria-labelledby="content-experience-title">
         <picture class="native-picture"><source srcset="/assets/optimized/wedding-experience-banner.webp" type="image/webp" /><img
           class="content-experience-bg"
           src="/images/wedding-experience-banner.jpg"
@@ -324,7 +326,7 @@
         </div>
       </section>
 
-      <section class="requirements-section reveal" id="how-it-works" aria-labelledby="requirements-title">
+      <section class="requirements-section" id="how-it-works" aria-labelledby="requirements-title">
         <div class="requirements-inner">
           <div class="requirements-head">
             <p class="requirements-kicker">Before You Book</p>
@@ -370,7 +372,7 @@
         </div>
       </section>
 
-      <section class="video-banner reveal" aria-label="Cinematic exotic car rental experience video">
+      <section class="video-banner" aria-label="Cinematic exotic car rental experience video">
         <video
           class="video-banner-media"
           autoplay
@@ -388,88 +390,57 @@
         <div class="video-banner-overlay" aria-hidden="true"></div>
       </section>
 
-      <section class="quote-section reveal" id="quote" aria-labelledby="quote-title">
-        <div class="quote-copy">
-          <p class="quote-kicker">Private Reservation Desk</p>
-          <h2 id="quote-title"><span>Your next</span> <span>reservation.</span></h2>
-          <p>
-            Send your preferred car and dates. A Prestige Luxor team member will contact you to confirm availability, the final price, and your reservation. No payment is taken here.
-          </p>
-          <div class="quote-proof" aria-label="Reservation benefits">
-            <span data-index="01">Availability confirmed personally</span>
-            <span data-index="02">Every detail handled privately</span>
-            <span data-index="03">No payment collected here</span>
+      <section class="quote-section reservation-section" id="quote" aria-labelledby="quote-title">
+        <div class="reservation-intro">
+          <p class="reservation-kicker">Book in minutes</p>
+          <h2 id="quote-title">A great drive.<br /><em>A simple start.</em></h2>
+          <p>Your car. Your dates. A real person to take care of the rest.</p>
+          <div class="reservation-preview" data-reservation-preview>
+            <img data-reservation-image hidden alt="" width="640" height="400" />
+            <div><span data-reservation-eyebrow>Your next drive</span><strong data-reservation-car>It starts with the right car.</strong><p data-reservation-price>Choose from our current collection.</p></div>
           </div>
+          <a class="reservation-text" href="sms:+19496200024">Rather talk it through? <strong>Text us ↗</strong></a>
         </div>
-
-        <form class="quote-form" data-quote-form aria-label="Request a reservation">
-          <div class="quote-form-head">
-            <p>Reservation request</p>
-            <strong>Start your reservation</strong>
-            <span class="quote-typing-line" aria-label="Our team will contact you to confirm your car, dates, and final price.">
-              <span data-quote-typing aria-hidden="true">Our team will contact you to confirm your car, dates, and final price.</span>
-              <i aria-hidden="true"></i>
-            </span>
-            <div class="quote-completion" aria-label="Reservation form completion">
-              <span data-quote-progress-text>0 of 4 details complete</span>
-              <strong data-quote-progress-percent>0%</strong>
-              <i aria-hidden="true"><b data-quote-progress-bar></b></i>
+        <form class="quote-form reservation-form" data-quote-form aria-label="Request a reservation">
+          <ol class="reservation-steps" aria-label="Reservation steps"><li aria-current="step" data-reservation-step-label="1"><span>01</span> Your drive</li><li data-reservation-step-label="2"><span>02</span> Your details</li></ol>
+          <div data-reservation-step="1">
+            <h3>What are you driving?</h3>
+            <p class="reservation-hint">Find your car. Make a little room for the extraordinary.</p>
+            <div class="reservation-fields">
+              <div class="reservation-wide reservation-picker" data-car-picker>
+                <span id="reservation-car-label">Choose your car</span>
+                <select name="vehicle" data-vehicle-select hidden aria-hidden="true" tabindex="-1"></select>
+                <button type="button" class="reservation-car-trigger" data-car-trigger aria-labelledby="reservation-car-label reservation-car-choice" aria-expanded="false" aria-controls="reservation-car-panel"><span id="reservation-car-choice">Search by make or model</span><span aria-hidden="true">⌕</span></button>
+                <div id="reservation-car-panel" class="reservation-car-panel" hidden>
+                  <input type="search" data-car-search aria-label="Search cars by make or model" placeholder="Try Ferrari, Urus, or Porsche" autocomplete="off" />
+                  <div class="reservation-car-results" data-car-results role="group" aria-label="Matching cars"></div>
+                  <p class="reservation-car-empty" data-car-empty hidden>No cars found. Try another make or model.</p>
+                </div>
+                <p class="reservation-car-error" data-car-error hidden role="alert">Choose your car to continue.</p>
+              </div>
+              <label><span>Pickup date</span><input name="date" type="date" required /></label>
+              <label><span>Return date <small>Optional</small></span><input name="returnDate" type="date" /></label>
             </div>
+            <button type="button" class="reservation-next" data-reservation-next>Continue <span aria-hidden="true">→</span></button>
           </div>
-          <div class="quote-form-grid">
-            <label>
-              <span>Vehicle</span>
-              <select name="vehicle" data-vehicle-select required></select>
-            </label>
-            <label>
-              <span>Pickup Date</span>
-              <input name="date" type="date" required />
-            </label>
-            <label>
-              <span>Name</span>
-              <input name="name" type="text" autocomplete="name" required />
-            </label>
-            <label>
-              <span>Phone</span>
-              <input name="phone" type="tel" autocomplete="tel" inputmode="tel" required />
-            </label>
-            <label>
-              <span>Email <small>Optional</small></span>
-              <input name="email" type="email" autocomplete="email" inputmode="email" />
-            </label>
-          </div>
-
-          <details class="quote-optional" data-quote-optional open>
-            <summary>
-              <span>Add optional details</span>
-              <small>Add-ons or a message</small>
-              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></svg>
-            </summary>
-            <div class="quote-optional-body">
-              <fieldset class="quote-addons">
-                <legend>Enhance your arrival</legend>
-                <label><input type="checkbox" name="photographer" /> Content Capture</label>
-                <label><input type="checkbox" name="delivery" /> Arrival Coordination</label>
-                <label><input type="checkbox" name="chauffeur" /> Chauffeur</label>
-              </fieldset>
-
-              <label>
-                <span>Message</span>
-                <textarea name="message" rows="4" placeholder="Timing, delivery city, or anything else we should know."></textarea>
-              </label>
+          <div data-reservation-step="2" hidden>
+            <h3>Who’s taking the wheel?</h3>
+            <p class="reservation-hint">A team member will reach out to finalize your plans.</p>
+            <p class="reservation-summary" data-reservation-summary></p>
+            <div class="reservation-fields">
+              <label><span>Your name</span><input name="name" type="text" autocomplete="name" required disabled /></label>
+              <label><span>Phone number</span><input name="phone" type="tel" autocomplete="tel" inputmode="tel" required disabled /></label>
             </div>
-          </details>
-          <label class="quote-honeypot" aria-hidden="true">
-            <span>Company</span>
-            <input name="company" type="text" tabindex="-1" autocomplete="off" />
-          </label>
-
-          <button class="quote-submit" type="submit">Request reservation</button>
-          <p class="quote-status" data-quote-status role="status">No payment now. Your car is reserved only after our team confirms availability and the final price with you.</p>
+            <button class="quote-submit" type="submit">Request reservation</button>
+            <button class="reservation-back" type="button" data-reservation-back>← Edit car &amp; dates</button>
+          </div>
+          <label class="quote-honeypot" aria-hidden="true"><span>Company</span><input name="company" type="text" tabindex="-1" autocomplete="off" /></label>
+          <p class="quote-status" data-quote-status role="status">No payment now. Our team confirms availability and final pricing before your reservation is confirmed.</p>
+          <noscript><p>Please <a href="tel:+19496200024">call (949) 620-0024</a> to arrange your reservation.</p></noscript>
         </form>
       </section>
 
-      <section class="customer-satisfaction reveal" aria-labelledby="customer-satisfaction-title">
+      <section class="customer-satisfaction" aria-labelledby="customer-satisfaction-title">
         <div class="customer-satisfaction-head">
           <div>
             <p class="quote-kicker">The Prestige Luxor Experience</p>
@@ -521,7 +492,7 @@
         </ul>
       </section>
 
-      <section class="faq-home reveal" id="faq" aria-labelledby="faq-title">
+      <section class="faq-home" id="faq" aria-labelledby="faq-title">
         <div class="faq-home-head">
           <p class="quote-kicker">Private Rental Desk · FAQ</p>
           <h2 id="faq-title">Before you arrive.</h2>
@@ -564,7 +535,7 @@
 
       <div class="faq-section-divider" aria-hidden="true"></div>
 
-      <section class="local-service-section reveal" aria-labelledby="local-service-title">
+      <section class="local-service-section" aria-labelledby="local-service-title">
         <div class="delivery-editorial">
           <div class="delivery-editorial-copy">
             <p class="quote-kicker">Private Delivery · Southern California</p>
@@ -632,7 +603,7 @@
 
     </main>
 
-    <footer class="site-footer reveal">
+    <footer class="site-footer">
       <div class="footer-main">
         <a class="brand footer-brand" href="#top" aria-label="Prestige Luxor home">
           <span class="footer-logo-frame">

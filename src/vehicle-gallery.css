@@ -598,3 +598,5 @@
   .vehicle-page .vehicle-private-overview { grid-row: 2; }
   .vehicle-page .vehicle-private-request { grid-row: 1; margin: 0; }
 }
+.vehicle-page .vehicle-listing-disclosure { max-width:65ch; margin:18px 0 0; padding-left:16px; border-left:2px solid #b5a17a; color:#686458; font:400 13px/1.7 Arial,sans-serif; }
+.vehicle-page .vehicle-private-specs > [hidden],.vehicle-page [data-vehicle-year][hidden] { display:none!important; }

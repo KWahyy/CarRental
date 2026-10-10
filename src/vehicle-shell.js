@@ -56,6 +56,7 @@ export function vehicleShellMarkup(seoMarkup = "") {
           <p class="eyebrow">Overview</p>
           <h2>About this vehicle.</h2>
           <p class="vehicle-private-summary" data-vehicle-summary></p>
+          <p class="vehicle-listing-disclosure" data-vehicle-listing-disclosure></p>
           <div class="vehicle-private-specs" aria-label="Vehicle specifications">
             <div><span>Engine</span><strong data-vehicle-engine></strong></div>
             <div><span>Seats</span><strong data-vehicle-seats></strong></div>

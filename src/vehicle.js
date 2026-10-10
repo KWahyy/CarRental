@@ -15,6 +15,9 @@ import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260906";
 import { enhanceHuracanProduct } from "./huracan-product.js?v=20260909";
 import {
   accelerationForVehicle,
+  exteriorForVehicle,
+  vehicleListingDisclosure,
+  applyVehicleFactVisibility,
   bodyTypeForVehicle,
   engineForVehicle,
   publicVehicleDetails,
@@ -31,9 +34,6 @@ document.body.classList.add("site-theme");
 const slug = document.body.dataset.vehicleSlug;
 const vehicleFleet = fleet.slice();
 const car = vehicleFleet.find((item) => item.slug === slug) || getVehicle(slug);
-const header = document.querySelector("[data-header]");
-const menuToggle = document.querySelector("[data-menu-toggle]");
-const mobileMenu = document.querySelector("[data-mobile-menu]");
 const CRM_REQUESTS_KEY = "prestige-luxor-crm-requests";
 
 function escapeHtml(value) {
@@ -465,13 +465,15 @@ function renderVehicle() {
   setTextAll("[data-vehicle-price]", `${formatPrice(car.price)}/day`);
   setText("[data-vehicle-mileage]", car.mileage);
   setText("[data-vehicle-mileage-short]", String(car.mileage || "100").match(/\d+/)?.[0] || "100");
-  setText("[data-vehicle-color]", car.color);
+  setText("[data-vehicle-color]", exteriorForVehicle(car));
   setText("[data-vehicle-make]", car.make);
   setText("[data-vehicle-model]", car.model);
   setText("[data-vehicle-engine]", engineForVehicle(car));
   setText("[data-vehicle-seats]", seatsForVehicle(car));
   setText("[data-vehicle-acceleration]", accelerationForVehicle(car));
   setText("[data-vehicle-type]", bodyTypeForVehicle(car));
+  setText("[data-vehicle-listing-disclosure]", vehicleListingDisclosure(car));
+  applyVehicleFactVisibility(document);
   setAttr("[data-booking-link]", "href", `/?vehicle=${encodeURIComponent(car.name)}#booking`);
   const requestForm = document.querySelector("[data-vehicle-request-form]");
   if (requestForm) requestForm.elements.vehicle.value = car.name;
@@ -551,28 +553,6 @@ function renderVehicle() {
   if (slug === "2022-lamborghini-huracan") enhanceHuracanProduct(car);
 }
 
-if (menuToggle && mobileMenu) {
-  menuToggle.addEventListener("click", () => {
-    const isOpen = menuToggle.getAttribute("aria-expanded") === "true";
-    menuToggle.setAttribute("aria-expanded", String(!isOpen));
-    mobileMenu.classList.toggle("open");
-  });
-
-  mobileMenu.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", () => {
-      menuToggle.setAttribute("aria-expanded", "false");
-      mobileMenu.classList.remove("open");
-    });
-  });
-}
-
-window.addEventListener(
-  "scroll",
-  () => {
-    header?.classList.toggle("scrolled", window.scrollY > 24);
-  },
-  { passive: true },
-);
 
 function initVehicle() {
   if (isPublicRendered && car) {
