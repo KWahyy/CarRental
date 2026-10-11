@@ -87,3 +87,20 @@ body .site-date-control:focus-within .site-date-placeholder { display:none; }
  body[class] .shared-site-header .brand { display:flex; align-items:center; justify-content:flex-start; flex:0 0 auto; width:auto; height:44px; min-height:44px; padding:0; margin:0; }
  body[class] .shared-site-header .brand-logo[src] { display:block; width:clamp(155px,43vw,185px); height:auto; max-width:100%; max-height:36px; margin:0; object-fit:contain; }
 }
+/* Desktop chrome owns its geometry instead of inheriting page-specific logos. */
+@media(min-width:901px) {
+ body[class] .shared-site-header { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; height:86px; min-height:0; padding:16px max(24px,4vw); gap:24px; animation:none; transform:none; }
+ body[class] .shared-site-header .brand { display:flex; align-items:center; justify-content:flex-start; justify-self:start; width:auto; height:50px; min-height:0; margin:0; padding:0; }
+ body[class] .shared-site-header .brand-logo[src] { display:block; width:210px; height:auto; max-width:100%; max-height:40px; margin:0; object-fit:contain; }
+ body[class] .shared-site-header .desktop-nav { justify-self:center; align-items:center; height:50px; margin:0; padding:0; }
+ body[class] .shared-site-header .desktop-nav a { display:inline-flex; align-items:center; min-height:44px; }
+ body[class] .shared-site-header .header-actions { justify-self:end; align-items:center; height:50px; margin:0; padding:0; }
+ body[class] .shared-site-header .header-actions a { height:46px; min-height:46px; box-sizing:border-box; margin:0; }
+}
+@media(min-width:901px) and (max-width:1100px) {
+ body[class] .shared-site-header { padding-inline:24px; gap:18px; }
+ body[class] .shared-site-header .brand-logo[src] { width:185px; }
+ body[class] .shared-site-header .desktop-nav { gap:22px; }
+ body[class] .shared-site-header .header-actions { gap:8px; }
+ body[class] .shared-site-header .header-actions a { padding-inline:16px; }
+}
