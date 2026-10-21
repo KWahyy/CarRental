@@ -166,7 +166,7 @@ export function vehicleSeoDescription(vehicle, formatPrice = (value) => `$${Numb
   const name = vehicleDisplayName(vehicle);
   const colorValue = cleanPublicText(vehicle?.color);
   const color = colorValue && !name.toLowerCase().includes(colorValue.toLowerCase()) ? `${colorValue} ` : "";
-  return `Rent the ${color}${name} in Los Angeles or Orange County from ${formatPrice(vehicle?.price || 0)}/day. ${vehicle?.mileage || "Mileage confirmed by quote"}; concierge delivery available.`;
+  return `Rent the ${color}${name} in Los Angeles or Orange County from ${formatPrice(vehicle?.price || 0)}/day. View photos, rental details and request your dates.`;
 }
 
 export function vehicleSeoSectionMarkup(vehicle, {
@@ -190,6 +190,8 @@ export function vehicleSeoSectionMarkup(vehicle, {
       </div>
       ${vehicleTripPlanningMarkup(vehicle, escapeHtml)}
       <nav class="vehicle-seo-links" aria-label="Related rental pages">
+        <a href="/guides/exotic-car-rental-cost-southern-california">Compare rental prices</a>
+        <a href="/guides/choosing-exotic-car-rental">Choose a car for your trip</a>
         <a href="${escapeHtml(makeLink.href)}">${escapeHtml(makeLink.label)}</a>
         ${vehicleCityLinks.map((link) => `<a href="${link.href}">${escapeHtml(link.label)} exotic car rentals</a>`).join("")}
       </nav>
