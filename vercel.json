@@ -5,6 +5,11 @@
   "trailingSlash": false,
   "redirects": [
     {
+      "source": "/assets/prestige-luxor-search-preview.jpg",
+      "destination": "/assets/prestige-luxor-ferrari-f8-preview.jpg",
+      "permanent": true
+    },
+    {
       "source": "/",
       "has": [
         {

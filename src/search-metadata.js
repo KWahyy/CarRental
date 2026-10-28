@@ -9,7 +9,7 @@ const absolute = value => new URL(value || '/', SITE_URL).href;
 const json = value => JSON.stringify(value).replaceAll('<', '\\u003c');
 const usd = value => new Intl.NumberFormat('en-US', {style:'currency',currency:'USD',maximumFractionDigits:0}).format(Number(value));
 export function businessEntity() {
- return {'@type':['AutoRental','Organization'],'@id':SITE_URL+'/#business',name:'Prestige Luxor',url:SITE_URL+'/',logo:absolute('/assets/prestige-luxor-logo-dark.png'),image:absolute('/assets/prestige-luxor-search-preview.jpg'),telephone:'+1-949-620-0024',email:'Contact@prestigeluxor.com',description:'Delivery-only exotic and luxury car rentals in Southern California. Vehicles, dates, driver approval and delivery arrangements are confirmed before reservation.',areaServed:['Orange County, California','Los Angeles County, California','San Diego County, California','Riverside County, California'],sameAs:['https://www.instagram.com/prestige.luxor/']};
+ return {'@type':['AutoRental','Organization'],'@id':SITE_URL+'/#business',name:'Prestige Luxor',url:SITE_URL+'/',logo:absolute('/assets/prestige-luxor-logo-dark.png'),image:absolute('/assets/prestige-luxor-ferrari-f8-preview.jpg'),telephone:'+1-949-620-0024',email:'Contact@prestigeluxor.com',description:'Delivery-only exotic and luxury car rentals in Southern California. Vehicles, dates, driver approval and delivery arrangements are confirmed before reservation.',areaServed:['Orange County, California','Los Angeles County, California','San Diego County, California','Riverside County, California'],sameAs:['https://www.instagram.com/prestige.luxor/']};
 }
 export function vehicleEntity(car, {price=car.price}={}) {
  const url=absolute('/cars/'+car.slug),year=vehicleYear(car),rate=Number(price);

@@ -1,3 +1,4 @@
+import { currentAttribution } from './lead-attribution.js';
 import { trackMetaLead } from "./meta-tracking.js?v=20260909";
 
 const LOCAL_PREVIEW_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0"]);
@@ -20,7 +21,7 @@ export async function submitQuoteRequest(payload) {
     response = await fetch(quoteEndpoint(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...payload, attribution: window.prestigeAttribution?.() || {} }),
+      body: JSON.stringify({ ...payload, attribution: currentAttribution() }),
       signal: controller.signal,
     });
   } catch (error) {

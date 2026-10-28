@@ -51,6 +51,9 @@ function normalizeAddons(value) {
 function attributionSummary(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return "";
   const labels = {
+    source: "Acquisition source",
+    channel: "Acquisition channel",
+    submission_page: "Submission page",
     utm_source: "Source",
     utm_medium: "Medium",
     utm_campaign: "Campaign",
@@ -62,10 +65,12 @@ function attributionSummary(value) {
     landing_page: "Landing page",
     first_referrer: "First referrer",
   };
-  return Object.entries(labels)
+  const summary = Object.entries(labels)
     .map(([key, label]) => value[key] ? `${label}: ${cleanString(value[key], 500)}` : "")
     .filter(Boolean)
     .join("\n");
+  const latest = value.latest_touch;
+  return [summary, latest && typeof latest === 'object' ? `Latest touch: ${cleanString(latest.source,240)} (${cleanString(latest.channel,80)})\nLatest landing page: ${cleanString(latest.landing_page,500)}` : ''].filter(Boolean).join('\n');
 }
 
 function phoneHref(value) {

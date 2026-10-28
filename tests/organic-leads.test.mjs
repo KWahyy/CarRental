@@ -55,3 +55,13 @@ test('invalid supplied contact details still fail before any side effect', async
     assert.equal(saved.length,0);
   }
 });
+
+test('first acquisition and later paid touch are saved separately without arbitrary fields', async()=>{
+ const {res,saved}=await request({attribution:{source:'chatgpt.com',channel:'ai_referral',landing_page:'/locations/san-diego-exotic-car-rental',submission_page:'/cars/porsche-911-gt3-rs-rental',latest_touch:{source:'google',channel:'paid_search',landing_page:'/fleet',private:'do not retain'}}});
+ assert.equal(res.code,200);
+ assert.match(saved[0].message,/Acquisition source: chatgpt.com/);
+ assert.match(saved[0].message,/Acquisition channel: ai_referral/);
+ assert.match(saved[0].message,/Submission page: \/cars\/porsche/);
+ assert.match(saved[0].message,/Latest touch: google \(paid_search\)/);
+ assert.ok(!saved[0].message.includes('do not retain'));
+});

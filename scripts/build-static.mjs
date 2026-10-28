@@ -1,3 +1,5 @@
+import { addLocationPlanning } from './location-planning.mjs';
+import { refineNewportPage } from './newport-page.mjs';
 import { businessSummary } from './business-summary.mjs';
 import { styleEditorialGuide, styleEditorialIndex } from './style-editorial-guide.mjs';
 import { applySiteChrome } from '../src/site-chrome.js';
@@ -347,7 +349,7 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
     <meta property="og:title" content="${escapeHtml(title)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:url" content="${canonical}" />
-    <meta property="og:image" content="${siteUrl}/assets/prestige-luxor-search-preview.jpg" />
+    <meta property="og:image" content="${siteUrl}/assets/prestige-luxor-ferrari-f8-preview.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${escapeJson(schema)}</script>
     <link rel="icon" type="image/png" sizes="48x48" href="/assets/prestige-luxor-favicon-48.png" />
@@ -666,6 +668,8 @@ for (const page of locationPages) {
     ? orangeCountyPage(pageOptions)
     : pageShell({ ...pageOptions, eyebrow: "Prestige Luxor Service Area", schemaType: "Service" });
   html = refineDestinationPage(html, page, activeInventory, locationEnhancements(page, { includeFleet: false }));
+  html = refineNewportPage(html, page, activeInventory, locationEnhancements(page, { includeFleet: false }));
+  html = addLocationPlanning(html, page, activeInventory);
   writeFileSync(join(locationsDir, `${page.slug}.html`), html);
 }
 for (const page of companyPages) {

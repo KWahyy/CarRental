@@ -1,3 +1,4 @@
+import { currentAttribution } from './lead-attribution.js';
 import { initMetaConsent } from "./meta-tracking.js?v=20260909";
 
 // Keep top-of-page navigation out of the address bar, including older #top links.
@@ -20,44 +21,16 @@ document.addEventListener("click", (event) => {
 
 initMetaConsent();
 
-const ATTRIBUTION_KEY = "prestige_luxor_attribution";
-const TRACKED_QUERY_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "gclid", "gbraid", "wbraid"];
 const GOOGLE_ADS_HOSTS = new Set(["prestigeluxor.com", "www.prestigeluxor.com"]);
-
-function readAttribution() {
-  try {
-    return JSON.parse(window.sessionStorage.getItem(ATTRIBUTION_KEY)) || {};
-  } catch {
-    return {};
-  }
-}
-
-function captureAttribution() {
-  const params = new URLSearchParams(window.location.search);
-  const incoming = Object.fromEntries(TRACKED_QUERY_KEYS.map((key) => [key, params.get(key) || ""]).filter(([, value]) => value));
-  const current = readAttribution();
-  const attribution = {
-    ...current,
-    ...incoming,
-    landing_page: current.landing_page || `${window.location.pathname}${window.location.search}`,
-    first_referrer: current.first_referrer || document.referrer || "direct",
-  };
-  try {
-    window.sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
-  } catch {
-    // Tracking remains best-effort when storage is unavailable.
-  }
-  return attribution;
-}
-
-const attribution = captureAttribution();
-
-window.prestigeAttribution = () => ({ ...attribution });
+const attribution = currentAttribution();
+window.prestigeAttribution = currentAttribution;
 window.prestigeTrack = (eventName, properties = {}) => {
   const detail = {
     page_path: window.location.pathname,
     page_title: document.title,
-    ...attribution,
+    acquisition_source: attribution.source,
+    acquisition_channel: attribution.channel,
+    landing_page: attribution.landing_page,
     ...properties,
   };
   window.dataLayer = window.dataLayer || [];
