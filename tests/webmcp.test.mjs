@@ -1,0 +1,32 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createRentalTools,isPublicRentalPath,registerRentalTools} from '../src/webmcp-core.js';
+const fleet=[{slug:'huracan-spyder',name:'Lamborghini Huracan Spyder',make:'Lamborghini',model:'Huracan Spyder',category:'convertible',price:1245,seats:2,mileage:'100 miles/day',color:'White',internal_cost:500,owner_email:'private@example.com'},{slug:'urus',name:'Lamborghini Urus',make:'Lamborghini',category:'SUV',price:1145,seats:5}];
+const make=(overrides={})=>createRentalTools({loadInventory:async()=>({fleet}),loadPolicies:async()=>({text:'All rentals require approval.',url:'/rental-policies'}),prepare:async d=>({status:'review_required',draft:d}),today:()=> '2026-10-28',...overrides});
+const call=(tools,name,input={},options={})=>tools.find(t=>t.name===name).execute(input,options);
+test('search filters public records and marks date availability unconfirmed',async()=>{const r=await call(make(),'search_rental_vehicles',{query:'Lamborghini',max_daily_rate:1200,pickup_date:'2026-11-01',return_date:'2026-11-03'});assert.equal(r.vehicles.length,1);assert.equal(r.vehicles[0].slug,'urus');assert.equal(r.availability,'pending_team_confirmation');assert.equal(r.vehicles[0].daily_rate_type,'starting_price');assert(!JSON.stringify(r).includes('internal_cost'));});
+test('details whitelist public fields and include published policies',async()=>{const r=await call(make(),'get_rental_details',{vehicle_slug:'huracan-spyder'});assert.equal(r.vehicle.mileage,'100 miles/day');assert(!JSON.stringify(r).includes('private@example'));assert.match(r.policies.text,/approval/);});
+test('invalid, past, reversed and non-calendar dates fail',async()=>{for(const dates of [{pickup_date:'2026-02-30'},{pickup_date:'2026-10-27'},{pickup_date:'2026-11-02',return_date:'2026-11-01'},{return_date:'2026-11-01'}])assert((await call(make(),'search_rental_vehicles',dates)).error);});
+test('invalid types and unexpected private fields fail',async()=>{for(const input of [null,[],{max_daily_rate:-1},{max_daily_rate:'1000'},{query:{}},{email:'a@b.com'}])assert((await call(make(),'search_rental_vehicles',input)).error);});
+test('unknown vehicle and unavailable inventory fail without preparing',async()=>{let prepared=0;const tools=make({prepare:()=>prepared++});assert((await call(tools,'prepare_reservation_request',{vehicle_slug:'missing',pickup_date:'2026-11-01',return_date:'2026-11-02',delivery_city:'Newport Beach'})).error);assert.equal(prepared,0);assert((await call(make({loadInventory:async()=>{throw Error('private database error')}}),'search_rental_vehicles')).error);});
+test('prepare only opens review, does not claim booking',async()=>{const r=await call(make(),'prepare_reservation_request',{vehicle_slug:'urus',pickup_date:'2026-11-01',return_date:'2026-11-02',delivery_city:'Newport Beach',notes:'Hotel arrival'});assert.equal(r.status,'review_required');assert.equal(r.draft.vehicle.name,'Lamborghini Urus');});
+test('aborted requests do not prepare a draft',async()=>{let prepared=false;const controller=new AbortController();const tools=make({loadInventory:async()=>{controller.abort();return {fleet};},prepare:()=>{prepared=true;}});const r=await call(tools,'prepare_reservation_request',{vehicle_slug:'urus',pickup_date:'2026-11-01',return_date:'2026-11-02',delivery_city:'Newport Beach'},{signal:controller.signal});assert(r.error);assert.equal(prepared,false);});
+test('private pages are excluded, including .html and descendants',()=>{for(const p of ['/admin/','/admin','/quote','/quote.html','/agreement/abc','/api/fleet','/unknown'])assert.equal(isPublicRentalPath(p),false,p);for(const p of ['/','/fleet','/fleet.html','/cars/urus','/locations/newport-beach-exotic-car-rental','/faq'])assert.equal(isPublicRentalPath(p),true,p);});
+test('registration no-ops without support and registers exactly three tools when supported',async()=>{assert.equal(await registerRentalTools(null,make()),false);const registered=[];assert.equal(await registerRentalTools({registerTool:async t=>registered.push(t)},make()),true);assert.equal(registered.length,3);assert.equal(registered.filter(t=>t.annotations.readOnlyHint).length,2);});
+import {parseHTML} from 'linkedom';
+import {createReservationReview} from '../src/webmcp-review.js';
+test('review renders untrusted input as text, preserves draft and disables local sends',()=>{
+ const {document,window}=parseHTML('<html><body></body></html>');
+ window.HTMLElement.prototype.showModal=function(){this.open=true;};
+ let sends=0;const prepare=createReservationReview({document,submit:()=>sends++,isProduction:false});
+ const draft={vehicle:{name:'<img src=x onerror=alert(1)>',starting_daily_rate:1200},pickup_date:'2026-11-01',return_date:'2026-11-02',delivery_city:'Newport Beach',notes:'<script>bad()</script>'};
+ assert.equal(prepare(draft).status,'review_required');assert.equal(document.querySelectorAll('dialog img,dialog script').length,0);assert(document.querySelector('dialog').textContent.includes('<script>'));
+ assert.equal(document.querySelector('button[type=submit]').disabled,true);assert(prepare(draft).error);assert.equal(document.querySelectorAll('dialog').length,1);assert.equal(sends,0);
+});
+test('synthetic submission cannot send a production request',async()=>{
+ const {document,window}=parseHTML('<html><body></body></html>');window.HTMLElement.prototype.showModal=function(){this.open=true;};
+ let sends=0;createReservationReview({document,submit:()=>sends++,isProduction:true})({vehicle:{name:'Urus'},pickup_date:'2026-11-01',return_date:'2026-11-02',delivery_city:'Newport Beach'});
+ document.querySelector('form').dispatchEvent(new window.Event('submit',{cancelable:true}));assert.equal(sends,0);
+});
+import {applySiteChrome} from '../src/site-chrome.js';
+test('public header integration registers once and excludes private documents',()=>{for(const path of ['/','/fleet','/locations/newport-beach-exotic-car-rental','/admin/','/quote','/agreement']){const {document}=parseHTML('<html><head></head><body><main></main></body></html>');applySiteChrome(document,{path});applySiteChrome(document,{path});assert.equal(document.querySelectorAll('[data-rental-agent-tools]').length,isPublicRentalPath(path)?1:0);}});

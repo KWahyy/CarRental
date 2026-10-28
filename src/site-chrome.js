@@ -1,3 +1,4 @@
+import { isPublicRentalPath } from './webmcp-core.js';
 import { decorateDateFields } from './date-fields.js';
 // Public navigation has one source of truth. Private documents/admin deliberately opt out.
 export const primaryNavigation = [
@@ -13,6 +14,7 @@ export function applySiteChrome(document,{path='/',year=2026}={}) {
  path=path.replace(/\.html$/,'').replace(/\/index$/,'/')||'/';
  if(/^\/(admin(?:\/|$)|quote$|agreement$)/.test(path)) return;
  if(!document.querySelector('main')) return;
+ if(isPublicRentalPath(path)&&!document.querySelector('[data-rental-agent-tools]'))document.body.insertAdjacentHTML('beforeend','<script type="module" src="/src/webmcp.js" data-rental-agent-tools></script>');
  decorateDateFields(document);
  const home=path==='/';
  const reserve=document.querySelector('#vehicle-request')?'#vehicle-request':document.querySelector('#location-quote')?'#location-quote':'/#quote';
