@@ -1,6 +1,7 @@
+import { setOpenAIConsent } from './openai-tracking.js';
 // Meta advertising measurement is opt-in and restricted to public rental pages.
 const PIXEL_ID = "828705500299515";
-const CONSENT_KEY = "prestige_meta_consent_v1";
+const CONSENT_KEY = "prestige_ad_consent_v2";
 const hosts = new Set(["prestigeluxor.com", "www.prestigeluxor.com"]);
 let initialized = false;
 let consent = false;
@@ -16,7 +17,7 @@ function permittedPage() {
     try { if (new URL(document.referrer).search) return false; } catch { return false; }
   }
   return hosts.has(window.location.hostname)
-    && /^\/(?:$|lamborghini\/?$|cars\/[a-z0-9-]+\/?$)/.test(window.location.pathname)
+    && /^\/(?:$|(?:fleet|wedding|lamborghini|ferrari|porsche|rolls-royce)\/?$|(?:cars|locations|guides)\/[a-z0-9-]+\/?$)/.test(window.location.pathname)
     && !navigator.globalPrivacyControl;
 }
 
@@ -59,17 +60,17 @@ export function initMetaConsent() {
   let stored = null;
   try { stored = localStorage.getItem(CONSENT_KEY); } catch { /* Default off. */ }
   consent = stored === "accepted";
-  try { startPixel(); } catch { consent = false; }
+  try { startPixel(); setOpenAIConsent(consent); } catch { consent = false; }
   const panel = document.createElement("section");
   panel.id = "meta-advertising-choice";
-  panel.setAttribute("aria-label", "Meta advertising privacy choices");
+  panel.setAttribute("aria-label", "Advertising privacy choices");
   panel.style.cssText = "position:fixed;bottom:12px;left:12px;right:12px;z-index:10000;padding:16px;background:#171717;color:white;border:1px solid #aaa;border-radius:8px;font:14px/1.5 system-ui;max-width:560px;box-shadow:0 4px 24px #0008";
   const text = document.createElement("p");
-  text.textContent = "Optional Meta advertising cookies: with your permission, Meta receives page visits and successful inquiry events, plus browser/device information, to measure and personalize ads. We do not send your form answers. Declining does not affect booking. This choice controls Meta tracking only.";
+  text.textContent = "Optional advertising measurement: with your permission, Meta and OpenAI receive website activity and successful inquiry events, along with browser/device information, to measure ads. We do not include your form answers in these events. Declining does not affect booking.";
   const accept = document.createElement("button");
-  accept.textContent = "Allow Meta cookies";
+  accept.textContent = "Allow ad measurement";
   const reject = document.createElement("button");
-  reject.textContent = "Decline Meta cookies";
+  reject.textContent = "Decline ad measurement";
   const privacy = document.createElement("a");
   privacy.href = "https://www.facebook.com/privacy/policy/";
   privacy.textContent = "Meta privacy policy";
@@ -82,6 +83,7 @@ export function initMetaConsent() {
   function choose(allowed) {
     consent = allowed;
     try { localStorage.setItem(CONSENT_KEY, allowed ? "accepted" : "declined"); } catch { /* Session only. */ }
+    setOpenAIConsent(allowed);
     if (allowed) startPixel();
     else if (initialized) window.fbq("consent", "revoke");
     panel.hidden = true;
@@ -90,7 +92,11 @@ export function initMetaConsent() {
   }
   accept.onclick = () => choose(true);
   reject.onclick = () => choose(false);
-  panel.append(text, accept, reject, privacy);
+  const openaiPrivacy = document.createElement("a");
+  openaiPrivacy.href = "https://openai.com/policies/privacy-policy/";
+  openaiPrivacy.textContent = "OpenAI privacy policy";
+  openaiPrivacy.style.cssText = "color:white;margin-left:12px";
+  panel.append(text, accept, reject, privacy, openaiPrivacy);
   panel.hidden = stored !== null;
   settings.hidden = !panel.hidden;
   document.body.append(panel, settings);

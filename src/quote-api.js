@@ -1,3 +1,4 @@
+import { trackOpenAILead } from './openai-tracking.js';
 import { currentAttribution } from './lead-attribution.js';
 import { trackMetaLead } from "./meta-tracking.js?v=20260909";
 
@@ -43,6 +44,7 @@ export async function submitQuoteRequest(payload) {
   if (PRODUCTION_HOSTS.has(window.location.hostname) && typeof window.gtag_report_lead_conversion === "function") {
     window.gtag_report_lead_conversion();
   }
+  try { trackOpenAILead(result, payload); } catch { /* Measurement must never interrupt booking. */ }
   try { trackMetaLead(result); } catch { /* Measurement must never interrupt booking. */ }
   window.prestigeTrack?.("quote_submitted", { form_type: payload.source || payload.requestType || "website_quote", vehicle: payload.vehicle || "Vehicle TBD" });
 
