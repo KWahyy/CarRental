@@ -1,6 +1,10 @@
 import { vehicleYear, publicVehicleSummary, vehicleFaqItems, vehicleSeoTitle, vehicleSeoDescription } from './vehicle-content.js';
 import { brandFor } from './vehicle-brands.js';
 export const SITE_URL = 'https://www.prestigeluxor.com';
+export const SITE_NAME = 'Prestige Luxor';
+export function websiteEntity() {
+ return {'@type':'WebSite','@id':SITE_URL+'/#website',url:SITE_URL+'/',name:SITE_NAME,alternateName:'prestigeluxor.com',publisher:{'@id':SITE_URL+'/#business'}};
+}
 const absolute = value => new URL(value || '/', SITE_URL).href;
 const json = value => JSON.stringify(value).replaceAll('<', '\\u003c');
 const usd = value => new Intl.NumberFormat('en-US', {style:'currency',currency:'USD',maximumFractionDigits:0}).format(Number(value));
@@ -28,13 +32,20 @@ export function applySearchMetadata(document,{car,price}={}) {
  document.querySelectorAll('script[type="application/ld+json"]').forEach(el=>{
   try{const data=JSON.parse(el.textContent);for(const entity of data['@graph']||[data]){
    const types=[entity['@type']].flat();
-   if(types.some(t=>['Organization','LocalBusiness','AutoRental','BreadcrumbList','FAQPage'].includes(t)))continue;
+   if(types.some(t=>['Organization','LocalBusiness','AutoRental','WebSite','BreadcrumbList','FAQPage'].includes(t)))continue;
    if(car&&types.some(t=>['Product','Vehicle','Car'].includes(t)))continue;
+   if(types.some(t=>['Article','BlogPosting','WebPage','AboutPage','CollectionPage'].includes(t))) {
+    entity.publisher={'@id':SITE_URL+'/#business'};
+    entity.isPartOf={'@id':SITE_URL+'/#website'};
+    if(types.some(t=>['Article','BlogPosting'].includes(t)))entity.author={'@id':SITE_URL+'/#business'};
+   }
    retained.push(entity);
   }el.remove();}catch{}
  });
  const canonicalEl=document.querySelector('link[rel="canonical"]');
  const url=car?absolute('/cars/'+car.slug):canonicalEl?.getAttribute('href');if(!url)return;
+ setMeta(document,'property','og:site_name',SITE_NAME);
+ setMeta(document,'name','application-name',SITE_NAME);
  if(car){
   canonicalEl?.setAttribute('href',url);
   document.querySelectorAll('[data-vehicle-slug]').forEach(el=>el.setAttribute('data-vehicle-slug',car.slug));
@@ -48,7 +59,7 @@ export function applySearchMetadata(document,{car,price}={}) {
  if(car)crumbs.push({name:'Fleet',item:SITE_URL+'/fleet'});
  else if(path.startsWith('/guides/'))crumbs.push({name:'Rental guides',item:SITE_URL+'/guides'});
  if(path!=='/')crumbs.push({name:car?.name||document.querySelector('h1')?.textContent.trim().replace(/\s+/g,' ')||document.title,item:url});
- const graph=[...retained,businessEntity(),...(car?[vehicleEntity(car,{price})]:[]),...(crumbs.length>1?[{'@type':'BreadcrumbList','@id':url+'#breadcrumbs',itemListElement:crumbs.map((c,i)=>({'@type':'ListItem',position:i+1,...c}))}]:[])];
+ const graph=[...retained,businessEntity(),websiteEntity(),...(car?[vehicleEntity(car,{price})]:[]),...(crumbs.length>1?[{'@type':'BreadcrumbList','@id':url+'#breadcrumbs',itemListElement:crumbs.map((c,i)=>({'@type':'ListItem',position:i+1,...c}))}]:[])];
  // Extract only the FAQs actually visible on this response, including updated CRM facts.
  let faqs;
  if(car)faqs=vehicleFaqItems(car,usd);

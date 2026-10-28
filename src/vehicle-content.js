@@ -65,8 +65,7 @@ export function applyVehicleFactVisibility(root) {
 
 function cleanPublicText(value) {
   return String(value || "")
-    .replaceAll("KD's Exotics", "Prestige Luxor")
-    .replaceAll("KDs Exotics", "Prestige Luxor")
+    .replace(/\bKD[’']?s\s+Exotics\b/gi, "Prestige Luxor")
     .trim();
 }
 

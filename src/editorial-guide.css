@@ -1,0 +1,44 @@
+.editorial-guide{background:#f6f4ef!important;color:#24231f!important}
+.editorial-guide .seo-page-main{max-width:1280px;margin:auto;padding:140px 48px 72px}
+.editorial-guide .seo-page-hero{max-width:900px;margin:0 auto;padding:0 0 40px;text-align:center;background:transparent;border:0}
+.editorial-guide .editorial-back{display:inline-block;color:#716b60;font-size:12px;text-decoration:none;margin-bottom:32px}
+.editorial-guide .seo-page-hero .eyebrow{color:#82704d;font:600 10px/1.5 Arial,sans-serif;letter-spacing:.18em;margin-bottom:18px}
+.editorial-guide .seo-page-hero h1{font:400 clamp(38px,4.5vw,64px)/1.07 Georgia,serif;letter-spacing:-.045em;text-transform:none;color:#24231f;margin:0 auto 24px;max-width:21ch}
+.editorial-guide .seo-page-lead{font:400 17px/1.75 Arial,sans-serif;color:#666157;max-width:64ch;margin:0 auto}
+.editorial-guide .editorial-byline{font:400 12px/1.6 Arial,sans-serif;color:#777166;margin:26px 0 0}
+.editorial-cover{margin:0 0 56px}.editorial-cover-pair{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.editorial-guide .editorial-photo{margin:0;min-width:0}
+.editorial-photo picture{display:block}
+.editorial-guide .editorial-photo img{display:block;width:100%;height:auto;aspect-ratio:2.1;object-fit:cover;border-radius:0}
+.editorial-cover-pair .editorial-photo img{aspect-ratio:1.5}
+.editorial-photo figcaption{padding:12px 0;font:400 12px/1.5 Arial,sans-serif;color:#676257;border-bottom:1px solid #dcd7cd}
+.editorial-guide .editorial-photo figcaption a{color:inherit;text-decoration:none}
+.editorial-layout{display:grid;grid-template-columns:220px minmax(0,760px);gap:64px;justify-content:center;align-items:start}
+.editorial-index{position:sticky;top:110px;display:grid;gap:0}
+.editorial-index p{font:600 10px/1.5 Arial,sans-serif;letter-spacing:.12em;color:#81765f;margin:0 0 14px}
+.editorial-index a{font:400 13px/1.5 Arial,sans-serif;color:#69645a;padding:10px 0;border-bottom:1px solid #ded9d0;text-decoration:none}
+.editorial-index a:hover{color:#171714}
+.editorial-guide .seo-copy{display:block;max-width:none;min-width:0}
+.editorial-guide .seo-copy>section{padding:0 0 32px;margin:0 0 32px;border:0;border-bottom:1px solid #ded9d0;background:transparent;scroll-margin-top:110px}
+.editorial-guide .seo-copy h2{font:400 32px/1.2 Georgia,serif;color:#24231f;letter-spacing:-.025em;text-transform:none;margin:0 0 20px}
+.editorial-guide .seo-copy :is(p,li){font:400 16px/1.85 Arial,sans-serif;color:#5c584f;max-width:none}
+.editorial-guide .seo-copy p{margin:0 0 18px}
+.editorial-guide .seo-copy a{color:#343026;text-underline-offset:4px}
+.editorial-guide .seo-copy :is(ul,ol){padding-left:24px}
+.editorial-guide .seo-copy .guide-note{font-size:12px;line-height:1.7;border-left:2px solid #ac9873;padding:0 0 0 18px;margin:0 0 32px;color:#7a7265}
+.editorial-guide .guide-table-wrap{max-width:100%;overflow-x:auto;margin:22px 0;background:#fff;border:1px solid #ded9d0}
+.editorial-guide .guide-table{width:100%;min-width:560px;border-collapse:collapse;color:#24231f;font:400 13px/1.6 Arial,sans-serif}
+.editorial-guide .guide-table :is(th,td){padding:16px;text-align:left;border-bottom:1px solid #e7e2d9;color:#38352e;background:transparent}
+.editorial-guide .guide-table thead{background:#eae5db}.editorial-guide .guide-table caption{padding:16px;text-align:left;color:#726854;font-size:12px}
+.editorial-guide .seo-copy .primary-button{background:#24231f;color:#fff;min-height:48px;text-decoration:none;margin:8px 12px 8px 0}
+.editorial-guide .seo-copy>.editorial-photo{margin:0 0 40px}
+.editorial-guide :is(.editorial-index,.seo-copy) a:focus-visible{outline:2px solid #92764a;outline-offset:4px}
+.editorial-journal .seo-copy.journal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:48px 32px;margin-top:20px}
+.editorial-journal .journal-grid>section{margin:0;padding-bottom:24px}
+.journal-image{display:block;margin-bottom:22px;overflow:hidden}
+.journal-image picture{display:block}
+.journal-image img{display:block;width:100%;height:auto;aspect-ratio:1.65;object-fit:cover}
+.editorial-journal .journal-grid h2{font-size:30px}
+.editorial-journal .journal-grid h2 a{text-decoration:none}
+@media(max-width:760px){.editorial-journal .seo-copy.journal-grid{grid-template-columns:1fr;gap:32px}.editorial-journal .journal-grid h2{font-size:28px}}
+@media(max-width:760px){.editorial-guide .seo-page-main{padding:110px 22px 48px}.editorial-guide .seo-page-hero{text-align:left;padding-bottom:28px}.editorial-guide .editorial-back{margin-bottom:24px}.editorial-guide .seo-page-hero h1{font-size:39px;margin-left:0;max-width:20ch}.editorial-guide .seo-page-lead{font-size:15px}.editorial-guide .editorial-byline{font-size:11px;margin-top:20px}.editorial-cover{margin-bottom:32px}.editorial-cover-pair{gap:12px}.editorial-cover-pair .editorial-photo img{aspect-ratio:1.12;object-fit:contain;background:#e9e6df}.editorial-photo figcaption{font-size:10px}.editorial-guide .editorial-photo img{aspect-ratio:1.5}.editorial-layout{display:block}.editorial-index{position:static;grid-template-columns:1fr 1fr;gap:0 18px;margin:0 0 32px}.editorial-index p{grid-column:1/-1}.editorial-index a{font-size:12px}.editorial-guide .seo-copy h2{font-size:28px}.editorial-guide .seo-copy :is(p,li){font-size:15px;line-height:1.8}}

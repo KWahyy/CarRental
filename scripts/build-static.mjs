@@ -1,3 +1,5 @@
+import { businessSummary } from './business-summary.mjs';
+import { styleEditorialGuide, styleEditorialIndex } from './style-editorial-guide.mjs';
 import { applySiteChrome } from '../src/site-chrome.js';
 import { refineDestinationPage } from './destination-pages.mjs';
 import { mapCar, optimizedFleetImageUrl, fleetPictureMarkup } from '../src/supabase-fleet.js';
@@ -301,13 +303,13 @@ function locationEnhancements({ slug, area }, { includeFleet = true } = {}) {
       </section>`;
 }
 
-function pageShell({ title, description, path, eyebrow, heading, lead, content, schemaType = "WebPage", area = "", collection = [] }) {
+function pageShell({ title, description, path, eyebrow, heading, lead, content, schemaType = "WebPage", area = "", collection = [], datePublished = "2026-10-08" }) {
   const canonical = `${siteUrl}/${path}`;
   const isLocationPage = path.startsWith("locations/");
   const isGuide = path === "guides" || path.startsWith("guides/");
   const pageEntity = {
     "@type": schemaType,
-    ...(schemaType === "Article" ? { headline: heading, author: { "@type": "Organization", name: "Prestige Luxor", url: `${siteUrl}/about` }, datePublished: "2026-10-08", mainEntityOfPage: canonical } : {}),
+    ...(schemaType === "Article" ? { headline: heading, author: { "@type": "Organization", name: "Prestige Luxor", url: `${siteUrl}/about` }, datePublished, mainEntityOfPage: canonical } : {}),
     name: heading,
     description,
     url: canonical,
@@ -898,11 +900,12 @@ function collectionCards(cars, variant = "collection") {
   return cars.map((car, index) => `<article class="showroom-card showroom-card-${variant}" data-vehicle-slug="${escapeHtml(car.slug)}"><a class="showroom-card-media" href="/cars/${car.slug}" aria-label="View ${escapeHtml(car.name)}" data-fleet-card-link data-vehicle="${escapeHtml(car.name)}" data-vehicle-slug="${car.slug}">${publicCarPicture(car, { alt: car.name, loading: index < 3 ? "eager" : "lazy" })}</a><div class="showroom-card-body"><div class="showroom-card-title"><span>${escapeHtml(car.make)}</span><h3>${escapeHtml(car.name)}</h3></div><strong>${formatUsd(car.price)}<small>/day</small></strong></div><a class="showroom-request" href="/cars/${car.slug}">View vehicle &amp; request dates</a></article>`).join("");
 }
 const guidePages = rentalGuides(activeInventory, { escapeHtml, formatUsd });
+writeFileSync(join(outDir, 'llms.txt'), businessSummary(guidePages));
 mkdirSync(join(outDir, "guides"), { recursive: true });
 for (const page of guidePages) {
-  writeFileSync(join(outDir, `${page.path}.html`), pageShell({ ...page, schemaType: "Article", eyebrow: "Prestige Luxor rental guides" }));
+  writeFileSync(join(outDir, `${page.path}.html`), styleEditorialGuide(pageShell({ ...page, schemaType: "Article", eyebrow: "Prestige Luxor rental guides" }),page,activeInventory,publicCarPicture));
 }
-writeFileSync(join(outDir, "guides.html"), pageShell({ path: "guides", title: "Southern California Exotic Car Rental Guides | Prestige Luxor", heading: "Plan your Southern California rental.", eyebrow: "Rental guides", description: "Compare Lamborghini rental costs, choose between Huracán and Urus, and plan hotel or airport delivery with Prestige Luxor.", lead: "Practical answers using our published fleet and booking process. Compare options, understand the quote and plan your delivery before you reserve.", content: guidePages.map(page => `<section><h2><a href="/${page.path}">${escapeHtml(page.heading)}</a></h2><p>${escapeHtml(page.description)}</p><p><a href="/${page.path}">Read the guide →</a></p></section>`).join("") }));
+writeFileSync(join(outDir, "guides.html"), styleEditorialIndex(pageShell({ path: "guides", title: "Southern California Exotic Car Rental Guides | Prestige Luxor", heading: "Plan your Southern California rental.", eyebrow: "Rental guides", description: "Compare exotic rental prices, plan Orange County and San Diego trips, and prepare for weddings or airport delivery with Prestige Luxor.", lead: "Practical answers using our published fleet and booking process. Compare options, understand the quote and plan your delivery before you reserve.", content: guidePages.map(page => `<section><h2><a href="/${page.path}">${escapeHtml(page.heading)}</a></h2><p>${escapeHtml(page.description)}</p><p><a href="/${page.path}">Read the guide →</a></p></section>`).join("") }), guidePages, activeInventory, publicCarPicture));
 const regionLinks = `<nav class="seo-delivery-nav" aria-label="Explore delivery areas and rental resources">
   <div class="seo-delivery-heading"><p>KEEP EXPLORING</p><h2>Southern California delivery.</h2></div>
   <div class="seo-delivery-columns">
@@ -950,6 +953,29 @@ const renderPaths = ['index','fleet','lamborghini','ferrari','wedding',...active
 for (const route of renderPaths) {
  const path=join(outDir,route+'.html');
  if(existsSync(path)) writeFileSync(path,renderPublicDocument(readFileSync(path,'utf8'),activeInventory,{...responseInventory,path:'/'+route}));
+}
+// Place practical editorial help alongside the rental it supports.
+const planningLinks = [
+ ['locations/orange-county-exotic-car-rental', 'orange-county-exotic-car-weekend', 'Plan your Orange County weekend'],
+ ['locations/san-diego-exotic-car-rental', 'san-diego-convertible-or-suv-rental', 'Convertible or SUV for San Diego?'],
+ ['wedding', 'wedding-car-rental-checklist', 'Your wedding car planning checklist'],
+ ['ferrari', 'ferrari-rental-cost-southern-california', 'Compare Ferrari rental prices'],
+ ...activeInventory.filter(car => /urus|cullinan/i.test(car.name)).map(car => ['cars/' + car.slug, 'lamborghini-urus-vs-rolls-royce-cullinan', 'Compare Urus and Cullinan rentals']),
+ ...activeInventory.filter(car => /audi/i.test(car.make) && /r8/i.test(car.name)).map(car => ['cars/' + car.slug, 'audi-r8-rental-cost', 'Compare Audi R8 rates and rental details'])
+];
+for (const [route, guide, label] of planningLinks) {
+ const file = join(outDir, route + '.html');
+ if (!existsSync(file)) continue;
+ const { document } = parseHTML(readFileSync(file, 'utf8'));
+ const destination = document.querySelector('.seo-delivery-nav') || document.querySelector('.vehicle-seo-links');
+ if (!destination) continue;
+ const paragraph = document.createElement('p');
+ const link = document.createElement('a');
+ link.href = '/guides/' + guide;
+ link.textContent = label + ' →';
+ paragraph.append(link);
+ destination.prepend(paragraph);
+ writeFileSync(file, '<!doctype html>\n' + document.documentElement.outerHTML);
 }
 function addStabilityStyles(directory) {
  for(const entry of readdirSync(directory,{withFileTypes:true})) {

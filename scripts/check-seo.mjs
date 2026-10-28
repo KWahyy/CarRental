@@ -15,6 +15,17 @@ for (const url of urls) {
  const file = path === '/' ? 'index.html' : `${path.slice(1)}.html`;
  assert(exists(file), `Missing ${file}`);
  const html = read(file);
+ const {document: brandingDocument} = parseHTML(html);
+ const entities = [...brandingDocument.querySelectorAll('script[type="application/ld+json"]')].flatMap(el => {const data=JSON.parse(el.textContent);return data['@graph'] || [data];});
+ for (const type of ['AutoRental','WebSite']) {
+  const matches=entities.filter(e=>[e['@type']].flat().includes(type));
+  assert.equal(matches.length,1,`Duplicate or missing ${type}: ${path}`);
+  assert.equal(matches[0].name,'Prestige Luxor',`Wrong brand: ${path}`);
+  assert.equal(matches[0].url,'https://www.prestigeluxor.com/',`Wrong business domain: ${path}`);
+ }
+ assert.equal(brandingDocument.querySelector('meta[property="og:site_name"]')?.content,'Prestige Luxor',`Wrong sharing brand: ${path}`);
+ assert(!/\bKD[’']?s\s+Exotics\b|kdsexotics\.com/i.test(JSON.stringify(entities)),`Legacy schema identity: ${path}`);
+ assert(!/\bKD[’']?s\s+Exotics\b/i.test(brandingDocument.body.textContent),`Legacy public branding: ${path}`);
  assert(!/<meta[^>]+name="robots"[^>]+content="[^"]*noindex/.test(html), `noindex: ${path}`);
  assert.equal([...html.matchAll(/<link rel="canonical"/g)].length,1,`Canonical count ${path}`);
  assert(html.includes(`rel="canonical" href="${url}"`),`Canonical mismatch ${path}`);
