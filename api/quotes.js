@@ -1,3 +1,4 @@
+import { sendBusinessEmail, emailConfigured } from "./_email.js";
 import { clean, db, json, readBody, requireEmployee, setCors } from "./_invoice-core.js";
 import { addQuoteEvent, calculateQuoteTotals, expireQuotes, getQuote, normalizeQuote, quoteId, quoteUrl } from "./_quote-core.js";
 import { assertVehicleAvailable } from "./_fleet-core.js";
@@ -230,21 +231,13 @@ export function quoteEmailText(quote, publicUrl) {
 
 async function sendQuoteEmail(quote, publicUrl) {
   if (!quote.customer_email) return { delivered: false, reason: "No customer email; copy the secure link to send manually." };
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return { delivered: false, reason: "Email delivery is not configured; copy the secure link to send manually." };
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from: process.env.QUOTE_FROM_EMAIL || "Prestige Luxor <onboarding@resend.dev>",
+  if (!emailConfigured()) return { delivered: false, reason: "Email delivery is not configured; copy the secure link to send manually." };
+  const data = await sendBusinessEmail({
       to: [quote.customer_email],
       subject: `${quote.quote_number} · Your Prestige Luxor quote`,
       html: quoteEmailHtml(quote, publicUrl),
       text: quoteEmailText(quote, publicUrl),
-    }),
   });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw Object.assign(new Error(data.message || "Quote email could not be delivered."), { status: 502 });
   return { delivered: true, id: data.id };
 }
 

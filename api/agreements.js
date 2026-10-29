@@ -1,3 +1,4 @@
+import { sendBusinessEmail, emailConfigured } from "./_email.js";
 import crypto from "node:crypto";
 import { clean, db, json, readBody, requireEmployee, serverConfig, setCors } from "./_invoice-core.js";
 import { addAgreementEvent, agreementId, getAgreement, normalizeAgreement } from "./_agreement-core.js";
@@ -15,24 +16,16 @@ function emailEscape(value) {
 
 async function sendAgreementEmail(agreement, url) {
   if (!agreement.customer_email) return { delivered: false, reason: "No customer email is saved. Copy the secure link instead." };
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return { delivered: false, reason: "Email delivery is not configured. Copy the secure link instead." };
+  if (!emailConfigured()) return { delivered: false, reason: "Email delivery is not configured. Copy the secure link instead." };
   const signed = agreement.status === "signed";
   const subject = signed ? `${agreement.agreement_number} · Your signed Prestige Luxor agreement` : `${agreement.agreement_number} · Review and sign your Prestige Luxor agreement`;
   const action = signed ? "View signed agreement" : "Review and sign";
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from: process.env.QUOTE_FROM_EMAIL || "Prestige Luxor <onboarding@resend.dev>",
+  const data = await sendBusinessEmail({
       to: [agreement.customer_email],
       subject,
       html: `<div style="background:#080808;padding:32px 14px;font-family:Arial,sans-serif;color:#fff"><div style="max-width:640px;margin:auto;border:1px solid #353535;background:#111;padding:40px"><p style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#aaa">Prestige Luxor · ${emailEscape(agreement.agreement_number)}</p><h1 style="font-size:34px;line-height:1.1;margin:20px 0">${signed ? "Your signed agreement is ready." : "Your rental agreement is ready."}</h1><p style="color:#ccc;line-height:1.6">${emailEscape(agreement.vehicle_name)}<br>${emailEscape(agreement.customer_name)}</p><a href="${emailEscape(url)}" style="display:inline-block;margin-top:24px;background:#fff;color:#080808;padding:16px 24px;text-decoration:none;font-weight:800">${action}</a><p style="margin-top:34px;color:#777;font-size:12px">This private link is unique to your rental. Prestige Luxor · (949) 620-0024</p></div></div>`,
       text: `${subject}\n\n${agreement.vehicle_name}\n${url}\n\nPrestige Luxor · (949) 620-0024`,
-    }),
   });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw Object.assign(new Error(data.message || "Agreement email could not be delivered."), { status: 502 });
   return { delivered: true, id: data.id };
 }
 

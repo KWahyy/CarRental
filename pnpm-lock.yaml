@@ -17,6 +17,9 @@ importers:
       linkedom:
         specifier: ^0.18.13
         version: 0.18.13
+      nodemailer:
+        specifier: ^10.3.1
+        version: 10.3.1
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1
@@ -313,6 +316,10 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
+  nodemailer@10.3.1:
+    resolution: {integrity: sha512-uF0AFsJC07Y1vdW7p580DKAnh7rAO+4UPSSB3mDCPNDufoiaOebV6JmrzpxB14OjEEEiBsNdYoM2Y+fN8M7BBA==}
+    engines: {node: '>=20.0.0'}
+
   nth-check@3.0.1:
     resolution: {integrity: sha512-GX0gsdbGVCgnRgbeGaubfjpBXyYRWOOCVeYh08bSQvDZqxz5ndXs1OTfAt/h36G1xvI94YIspsI0sVFqAV9+RQ==}
     engines: {node: '>=20.19.0'}
@@ -576,6 +583,8 @@ snapshots:
       picomatch: 2.3.2
 
   nanoid@3.3.18: {}
+
+  nodemailer@10.3.1: {}
 
   nth-check@3.0.1:
     dependencies:

@@ -1,8 +1,8 @@
+import { sendBusinessEmail } from "./_email.js";
 import { db } from "./_invoice-core.js";
 
 const MAX_TEXT_LENGTH = 3000;
 const QUOTE_NOTIFICATION_EMAIL = "Contact@prestigeluxor.com";
-const DEFAULT_RESEND_FROM = "Prestige Luxor <onboarding@resend.dev>";
 
 function json(res, status, body) {
   res.status(status).setHeader("Content-Type", "application/json");
@@ -313,36 +313,13 @@ function quoteEmailText(payload) {
 }
 
 async function sendOwnerEmail(payload) {
-  const resendKey = process.env.RESEND_API_KEY;
-  const from = process.env.QUOTE_FROM_EMAIL || DEFAULT_RESEND_FROM;
-  const to = [QUOTE_NOTIFICATION_EMAIL];
-
-  if (!resendKey) {
-    throw new Error("RESEND_API_KEY is missing.");
-  }
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${resendKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to,
-      reply_to: payload.email || undefined,
-      subject: `${payload.requestType === "partner" ? "Owner application" : payload.requestType === "availability" ? "Availability check" : payload.requestType === "wedding" ? "Wedding inquiry" : "New quote request"}: ${payload.vehicle || "Vehicle TBD"}`,
-      html: quoteEmailHtml(payload),
-      text: quoteEmailText(payload),
-    }),
+  return sendBusinessEmail({
+    to: [QUOTE_NOTIFICATION_EMAIL],
+    reply_to: payload.email || undefined,
+    subject: `${payload.requestType === "partner" ? "Owner application" : payload.requestType === "availability" ? "Availability check" : payload.requestType === "wedding" ? "Wedding inquiry" : "New quote request"}: ${payload.vehicle || "Vehicle TBD"}`,
+    html: quoteEmailHtml(payload),
+    text: quoteEmailText(payload),
   });
-
-  const data = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(data?.message || "Resend could not send the quote email.");
-  }
-
-  return data;
 }
 
 export default async function handler(req, res) {
