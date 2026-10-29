@@ -1,3 +1,4 @@
+import { safeMeasurementSearch, safeMeasurementReferrer } from './ad-measurement-url.js';
 // Browser-only ChatGPT ads measurement. No contact fields or reservation values are sent.
 export const OPENAI_PIXEL_ID = 'JCcp8rMdEEvmBLpF1NDJG7';
 export function createOpenAITracking(env) {
@@ -7,9 +8,7 @@ export function createOpenAITracking(env) {
   const {location,document,navigator}=env;
   if(!['prestigeluxor.com','www.prestigeluxor.com'].includes(location.hostname)||navigator.globalPrivacyControl)return false;
   if(!/^\/(?:$|fleet\/?$|wedding\/?$|(?:lamborghini|ferrari|porsche|rolls-royce)\/?$|(?:cars|locations|guides)\/[a-z0-9-]+\/?$)/.test(location.pathname))return false;
-  const allowed=new Set(['utm_source','utm_medium','utm_campaign','utm_content','utm_term','gclid','gbraid','wbraid','fbclid']);
-  for(const [key,value] of new URLSearchParams(location.search))if(!allowed.has(key)||/@|%40/i.test(value))return false;
-  try{if(document.referrer&&new URL(document.referrer).search)return false;}catch{return false;}
+  if (!safeMeasurementSearch(location.search) || !safeMeasurementReferrer(document.referrer)) return false;
   return true;
  }
  function setConsent(allowed){

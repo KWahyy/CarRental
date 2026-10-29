@@ -1,3 +1,4 @@
+import { safeMeasurementSearch, safeMeasurementReferrer } from './ad-measurement-url.js';
 import { setOpenAIConsent } from './openai-tracking.js';
 // Meta advertising measurement is opt-in and restricted to public rental pages.
 const PIXEL_ID = "828705500299515";
@@ -9,13 +10,7 @@ const sentLeads = new Set();
 
 function permittedPage() {
   // The Pixel includes page URLs/referrers. Fail closed on unknown query data.
-  const allowedKeys = new Set(["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid", "gclid", "gbraid", "wbraid"]);
-  for (const [key, value] of new URLSearchParams(window.location.search)) {
-    if (!allowedKeys.has(key) || /@|%40/i.test(value)) return false;
-  }
-  if (document.referrer) {
-    try { if (new URL(document.referrer).search) return false; } catch { return false; }
-  }
+  if (!safeMeasurementSearch(window.location.search) || !safeMeasurementReferrer(document.referrer)) return false;
   return hosts.has(window.location.hostname)
     && /^\/(?:$|(?:fleet|wedding|lamborghini|ferrari|porsche|rolls-royce)\/?$|(?:cars|locations|guides)\/[a-z0-9-]+\/?$)/.test(window.location.pathname)
     && !navigator.globalPrivacyControl;

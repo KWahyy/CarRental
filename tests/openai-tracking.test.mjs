@@ -32,3 +32,22 @@ test('quote API measures only after successful server response and never blocks 
   assert.equal((await submitQuoteRequest({source:'vehicle'})).ok,true);
  }finally{Object.assign(globalThis,old);}
 });
+
+test('ad-click parameters and tagged referring pages allow consent and successful lead measurement',()=>{
+ const {env,scripts,tracker}=fixture();
+ env.location.search='?oppref=qa-click&utm_source=chatgpt&utm_medium=paid';
+ env.document.referrer='https://www.prestigeluxor.com/fleet?oppref=qa-click&utm_source=chatgpt';
+ tracker.setConsent(true);
+ assert.equal(scripts.length,1);
+ tracker.lead({ok:true,id:'qa-request'});
+ assert.equal(calls(env).filter(c=>c[0]==='measure').length,1);
+});
+
+test('shared consent URL checks allow ad attribution but reject sensitive query data',async()=>{
+ const {safeMeasurementSearch,safeMeasurementReferrer}=await import('../src/ad-measurement-url.js');
+ assert.equal(safeMeasurementSearch('?oppref=abc&utm_source=chatgpt'),true);
+ assert.equal(safeMeasurementReferrer('https://www.prestigeluxor.com/fleet?utm_medium=paid'),true);
+ assert.equal(safeMeasurementSearch('?email=private@example.com'),false);
+ assert.equal(safeMeasurementReferrer('https://example.com/?token=secret'),false);
+ assert.equal(safeMeasurementSearch('?utm_source=private%40example.com'),false);
+});
