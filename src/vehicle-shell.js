@@ -76,7 +76,7 @@ export function vehicleShellMarkup(seoMarkup = "") {
         </article>
 
         <aside id="vehicle-request" class="vehicle-private-request">
-          <p class="eyebrow">Reservation request</p>
+          <p class="eyebrow">Booking request</p>
           <h2>Make it your next drive.</h2>
           <p>Send your preferred car and dates. A Prestige Luxor team member will contact you to confirm availability, the final price, and your reservation. No payment is taken here.</p>
           <div class="vehicle-request-rate"><span>Starting from</span><strong data-vehicle-price></strong></div>
@@ -89,7 +89,7 @@ export function vehicleShellMarkup(seoMarkup = "") {
               </div>
               <label><span>Delivery city or ZIP</span><input name="deliveryLocation" type="text" autocomplete="postal-code" placeholder="City or ZIP code" required /></label>
               <button class="vehicle-request-continue" type="button" data-request-continue>Continue to your details <span aria-hidden="true">→</span></button>
-              <p class="vehicle-request-assurance">No payment now. Your car is reserved only after our team confirms availability and the final price with you.</p>
+              <p class="vehicle-request-assurance">No payment now. Our team will contact you to confirm availability and your final total.</p>
             </div>
             <div class="vehicle-request-step vehicle-request-step-details" data-request-step="details">
               <div class="vehicle-request-step-heading"><strong>Your details.</strong><button type="button" data-request-back>Edit dates</button></div>
@@ -98,8 +98,8 @@ export function vehicleShellMarkup(seoMarkup = "") {
               <label><span>Email <small>Optional</small></span><input name="email" type="email" autocomplete="email" /></label>
               <label class="vehicle-request-alternatives"><input name="alternatives" type="checkbox" checked /><span>Show me similar options if this car is unavailable.</span></label>
               <label class="quote-honeypot" aria-hidden="true"><span>Company</span><input name="company" type="text" tabindex="-1" autocomplete="off" /></label>
-              <button type="submit">Request reservation <span aria-hidden="true">↗</span></button>
-              <p data-vehicle-request-status role="status">No payment now. Your car is reserved only after our team confirms availability and the final price with you.</p>
+              <button type="submit">Request booking <span aria-hidden="true">↗</span></button>
+              <p data-vehicle-request-status role="status">No payment now. Our team will contact you to confirm availability and your final total.</p>
             </div>
           </form>
           <a class="vehicle-request-call" href="tel:+19496200024">Prefer to speak privately? Call (949) 620-0024</a>
@@ -118,7 +118,7 @@ export function vehicleShellMarkup(seoMarkup = "") {
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.69 2.78a2 2 0 0 1-.45 2.11L8.08 9.88a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.88.33 1.82.56 2.78.69A2 2 0 0 1 22 16.92Z"/></svg>
           Call concierge
         </a>
-        <a href="#vehicle-request">Request this car <span aria-hidden="true">→</span></a>
+        <a href="#vehicle-request">Book your drive <span aria-hidden="true">→</span></a>
       </nav>
     </div>`;
 }

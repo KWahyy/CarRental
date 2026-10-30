@@ -1,3 +1,4 @@
+import { showBookingReceipt } from './booking-receipt.js';
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260906";
 
 function localDateValue(date = new Date()) {
@@ -78,9 +79,9 @@ for (const form of document.querySelectorAll("[data-location-quote]")) {
     track("quote_submit_attempted", { form_type: "location_quote", location_slug: locationSlug, vehicle });
 
     try {
-      await submitQuoteRequest(payload);
+      const result = await submitQuoteRequest(payload);
       status.dataset.tone = "success";
-      status.textContent = "Request received. A Prestige Luxor concierge will contact you shortly.";
+      showBookingReceipt(status, payload, result.id);
       track("location_quote_confirmation_shown", { location_slug: locationSlug, vehicle });
       form.reset();
       if (pickupDate) pickupDate.min = localDateValue();
@@ -90,8 +91,8 @@ for (const form of document.querySelectorAll("[data-location-quote]")) {
       status.textContent = error?.message || "We could not save this request. Please call or text the concierge.";
       track("quote_submit_failed", { form_type: "location_quote", location_slug: locationSlug });
     } finally {
-      submit.disabled = false;
-      submit.textContent = "Check availability";
+      submit.disabled = status.dataset.tone === "success";
+      submit.textContent = status.dataset.tone === "success" ? "Request received" : "Request booking";
       form.removeAttribute("aria-busy");
     }
   });

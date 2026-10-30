@@ -1,3 +1,4 @@
+import { showBookingReceipt } from './booking-receipt.js';
 import { brandFor, sortBrands } from './vehicle-brands.js';
 import { FEATURED_FLEET_SLUGS, sortHomeFleet } from './home-fleet-model.js';
 import { initFleetTrip, applyTripToForm } from "./rental-search.js";
@@ -489,9 +490,9 @@ availabilityForm?.addEventListener("submit", async (event) => {
   };
 
   submitButton.disabled = true;
-  submitButton.textContent = "Sending reservation request...";
+  submitButton.textContent = "Sending booking request...";
   availabilityStatus.dataset.tone = "";
-  availabilityStatus.textContent = "Submitting your reservation request...";
+  availabilityStatus.textContent = "Submitting your booking request...";
   trackFleetEvent("availability_request_submit", {
     vehicle: payload.vehicle,
     vehicle_slug: availabilityTrigger?.dataset.vehicleSlug || "",
@@ -522,7 +523,7 @@ availabilityForm?.addEventListener("submit", async (event) => {
     }
 
     availabilityStatus.dataset.tone = "success";
-    availabilityStatus.textContent = `Reservation request received for ${payload.vehicle}. Pending confirmation — a team member will contact you to confirm availability, the final price, and next steps. No payment has been taken.`;
+    showBookingReceipt(availabilityStatus, payload, result.id);
     trackFleetEvent("availability_request_success", {
       vehicle: payload.vehicle,
       vehicle_slug: availabilityTrigger?.dataset.vehicleSlug || "",
@@ -536,7 +537,7 @@ availabilityForm?.addEventListener("submit", async (event) => {
     trackFleetEvent("availability_request_error", { vehicle: payload.vehicle });
   } finally {
     submitButton.disabled = availabilityStatus.dataset.tone === "success";
-    submitButton.textContent = availabilityStatus.dataset.tone === "success" ? "Request received" : "Request reservation";
+    submitButton.textContent = availabilityStatus.dataset.tone === "success" ? "Request received" : "Request booking";
   }
 });
 

@@ -1,3 +1,4 @@
+import { emailFrame, emailDetails, emailButton } from "./_email-template.js";
 import { sendBusinessEmail } from "./_email.js";
 import { db } from "./_invoice-core.js";
 
@@ -144,154 +145,21 @@ async function updateQuoteNotification(id, status, errorMessage = "") {
   }).catch(() => {});
 }
 
-function quoteEmailHtml(payload) {
-  const addons = payload.addons.length ? payload.addons.join(", ") : "None selected";
-  const isAvailability = payload.requestType === "availability";
-  const isPartner = payload.requestType === "partner";
-  const isWedding = payload.requestType === "wedding";
-  const requestLabel = isPartner ? "New owner application" : isAvailability ? "Vehicle availability check" : isWedding ? "New wedding inquiry" : "New private quote";
-  const phoneLink = phoneHref(payload.phone);
-  const emailLink = payload.email ? `mailto:${escapeHtml(payload.email)}` : "";
-  const pageLink = safeWebUrl(payload.pageUrl);
-  const source = payload.source || "Website";
-
-  return `
-    <!doctype html>
-    <html lang="en">
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-          @media only screen and (max-width: 620px) {
-            .email-shell { padding: 0 !important; }
-            .email-card { border-radius: 0 !important; border-left: 0 !important; border-right: 0 !important; }
-            .email-pad { padding-left: 22px !important; padding-right: 22px !important; }
-            .hero-title { font-size: 30px !important; line-height: 35px !important; }
-            .detail-column { display: block !important; width: 100% !important; }
-            .detail-column-left { padding-right: 0 !important; padding-bottom: 10px !important; }
-            .detail-column-right { padding-left: 0 !important; }
-            .action-column { display: block !important; width: 100% !important; padding: 0 0 10px !important; }
-            .action-column:last-child { padding-bottom: 0 !important; }
-            .action-link { display: block !important; }
-          }
-        </style>
-      </head>
-      <body style="margin:0;padding:0;background:#070706;color:#f7f3ea;-webkit-text-size-adjust:100%;">
-        <div class="email-shell" style="padding:30px 14px;background:#070706;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse:collapse;">
-            <tr>
-              <td align="center">
-                <table class="email-card" role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:680px;border-collapse:separate;background:#12110f;border:1px solid #332d22;border-radius:8px;overflow:hidden;">
-                  <tr>
-                    <td class="email-pad" style="padding:22px 30px;background:#0a0a09;border-bottom:1px solid #2d2921;">
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                        <tr>
-                          <td valign="middle">
-                            <a href="https://www.prestigeluxor.com" style="text-decoration:none;">
-                              <img src="https://www.prestigeluxor.com/assets/prestige-luxor-logo-light.png" width="1684" alt="Prestige Luxor" style="display:block;width:148px;height:auto;border:0;">
-                            </a>
-                          </td>
-                          <td align="right" valign="middle" style="font-family:Arial,Helvetica,sans-serif;color:#d9b866;font-size:11px;line-height:16px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;">
-                            ${requestLabel}
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td class="email-pad" style="padding:34px 30px 30px;">
-                      <div style="font-family:Arial,Helvetica,sans-serif;color:#a59d90;font-size:11px;line-height:16px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:10px;">Requested vehicle</div>
-                      <div class="hero-title" style="font-family:Arial,Helvetica,sans-serif;color:#fffdf8;font-size:38px;line-height:43px;font-weight:800;letter-spacing:-0.6px;">${escapeHtml(payload.vehicle || "Vehicle TBD")}</div>
-                      <div style="width:46px;height:2px;background:#d9b866;margin:22px 0 20px;"></div>
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                        <tr>
-                          <td class="detail-column detail-column-left" width="50%" valign="top" style="padding-right:8px;">
-                            <div style="font-family:Arial,Helvetica,sans-serif;color:#8f887d;font-size:10px;line-height:15px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;">Rental date</div>
-                            <div style="font-family:Arial,Helvetica,sans-serif;color:#f7f3ea;font-size:18px;line-height:26px;font-weight:700;margin-top:4px;">${escapeHtml(payload.date || "Date TBD")}</div>
-                          </td>
-                          <td class="detail-column detail-column-right" width="50%" valign="top" style="padding-left:8px;">
-                            <div style="font-family:Arial,Helvetica,sans-serif;color:#8f887d;font-size:10px;line-height:15px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;">Customer</div>
-                            <div style="font-family:Arial,Helvetica,sans-serif;color:#f7f3ea;font-size:18px;line-height:26px;font-weight:700;margin-top:4px;">${escapeHtml(payload.name)}</div>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td class="email-pad" style="padding:0 30px 30px;">
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                        <tr>
-                          <td class="action-column" width="50%" style="padding-right:6px;">
-                            <a class="action-link" href="tel:${escapeHtml(phoneLink)}" style="display:block;background:#d9b866;border:1px solid #d9b866;border-radius:5px;padding:15px 16px;font-family:Arial,Helvetica,sans-serif;color:#0b0a08;font-size:14px;line-height:18px;font-weight:800;text-align:center;text-decoration:none;">Call lead</a>
-                          </td>
-                          <td class="action-column" width="50%" style="padding-left:6px;">
-                            ${payload.email
-                              ? `<a class="action-link" href="${emailLink}" style="display:block;background:#1b1916;border:1px solid #4b4438;border-radius:5px;padding:15px 16px;font-family:Arial,Helvetica,sans-serif;color:#fffdf8;font-size:14px;line-height:18px;font-weight:800;text-align:center;text-decoration:none;">Reply by email</a>`
-                              : `<div style="background:#1b1916;border:1px solid #332f28;border-radius:5px;padding:15px 16px;font-family:Arial,Helvetica,sans-serif;color:#777168;font-size:14px;line-height:18px;font-weight:700;text-align:center;">No email provided</div>`}
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td class="email-pad" style="padding:0 30px 30px;">
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#191714;border:1px solid #312d26;border-radius:6px;">
-                        <tr>
-                          <td class="detail-column detail-column-left" width="50%" valign="top" style="padding:22px 22px 12px;">
-                            <div style="font-family:Arial,Helvetica,sans-serif;color:#8f887d;font-size:10px;line-height:15px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;">Phone</div>
-                            <a href="tel:${escapeHtml(phoneLink)}" style="display:inline-block;margin-top:5px;font-family:Arial,Helvetica,sans-serif;color:#fffdf8;font-size:16px;line-height:23px;font-weight:700;text-decoration:none;">${escapeHtml(payload.phone)}</a>
-                          </td>
-                          <td class="detail-column detail-column-right" width="50%" valign="top" style="padding:22px 22px 12px;">
-                            <div style="font-family:Arial,Helvetica,sans-serif;color:#8f887d;font-size:10px;line-height:15px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;">Email</div>
-                            <div style="margin-top:5px;font-family:Arial,Helvetica,sans-serif;color:#fffdf8;font-size:16px;line-height:23px;font-weight:700;word-break:break-word;">${payload.email ? `<a href="${emailLink}" style="color:#fffdf8;text-decoration:none;">${escapeHtml(payload.email)}</a>` : "Not provided"}</div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td class="detail-column detail-column-left" width="50%" valign="top" style="padding:12px 22px 22px;">
-                            <div style="font-family:Arial,Helvetica,sans-serif;color:#8f887d;font-size:10px;line-height:15px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;">${isWedding ? "Insurance" : "Request type"}</div>
-                            <div style="margin-top:5px;font-family:Arial,Helvetica,sans-serif;color:#fffdf8;font-size:16px;line-height:23px;font-weight:700;">${escapeHtml(isWedding ? payload.insuranceProvider || "Reviewed during booking approval" : isAvailability ? "Availability request" : isPartner ? "Owner application" : "Private quote")}</div>
-                          </td>
-                          <td class="detail-column detail-column-right" width="50%" valign="top" style="padding:12px 22px 22px;">
-                            <div style="font-family:Arial,Helvetica,sans-serif;color:#8f887d;font-size:10px;line-height:15px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;">Add-ons</div>
-                            <div style="margin-top:5px;font-family:Arial,Helvetica,sans-serif;color:#fffdf8;font-size:16px;line-height:23px;font-weight:700;">${escapeHtml(addons)}</div>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td class="email-pad" style="padding:0 30px 32px;">
-                      <div style="font-family:Arial,Helvetica,sans-serif;color:#d9b866;font-size:10px;line-height:15px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:9px;">Customer message</div>
-                      <div style="border-left:2px solid #d9b866;padding:2px 0 2px 16px;font-family:Arial,Helvetica,sans-serif;color:#e8e1d6;font-size:17px;line-height:27px;">${escapeHtml(payload.message || "No message included.")}</div>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td class="email-pad" style="padding:18px 30px;background:#0a0a09;border-top:1px solid #2d2921;">
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                        <tr>
-                          <td style="font-family:Arial,Helvetica,sans-serif;color:#777168;font-size:11px;line-height:17px;">
-                            ${escapeHtml(source)} lead &nbsp;&middot;&nbsp; Prestige Luxor
-                          </td>
-                          <td align="right" style="font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:17px;">
-                            <a href="${pageLink}" style="color:#d9b866;text-decoration:none;">View source page</a>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </div>
-      </body>
-    </html>
-  `;
+export function quoteEmailHtml(payload) {
+  const label = payload.requestType === "partner" ? "New owner application" : payload.requestType === "wedding" ? "New wedding inquiry" : payload.requestType === "availability" ? "New availability request" : "New quote request";
+  return emailFrame({label, title: "A new request is here.",
+    intro: `${payload.name || "A customer"} is ready to plan their next drive. Review the details and get in touch.`,
+    preheader: `${label}: ${payload.vehicle || "Vehicle to be confirmed"}`,
+    content: emailDetails([["Requested vehicle",payload.vehicle || "To be confirmed"],["Rental date",payload.date || "To be confirmed"]])
+      + emailButton("Call customer", `tel:${phoneHref(payload.phone)}`)
+      + (payload.email ? emailButton("Reply by email",`mailto:${payload.email}`,true) : "")
+      + `<div style="height:24px"></div>`
+      + emailDetails([["Customer",payload.name],["Phone",payload.phone],["Email",payload.email || "Not provided"],
+        ...(payload.requestType === "wedding" ? [["Insurance",payload.insuranceProvider || "Reviewed during booking approval"]] : []),
+        ["Requested extras",payload.addons?.length ? payload.addons.join(", ") : "None selected"],
+        ["Customer message",payload.message || "No message included."],["Source",payload.source || "Website"]])
+      + emailButton("View source page",safeWebUrl(payload.pageUrl),true)
+  });
 }
 
 function quoteEmailText(payload) {

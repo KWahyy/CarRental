@@ -1,3 +1,5 @@
+import { initBookingDialog } from './booking-dialog.js';
+import { showBookingReceipt } from './booking-receipt.js';
 import { vehicleRentalInfoMarkup } from './vehicle-rental-info.js';
 import { applyTripToForm } from "./rental-search.js";
 import { vehicleShellMarkup } from "./vehicle-shell.js";
@@ -31,7 +33,7 @@ import {
 
 document.body.classList.add("site-theme");
 
-const slug = document.body.dataset.vehicleSlug;
+const slug = document.body.hasAttribute('data-booking-page') ? new URLSearchParams(location.search).get('vehicle') : document.body.dataset.vehicleSlug;
 const vehicleFleet = fleet.slice();
 const car = vehicleFleet.find((item) => item.slug === slug) || getVehicle(slug);
 const CRM_REQUESTS_KEY = "prestige-luxor-crm-requests";
@@ -355,6 +357,7 @@ function bindVehicleRequestForm() {
     returnDate.min = pickup.value || pickup.min;
     returnDate.setCustomValidity(returnDate.value && pickup.value && (pickup.type === "date" ? returnDate.value < pickup.value : returnDate.value <= pickup.value) ? "Return must be after pickup." : "");
   };
+  form.addEventListener("change", syncReturnDate);
   pickup.addEventListener("change", syncReturnDate);
   returnDate?.addEventListener("change", syncReturnDate);
   syncReturnDate();
@@ -367,7 +370,7 @@ function bindVehicleRequestForm() {
       return;
     }
     form.classList.add("show-details");
-    detailsStep?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    if (!form.closest(".booking-page-layout")) detailsStep?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
     window.setTimeout(() => form.elements.name?.focus({ preventScroll: true }), 220);
   });
 
@@ -405,7 +408,7 @@ function bindVehicleRequestForm() {
     submit.disabled = true;
     submit.firstChild.textContent = "Sending request ";
     status.dataset.tone = "";
-    status.textContent = "Submitting your reservation request...";
+    status.textContent = "Submitting your booking request...";
     try {
       const result = await submitQuoteRequest(payload);
       try {
@@ -416,13 +419,13 @@ function bindVehicleRequestForm() {
         // The local Admin mirror is best-effort; Supabase remains authoritative.
       }
       status.dataset.tone = "success";
-      status.textContent = `Reservation request received for ${payload.vehicle}. Pending confirmation — a team member will contact you to confirm availability, the final price, and next steps. No payment has been taken.`;
+      showBookingReceipt(status, payload, result.id);
       submit.firstChild.textContent = "Request received ";
       void recordFleetEvent("availability_success", { carSlug: slug, metadata: { vehicle: payload.vehicle } });
     } catch (error) {
       status.dataset.tone = "error";
       status.textContent = error.message || "Please call us directly to request this vehicle.";
-      submit.firstChild.textContent = "Request reservation ";
+      submit.firstChild.textContent = "Request booking ";
     } finally {
       submit.disabled = status.dataset.tone === "success";
     }
@@ -551,6 +554,7 @@ function renderVehicle() {
       .join("");
   }
   if (slug === "2022-lamborghini-huracan") enhanceHuracanProduct(car);
+  initBookingDialog(car);
 }
 
 
@@ -559,9 +563,11 @@ function initVehicle() {
     bindVehicleRequestForm();
     renderGallery(listingGallery(car));
   } else renderVehicle();
+  if (car) initBookingDialog(car);
   document.body.classList.remove("is-loading-vehicle");
   if (!isPublicRendered) void hydrateMonthlySpecialPrice();
-  setVehicleIndexing(Boolean(car));
+  setVehicleIndexing(Boolean(car) && !document.body.hasAttribute('data-booking-page'));
+  if (document.body.hasAttribute('data-booking-page') && car) document.title = 'Book ' + car.name + ' | Prestige Luxor';
   void recordFleetEvent("vehicle_detail_view", {
     carSlug: slug,
     metadata: { vehicle: car?.name || slug },

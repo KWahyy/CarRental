@@ -1,3 +1,4 @@
+import { showBookingReceipt } from './booking-receipt.js';
 import './brand-carousel.js';
 import { readTripSearch } from './rental-search.js';
 import { brandFor, sortBrands } from './vehicle-brands.js';
@@ -1075,7 +1076,7 @@ if (quoteForm) {
     quoteForm.setAttribute("aria-busy", "true");
     if (quoteStatus) {
       quoteStatus.dataset.tone = "";
-      quoteStatus.textContent = "Submitting your reservation request...";
+      quoteStatus.textContent = "Submitting your booking request...";
     }
 
     const payload = {
@@ -1115,7 +1116,7 @@ if (quoteForm) {
 
       if (quoteStatus) {
         quoteStatus.dataset.tone = "success";
-        quoteStatus.textContent = `Reservation request received for ${payload.vehicle}. Pending confirmation — a Prestige Luxor team member will contact you to confirm availability, the final price, and next steps. No payment has been taken.`;
+        showBookingReceipt(quoteStatus, payload, result.id);
       }
       quoteForm.querySelectorAll("input, select, textarea").forEach(field => { field.disabled = true; });
       const back = quoteForm.querySelector('[data-reservation-back]');
@@ -1132,7 +1133,7 @@ if (quoteForm) {
       submitButton.disabled = quoteStatus?.dataset.tone === "success";
       submitButton.classList.remove("is-sending");
       quoteForm.removeAttribute("aria-busy");
-      submitButton.textContent = quoteStatus?.dataset.tone === "success" ? "Request received" : "Request reservation";
+      submitButton.textContent = quoteStatus?.dataset.tone === "success" ? "Request received" : "Request booking";
     }
   });
 }

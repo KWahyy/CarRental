@@ -1,3 +1,4 @@
+import { refineIrvinePage } from './irvine-page.mjs';
 import { addLocationPlanning } from './location-planning.mjs';
 import { refineNewportPage } from './newport-page.mjs';
 import { businessSummary } from './business-summary.mjs';
@@ -41,6 +42,7 @@ rmSync(outDir, { recursive: true, force: true });
 mkdirSync(outDir, { recursive: true });
 
 const pathsToCopy = [
+  "booking.html",
   "index.html",
   "exotic-car-rental.html",
   "faq.html",
@@ -286,7 +288,7 @@ function locationEnhancements({ slug, area }, { includeFleet = true } = {}) {
         </div>
       </section>
       <section class="location-quote-section" id="location-quote" aria-labelledby="location-quote-${slug}">
-        <div class="location-quote-copy"><p>Private availability check</p><h2 id="location-quote-${slug}">Request ${escapeHtml(area)} delivery.</h2><span>No payment is collected here. A concierge verifies the exact vehicle, dates, and total with you.</span></div>
+        <div class="location-quote-copy"><p>Booking request</p><h2 id="location-quote-${slug}">Request ${escapeHtml(area)} delivery.</h2><span>No payment now. Our team will contact you to confirm availability and your final total.</span></div>
         <form class="location-quote-form" data-location-quote data-location-slug="${escapeHtml(slug)}" data-location-name="${escapeHtml(area)}">
           <div class="location-form-grid">
             <label><span>Name</span><input name="name" type="text" autocomplete="name" required /></label>
@@ -299,7 +301,7 @@ function locationEnhancements({ slug, area }, { includeFleet = true } = {}) {
             <label class="location-form-wide"><span>Notes</span><textarea name="message" rows="4" placeholder="Share timing, occasion, passengers, or questions."></textarea></label>
             <label class="quote-honeypot" aria-hidden="true"><span>Company</span><input name="company" type="text" tabindex="-1" autocomplete="off" /></label>
           </div>
-          <button type="submit">Check availability</button>
+          <button type="submit">Request booking</button>
           <p class="location-quote-status" data-location-quote-status role="status">Your request goes directly to the Prestige Luxor booking desk.</p>
         </form>
       </section>`;
@@ -379,7 +381,7 @@ function pageShell({ title, description, path, eyebrow, heading, lead, content, 
     <footer class="site-footer">
       <div class="footer-main"><a class="brand footer-brand" href="/" aria-label="Prestige Luxor home"><span class="footer-logo-frame"><img class="brand-logo-wide" src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" loading="lazy" /></span></a><p>Exotic and luxury car rentals with concierge delivery across Southern California.</p><div class="footer-contact"><a href="tel:${phoneHref}">Call ${phoneLabel}</a><a href="sms:${phoneHref}">Text concierge</a><a href="mailto:Contact@prestigeluxor.com">Email</a></div></div>
       <div class="footer-columns">
-        <nav class="footer-links" aria-label="Explore"><h3>Explore</h3><a href="/fleet">Fleet</a><a href="/partner">Become a Partner</a><a href="${isLocationPage ? "#location-quote" : "/#quote"}">Request Quote</a></nav>
+        <nav class="footer-links" aria-label="Explore"><h3>Explore</h3><a href="/fleet">Fleet</a><a href="/partner">Become a Partner</a><a href="${isLocationPage ? "#location-quote" : "/#quote"}">Book your drive</a></nav>
         <nav class="footer-links" aria-label="Locations"><h3>Locations</h3><a href="/locations/los-angeles-exotic-car-rental">Los Angeles</a><a href="/locations/orange-county-exotic-car-rental">Orange County</a><a href="/locations/lax-exotic-car-delivery">LAX Delivery</a><a href="/locations/sna-exotic-car-delivery">SNA Delivery</a></nav>
         <nav class="footer-links" aria-label="Company"><h3>Company</h3><a href="/about">About</a><a href="/rental-policies">Rental Policies</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/admin/" rel="nofollow">Admin Login</a></nav>
       </div>
@@ -492,7 +494,7 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
           </div>
           <div class="oc-location-actions">
             <a class="oc-location-primary" href="#orange-county-fleet">Explore the fleet</a>
-            <a class="oc-location-secondary" href="#location-quote">Request a quote <span aria-hidden="true">&#8594;</span></a>
+            <a class="oc-location-secondary" href="#location-quote">Book your drive <span aria-hidden="true">&#8594;</span></a>
           </div>
         </div>
         ${heroCar ? `<a class="oc-location-featured" href="/cars/${heroCar.slug}"><span>Featured vehicle</span><strong>${heroCar.make} ${heroCar.model}</strong><small>From $${Number(heroCar.price).toLocaleString("en-US")}/day <b aria-hidden="true">&#8599;</b></small></a>` : ""}
@@ -536,14 +538,14 @@ function orangeCountyPage({ title, description, heading, lead, path }) {
       <section class="oc-location-final" aria-labelledby="oc-final-title">
         <p>10% off for first-time clients</p>
         <h2 id="oc-final-title">Your first drive, thoughtfully arranged.</h2>
-        <div><a class="oc-location-primary" href="#location-quote">Request a quote</a><a class="oc-location-secondary" href="tel:${phoneHref}">Call ${phoneLabel}</a></div>
+        <div><a class="oc-location-primary" href="#location-quote">Book your drive</a><a class="oc-location-secondary" href="tel:${phoneHref}">Call ${phoneLabel}</a></div>
       </section>
     </main>
 
     <footer class="site-footer">
       <div class="footer-main"><a class="brand footer-brand" href="/" aria-label="Prestige Luxor home"><span class="footer-logo-frame"><img class="brand-logo-wide" src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" loading="lazy" /></span></a><p>Exotic and luxury car rentals with concierge delivery across Southern California.</p><div class="footer-contact"><a href="tel:${phoneHref}">Call ${phoneLabel}</a><a href="sms:${phoneHref}">Text concierge</a><a href="mailto:Contact@prestigeluxor.com">Email</a></div></div>
       <div class="footer-columns">
-        <nav class="footer-links" aria-label="Explore"><h3>Explore</h3><a href="/fleet">Fleet</a><a href="/partner">Become a Partner</a><a href="/#quote">Request Quote</a></nav>
+        <nav class="footer-links" aria-label="Explore"><h3>Explore</h3><a href="/fleet">Fleet</a><a href="/partner">Become a Partner</a><a href="/#quote">Book your drive</a></nav>
         <nav class="footer-links" aria-label="Locations"><h3>Locations</h3><a href="/locations/los-angeles-exotic-car-rental">Los Angeles</a><a href="/locations/orange-county-exotic-car-rental">Orange County</a><a href="/locations/lax-exotic-car-delivery">LAX Delivery</a><a href="/locations/sna-exotic-car-delivery">SNA Delivery</a></nav>
         <nav class="footer-links" aria-label="Company"><h3>Company</h3><a href="/about">About</a><a href="/rental-policies">Rental Policies</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/admin/" rel="nofollow">Admin Login</a></nav>
       </div>
@@ -669,6 +671,7 @@ for (const page of locationPages) {
     : pageShell({ ...pageOptions, eyebrow: "Prestige Luxor Service Area", schemaType: "Service" });
   html = refineDestinationPage(html, page, activeInventory, locationEnhancements(page, { includeFleet: false }));
   html = refineNewportPage(html, page, activeInventory, locationEnhancements(page, { includeFleet: false }));
+  html = refineIrvinePage(html, page, activeInventory, locationEnhancements(page, { includeFleet: false }));
   html = addLocationPlanning(html, page, activeInventory);
   writeFileSync(join(locationsDir, `${page.slug}.html`), html);
 }

@@ -1,3 +1,4 @@
+import { emailFrame, emailDetails, emailButton } from "./_email-template.js";
 import { sendBusinessEmail, emailConfigured } from "./_email.js";
 import crypto from "node:crypto";
 import { clean, db, json, readBody, requireEmployee, serverConfig, setCors } from "./_invoice-core.js";
@@ -23,7 +24,10 @@ async function sendAgreementEmail(agreement, url) {
   const data = await sendBusinessEmail({
       to: [agreement.customer_email],
       subject,
-      html: `<div style="background:#080808;padding:32px 14px;font-family:Arial,sans-serif;color:#fff"><div style="max-width:640px;margin:auto;border:1px solid #353535;background:#111;padding:40px"><p style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#aaa">Prestige Luxor · ${emailEscape(agreement.agreement_number)}</p><h1 style="font-size:34px;line-height:1.1;margin:20px 0">${signed ? "Your signed agreement is ready." : "Your rental agreement is ready."}</h1><p style="color:#ccc;line-height:1.6">${emailEscape(agreement.vehicle_name)}<br>${emailEscape(agreement.customer_name)}</p><a href="${emailEscape(url)}" style="display:inline-block;margin-top:24px;background:#fff;color:#080808;padding:16px 24px;text-decoration:none;font-weight:800">${action}</a><p style="margin-top:34px;color:#777;font-size:12px">This private link is unique to your rental. Prestige Luxor · (949) 620-0024</p></div></div>`,
+      html: emailFrame({label: agreement.agreement_number || "Rental agreement", title: signed ? "Your signed agreement." : "Your drive, one step closer.",
+        intro: signed ? "Your signed rental agreement is ready to view and keep for your records." : "Review your rental details and complete your signature using the private link below.",
+        content: emailDetails([["Vehicle",agreement.vehicle_name],["Customer",agreement.customer_name]]) + emailButton(action,url)
+          + `<p style="font:13px/21px Arial,sans-serif;color:#625e57;margin:18px 0 0">This private link is unique to your rental. Please keep it secure.</p>`}),
       text: `${subject}\n\n${agreement.vehicle_name}\n${url}\n\nPrestige Luxor · (949) 620-0024`,
   });
   return { delivered: true, id: data.id };
