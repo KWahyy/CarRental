@@ -59,22 +59,29 @@ export function initMetaConsent() {
   const panel = document.createElement("section");
   panel.id = "meta-advertising-choice";
   panel.setAttribute("aria-label", "Advertising privacy choices");
-  panel.style.cssText = "position:fixed;bottom:12px;left:12px;right:12px;z-index:10000;padding:16px;background:#171717;color:white;border:1px solid #aaa;border-radius:8px;font:14px/1.5 system-ui;max-width:560px;box-shadow:0 4px 24px #0008";
+  const stylesheet = document.createElement("link");
+  stylesheet.rel = "stylesheet";
+  stylesheet.href = "/src/ad-consent.css";
+  document.head.append(stylesheet);
+  const heading = document.createElement("h2");
+  heading.textContent = "Your privacy. Your choice.";
+  heading.id = "ad-consent-title";
+  panel.setAttribute("aria-labelledby", heading.id);
   const text = document.createElement("p");
-  text.textContent = "Optional advertising measurement: with your permission, Meta and OpenAI receive website activity and successful inquiry events, along with browser/device information, to measure ads. We do not include your form answers in these events. Declining does not affect booking.";
+  text.textContent = "With your permission, Meta and OpenAI receive site activity, successful inquiry events and browser/device information to measure ads. Your form answers are never included.";
   const accept = document.createElement("button");
-  accept.textContent = "Allow ad measurement";
+  accept.textContent = "Allow measurement";
   const reject = document.createElement("button");
-  reject.textContent = "Decline ad measurement";
+  reject.textContent = "Decline";
   const privacy = document.createElement("a");
   privacy.href = "https://www.facebook.com/privacy/policy/";
   privacy.textContent = "Meta privacy policy";
-  privacy.style.color = "white";
+
   const settings = document.createElement("button");
   settings.textContent = "Ad privacy choices";
-  settings.style.cssText = "position:fixed;bottom:8px;left:8px;z-index:9999;font:12px system-ui;padding:6px";
+  settings.id = "ad-consent-settings";
   settings.onclick = () => { panel.hidden = false; settings.hidden = true; reject.focus(); };
-  for (const button of [accept, reject]) button.style.cssText = "padding:10px;margin:4px;border:1px solid #aaa;background:white;color:#171717;border-radius:4px;font:inherit;cursor:pointer";
+  for (const button of [accept, reject, settings]) button.type = "button";
   function choose(allowed) {
     consent = allowed;
     try { localStorage.setItem(CONSENT_KEY, allowed ? "accepted" : "declined"); } catch { /* Session only. */ }
@@ -90,9 +97,18 @@ export function initMetaConsent() {
   const openaiPrivacy = document.createElement("a");
   openaiPrivacy.href = "https://openai.com/policies/privacy-policy/";
   openaiPrivacy.textContent = "OpenAI privacy policy";
-  openaiPrivacy.style.cssText = "color:white;margin-left:12px";
-  panel.append(text, accept, reject, privacy, openaiPrivacy);
-  panel.hidden = stored !== null;
-  settings.hidden = !panel.hidden;
+  const note = document.createElement("p");
+  note.className = "ad-consent-note";
+  note.textContent = "Optional. Your choice won’t affect your booking.";
+  const actions = document.createElement("div");
+  actions.className = "ad-consent-actions";
+  actions.append(reject, accept);
+  const links = document.createElement("nav");
+  links.setAttribute("aria-label", "Advertising privacy policies");
+  links.append(privacy, openaiPrivacy);
+  panel.append(heading, text, note, actions, links);
+  // Keep the notice available on demand without interrupting visitors.
+  panel.hidden = true;
+  settings.hidden = false;
   document.body.append(panel, settings);
 }

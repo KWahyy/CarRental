@@ -105,3 +105,21 @@ body.wedding-page .wedding-reasons-grid article:nth-child(n) .wedding-reason-ico
 }
 
 body.wedding-page .wedding-reasons-grid { display:grid; }
+
+/* Give the wedding vehicle its own uninterrupted frame. */
+body.wedding-page .wedding-arrival{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.35fr);min-height:0;background:#f3f0e8;isolation:isolate;}
+body.wedding-page .wedding-arrival>.native-picture{display:block;position:relative;grid-column:2;grid-row:1;min-width:0;min-height:560px;overflow:hidden;}
+body.wedding-page .wedding-arrival-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:60% center;animation:none;transform:none;}
+body.wedding-page .wedding-arrival-shade{display:none;}
+body.wedding-page .wedding-arrival-copy{grid-column:1;grid-row:1;min-height:0;width:100%;margin:0;padding:clamp(36px,5vw,84px);justify-content:center;color:#292821;box-sizing:border-box;}
+body.wedding-page .wedding-arrival-kicker{font:600 10px/1.6 Arial,sans-serif;letter-spacing:.18em;color:#777263;margin-bottom:25px;}
+body.wedding-page .wedding-arrival h2{font:400 clamp(38px,4.2vw,64px)/1.06 Georgia,serif;letter-spacing:-.045em;color:#292821;max-width:12ch;text-wrap:initial;}
+body.wedding-page .wedding-arrival h2 em{color:#89744f;}
+body.wedding-page .wedding-arrival-rule{width:56px;background:#b9ab8d;margin:28px 0;}
+body.wedding-page .wedding-arrival-footer{display:flex;flex-direction:column;align-items:flex-start;gap:26px;}
+body.wedding-page .wedding-arrival-footer p{font:400 14px/1.8 Arial,sans-serif;color:#67645c;max-width:32ch;}
+body.wedding-page .wedding-arrival-footer a{background:#292821;color:#fffdf7;min-height:50px;box-sizing:border-box;padding:16px 20px;border:1px solid #292821;gap:28px;font:600 10px/1.5 Arial,sans-serif;letter-spacing:.1em;text-decoration:none;}
+body.wedding-page .wedding-arrival-footer a:hover{background:#454337;border-color:#454337;}
+body.wedding-page .wedding-arrival .reveal{opacity:1;transform:none;transition:none;}
+@media(max-width:760px){body.wedding-page .wedding-arrival{grid-template-columns:1fr;}body.wedding-page .wedding-arrival-copy{padding:40px 24px;grid-column:1;grid-row:1;}body.wedding-page .wedding-arrival h2{font-size:42px;max-width:15ch;}body.wedding-page .wedding-arrival>.native-picture{grid-column:1;grid-row:2;min-height:0;aspect-ratio:1.4;}body.wedding-page .wedding-arrival-media{object-position:58% center;}body.wedding-page .wedding-arrival-footer{gap:22px;}body.wedding-page .wedding-arrival-footer p{max-width:36ch;}}
+body.wedding-page #wedding-arrival{scroll-margin-top:86px;}
