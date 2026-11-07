@@ -1,3 +1,4 @@
+import { createQuotePdf, quotePdfFilename } from "./_quote-pdf.js";
 import { emailFrame, emailDetails, emailButton } from "./_email-template.js";
 import { sendBusinessEmail, emailConfigured } from "./_email.js";
 import { clean, db, json, readBody, requireEmployee, setCors } from "./_invoice-core.js";
@@ -140,7 +141,7 @@ export function quoteEmailText(quote, publicUrl) {
   ].join("\n");
 }
 
-async function sendQuoteEmail(quote, publicUrl) {
+export async function sendQuoteEmail(quote, publicUrl) {
   if (!quote.customer_email) return { delivered: false, reason: "No customer email; copy the secure link to send manually." };
   if (!emailConfigured()) return { delivered: false, reason: "Email delivery is not configured; copy the secure link to send manually." };
   const data = await sendBusinessEmail({
@@ -148,6 +149,7 @@ async function sendQuoteEmail(quote, publicUrl) {
       subject: `${quote.quote_number} · Your Prestige Luxor quote`,
       html: quoteEmailHtml(quote, publicUrl),
       text: quoteEmailText(quote, publicUrl),
+      attachments: [{filename:quotePdfFilename(quote),content:(await createQuotePdf(quote)).toString("base64")}],
   });
   return { delivered: true, id: data.id };
 }
@@ -224,6 +226,13 @@ export default async function handler(req, res) {
       const id = clean(req.query?.id, 80);
       if (id) {
         const quote = await getQuote(id, token);
+        if (req.query?.format === "pdf") {
+          const pdf = await createQuotePdf(quote);
+          res.setHeader("Content-Type", "application/pdf");
+          res.setHeader("Content-Disposition", `attachment; filename="${quotePdfFilename(quote)}"`);
+          res.setHeader("Cache-Control", "private, no-store");
+          return res.status(200).end(pdf);
+        }
         const [events, revisions] = await Promise.all([
           db(`quote_events?quote_id=eq.${encodeURIComponent(quote.id)}&select=*&order=created_at.asc`, {}, token),
           db(`quote_revisions?quote_id=eq.${encodeURIComponent(quote.id)}&select=*&order=revision.asc`, {}, token),
@@ -261,9 +270,10 @@ export default async function handler(req, res) {
         if (current.status === "converted") throw Object.assign(new Error("Converted quotes cannot be resent."), { status: 409 });
         const publicUrl = quoteUrl(req, current.access_token);
         const delivery = await sendQuoteEmail(current, publicUrl);
+        if (!delivery.delivered) throw Object.assign(new Error(delivery.reason), {status:400});
         const now = new Date().toISOString();
         const rows = await db(`quotes?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify({ status: "sent", sent_at: now, updated_by: user.id }) }, token);
-        await addQuoteEvent(id, current.sent_at ? "resent" : "sent", delivery.delivered ? `Quote emailed to ${current.customer_email}.` : delivery.reason, user.id, delivery, token);
+        await addQuoteEvent(id, current.sent_at ? "resent" : "sent", delivery.delivered ? `Quote emailed with PDF attachment to ${current.customer_email}.` : delivery.reason, user.id, delivery, token);
         return json(res, 200, { quote: { ...rows[0], public_url: publicUrl }, delivery });
       }
       if (action === "follow_up") {

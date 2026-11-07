@@ -17,6 +17,7 @@ export async function sendBusinessEmail(message, { env = process.env, createTran
       from:'Prestige Luxor <contact@prestigeluxor.com>',to:message.to,
       replyTo:message.reply_to || 'contact@prestigeluxor.com',
       subject:message.subject,text:message.text,html:message.html,
+      attachments:(message.attachments || []).map(a => ({filename:a.filename,content:Buffer.from(a.content,"base64"),contentType:"application/pdf"})),
       disableFileAccess:true,disableUrlAccess:true,
     });
     if (!result.accepted?.length || result.rejected?.length) throw new Error('Email recipients were not accepted by Google.');
