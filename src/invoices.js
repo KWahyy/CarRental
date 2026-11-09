@@ -1,3 +1,4 @@
+import { singleFlight, registerSection } from "./crm-navigation.js";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./supabase-config.js?v=fleet-sync-20260714";
 import { clearDraft, draftData, restoreForm, scheduleDraft, serializeForm, writeDraft } from "./form-drafts.js";
@@ -286,10 +287,10 @@ async function loadSourceRecords() {
   if (!quoteResult.error) quotes = quoteResult.data || [];
 }
 
-async function loadInvoices(force = false) {
+const loadInvoices = singleFlight(async function (force = false) {
   if (!configured || (loaded && !force)) return;
   try {
-    setStatus("Loading invoices...");
+    if (!loaded) setStatus("Loading invoices...");
     const [, data] = await Promise.all([loadSourceRecords(), invoiceApi("invoices")]);
     invoices = data.invoices || [];
     employeeRole = data.role || "staff";
@@ -297,14 +298,14 @@ async function loadInvoices(force = false) {
     if (currentInvoice) currentInvoice = invoices.find((item) => item.id === currentInvoice.id) || null;
     renderList();
     if (currentInvoice) openInvoice(currentInvoice);
-    else if (draftData(INVOICE_DRAFT_KEY)) openInvoice();
+    else if (document.querySelector('[data-section-panel="invoices"]')?.classList.contains("active") && draftData(INVOICE_DRAFT_KEY)) openInvoice();
     if (!draftData(INVOICE_DRAFT_KEY) || currentInvoice) setStatus(`${invoices.length} invoice${invoices.length === 1 ? "" : "s"} loaded.`, "success");
   } catch (error) {
     const hasDraft = !currentInvoice && Boolean(draftData(INVOICE_DRAFT_KEY));
-    if (hasDraft) openInvoice();
+    if (hasDraft && document.querySelector('[data-section-panel="invoices"]')?.classList.contains("active")) openInvoice();
     setStatus(hasDraft ? `Draft restored. ${error.message}` : error.message, "error");
   }
-}
+});
 
 async function saveDraft() {
   if (!form.reportValidity()) return null;
@@ -489,3 +490,5 @@ supabase?.auth.onAuthStateChange((event, session) => {
     loadInvoices();
   }
 });
+
+registerSection("invoices", loadInvoices);

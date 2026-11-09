@@ -1,3 +1,4 @@
+import { singleFlight, registerSection } from "./crm-navigation.js";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./supabase-config.js?v=fleet-sync-20260714";
 
@@ -99,9 +100,9 @@ async function fetchRows(query, label) {
   return data || [];
 }
 
-async function load(force = false, preferredKey = "") {
-  if (loaded && !force) return render();
-  root.innerHTML = '<div class="crm-loading-state">Organizing customer records…</div>';
+const load = singleFlight(async function (force = false, preferredKey = "") {
+  if (loaded && !force) return;
+  if (!loaded) root.innerHTML = '<div class="crm-loading-state">Organizing customer records…</div>';
   try {
     const [customerRows, quoteRows, invoiceRows, agreementRows] = await Promise.all([
       fetchRows(supabase.from("crm_customers").select("*").order("updated_at", { ascending: false }).limit(1000), "Customers"),
@@ -117,7 +118,7 @@ async function load(force = false, preferredKey = "") {
   } catch (error) {
     root.innerHTML = `<div class="customers-error"><strong>Customers need attention</strong><p>${escapeHtml(error.message)}</p><button class="secondary-button" type="button" data-customer-retry>Retry</button></div>`;
   }
-}
+});
 
 function visibleCustomers() {
   const query = searchTerm.trim().toLowerCase();
@@ -321,3 +322,5 @@ supabase.auth.onAuthStateChange((event, session) => {
 setTimeout(() => {
   if (!loaded && document.querySelector('[data-section-panel="customers"]')?.classList.contains("active")) load();
 }, 800);
+
+registerSection("customers", load);

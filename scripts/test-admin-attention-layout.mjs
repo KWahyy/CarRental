@@ -13,7 +13,8 @@ await page.route('**/supabase-js@2/+esm',r=>r.fulfill({contentType:'text/javascr
 await page.route('**/api/**',r=>r.fulfill({json:{cars:[],vehicles:[],partners:[],quotes:[],customers:[],employees:[],reservations:[],blocks:[],leads:[],activities:[],items:[],availability:[],settings:{},data:[]}}));
 await page.goto('http://127.0.0.1:8775/admin/');
 await page.locator('.attention-list>button').first().waitFor();
-assert.equal(await page.locator('.attention-list>button').count(),3);
+assert.equal(await page.locator('.attention-list>button').count(),1);
+assert.equal(await page.locator('.attention-issues > span').count(),3);
 assert.equal(await page.locator('.activity-list>button').count(),3);
 assert.equal(await page.locator('.attention-count').textContent(),'3');
 assert(!await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth));

@@ -1,3 +1,4 @@
+import { singleFlight, registerSection } from "./crm-navigation.js";
 const root = document.querySelector("[data-executive-dashboard]");
 const overviewButton = document.querySelector('[data-crm-section="overview"]');
 const supabase = window.prestigeLuxorSupabase;
@@ -103,9 +104,9 @@ async function safeRows(query) {
   try { const { data, error } = await query; return error ? [] : data || []; } catch { return []; }
 }
 
-async function loadDashboard(force = false) {
-  if (!root || !supabase || (loaded && !force)) return render();
-  root.innerHTML = `<div class="executive-dashboard-loading crm-loading-state">Loading your command center…</div>`;
+const loadDashboard = singleFlight(async function (force = false) {
+  if (!root || !supabase || (loaded && !force)) return;
+  if (!loaded) root.innerHTML = `<div class="executive-dashboard-loading crm-loading-state">Loading your command center…</div>`;
   const session = (await supabase.auth.getSession()).data.session;
   const userId = session?.user?.id;
   const [invoices, invoicePayments, agreements, quotes, quoteActivities, invoiceEvents, agreementEvents, bookings, cars, partners, profiles] = await Promise.all([
@@ -124,7 +125,7 @@ async function loadDashboard(force = false) {
   model = { invoices, invoicePayments, agreements, quotes, quoteActivities, invoiceEvents, agreementEvents, bookings, cars, partners, profile: profiles[0] || null, session };
   loaded = true;
   render();
-}
+});
 
 function recordsForRange(range) {
   const agreements = model.agreements.filter((item) => item.status !== "cancelled" && item.signed_at && inRange(item.signed_at, range));
@@ -292,9 +293,9 @@ function render() {
     </div>
     </div></details>
     <div class="executive-two-column executive-bottom-grid">
-      <section class="executive-card"><div class="executive-card-head"><div><h3>Needs Attention <span class="attention-count">${attention.length}</span></h3><p>Urgent operational risks first.</p></div></div><div class="attention-list">${attention.length?attention.slice(0,10).map(attentionRow).join(""):`<p class="admin-empty">No current issues found.</p>`}</div></section>
-      <section class="executive-card"><div class="executive-card-head"><div><h3>Recent Activity</h3><p>Latest activity across billing, rentals, and sales.</p></div></div><div class="activity-list">${activity.length?activity.slice(0,10).map(activityRow).join(""):`<p class="admin-empty">Activity will appear as your team works in the CRM.</p>`}</div></section>
-    </div>` : hasBusinessData ? `<div class="executive-two-column executive-bottom-grid"><section class="executive-card"><div class="executive-card-head"><div><h3>Needs Attention <span class="attention-count">${attention.length}</span></h3><p>Urgent operational risks first.</p></div></div><div class="attention-list">${attention.length?attention.slice(0,10).map(attentionRow).join(""):`<p class="admin-empty">No current issues found.</p>`}</div></section><section class="executive-card"><div class="executive-card-head"><div><h3>Recent Activity</h3><p>Latest team activity.</p></div></div><div class="activity-list">${activity.length?activity.slice(0,10).map(activityRow).join(""):`<p class="admin-empty">Activity will appear as your team works in the CRM.</p>`}</div></section></div>` : "";
+      <section class="executive-card"><div class="executive-card-head"><div><h3>Needs Attention <span class="attention-count">${attention.length}</span></h3><p>Resolve outstanding items by rental.</p></div></div><div class="attention-list">${attention.length?groupAttention(attention).slice(0,10).map(attentionRow).join(""):`<p class="admin-empty">No current issues found.</p>`}</div></section>
+      <section class="executive-card"><div class="executive-card-head"><div><h3>Recent Activity</h3><p>Latest activity across billing, rentals, and sales.</p></div></div><div class="activity-list">${activity.length?activity.slice(0,6).map(activityRow).join(""):`<p class="admin-empty">Activity will appear as your team works in the CRM.</p>`}</div></section>
+    </div>` : hasBusinessData ? `<div class="executive-two-column executive-bottom-grid"><section class="executive-card"><div class="executive-card-head"><div><h3>Needs Attention <span class="attention-count">${attention.length}</span></h3><p>Resolve outstanding items by rental.</p></div></div><div class="attention-list">${attention.length?groupAttention(attention).slice(0,10).map(attentionRow).join(""):`<p class="admin-empty">No current issues found.</p>`}</div></section><section class="executive-card"><div class="executive-card-head"><div><h3>Recent Activity</h3><p>Latest team activity.</p></div></div><div class="activity-list">${activity.length?activity.slice(0,6).map(activityRow).join(""):`<p class="admin-empty">Activity will appear as your team works in the CRM.</p>`}</div></section></div>` : "";
 
   root.innerHTML = `
     <header class="executive-head executive-command-hero crm-page-header">
@@ -323,7 +324,7 @@ function render() {
 
 function kpi(label,value,note,index,featured=false){return `<article class="${featured?"featured":""}"><div><span>${escapeHtml(label)}</span><b>${escapeHtml(index)}</b></div><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`;}
 function toggle(group,items,active){return `<div class="executive-toggle" role="group" aria-label="${titleCase(group)} metric">${items.map(item=>`<button type="button" class="${item===active?"active":""}" data-dashboard-toggle="${group}" data-value="${item}">${titleCase(item)}</button>`).join("")}</div>`;}
-function operation(label,value,section,note=""){return `<button type="button" data-dashboard-section="${section}" title="${escapeHtml(note)}"><span>${escapeHtml(label)}</span><strong>${value}</strong><i aria-hidden="true">↗</i>${note?`<small>${escapeHtml(note)}</small>`:""}</button>`;}
+function operation(label,value,section,note=""){return `<button type="button" data-dashboard-section="${section}" class="${value ? "has-items" : "is-clear"}"><span>${escapeHtml(label)}</span><strong>${value}</strong><i aria-hidden="true">↗</i><small>${escapeHtml(note || (value ? "View details" : "Nothing pending"))}</small></button>`;}
 function pipelineCell(label,value){return `<button type="button" data-dashboard-section="requests"><span>${label}</span><strong>${value}</strong></button>`;}
 
 function reservationTable(rows,invoiceById){return rows.length?`<div class="executive-table-wrap crm-table-container"><table><thead><tr><th>Customer</th><th>Vehicle</th><th>Start</th><th>End</th><th>Total</th><th>Remaining</th><th>Status</th></tr></thead><tbody>${rows.map(item=>{const invoice=item.source_type==="invoice"?invoiceById.get(String(item.source_id)):null;const status=statusForReservation(item,invoice);return `<tr tabindex="0" role="button" data-dashboard-open="agreement" data-id="${item.id}"><td><strong>${escapeHtml(item.customer_name)}</strong></td><td>${escapeHtml(item.vehicle_name)}</td><td>${dateLabel(item.rental_start)}</td><td>${dateLabel(item.rental_end)}</td><td>${money(invoice?.subtotal||item.rental_total)}</td><td>${money(invoice?rentalBalance(invoice):0)}</td><td><span class="executive-status">${status}</span></td></tr>`;}).join("")}</tbody></table></div>`:`<div class="executive-reservation-empty"><span>Clear road ahead</span><strong>No upcoming rentals.</strong><p>Create an invoice to begin a new client rental.</p><button type="button" data-dashboard-create="invoice">Create invoice <span aria-hidden="true">→</span></button></div>`;}
@@ -333,7 +334,21 @@ function leadSourceTable(rows){return rows.length?`<div class="executive-table-w
 function collectionList(rows){return rows.length?`<div class="collection-list">${rows.sort((a,b)=>String(a.due_date||"").localeCompare(String(b.due_date||""))).slice(0,6).map(item=>`<button type="button" data-dashboard-open="invoice" data-id="${item.id}"><span><strong>${escapeHtml(item.customer_name)}</strong><small>${escapeHtml(item.vehicle_name)}</small></span><span><b>${money(rentalBalance(item))}</b><small>${item.due_date?dateLabel(item.due_date):"No due date"} · ${item.due_date&&isoDate(item.due_date)<todayIso()?"Overdue":"Upcoming"}</small></span></button>`).join("")}</div>`:`<p class="admin-empty">No rental balances to collect in this period.</p>`;}
 
 function buildAttention(invoiceById){const now=new Date();const items=[];model.agreements.forEach(item=>{if(["completed","cancelled"].includes(item.status))return;if(!item.license_file_path)items.push({priority:2,title:"Missing driver's license",detail:`${item.customer_name} · ${item.vehicle_name}`,kind:"agreement",id:item.id});if(!item.insurance_file_path)items.push({priority:2,title:"Missing insurance",detail:`${item.customer_name} · ${item.vehicle_name}`,kind:"agreement",id:item.id});if(!item.signed_at)items.push({priority:2,title:"Unsigned agreement",detail:`${item.customer_name} · ${dateLabel(item.rental_start)}`,kind:"agreement",id:item.id});if(item.deposit_status==="pending"&&number(item.refundable_deposit))items.push({priority:2,title:"Unpaid deposit",detail:`${item.customer_name} · ${money(item.refundable_deposit)}`,kind:"agreement",id:item.id});if(item.status==="vehicle_out"&&item.rental_end&&new Date(`${item.rental_end}T23:59:59`)<now)items.push({priority:3,title:"Overdue vehicle return",detail:`${item.vehicle_name} · due ${dateLabel(item.rental_end)}`,kind:"agreement",id:item.id});const invoice=item.source_type==="invoice"?invoiceById.get(String(item.source_id)):null;if(invoice&&invoice.due_date&&isoDate(invoice.due_date)<todayIso()&&rentalBalance(invoice)>0)items.push({priority:3,title:"Overdue balance",detail:`${invoice.customer_name} · ${money(rentalBalance(invoice))}`,kind:"invoice",id:invoice.id});});model.quotes.forEach(item=>{if(item.status==="checking")items.push({priority:2,title:"Partner vehicle not confirmed",detail:`${item.name} · ${item.vehicle}`,kind:"quote",id:item.id});if(item.follow_up_at&&new Date(item.follow_up_at)<now&&item.status!=="booked")items.push({priority:2,title:"Overdue follow-up",detail:`${item.name} · ${item.vehicle}`,kind:"quote",id:item.id});});return items.sort((a,b)=>b.priority-a.priority);}
-function attentionRow(item){return `<button type="button" data-dashboard-open="${item.kind}" data-id="${item.id}"><i class="priority-${item.priority}" aria-hidden="true">!</i><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small></span><b>Review <span aria-hidden="true">↗</span></b></button>`;}
+function groupAttention(items) {
+  const groups = new Map();
+  for (const item of items) {
+    const key = `${item.kind}:${item.id}`;
+    if (!groups.has(key)) groups.set(key, {...item, issues: []});
+    groups.get(key).issues.push(item);
+  }
+  return [...groups.values()];
+}
+function attentionRow(item){
+  const record = (item.kind === "agreement" ? model.agreements : item.kind === "invoice" ? model.invoices : model.quotes).find(row => String(row.id) === String(item.id));
+  const name = record?.customer_name || record?.name || item.detail.split(" · ")[0];
+  const vehicle = record?.vehicle_name || record?.vehicle || "";
+  return `<button type="button" data-dashboard-open="${item.kind}" data-id="${item.id}"><i class="priority-${item.priority}" aria-hidden="true">!</i><span><strong>${escapeHtml(name)}</strong><small>${escapeHtml(vehicle)}</small><span class="attention-issues">${item.issues.map(issue=>`<span>${escapeHtml(issue.title)}${issue.title === "Unpaid deposit" ? ` · ${money(record?.refundable_deposit)}` : ""}</span>`).join("")}</span></span><b>Review <span aria-hidden="true">↗</span></b></button>`;
+}
 function buildActivity(){const invoice=model.invoiceEvents.map(item=>({date:item.created_at,title:titleCase(item.event_type),detail:item.detail||"Invoice updated",kind:"invoice",id:item.invoice_id}));const agreements=model.agreementEvents.map(item=>({date:item.created_at,title:titleCase(item.event_type),detail:item.detail||"Rental updated",kind:"agreement",id:item.agreement_id}));const quotes=model.quoteActivities.map(item=>({date:item.created_at,title:titleCase(item.activity_type),detail:item.body||"Quote updated",kind:"quote",id:item.quote_request_id}));return [...invoice,...agreements,...quotes].sort((a,b)=>String(b.date).localeCompare(String(a.date)));}
 function activityRow(item){return `<button type="button" data-dashboard-open="${item.kind}" data-id="${item.id}"><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small></span><time datetime="${escapeHtml(item.date)}">${new Date(item.date).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</time></button>`;}
 
@@ -360,3 +375,5 @@ window.addEventListener("prestige:finance-updated",()=>loadDashboard(true));
 supabase?.auth.onAuthStateChange((event,session)=>{if(!session){loaded=false;model={invoices:[],invoicePayments:[],agreements:[],quotes:[],quoteActivities:[],invoiceEvents:[],agreementEvents:[],bookings:[],cars:[],partners:[],profile:null};}else if(document.querySelector('[data-section-panel="overview"]')?.classList.contains("active"))loadDashboard();});
 if (!document.querySelector("[data-admin-view]")?.hidden) loadDashboard();
 setTimeout(() => { if (!document.querySelector("[data-admin-view]")?.hidden && !loaded) loadDashboard(); }, 900);
+
+registerSection("overview", loadDashboard);

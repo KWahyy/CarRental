@@ -1,3 +1,4 @@
+import { singleFlight, registerSection } from "./crm-navigation.js";
 const app = document.querySelector("[data-booking-app]");
 const sectionButton = document.querySelector('[data-crm-section="bookings"]');
 const newButton = document.querySelector("[data-new-booking]");
@@ -91,10 +92,10 @@ function records() {
   return [...agreementRecords, ...manualRecords].sort((a, b) => String(b.booked_on || b.created_at).localeCompare(String(a.booked_on || a.created_at)));
 }
 
-async function load(force = false) {
-  if (!app || !supabase || loading || (loaded && !force)) return render();
+const load = singleFlight(async function (force = false) {
+  if (!app || !supabase || loading || (loaded && !force)) return;
   loading = true;
-  app.innerHTML = '<div class="crm-loading-state">Loading bookings…</div>';
+  if (!loaded) app.innerHTML = '<div class="crm-loading-state">Loading bookings…</div>';
   try {
     const session = (await supabase.auth.getSession()).data.session;
     const userId = session?.user?.id;
@@ -116,7 +117,7 @@ async function load(force = false) {
     app.innerHTML = `<div class="booking-error"><strong>Bookings could not load.</strong><span>${escapeHtml(error.message || "Check the CRM database connection.")}</span><button class="secondary-button" type="button" data-retry-bookings>Try again</button></div>`;
     app.querySelector("[data-retry-bookings]")?.addEventListener("click", () => load(true));
   } finally { loading = false; }
-}
+});
 
 function render() {
   if (!app) return;
@@ -296,3 +297,5 @@ sectionButton?.addEventListener("click", () => {
 newButton?.addEventListener("click", async () => { if (!loaded) await load(); openEditor("new"); });
 window.addEventListener("prestige:agreement-signed", () => load(true));
 supabase?.auth.onAuthStateChange((event, session) => { if (!session) { loaded = false; agreements = []; ledgerRows = []; } });
+
+registerSection("bookings", load);

@@ -698,3 +698,65 @@ body.admin-page .admin-workspace [data-section-panel="customers"] .customer-mark
 body.admin-page .admin-workspace [data-section-panel="customers"] .customer-marketing-card :is(header,.customer-marketing-explainer,.customer-marketing-date,.customer-marketing-save) { grid-column:1/-1; }
 body.admin-page .admin-workspace [data-section-panel="customers"] .customer-marketing-card label { min-width:0; }
 @media(max-width:760px){body.admin-page .admin-workspace [data-section-panel="customers"] .customer-marketing-card { grid-template-columns:minmax(0,1fr)!important; }}
+
+/* Operations desk: stable layouts, grouped decisions, quiet feedback. */
+body.admin-page .admin-workspace [data-section-panel="overview"] .operations-strip {
+  gap: 12px; border: 0; background: transparent; overflow: visible;
+}
+body.admin-page .admin-workspace [data-section-panel="overview"] .operations-strip > button {
+  display: grid; grid-template-columns: 1fr auto; gap: 10px;
+  padding: 20px; min-height: 124px; border: 1px solid #deded8 !important;
+  border-radius: 12px; background: #fff; text-align: left;
+}
+body.admin-page .admin-workspace [data-section-panel="overview"] .operations-strip > button > span {
+  grid-column: 1; font-size: 11px; color: #62665f;
+}
+body.admin-page .admin-workspace [data-section-panel="overview"] .operations-strip > button > strong {
+  grid-column: 1; grid-row: 2; font-size: 30px; line-height: 1; letter-spacing: -.04em;
+}
+body.admin-page .admin-workspace [data-section-panel="overview"] .operations-strip > button > small {
+  grid-column: 1; color: #62665f; font-size: 12px;
+}
+body.admin-page .admin-workspace [data-section-panel="overview"] .operations-strip > button > i {
+  display: block; grid-column: 2; grid-row: 1; color: #62665f; font-style: normal;
+}
+body.admin-page .admin-workspace [data-section-panel="overview"] .operations-strip > .has-items {
+  border-color: #c8c7b8 !important; background: #fafaf6;
+}
+body.admin-page .admin-workspace [data-section-panel="overview"] .attention-list {
+  border: 0 !important; background: transparent !important; gap: 12px;
+}
+body.admin-page .admin-workspace [data-section-panel="overview"] .attention-list > button {
+  padding: 20px !important; border: 1px solid #deded8 !important;
+  border-radius: 12px !important; align-items: start !important; background: #fff !important;
+}
+body.admin-page .admin-workspace [data-section-panel="overview"] .attention-list > button > b { padding-top: 3px; }
+body.admin-page .admin-workspace [data-section-panel="overview"] .attention-list .attention-issues {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;
+}
+body.admin-page .admin-workspace [data-section-panel="overview"] .attention-issues > span {
+  display: inline-block; padding: 5px 8px; border-radius: 5px;
+  color: #795b27; background: #f5efdf; font-size: 12px; line-height: 1.4;
+}
+body.admin-page .admin-workspace [data-section-panel="overview"] .activity-list > button {
+  min-height: 72px !important; padding-top: 12px !important; padding-bottom: 12px !important;
+}
+body.admin-page .admin-workspace [data-section-panel="overview"] .activity-list small {
+  color: #62665f !important; font-size: 12px !important; line-height: 1.5 !important;
+}
+body.admin-page .admin-workspace [data-section-panel="overview"] :is(.operations-strip,.attention-list,.activity-list) > button:hover {
+  background: #f5f5f0 !important;
+}
+body.admin-page .admin-workspace [data-section-panel="overview"] :is(.operations-strip,.attention-list,.activity-list) > button:focus-visible {
+  outline: 2px solid #626c50 !important; outline-offset: 3px;
+}
+@media(max-width:760px) {
+  body.admin-page .admin-workspace [data-section-panel="overview"] .operations-strip {
+    display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px;
+  }
+  body.admin-page .admin-workspace [data-section-panel="overview"] .operations-strip > button { padding: 16px; min-height: 120px; }
+  body.admin-page .admin-workspace [data-section-panel="overview"] .attention-list > button { padding: 16px !important; }
+}
+body.admin-page .admin-workspace [data-section-panel="overview"] .attention-issues > span {
+  flex: 0 1 auto !important; width: auto !important; min-width: 0 !important;
+}

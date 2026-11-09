@@ -1,3 +1,4 @@
+import { prepareWorkspace } from "./crm-navigation.js";
 import { initAdminLogin } from "./admin-login.js";
 import { brandFor } from './vehicle-brands.js';
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
@@ -585,6 +586,7 @@ async function runQuery(query) {
 }
 
 function showAdmin(isAdmin) {
+  prepareWorkspace(isAdmin);
   loginView.hidden = isAdmin;
   adminView.hidden = !isAdmin;
   if (!isAdmin) return;
