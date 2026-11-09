@@ -114,16 +114,6 @@
       "permanent": true
     },
     {
-      "source": "/cars/2022-lamborghini-huracan",
-      "destination": "/cars/lamborghini-huracan-evo-spyder-rental",
-      "permanent": true
-    },
-    {
-      "source": "/cars/2022-lamborghini-huracan.html",
-      "destination": "/cars/lamborghini-huracan-evo-spyder-rental",
-      "permanent": true
-    },
-    {
       "source": "/cars/2022-porsche-911-carrera",
       "destination": "/cars/porsche-911-carrera-cabriolet-rental",
       "permanent": true
