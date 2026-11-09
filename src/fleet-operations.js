@@ -30,7 +30,7 @@ let period = "month";
 
 const emptyMetrics = () => ({ status:"available", current_agreement:null, next_reservation:null, revenue:0, reservation_costs:0, general_expenses:0, gross_profit:0, net_profit:0, bookings:0, average_booking_value:0, document_warning:null, maintenance_warning:null });
 function optimizeVehicleCover(vehicle){const original=vehicle.image_url||vehicle.image||vehicle.photos?.[0]?.url||"/assets/prestige-luxor-hero.png";return {...vehicle,image_url:optimizedFleetImageUrl(original,{width:1200,height:760,quality:78,updatedAt:vehicle.updated_at||vehicle.updatedAt})};}
-function instantVehicles(){return (publicFleet||[]).map(car=>optimizeVehicleCover({...car,id:car.id,category_label:car.categoryLabel||car.category_label||car.category,ownership_type:"prestige",operational_status:"available",is_active:true,is_featured:true,current_mileage:null,current_location:"",image_url:car.image_url||car.image,photos:(car.gallery||[]).map((url,index)=>({url,position:index+1})),partner:null,agreements:[],blocks:[],expenses:[],maintenance:[],documents:[],metrics:emptyMetrics()}));}
+function instantVehicles(){return (publicFleet||[]).map(car=>optimizeVehicleCover({...car,id:car.id,category_label:car.categoryLabel||car.category_label||car.category,ownership_type:null,operational_status:"available",is_active:true,is_featured:true,current_mileage:null,current_location:"",image_url:car.image_url||car.image,photos:(car.gallery||[]).map((url,index)=>({url,position:index+1})),partner:null,agreements:[],blocks:[],expenses:[],maintenance:[],documents:[],metrics:emptyMetrics()}));}
 
 const escapeHtml = (value) => String(value ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 const money = (value, decimals=0) => new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:decimals,minimumFractionDigits:decimals}).format(Number(value||0));
@@ -42,7 +42,7 @@ const today = () => new Date().toISOString().slice(0,10);
 const vehicleTitle = (v) => [v.year,v.make,v.model,v.trim].filter(Boolean).join(" ") || v.name;
 const partner = (v) => v.partner || {};
 const statusBadge = (status) => `<span class="fleet-status ${escapeHtml(status)}">${escapeHtml(STATUS[status]||status)}</span>`;
-const ownershipBadge = (v) => `<span class="fleet-ownership ${v.ownership_type}">${v.ownership_type==="partner"?"Partner Vehicle":"Prestige Owned"}</span>`;
+const ownershipBadge = (v) => !["prestige","partner"].includes(v.ownership_type) ? "" : `<span class="fleet-ownership ${v.ownership_type}">${v.ownership_type==="partner"?"Partner Vehicle":"Prestige Owned"}</span>`;
 const daysUntil = (value) => value ? Math.ceil((new Date(`${value}T23:59:59`)-new Date())/86400000) : Infinity;
 
 function toast(message,tone="success") { let n=document.querySelector("[data-fleet-toast]");if(!n){n=document.createElement("div");n.className="quote-toast fleet-toast";n.dataset.fleetToast="";n.setAttribute("role","status");document.body.append(n);}n.textContent=message;n.dataset.tone=tone;n.classList.add("show");clearTimeout(toast.timer);toast.timer=setTimeout(()=>n.classList.remove("show"),4200); }
