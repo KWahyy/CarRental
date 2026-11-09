@@ -11,7 +11,7 @@ alter table public.cars add column if not exists license_plate text not null def
 alter table public.cars add column if not exists registration_state text not null default 'CA';
 alter table public.cars add column if not exists internal_fleet_id text not null default '';
 alter table public.cars add column if not exists internal_nickname text not null default '';
-alter table public.cars add column if not exists ownership_type text not null default 'prestige';
+alter table public.cars add column if not exists ownership_type text not null default 'partner';
 alter table public.cars drop constraint if exists cars_ownership_type_check;
 alter table public.cars add constraint cars_ownership_type_check check (ownership_type in ('prestige', 'partner'));
 alter table public.cars add column if not exists operational_status text not null default 'available';

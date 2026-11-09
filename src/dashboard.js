@@ -1,9 +1,11 @@
+import { renderOwnedFleet } from "./owned-fleet-view.js";
 import { singleFlight, registerSection } from "./crm-navigation.js";
 const root = document.querySelector("[data-executive-dashboard]");
 const overviewButton = document.querySelector('[data-crm-section="overview"]');
 const supabase = window.prestigeLuxorSupabase;
 
 let loaded = false;
+let ownershipError = "";
 let model = { invoices: [], invoicePayments: [], agreements: [], quotes: [], quoteActivities: [], invoiceEvents: [], agreementEvents: [], bookings: [], cars: [], partners: [], profile: null };
 let rangeKey = "this_month";
 let chartMetric = "revenue";
@@ -104,25 +106,40 @@ async function safeRows(query) {
   try { const { data, error } = await query; return error ? [] : data || []; } catch { return []; }
 }
 
+async function financialRows(table) {
+  const rows = [];
+  try {
+    for (let from=0; ; from+=500) {
+      const {data,error} = await supabase.from(table).select("*").order(table==="car_partners"?"car_id":"id").range(from,from+499);
+      if(error) throw error;
+      rows.push(...(data||[]));
+      if((data||[]).length<500) return rows;
+      if(from>=49500) throw new Error("Financial history exceeds the safe loading limit.");
+    }
+  } catch(error) { ownershipError = "Financial records unavailable"; return []; }
+}
+
 const loadDashboard = singleFlight(async function (force = false) {
   if (!root || !supabase || (loaded && !force)) return;
   if (!loaded) root.innerHTML = `<div class="executive-dashboard-loading crm-loading-state">Loading your command center…</div>`;
+  ownershipError = "";
   const session = (await supabase.auth.getSession()).data.session;
   const userId = session?.user?.id;
   const [invoices, invoicePayments, agreements, quotes, quoteActivities, invoiceEvents, agreementEvents, bookings, cars, partners, profiles] = await Promise.all([
-    safeRows(supabase.from("invoices").select("*").order("created_at", { ascending: false }).limit(500)),
-    safeRows(supabase.from("invoice_payments").select("*").order("paid_at", { ascending: false }).limit(2000)),
-    safeRows(supabase.from("rental_agreements").select("*").order("created_at", { ascending: false }).limit(500)),
+    financialRows("invoices"),
+    financialRows("invoice_payments"),
+    financialRows("rental_agreements"),
     safeRows(supabase.from("quote_requests").select("*").order("created_at", { ascending: false }).limit(500)),
     safeRows(supabase.from("quote_activities").select("*").order("created_at", { ascending: false }).limit(100)),
     safeRows(supabase.from("invoice_events").select("*").order("created_at", { ascending: false }).limit(100)),
     safeRows(supabase.from("rental_agreement_events").select("*").order("created_at", { ascending: false }).limit(100)),
-    safeRows(supabase.from("booking_sales").select("*").order("created_at", { ascending: false }).limit(500)),
-    safeRows(supabase.from("cars").select("id,name,image_url,price,is_active").order("name")),
-    safeRows(supabase.from("car_partners").select("car_id,partner_name")),
+    financialRows("booking_sales"),
+    financialRows("cars"),
+    financialRows("car_partners"),
     userId ? safeRows(supabase.from("admin_profiles").select("display_name,role").eq("user_id", userId).limit(1)) : [],
   ]);
-  model = { invoices, invoicePayments, agreements, quotes, quoteActivities, invoiceEvents, agreementEvents, bookings, cars, partners, profile: profiles[0] || null, session };
+  const expenses = profiles[0]?.role === "owner" ? await financialRows("vehicle_expenses") : [];
+  model = { expenses, invoices, invoicePayments, agreements, quotes, quoteActivities, invoiceEvents, agreementEvents, bookings, cars, partners, profile: profiles[0] || null, session };
   loaded = true;
   render();
 });
@@ -317,6 +334,7 @@ function render() {
       <section class="executive-card"><div class="executive-card-head"><div><h3>Sales Pipeline</h3><p>Active lead movement and value.</p></div><button class="text-button" data-dashboard-section="requests">Open Quotes</button></div><div class="pipeline-grid">${pipelineCell("New Leads",pipeline.new)}${pipelineCell("Contacted",pipeline.contacted)}${pipelineCell("Quotes Sent",pipeline.sent)}${pipelineCell("Follow-Ups Due",pipeline.followup)}${pipelineCell("Booked",pipeline.booked)}${pipelineCell("Lost",pipeline.lost)}</div><div class="pipeline-summary"><span>Lead → Booking Conversion<strong>${conversion.toFixed(1)}%</strong></span><span>Open Pipeline Value<strong>${money(pipelineValue)}</strong></span></div></section>
     </div>
     <section class="executive-card executive-performance ${hasBusinessData?"":"is-empty"}">${hasBusinessData?`<div class="executive-card-head"><div><h3>${owner ? "Performance" : "Booking activity"}</h3><p>${dateLabel(range.start)} – ${dateLabel(range.end)}</p></div>${owner ? toggle("chart",["revenue","profit","bookings"],chartMetric) : ""}</div>${chartSvg(chart,owner ? chartMetric : "bookings")}`:emptyPerformance()}</section>
+    ${owner ? renderOwnedFleet(model, range, {error:ownershipError}) : ""}
     ${secondaryAnalytics}`;
   root.querySelector("[data-dashboard-range]").value = rangeKey;
   bindDashboard();
@@ -353,6 +371,11 @@ function buildActivity(){const invoice=model.invoiceEvents.map(item=>({date:item
 function activityRow(item){return `<button type="button" data-dashboard-open="${item.kind}" data-id="${item.id}"><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small></span><time datetime="${escapeHtml(item.date)}">${new Date(item.date).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</time></button>`;}
 
 function bindDashboard(){
+  root.querySelector("[data-owned-refresh]")?.addEventListener("click",()=>loadDashboard(true));
+  root.querySelectorAll("[data-owned-vehicle],[data-owned-expense]").forEach(button=>button.addEventListener("click",()=>{
+    document.querySelector('[data-crm-section="vehicles"]')?.click();
+    window.dispatchEvent(new CustomEvent("prestige:owned-vehicle",{detail:{id:button.dataset.ownedVehicle||button.dataset.ownedExpense,expense:!!button.dataset.ownedExpense}}));
+  }));
   root.querySelector("[data-dashboard-range]")?.addEventListener("change",(event)=>{rangeKey=event.target.value;if(rangeKey==="custom"&&!customStart){customStart=todayIso();customEnd=todayIso();}render();});
   root.querySelector("[data-dashboard-start]")?.addEventListener("change",(event)=>{customStart=event.target.value;if(customStart&&customEnd)render();});
   root.querySelector("[data-dashboard-end]")?.addEventListener("change",(event)=>{customEnd=event.target.value;if(customStart&&customEnd)render();});
