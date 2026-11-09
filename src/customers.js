@@ -48,6 +48,11 @@ function blankProfile(record = {}) {
     company: record.company || record.customer_company || "",
     leadSource: record.lead_source || "",
     notes: record.notes || "",
+    marketingStatus: ["subscribed", "unsubscribed"].includes(record.marketing_consent_status) ? record.marketing_consent_status : "unknown",
+    marketingSource: record.marketing_consent_source || "",
+    marketingConsentAt: record.marketing_consent_at || "",
+    marketingUnsubscribedAt: record.marketing_unsubscribed_at || "",
+    marketingTags: Array.isArray(record.marketing_tags) ? record.marketing_tags : [],
     emailKey: emailKey(email),
     phoneKey: phoneKey(phone),
     nameKey: nameKey(name),
@@ -118,7 +123,7 @@ function visibleCustomers() {
   const query = searchTerm.trim().toLowerCase();
   return customers.filter((customer) => {
     const matchesSearch = !query || [customer.name, customer.email, customer.phone, customer.company, customer.vehicles.join(" ")].some((value) => String(value || "").toLowerCase().includes(query));
-    const matchesView = view === "all" || (view === "renters" && customer.agreements.length) || (view === "repeat" && customer.agreements.length > 1) || (view === "leads" && !customer.agreements.length);
+    const matchesView = view === "all" || (view === "renters" && customer.agreements.length) || (view === "repeat" && customer.agreements.length > 1) || (view === "leads" && !customer.agreements.length) || (view === "email_ready" && customer.marketingStatus === "subscribed" && Boolean(customer.email));
     return matchesSearch && matchesView;
   });
 }
@@ -132,9 +137,9 @@ function renderList() {
   return `<aside class="customers-directory-card">
     <div class="customers-toolbar">
       <label><span>Search customers</span><input type="search" value="${escapeHtml(searchTerm)}" placeholder="Name, phone, email, or vehicle" data-customer-search></label>
-      <div class="customer-view-tabs" role="tablist" aria-label="Customer views">${[["all","All"],["renters","Renters"],["repeat","Repeat"],["leads","Leads"]].map(([id,label]) => `<button class="${view === id ? "active" : ""}" type="button" data-customer-view="${id}">${label}</button>`).join("")}</div>
+      <div class="customer-view-tabs" role="group" aria-label="Customer views">${[["all","All"],["renters","Renters"],["repeat","Repeat"],["leads","Leads"],["email_ready","Email ready"]].map(([id,label]) => `<button class="${view === id ? "active" : ""}" type="button" data-customer-view="${id}" aria-pressed="${view === id}">${label}</button>`).join("")}</div>
     </div>
-    <div class="customers-list">${visible.length ? visible.map((customer) => `<button class="customer-list-item ${customer.key === selectedKey ? "active" : ""}" type="button" data-customer-key="${escapeHtml(customer.key)}"><span class="customer-avatar">${escapeHtml(initials(customer.name))}</span><span class="customer-list-copy"><strong>${escapeHtml(customer.name)}</strong><small>${escapeHtml(customer.phone || customer.email || "No contact details")}</small></span><span class="customer-list-meta"><strong>${customer.recordCount}</strong><small>records</small></span></button>`).join("") : '<div class="customers-list-empty"><strong>No customers found</strong><span>Try another search or view.</span></div>'}</div>
+    <div class="customers-list">${visible.length ? visible.map((customer) => `<button class="customer-list-item ${customer.key === selectedKey ? "active" : ""}" type="button" data-customer-key="${escapeHtml(customer.key)}" aria-pressed="${customer.key === selectedKey}"><span class="customer-avatar">${escapeHtml(initials(customer.name))}</span><span class="customer-list-copy"><strong>${escapeHtml(customer.name)}</strong><small>${escapeHtml(customer.email || customer.phone || "No contact details")}</small></span><span class="customer-list-meta"><strong>${customer.recordCount}</strong><small>records</small></span></button>`).join("") : '<div class="customers-list-empty"><strong>No customers found</strong><span>Try another search or view.</span></div>'}</div>
   </aside>`;
 }
 
@@ -151,18 +156,35 @@ function recordRow(type, record) {
 
 function renderDetail(customer) {
   if (!customer) return '<section class="customer-profile-empty"><strong>Select a customer</strong><span>Choose a customer to see their complete CRM history.</span></section>';
+  const marketingLabel = customer.marketingStatus === "subscribed" ? "Opted in" : customer.marketingStatus === "unsubscribed" ? "Opted out" : "Not recorded";
+  const marketingNote = customer.marketingStatus === "subscribed" ? "Eligible for future marketing emails" : "Do not include in marketing sends";
   const records = [
     ...customer.quotes.map((record) => ({ type: "quote", record })),
     ...customer.invoices.map((record) => ({ type: "invoice", record })),
     ...customer.agreements.map((record) => ({ type: "agreement", record })),
   ].sort((a, b) => String(activityDate(b.record)).localeCompare(String(activityDate(a.record))));
   return `<section class="customer-profile">
-    <header class="customer-profile-hero"><div class="customer-avatar large">${escapeHtml(initials(customer.name))}</div><div><span>Customer profile</span><h3>${escapeHtml(customer.name)}</h3><p>${escapeHtml(customer.company || customer.leadSource || "Prestige Luxor client")}</p></div><div class="customer-contact-actions">${customer.phone ? `<a href="tel:${escapeHtml(customer.phone)}">Call</a>` : ""}${customer.email ? `<a href="mailto:${escapeHtml(customer.email)}">Email</a>` : ""}</div></header>
+    <header class="customer-profile-hero"><div class="customer-avatar large">${escapeHtml(initials(customer.name))}</div><div><span>Customer profile</span><h3>${escapeHtml(customer.name)}</h3><p>${escapeHtml(customer.company || customer.leadSource || "Prestige Luxor client")}</p><span class="customer-marketing-chip" data-status="${customer.marketingStatus}">${marketingLabel}</span></div><div class="customer-contact-actions">${customer.phone ? `<a href="tel:${escapeHtml(customer.phone)}">Call</a>` : ""}${customer.email ? `<a href="mailto:${escapeHtml(customer.email)}">Email</a>` : ""}</div></header>
     <div class="customer-profile-kpis">${kpi("Quotes", customer.quotes.length, "All proposals")}${kpi("Invoices", customer.invoices.length, "Billing records")}${kpi("Agreements", customer.agreements.length, `${customer.signed} signed or active`)}${kpi("Payments recorded", money(customer.paid), "Across invoices")}</div>
     <div class="customer-profile-grid">
       <main>
         <section class="customer-profile-card"><header><div><span>Rental history</span><h4>Customer records</h4></div><strong>${records.length}</strong></header><div class="customer-records">${records.length ? records.map(({ type, record }) => recordRow(type, record)).join("") : '<div class="customer-card-empty">No linked records yet.</div>'}</div></section>
         <section class="customer-profile-card"><header><div><span>Vehicles</span><h4>Previous selections</h4></div><strong>${customer.vehicles.length}</strong></header><div class="customer-vehicle-tags">${customer.vehicles.length ? customer.vehicles.map((vehicle) => `<span>${escapeHtml(vehicle)}</span>`).join("") : '<div class="customer-card-empty">No vehicles recorded yet.</div>'}</div></section>
+        <form class="customer-profile-card customer-marketing-card" data-customer-marketing-form>
+          <input type="hidden" name="customer_key" value="${escapeHtml(customer.key)}">
+          <header><div><span>Future email marketing</span><h4>Permission & interests</h4></div></header>
+          <p class="customer-marketing-explainer">${marketingNote}. Rental and booking emails are separate from marketing permission.</p>
+          <label>Email address<input name="marketing_email" type="email" autocomplete="email" value="${escapeHtml(customer.email)}" placeholder="customer@example.com"></label>
+          <label>Marketing email status<select name="marketing_status" data-marketing-status>
+            <option value="unknown" ${customer.marketingStatus === "unknown" ? "selected" : ""}>Not recorded</option>
+            <option value="subscribed" ${customer.marketingStatus === "subscribed" ? "selected" : ""}>Opted in</option>
+            <option value="unsubscribed" ${customer.marketingStatus === "unsubscribed" ? "selected" : ""}>Opted out</option>
+          </select></label>
+          <label>How permission was obtained<input name="marketing_source" value="${escapeHtml(customer.marketingSource)}" placeholder="Example: website form, dated request"></label>
+          <label>Interests for future segments<input name="marketing_tags" value="${escapeHtml(customer.marketingTags.join(", "))}" placeholder="Example: convertibles, weddings"></label>
+          <p class="customer-marketing-date">${customer.marketingStatus === "subscribed" && customer.marketingConsentAt ? `Opted in ${escapeHtml(dateLabel(customer.marketingConsentAt))}` : customer.marketingStatus === "unsubscribed" && customer.marketingUnsubscribedAt ? `Opted out ${escapeHtml(dateLabel(customer.marketingUnsubscribedAt))}` : "No marketing permission on file"}</p>
+          <div class="customer-marketing-save"><span data-customer-marketing-message role="status">${customer.id ? "Saved with customer profile" : "A profile will be created when you save"}</span><button class="primary-button compact" type="submit">Save preferences</button></div>
+        </form>
       </main>
       <aside>
         <section class="customer-profile-card customer-contact-card"><header><div><span>Contact</span><h4>Customer details</h4></div></header><dl><div><dt>Phone</dt><dd>${escapeHtml(customer.phone || "—")}</dd></div><div><dt>Email</dt><dd>${escapeHtml(customer.email || "—")}</dd></div><div><dt>Company</dt><dd>${escapeHtml(customer.company || "—")}</dd></div><div><dt>Lead source</dt><dd>${escapeHtml(customer.leadSource || "—")}</dd></div><div><dt>Last activity</dt><dd>${escapeHtml(dateLabel(customer.lastActivity))}</dd></div></dl></section>
@@ -176,8 +198,11 @@ function render() {
   const repeat = customers.filter((customer) => customer.agreements.length > 1).length;
   const renters = customers.filter((customer) => customer.agreements.length).length;
   const paid = customers.reduce((sum, customer) => sum + customer.paid, 0);
-  const selected = customers.find((customer) => customer.key === selectedKey);
-  root.innerHTML = `<div class="customers-kpis">${kpi("Total customers", customers.length, "Unique CRM contacts")}${kpi("Rental customers", renters, "With an agreement")}${kpi("Repeat customers", repeat, "More than one agreement")}${kpi("Payments recorded", money(paid), "Across customer invoices")}</div><div class="customers-layout">${renderList()}${renderDetail(selected)}</div>`;
+  const emailReady = customers.filter((customer) => customer.marketingStatus === "subscribed" && customer.email).length;
+  const visible = visibleCustomers();
+  if (!visible.some((customer) => customer.key === selectedKey)) selectedKey = visible[0]?.key || "";
+  const selected = visible.find((customer) => customer.key === selectedKey);
+  root.innerHTML = `<div class="customers-kpis">${kpi("Total customers", customers.length, "Unique CRM contacts")}${kpi("Rental customers", renters, "With an agreement")}${kpi("Repeat customers", repeat, "More than one agreement")}${kpi("Payments recorded", money(paid), "Across customer invoices")}</div><div class="customer-marketing-overview"><div><span>Email marketing readiness</span><strong>${emailReady} contact${emailReady === 1 ? "" : "s"} opted in</strong><p>Only customers with a recorded opt-in and an email address qualify for future campaigns.</p></div><button type="button" data-customer-email-ready>View eligible contacts <span aria-hidden="true">→</span></button></div><div class="customers-layout">${renderList()}${renderDetail(selected)}</div>`;
 }
 
 function openRecord(type, id) {
@@ -215,8 +240,55 @@ async function saveNotes(form) {
   }
 }
 
+
+async function saveMarketing(form) {
+  const customer = customers.find((item) => item.key === form.elements.customer_key.value);
+  if (!customer) return;
+  const status = form.elements.marketing_status.value;
+  const email = form.elements.marketing_email.value.trim();
+  const source = form.elements.marketing_source.value.trim();
+  const tags = [...new Set(form.elements.marketing_tags.value.split(",").map((tag) => tag.trim()).filter(Boolean))].slice(0, 20);
+  const message = form.querySelector("[data-customer-marketing-message]");
+  const button = form.querySelector('button[type="submit"]');
+  if (email && !form.elements.marketing_email.checkValidity()) { message.textContent = "Enter a valid email address."; form.elements.marketing_email.focus(); return; }
+  if (status === "subscribed" && !email) { message.textContent = "Add an email address before recording an opt-in."; form.elements.marketing_email.focus(); return; }
+  if (status === "subscribed" && !source) { message.textContent = "Record how this customer opted in."; form.elements.marketing_source.focus(); return; }
+  if (customer.marketingStatus === "unsubscribed" && status === "unknown") { message.textContent = "Keep this contact opted out until they give new permission."; return; }
+  if (status === "subscribed" && emailKey(email) !== emailKey(customer.email) && customer.marketingStatus === "subscribed") { message.textContent = "Save the new address as Not recorded, then record its own opt-in."; return; }
+  if (status === "subscribed" && customer.marketingStatus === "unsubscribed" && source === customer.marketingSource) { message.textContent = "Record a new opt-in source before resubscribing."; form.elements.marketing_source.focus(); return; }
+  const now = new Date().toISOString();
+  const fields = {
+    email,
+    marketing_consent_status: status,
+    marketing_consent_source: source,
+    marketing_consent_at: status === "subscribed" ? (customer.marketingStatus === "subscribed" ? customer.marketingConsentAt || now : now) : null,
+    marketing_unsubscribed_at: status === "unsubscribed" ? (customer.marketingStatus === "unsubscribed" ? customer.marketingUnsubscribedAt || now : now) : null,
+    marketing_tags: tags,
+  };
+  button.disabled = true;
+  message.textContent = "Saving…";
+  try {
+    let result;
+    if (customer.id) result = await supabase.from("crm_customers").update(fields).eq("id", customer.id).select().single();
+    else {
+      const parts = customer.name.split(/\s+/).filter(Boolean);
+      result = await supabase.from("crm_customers").insert({
+        first_name: parts.shift() || "", last_name: parts.join(" "),
+        phone: customer.phone, company: customer.company, lead_source: customer.leadSource,
+        notes: customer.notes, ...fields,
+      }).select().single();
+    }
+    if (result.error) throw result.error;
+    await load(true, `customer:${result.data.id}`);
+    root.querySelector("[data-customer-marketing-message]").textContent = "Preferences saved.";
+  } catch (error) {
+    message.textContent = /marketing_consent_status|marketing_tags|schema cache/i.test(error.message) ? "Marketing fields need the customer-marketing-readiness SQL update." : error.message;
+  } finally { button.disabled = false; }
+}
+
 root?.addEventListener("click", (event) => {
   if (event.target.closest("[data-customer-retry]")) return load(true);
+  if (event.target.closest("[data-customer-email-ready]")) { view = "email_ready"; return render(); }
   const viewButton = event.target.closest("[data-customer-view]");
   if (viewButton) { view = viewButton.dataset.customerView; return render(); }
   const customerButton = event.target.closest("[data-customer-key]");
@@ -236,17 +308,16 @@ root?.addEventListener("input", (event) => {
 });
 
 root?.addEventListener("submit", (event) => {
-  if (!event.target.matches("[data-customer-notes-form]")) return;
-  event.preventDefault();
-  saveNotes(event.target);
+  if (event.target.matches("[data-customer-marketing-form]")) { event.preventDefault(); saveMarketing(event.target); return; }
+  if (event.target.matches("[data-customer-notes-form]")) { event.preventDefault(); saveNotes(event.target); }
 });
 
 navButton?.addEventListener("click", () => load());
 refreshButton?.addEventListener("click", () => load(true, selectedKey));
 supabase.auth.onAuthStateChange((event, session) => {
   if (!session) { loaded = false; customers = []; selectedKey = ""; }
-  else if (document.querySelector('[data-section-panel="customers"]')?.classList.contains("active")) load(true, selectedKey);
+  else if (event === "SIGNED_IN" && !loaded && document.querySelector('[data-section-panel="customers"]')?.classList.contains("active")) load();
 });
 setTimeout(() => {
-  if (document.querySelector('[data-section-panel="customers"]')?.classList.contains("active")) load();
+  if (!loaded && document.querySelector('[data-section-panel="customers"]')?.classList.contains("active")) load();
 }, 800);

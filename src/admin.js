@@ -1,3 +1,4 @@
+import { initAdminLogin } from "./admin-login.js";
 import { brandFor } from './vehicle-brands.js';
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import { deleteCarDraft, readDeletedCarSlugs, signalFleetRefresh, slugifyVehicle } from "./admin-store.js?v=fleet-consistency-20260715";
@@ -128,6 +129,7 @@ const defaultRequests = [];
 
 const configured = Boolean(SUPABASE_URL && SUPABASE_URL.startsWith("https://"));
 const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
+const loginController = initAdminLogin({ document, auth:supabase?.auth, onSignedIn:() => showAdmin(true), location:window.location, history:window.history });
 window.prestigeLuxorSupabase = supabase;
 
 let cars = [];
@@ -312,17 +314,14 @@ function switchSection(section, activeButton = null) {
   const selectedSection = selectedButton?.dataset.crmSection || "overview";
   sectionButtons.forEach((button) => {
     button.classList.toggle("active", button === selectedButton);
+    if (button === selectedButton) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
   });
   sectionPanels.forEach((panel) => {
     const active = panel.dataset.sectionPanel === selectedSection;
     panel.classList.remove("crm-page-enter");
     panel.hidden = !active;
     panel.classList.toggle("active", active);
-    if (active) {
-      window.requestAnimationFrame(() => {
-        if (!panel.hidden && panel.classList.contains("active")) panel.classList.add("crm-page-enter");
-      });
-    }
   });
   try {
     localStorage.setItem(ACTIVE_SECTION_KEY, selectedSection);
@@ -2173,33 +2172,16 @@ async function init() {
     return;
   }
 
-  const { data } = await supabase.auth.getSession();
-  showAdmin(Boolean(data.session));
-  renderCrm();
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    showAdmin(Boolean(data.session) && !loginController.isRecovery());
+    renderCrm();
+  } catch {
+    showAdmin(false);
+    setStatus(loginStatus, "Unable to restore your session. Please sign in again.", "error");
+  }
 }
-
-loginForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (!configured) {
-    setStatus(loginStatus, "Add your Supabase Project URL first.", "error");
-    return;
-  }
-
-  const formData = new FormData(loginForm);
-  setStatus(loginStatus, "Signing in...");
-  const { error } = await supabase.auth.signInWithPassword({
-    email: formData.get("email"),
-    password: formData.get("password"),
-  });
-
-  if (error) {
-    setStatus(loginStatus, error.message, "error");
-    return;
-  }
-
-  setStatus(loginStatus, "");
-  showAdmin(true);
-});
 
 specialMonthInput?.addEventListener("change", loadMonthlySpecialAdmin);
 
@@ -2283,19 +2265,7 @@ sectionButtons.forEach((button) => {
   button.addEventListener("click", () => switchSection(button.dataset.crmSection, button));
 });
 
-let specialsLoaded = false;
-document.querySelector('[data-crm-section="specials"]')?.addEventListener("click", async () => {
-  if (specialsLoaded) return;
-  specialsLoaded = true;
-  try {
-    await loadCars();
-    specialMonthInput.value = currentMonthValue();
-    await loadMonthlySpecialAdmin();
-  } catch (error) {
-    specialsLoaded = false;
-    setStatus(adminStatus, friendlyError(error), "error");
-  }
-});
+
 
 jumpSectionButtons.forEach((button) => {
   button.addEventListener("click", () => switchSection(button.dataset.jumpSection));

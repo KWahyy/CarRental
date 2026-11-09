@@ -181,6 +181,7 @@ function openEditor(key = "new") {
         <label class="booking-cancel"><input name="cancelled" type="checkbox" ${item.cancelled ? "checked" : ""}> Cancelled booking</label>
       </div></section>
       <section class="booking-money-section"><h4>Payment received</h4><p>Enter rental money actually collected. Do not include a refundable security deposit.</p><div class="booking-form-grid">
+        <label>Rental total<input name="total_amount" type="number" min="0" step=".01" value="${number(item.total_amount)}" ${lockedSource ? "readonly" : ""}></label>
         <label>Amount collected<input name="amount_paid" type="number" min="0" step=".01" value="${number(item.amount_paid)}"></label>
         <label>Payment date<input name="payment_date" type="date" value="${iso(meta.payment_date) || (item.amount_paid ? iso(item.booked_on) : today())}"></label>
         <label>Payment method<select name="payment_method">${["stripe","cash","wire","zelle","other"].map((method) => `<option value="${method}" ${method === (meta.payment_method || "stripe") ? "selected" : ""}>${method.charAt(0).toUpperCase()+method.slice(1)}</option>`).join("")}</select></label>
@@ -220,7 +221,19 @@ async function save(event, item) {
   const status = form.querySelector("[data-booking-status]");
   const data = new FormData(form);
   const amountPaid = number(data.get("amount_paid"));
-  const totalAmount = Math.max(number(item.total_amount), amountPaid);
+  const totalAmount = item.kind === "agreement" ? number(item.total_amount) : number(data.get("total_amount"));
+  const startDate = String(data.get("start_date") || "");
+  const endDate = String(data.get("end_date") || "");
+  if (startDate && endDate && endDate < startDate) {
+    status.textContent = "Rental end must be on or after the start date.";
+    status.dataset.tone = "error";
+    return;
+  }
+  if (amountPaid > totalAmount) {
+    status.textContent = "Amount collected cannot exceed the rental total.";
+    status.dataset.tone = "error";
+    return;
+  }
   const meta = {
     agreement_id: item.kind === "agreement" ? item.id : undefined,
     customer_email: String(data.get("customer_email") || "").trim(),
@@ -239,20 +252,25 @@ async function save(event, item) {
     rental_days: Math.max(1, item.agreement?.rental_days || Math.ceil((new Date(`${data.get("end_date")}T12:00:00`) - new Date(`${data.get("start_date")}T12:00:00`)) / 86400000) || 1),
     daily_rate: item.agreement?.daily_rate || 0, delivery_fee: 0, addons_total: 0, discount: 0,
     partner_cost: number(data.get("partner_cost")), total_amount: totalAmount, amount_paid: amountPaid,
-    payment_status: meta.cancelled ? "refunded" : amountPaid >= totalAmount && totalAmount > 0 ? "paid" : amountPaid > 0 ? "partial" : "pending",
+    payment_status: amountPaid >= totalAmount && totalAmount > 0 ? "paid" : amountPaid > 0 ? "partial" : "pending",
     notes: financeNotes(meta, data.get("notes")), updated_at: new Date().toISOString(),
   };
   status.textContent = "Saving booking…";
   const existingId = item.shadowId || (item.kind === "manual" ? item.id : "");
-  const result = existingId
-    ? await supabase.from("booking_sales").update(payload).eq("id", existingId).select().single()
-    : await supabase.from("booking_sales").insert(payload).select().single();
-  if (result.error) { status.textContent = result.error.message; status.dataset.tone = "error"; return; }
-  const index = ledgerRows.findIndex((row) => row.id === result.data.id);
-  if (index >= 0) ledgerRows.splice(index, 1, result.data); else ledgerRows.unshift(result.data);
-  app.querySelector("[data-booking-dialog]")?.close();
-  render();
-  window.dispatchEvent(new CustomEvent("prestige:finance-updated"));
+  try {
+    const result = existingId
+      ? await supabase.from("booking_sales").update(payload).eq("id", existingId).select().single()
+      : await supabase.from("booking_sales").insert(payload).select().single();
+    if (result.error) throw result.error;
+    const index = ledgerRows.findIndex((row) => row.id === result.data.id);
+    if (index >= 0) ledgerRows.splice(index, 1, result.data); else ledgerRows.unshift(result.data);
+    app.querySelector("[data-booking-dialog]")?.close();
+    render();
+    window.dispatchEvent(new CustomEvent("prestige:finance-updated"));
+  } catch (error) {
+    status.textContent = error.message || "Booking could not be saved. Please try again.";
+    status.dataset.tone = "error";
+  }
 }
 
 async function remove(item) {
