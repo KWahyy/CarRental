@@ -1,0 +1,7 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {buildProductFeed,productFeedCsv} from '../src/chatgpt-product-feed.js';
+const car={slug:'huracan',name:'Lamborghini Huracan',make:'Lamborghini',price:1295,image_url:'/assets/car.jpg',car_photos:[{position:2,url:'/assets/side.jpg'}]};
+test('exports factual rental with public photos and no checkout promise',()=>{const {products,skipped}=buildProductFeed([car]);assert.equal(skipped.length,0);assert.equal(products[0].price,'1295.00 USD');assert.equal(products[0].availability,'unknown');assert.equal(products[0].is_eligible_checkout,'false');assert.equal(products[0].image_url,'https://www.prestigeluxor.com/assets/car.jpg');assert.match(products[0].title,/Daily Rental/);assert.equal(JSON.parse(products[0].additional_image_urls).length,1);});
+test('rejects missing prices, unsafe images and duplicates; excludes inactive',()=>{const {products,skipped}=buildProductFeed([car,car,{...car,slug:'other',price:0},{...car,slug:'unsafe',image_url:'javascript:alert(1)',car_photos:[]},{...car,slug:'inactive',is_active:false}]);assert.equal(products.length,1);assert.equal(skipped.length,3);});
+test('CSV escapes quotes, commas, and embedded JSON',()=>{const {products}=buildProductFeed([{...car,name:'Car, "Special"'}]);const csv=productFeedCsv(products);assert.match(csv,/Car, ""Special""/);assert.match(csv,/\r\n$/);assert.ok(!csv.includes('undefined'));});
