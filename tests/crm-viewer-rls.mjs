@@ -11,6 +11,7 @@ await pg.exec(`create role authenticated; create schema auth; create schema stor
 create function auth.uid() returns uuid language sql stable as $$select current_setting('request.jwt.claim.sub',true)::uuid$$;
 grant usage on schema public,auth,storage to authenticated;
 create table public.admin_profiles(user_id uuid primary key,role text constraint admin_profiles_role_check check(role in ('owner','manager','staff')));
+create function public.is_invoice_employee() returns boolean language sql stable security definer set search_path=public as $$select exists(select 1 from admin_profiles where user_id=auth.uid() and role in ('owner','manager','staff'))$$;
 create table storage.objects(id int primary key,bucket_id text);
 insert into storage.objects values (1,'invoice-pdfs');
 `);
@@ -30,7 +31,12 @@ assert.equal((await pg.query(`update admin_profiles set role='owner' where user_
 await assert.rejects(pg.exec(`insert into storage.objects values(2,'fleet')`));
 assert.equal((await pg.query(`delete from storage.objects returning id`)).rows.length,0);
 assert.equal((await pg.query(`update storage.objects set bucket_id='fleet' returning id`)).rows.length,0);
+await pg.exec(`set request.jwt.claim.sub='00000000-0000-0000-0000-000000000003';`);
+await assert.rejects(pg.exec(`insert into cars values(3,'unprovisioned user')`));
 await pg.exec(`set request.jwt.claim.sub='${owner}';insert into cars values(2,'owner edit');update cars set value='allowed' where id=2;`);
 assert.equal((await pg.query('select value from cars where id=2')).rows[0].value,'allowed');
 console.log(`PASS: ${names.length} CRM tables + storage: viewer reads allowed, writes and role escalation denied; owner writes preserved; migration idempotent.`);
+await pg.exec('reset role; drop table quote_activities;');
+await pg.exec(migration);
+console.log('PASS: migration supports production without the retired quote_activities table.');
 await pg.close();

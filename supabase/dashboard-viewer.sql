@@ -25,17 +25,19 @@ begin
     'vehicle_mileage_history','vehicle_activity'
   ] loop
     if to_regclass('public.' || t) is null then
+      -- The retired quote-activities module was never installed in production.
+      if t = 'quote_activities' then continue; end if;
       raise exception 'Missing CRM table: %. Apply prerequisite migrations first.', t;
     end if;
     execute format('alter table public.%I enable row level security', t);
     execute format('drop policy if exists "Dashboard viewer read" on public.%I', t);
     execute format('create policy "Dashboard viewer read" on public.%I for select to authenticated using (public.is_dashboard_viewer())',t);
     execute format('drop policy if exists "Viewer cannot insert" on public.%I', t);
-    execute format('create policy "Viewer cannot insert" on public.%I as restrictive for insert to authenticated with check (not public.is_dashboard_viewer())',t);
+    execute format('create policy "Viewer cannot insert" on public.%I as restrictive for insert to authenticated with check (public.is_invoice_employee())',t);
     execute format('drop policy if exists "Viewer cannot update" on public.%I', t);
-    execute format('create policy "Viewer cannot update" on public.%I as restrictive for update to authenticated using (not public.is_dashboard_viewer()) with check (not public.is_dashboard_viewer())',t);
+    execute format('create policy "Viewer cannot update" on public.%I as restrictive for update to authenticated using (public.is_invoice_employee()) with check (public.is_invoice_employee())',t);
     execute format('drop policy if exists "Viewer cannot delete" on public.%I', t);
-    execute format('create policy "Viewer cannot delete" on public.%I as restrictive for delete to authenticated using (not public.is_dashboard_viewer())',t);
+    execute format('create policy "Viewer cannot delete" on public.%I as restrictive for delete to authenticated using (public.is_invoice_employee())',t);
   end loop;
 end $$;
 
@@ -43,9 +45,9 @@ drop policy if exists "Dashboard viewer documents" on storage.objects;
 create policy "Dashboard viewer documents" on storage.objects for select to authenticated
 using (public.is_dashboard_viewer() and bucket_id in ('fleet','invoice-pdfs','rental-documents'));
 drop policy if exists "Viewer cannot upload" on storage.objects;
-create policy "Viewer cannot upload" on storage.objects as restrictive for insert to authenticated with check (not public.is_dashboard_viewer());
+create policy "Viewer cannot upload" on storage.objects as restrictive for insert to authenticated with check (public.is_invoice_employee());
 drop policy if exists "Viewer cannot replace files" on storage.objects;
-create policy "Viewer cannot replace files" on storage.objects as restrictive for update to authenticated using (not public.is_dashboard_viewer()) with check (not public.is_dashboard_viewer());
+create policy "Viewer cannot replace files" on storage.objects as restrictive for update to authenticated using (public.is_invoice_employee()) with check (public.is_invoice_employee());
 drop policy if exists "Viewer cannot delete files" on storage.objects;
-create policy "Viewer cannot delete files" on storage.objects as restrictive for delete to authenticated using (not public.is_dashboard_viewer());
+create policy "Viewer cannot delete files" on storage.objects as restrictive for delete to authenticated using (public.is_invoice_employee());
 commit;
