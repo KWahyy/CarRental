@@ -374,8 +374,8 @@ function activityRow(item){return `<button type="button" data-dashboard-open="${
 function bindDashboard(){
   root.querySelector("[data-owned-refresh]")?.addEventListener("click",()=>loadDashboard(true));
   root.querySelectorAll("[data-owned-vehicle],[data-owned-expense]").forEach(button=>button.addEventListener("click",()=>{
-    document.querySelector('[data-crm-section="vehicles"]')?.click();
-    window.dispatchEvent(new CustomEvent("prestige:owned-vehicle",{detail:{id:button.dataset.ownedVehicle||button.dataset.ownedExpense,expense:!!button.dataset.ownedExpense}}));
+    if(!button.dataset.ownedExpense)document.querySelector('[data-crm-section="vehicles"]')?.click();
+    window.dispatchEvent(new CustomEvent("prestige:owned-vehicle",{detail:{id:button.dataset.ownedVehicle||button.dataset.ownedExpense,expense:!!button.dataset.ownedExpense,category:button.dataset.ownedCategory}}));
   }));
   root.querySelector("[data-dashboard-range]")?.addEventListener("change",(event)=>{rangeKey=event.target.value;if(rangeKey==="custom"&&!customStart){customStart=todayIso();customEnd=todayIso();}render();});
   root.querySelector("[data-dashboard-start]")?.addEventListener("change",(event)=>{customStart=event.target.value;if(customStart&&customEnd)render();});

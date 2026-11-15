@@ -64,3 +64,28 @@
 @media(max-width:420px){.owned-heading{flex-direction:column;gap:12px}.owned-heading h3{font-size:23px!important}.owned-totals>div{padding:0 14px}.owned-totals strong{font-size:26px}.owned-car-heading img,.owned-no-photo{width:82px;height:70px}.owned-car-heading{gap:12px}.owned-car h4{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.owned-fleet *{animation:none!important;transition:none!important}}
 @media(prefers-contrast:more){.owned-fleet{--of-muted:#30382c;--of-line:#777e70}}
+/* Make the cash retained the primary outcome; show each deduction explicitly. */
+.owned-keep-total{background:#f1f4ed}
+.owned-totals{padding:0;overflow:hidden}
+.owned-totals>div{padding:24px}
+.owned-car-numbers small{font-size:11px;color:var(--of-muted)}
+.owned-car footer{grid-column:1/-1;grid-row:3;justify-content:flex-start;flex-wrap:wrap;padding:0 24px 20px}
+.owned-cashflow{grid-column:1/-1;display:grid;grid-template-columns:1.3fr 1fr;border-top:1px solid var(--of-line)}
+.owned-deductions{padding:22px 24px;display:grid;gap:16px}
+.owned-deductions>div{display:flex;justify-content:space-between;gap:20px;font-size:13px;line-height:1.5}
+.owned-deductions strong{font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+.owned-takehome{padding:24px;background:#f5f6f2;border-left:1px solid var(--of-line);display:flex;flex-direction:column;justify-content:center}
+.owned-takehome>span{font-size:13px;font-weight:500}
+.owned-takehome>strong{font-size:40px;line-height:1.2;letter-spacing:-.04em;font-variant-numeric:tabular-nums;margin:8px 0}
+.owned-takehome>p{font-size:12px;line-height:1.6;color:var(--of-muted);max-width:340px;margin:0}
+.owned-months{margin:24px;max-width:100%}
+.owned-months h5{font-size:15px;font-weight:600;margin:0 0 6px}
+.owned-months>p{font-size:12px;color:var(--of-muted);line-height:1.6;margin:0 0 12px}
+.owned-month{display:grid;grid-template-columns:70px 1fr;gap:6px 20px;border-top:1px solid var(--of-line);padding:16px 0;align-items:center}
+.owned-month>strong{font-size:13px}
+.owned-month dl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));max-width:none;margin:0;gap:16px}
+.owned-month dl>div{display:block;padding:0;font-size:12px}
+.owned-month dt{color:var(--of-muted);font-size:11px;line-height:1.5;margin-bottom:5px}
+.owned-month dd{font-size:14px}
+.owned-month-incomplete{grid-column:2;font-size:11px;color:var(--of-warning);margin-top:4px}
+@media(max-width:760px){.owned-totals{row-gap:0}.owned-totals>div{padding:20px 16px}.owned-car footer{grid-column:1;grid-row:auto;padding:0 20px 20px}.owned-cashflow{grid-template-columns:1fr}.owned-takehome{border-left:0;border-top:1px solid var(--of-line);padding:20px}.owned-deductions{padding:20px}.owned-months{margin:20px}.owned-month{grid-template-columns:1fr}.owned-month dl{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.owned-month-incomplete{grid-column:1}.owned-month>strong{font-size:15px;margin-bottom:8px}.owned-takehome>strong{font-size:36px}}

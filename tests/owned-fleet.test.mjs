@@ -40,3 +40,10 @@ test('data failure hides financial figures; customer-controlled text is escaped'
  const m=base();m.cars[0].name='<img onerror=alert(1)>';
  assert(renderOwnedFleet(m,range).includes('&lt;img onerror=alert(1)&gt;'));
 });
+test('cash flow separates loan payments from running costs and keeps exact cents',()=>{
+ const m=base();m.bookings=[{id:'b',vehicle_id:'a',amount_paid:8400.50,booked_on:'2026-11-03'}];
+ m.expenses=[['car_payment',2800],['insurance',600],['repair',300],['detail',100]].map(([category,amount],i)=>({id:String(i),car_id:'a',category,amount,expense_date:'2026-11-04'}));
+ const r=ownedFleet(m,range);const car=r.rows[0];
+ assert.equal(car.carPayments,2800);assert.equal(car.insurance,600);assert.equal(car.runningCosts,1000);assert.equal(car.cash,4600.50);
+ assert.equal(r.totals.carPayments,2800);assert.equal(r.totals.runningCosts,1000);assert.equal(r.totals.cash,4600.50);
+});

@@ -81,11 +81,14 @@ export function ownedFleet(model, range, now = new Date()) {
  }
  const elapsedDays=Math.max(0,Math.round((stamp(elapsedEnd)-stamp(start))/86400000)+1);
  for(const row of rows){
+  row.carPayments=row.breakdown.car_payment||0;
+  row.insurance=row.breakdown.insurance||0;
+  row.runningCosts=row.costs-row.carPayments;
   row.cash=row.revenue-row.costs;row.bookings=row.rentalIds.size;row.rentedDays=row.days.size;
   row.utilization=elapsedDays?row.rentedDays/elapsedDays*100:0;
   row.missing=['insurance','car_payment'].filter(category=>!row.transactions.some(t=>t.kind==='expense'&&t.label===expenseLabels[category]));
   row.transactions.sort((a,b)=>b.date.localeCompare(a.date));delete row.days;delete row.rentalIds;
  }
  rows.sort((a,b)=>b.revenue-a.revenue||a.name.localeCompare(b.name));
- return {rows,unassigned:unmatched.size,unknownOwnership:cars.filter(c=>!c.ownership_type&&!partnerIds.has(String(c.id))).length,elapsedDays,totals:rows.reduce((t,r)=>({revenue:t.revenue+r.revenue,costs:t.costs+r.costs,cash:t.cash+r.cash,bookings:t.bookings+r.bookings}),{revenue:0,costs:0,cash:0,bookings:0})};
+ return {rows,unassigned:unmatched.size,unknownOwnership:cars.filter(c=>!c.ownership_type&&!partnerIds.has(String(c.id))).length,elapsedDays,totals:rows.reduce((t,r)=>({revenue:t.revenue+r.revenue,costs:t.costs+r.costs,carPayments:t.carPayments+r.carPayments,runningCosts:t.runningCosts+r.runningCosts,cash:t.cash+r.cash,bookings:t.bookings+r.bookings}),{revenue:0,costs:0,carPayments:0,runningCosts:0,cash:0,bookings:0})};
 }
