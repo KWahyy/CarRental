@@ -4,13 +4,14 @@ export function initAdminLogin({ document, auth, onSignedIn, location, history }
   const reset = find('[data-reset-form]');
   const update = find('[data-new-password-form]');
   const status = find('[data-login-status]');
-  let recovery = new URLSearchParams(location.search).get('recovery') === '1' || new URLSearchParams(location.hash.slice(1)).get('type') === 'recovery';
+  const invitation = new URLSearchParams(location.hash.slice(1)).get('type') === 'invite';
+  let recovery = invitation || new URLSearchParams(location.search).get('recovery') === '1' || new URLSearchParams(location.hash.slice(1)).get('type') === 'recovery';
   let busy = false;
   function message(text, error = false) { status.textContent = text; status.dataset.tone = error ? 'error' : ''; }
   function mode(value) {
     login.hidden = value !== 'login'; reset.hidden = value !== 'reset'; update.hidden = value !== 'update';
     find('[data-login-title]').textContent = { login:'Welcome back.', reset:'Reset your password.', update:'Choose a new password.' }[value];
-    find('[data-login-description]').textContent = { login:'Sign in to your Prestige Luxor workspace.', reset:'We’ll email a secure link to your account address.', update:'Set a new password to regain access to your workspace.' }[value];
+    find('[data-login-description]').textContent = { login:'Sign in to your Prestige Luxor workspace.', reset:'We’ll email a secure link to your account address.', update:invitation ? 'Choose your password to access your Prestige Luxor workspace.' : 'Set a new password to regain access to your workspace.' }[value];
     message('');
   }
   async function run(form, label, action) {
