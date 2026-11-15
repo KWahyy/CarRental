@@ -1,3 +1,4 @@
+import { canViewFinancials } from "./crm-permissions.js";
 import { renderOwnedFleet } from "./owned-fleet-view.js";
 import { singleFlight, registerSection } from "./crm-navigation.js";
 const root = document.querySelector("[data-executive-dashboard]");
@@ -138,7 +139,7 @@ const loadDashboard = singleFlight(async function (force = false) {
     financialRows("car_partners"),
     userId ? safeRows(supabase.from("admin_profiles").select("display_name,role").eq("user_id", userId).limit(1)) : [],
   ]);
-  const expenses = profiles[0]?.role === "owner" ? await financialRows("vehicle_expenses") : [];
+  const expenses = canViewFinancials(profiles[0]?.role) ? await financialRows("vehicle_expenses") : [];
   model = { expenses, invoices, invoicePayments, agreements, quotes, quoteActivities, invoiceEvents, agreementEvents, bookings, cars, partners, profile: profiles[0] || null, session };
   loaded = true;
   render();
@@ -251,7 +252,7 @@ function render() {
   if (!root) return;
   if (!supabase) { root.innerHTML = `<div class="executive-dashboard-loading crm-loading-state">Connect Supabase to load the dashboard.</div>`; return; }
   const range = selectedRange(); const current = recordsForRange(range); const previous = recordsForRange(previousRange(range));
-  const owner = model.profile?.role === "owner";
+  const owner = canViewFinancials(model.profile?.role);
   if (!owner && chartMetric !== "bookings") chartMetric = "bookings";
   const today = todayIso();
   const pickups = model.agreements.filter((item) => isoDate(item.rental_start) === today && ["signed", "draft"].includes(item.status));
@@ -334,7 +335,7 @@ function render() {
       <section class="executive-card"><div class="executive-card-head"><div><h3>Sales Pipeline</h3><p>Active lead movement and value.</p></div><button class="text-button" data-dashboard-section="requests">Open Quotes</button></div><div class="pipeline-grid">${pipelineCell("New Leads",pipeline.new)}${pipelineCell("Contacted",pipeline.contacted)}${pipelineCell("Quotes Sent",pipeline.sent)}${pipelineCell("Follow-Ups Due",pipeline.followup)}${pipelineCell("Booked",pipeline.booked)}${pipelineCell("Lost",pipeline.lost)}</div><div class="pipeline-summary"><span>Lead → Booking Conversion<strong>${conversion.toFixed(1)}%</strong></span><span>Open Pipeline Value<strong>${money(pipelineValue)}</strong></span></div></section>
     </div>
     <section class="executive-card executive-performance ${hasBusinessData?"":"is-empty"}">${hasBusinessData?`<div class="executive-card-head"><div><h3>${owner ? "Performance" : "Booking activity"}</h3><p>${dateLabel(range.start)} – ${dateLabel(range.end)}</p></div>${owner ? toggle("chart",["revenue","profit","bookings"],chartMetric) : ""}</div>${chartSvg(chart,owner ? chartMetric : "bookings")}`:emptyPerformance()}</section>
-    ${owner ? renderOwnedFleet(model, range, {error:ownershipError}) : ""}
+    ${owner ? renderOwnedFleet(model, range, {error:ownershipError,readOnly:model.profile?.role === "viewer"}) : ""}
     ${secondaryAnalytics}`;
   root.querySelector("[data-dashboard-range]").value = rangeKey;
   bindDashboard();

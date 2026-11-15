@@ -1,3 +1,4 @@
+import { canUseEmployeeApi } from "../src/crm-permissions.js";
 const MAX_LENGTH = 5000;
 const PUBLIC_SUPABASE_URL = "https://vqkuggjlpmzqgyouaryt.supabase.co";
 const PUBLIC_SUPABASE_KEY = "sb_publishable_dntxPFRlTI9cmzRby1UGPg_5fG1HFoP";
@@ -157,7 +158,7 @@ export async function requireUser(req) {
   return { user: cacheSet(authCache, token, await response.json()), token };
 }
 
-export async function requireEmployee(req, allowedRoles = ["owner", "manager", "staff"]) {
+export async function requireEmployee(req, allowedRoles = ["owner", "manager", "staff"], { allowViewerRead = false } = {}) {
   const { user, token } = await requireUser(req);
   let profile = cacheGet(employeeCache, token);
   if (!profile) {
@@ -165,8 +166,8 @@ export async function requireEmployee(req, allowedRoles = ["owner", "manager", "
     profile = profiles?.[0];
     if (profile) cacheSet(employeeCache, token, profile);
   }
-  if (!profile || !allowedRoles.includes(profile.role)) {
-    throw Object.assign(new Error("You do not have permission to use invoices."), { status: 403 });
+  if (!profile || !canUseEmployeeApi(profile.role, req.method, allowViewerRead, allowedRoles)) {
+    throw Object.assign(new Error("This account does not have permission to perform this action."), { status: 403 });
   }
   return { user, profile, token };
 }

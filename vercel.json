@@ -836,6 +836,10 @@
   },
   "rewrites": [
     {
+      "source": "/api/chatgpt-feed",
+      "destination": "/api/public-page?page=chatgpt-feed"
+    },
+    {
       "source": "/wedding",
       "destination": "/api/public-page?page=wedding"
     },

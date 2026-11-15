@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   if (req.method !== "GET") return json(res, 405, { error: "Method not allowed." });
 
   try {
-    const { token } = await requireEmployee(req);
+    const { token } = await requireEmployee(req, undefined, { allowViewerRead: true });
     const id = clean(req.query?.id, 80);
     if (!/^[0-9a-f-]{36}$/i.test(id)) return json(res, 400, { error: "A valid invoice is required." });
     const rows = await db(`invoices?id=eq.${encodeURIComponent(id)}&select=*&limit=1`, {}, token);

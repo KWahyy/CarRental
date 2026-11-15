@@ -107,7 +107,7 @@ async function cachedFleet(token, period, customStart, customEnd) {
 export default async function handler(req, res) {
   setCors(req, res); if (req.method === "OPTIONS") return res.status(204).end();
   try {
-    const { user, profile, token } = await requireEmployee(req);
+    const { user, profile, token } = await requireEmployee(req, undefined, { allowViewerRead: true });
     if (req.method === "GET") {
       if (req.query?.availability === "1") return json(res, 200, await vehicleAvailability(req.query.vehicle_id, req.query.start_at, req.query.end_at, token, { excludeAgreementId: req.query.exclude_agreement_id }));
       const fleet = await cachedFleet(token, clean(req.query?.period, 30) || "month", clean(req.query?.start, 20), clean(req.query?.end, 20));

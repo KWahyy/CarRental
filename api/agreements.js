@@ -57,7 +57,7 @@ export default async function handler(req, res) {
   setCors(req, res);
   if (req.method === "OPTIONS") return res.status(204).end();
   try {
-    const { user, profile, token } = await requireEmployee(req);
+    const { user, profile, token } = await requireEmployee(req, undefined, { allowViewerRead: true });
     if (req.method === "GET") {
       const id = clean(req.query?.id, 80);
       if (id) {

@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   setCors(req, res);
   if (req.method === "OPTIONS") return res.status(204).end();
   try {
-    const { user, token } = await requireEmployee(req);
+    const { user, token } = await requireEmployee(req, undefined, { allowViewerRead: true });
     if (req.method === "GET") {
       const rows = await db("agreement_templates?template_key=eq.master&select=*&limit=1", {}, token).catch(() => []);
       return json(res, 200, { template: rows?.[0] || defaults() });

@@ -1,13 +1,13 @@
 import {ownedFleet,expenseLabels} from './owned-fleet.js';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(v);
-export function renderOwnedFleet(model,range,{error='',now=new Date()}={}) {
+export function renderOwnedFleet(model,range,{error='',now=new Date(),readOnly=false}={}) {
  if(error)return `<section class="owned-fleet"><h3>Our fleet performance</h3><p role="status">Financial records could not be fully loaded. Totals are hidden until the connection is restored.</p><button type="button" data-owned-refresh>Retry financial records</button></section>`;
  const data=ownedFleet(model,range,now),{rows,totals}=data;
  const pending=rows.filter(r=>r.missing.length).length;
  const months=Array.from({length:6},(_,i)=>{const end=new Date(Math.min(range.end,now));const start=new Date(end.getFullYear(),end.getMonth()-5+i,1);const finish=new Date(start.getFullYear(),start.getMonth()+1,0,23,59,59);return {label:start.toLocaleDateString('en-US',{month:'short'}),data:ownedFleet(model,{start,end:finish},now)};});
  return `<section class="owned-fleet" aria-labelledby="owned-fleet-title">
-  <header class="owned-heading"><div><span class="owned-eyebrow">PRESTIGE OWNED · OWNER VIEW</span><h3 id="owned-fleet-title">Owned fleet performance</h3><p>Collected income and recorded ownership costs for the selected period.</p></div><button type="button" data-owned-refresh>Refresh figures ↻</button></header>
+  <header class="owned-heading"><div><span class="owned-eyebrow">PRESTIGE OWNED · ${readOnly?"READ-ONLY":"OWNER VIEW"}</span><h3 id="owned-fleet-title">Owned fleet performance</h3><p>Collected income and recorded ownership costs for the selected period.</p></div><button type="button" data-owned-refresh>Refresh figures ↻</button></header>
   <div class="owned-totals">${[['Rental income',totals.revenue,'Payments collected, excluding deposits'],['Recorded outflow',totals.costs,'Operating costs + car payments'],['Cash remaining',totals.cash,'Before unrecorded costs and taxes']].map(([label,value,note])=>`<div><span>${label}</span><strong class="${value<0?'is-negative':''}">${money(value)}</strong><small>${note}</small></div>`).join('')}<div><span>Your fleet</span><strong>${rows.length} <em>${rows.length===1?"car":"cars"}</em></strong><small>${totals.bookings} rentals overlap this period</small></div></div>
   ${pending||data.unknownOwnership||data.unassigned?`<p class="owned-notice">${pending?`${pending} car${pending===1?' has':'s have'} no insurance or car-payment entry in this period. `:''}${data.unknownOwnership?`${data.unknownOwnership} vehicle(s) need ownership confirmed. `:''}${data.unassigned?`${data.unassigned} financial record(s) could not be matched uniquely and are excluded. `:''}Review entries before relying on the totals.</p>`:''}
   <div class="owned-cars">${rows.map((r,index)=>{
@@ -19,7 +19,7 @@ export function renderOwnedFleet(model,range,{error='',now=new Date()}={}) {
     <div class="owned-utilization"><span>Utilization <b>${r.utilization.toFixed(0)}%</b></span><meter min="0" max="100" value="${r.utilization}" aria-label="Utilization"></meter><small>${r.rentedDays} of ${data.elapsedDays} elapsed calendar days · return day excluded</small></div>
 
     ${r.missing.length?`<p class="owned-missing">Not recorded: ${r.missing.map(k=>expenseLabels[k].toLowerCase()).join(' · ')}</p>`:'<p class="owned-recorded">Insurance and payment entries recorded</p>'}
-    <footer><button type="button" data-owned-expense="${esc(r.id)}">Record a cost <span aria-hidden="true">＋</span></button><button type="button" data-owned-vehicle="${esc(r.id)}">Open vehicle ↗</button></footer>
+    <footer>${readOnly?'':`<button type="button" data-owned-expense="${esc(r.id)}">Record a cost <span aria-hidden="true">＋</span></button>`}<button type="button" data-owned-vehicle="${esc(r.id)}">Open vehicle ↗</button></footer>
     <details class="owned-breakdown"><summary>View financial breakdown <span aria-hidden="true">＋</span></summary>
       <dl><div><dt>Rental payments received</dt><dd>${money(r.revenue)}</dd></div>${Object.entries(r.breakdown).map(([k,v])=>`<div><dt>${esc(expenseLabels[k]||k)}</dt><dd>${money(v)}</dd></div>`).join('')}<div class="owned-total-line"><dt>Cash remaining</dt><dd>${money(r.cash)}</dd></div><div><dt>Uncollected rental balance*</dt><dd>${money(r.outstanding)}</dd></div></dl>
       <p>*Invoices starting in this period. Not included in received income. Cash remaining includes loan principal; it is not accounting net profit. Depreciation and taxes are not included.</p>

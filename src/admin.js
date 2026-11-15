@@ -1,3 +1,4 @@
+import { installViewerGuard } from "./crm-viewer.js";
 import { prepareWorkspace } from "./crm-navigation.js";
 import { initAdminLogin } from "./admin-login.js";
 import { brandFor } from './vehicle-brands.js';
@@ -585,7 +586,18 @@ async function runQuery(query) {
   return data;
 }
 
-function showAdmin(isAdmin) {
+const setViewerRole = installViewerGuard(document);
+
+async function showAdmin(isAdmin) {
+  if (isAdmin) {
+    const { data: { session } } = await supabase.auth.getSession();
+    const { data: profile, error } = session ? await supabase.from("admin_profiles").select("role").eq("user_id", session.user.id).maybeSingle() : { data: null };
+    if (error || !profile || !["owner","manager","staff","viewer"].includes(profile.role)) {
+      setStatus(loginStatus, "Dashboard access has not been enabled for this account.", "error");
+      isAdmin = false;
+    }
+    setViewerRole(isAdmin ? profile.role : null);
+  } else setViewerRole(null);
   prepareWorkspace(isAdmin);
   loginView.hidden = isAdmin;
   adminView.hidden = !isAdmin;
@@ -2177,7 +2189,7 @@ async function init() {
   try {
     const { data, error } = await supabase.auth.getSession();
     if (error) throw error;
-    showAdmin(Boolean(data.session) && !loginController.isRecovery());
+    await showAdmin(Boolean(data.session) && !loginController.isRecovery());
     renderCrm();
   } catch {
     showAdmin(false);

@@ -1,3 +1,4 @@
+import chatgptFeedHandler from '../src/server-chatgpt-feed.js';
 import sitemapHandler from '../src/server-sitemap.js';
 import { renderPrivateDocument } from '../src/private-render.js';
 import quoteHandler from './quotes-public.js';
@@ -15,6 +16,7 @@ export function publicPagePath(value) {
 
 export default async function handler(req, res) {
   const query = req.query || Object.fromEntries(new URL(req.url, 'http://localhost').searchParams);
+  if (query.page === 'chatgpt-feed') return chatgptFeedHandler(req, res);
   if (query.page === 'sitemap') return sitemapHandler(req, res);
   const page = publicPagePath(query.page);
   if (!page) return res.status(404).send('Page not found');

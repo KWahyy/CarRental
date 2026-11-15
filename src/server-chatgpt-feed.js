@@ -1,5 +1,5 @@
-import {loadPublicInventory} from '../src/public-inventory.js';
-import {buildProductFeed,productFeedCsv} from '../src/chatgpt-product-feed.js';
+import {loadPublicInventory} from './public-inventory.js';
+import {buildProductFeed,productFeedCsv} from './chatgpt-product-feed.js';
 export default async function handler(req,res){
  if(!['GET','HEAD'].includes(req.method)){res.setHeader('Allow','GET, HEAD');return res.status(405).json({error:'Method not allowed'});}
  try{
