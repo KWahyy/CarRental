@@ -1,3 +1,4 @@
+import { compactPersonName, compactVehicleName } from "./crm-compact-labels.js";
 import { amountLabel, rentalRange, statePill } from "./crm-billing-display.js";
 import { singleFlight, registerSection } from "./crm-navigation.js";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
@@ -32,6 +33,10 @@ const money = (value) => new Intl.NumberFormat("en-US",{style:"currency",currenc
 const shortMoney = (value) => new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(Number(value||0));
 const dateLabel = (value, withTime=false) => value ? new Date(value).toLocaleString("en-US", withTime ? {month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"} : {month:"short",day:"numeric",year:"numeric"}) : "—";
 const fullName = (item) => [item?.customer_first_name ?? item?.first_name, item?.customer_last_name ?? item?.last_name].filter(Boolean).join(" ").trim();
+const quoteGuestLabel = (quote) => compactPersonName(fullName(quote) || quote.customer_name, {
+  firstName: quote.customer_first_name,
+  lastName: quote.customer_last_name,
+});
 const employeeName = (id) => model.employees.find((item)=>String(item.user_id)===String(id))?.display_name || "Unassigned";
 const partnerFor = (id) => model.partners.find((item)=>String(item.car_id)===String(id));
 const localInput = (value) => { if(!value)return ""; const d=new Date(value); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16); };
@@ -51,14 +56,15 @@ async function api(path="quotes",options={}){const response=await fetch(`/api/${
 
 function statusBadge(status){return statePill(STATUS_LABELS[status] || status);}
 function quoteScope(quote){if(filter.scope==="draft")return quote.status==="draft";if(filter.scope==="awaiting")return ["sent","viewed","follow_up"].includes(quote.status);if(filter.scope==="open")return OPEN.includes(quote.status);if(filter.scope==="accepted")return ACCEPTED.includes(quote.status);if(filter.scope==="converted")return quote.status==="converted";if(filter.scope==="lost")return LOST.includes(quote.status);return true;}
-function visibleQuotes(){const search=filter.search.toLowerCase();return model.quotes.filter((quote)=>quoteScope(quote)&&(!search||[quote.quote_number,fullName(quote),quote.customer_phone,quote.customer_email,quote.vehicle_name].some((value)=>String(value||"").toLowerCase().includes(search)))&&(filter.status==="all"||quote.status===filter.status)&&(filter.vehicle==="all"||String(quote.vehicle_id)===filter.vehicle)&&(filter.employee==="all"||String(quote.assigned_user_id||"")===filter.employee)&&(filter.source==="all"||String(quote.lead_source||"")===filter.source)&&(!filter.created||String(quote.created_at||"").slice(0,10)===filter.created)&&(!filter.rental||String(quote.start_at||"").slice(0,10)===filter.rental));}
+function visibleQuotes(){const search=filter.search.toLowerCase();return model.quotes.filter((quote)=>quoteScope(quote)&&(!search||[quote.quote_number,fullName(quote),quote.customer_name,quoteGuestLabel(quote),quote.customer_phone,quote.customer_email,quote.vehicle_name].some((value)=>String(value||"").toLowerCase().includes(search)))&&(filter.status==="all"||quote.status===filter.status)&&(filter.vehicle==="all"||String(quote.vehicle_id)===filter.vehicle)&&(filter.employee==="all"||String(quote.assigned_user_id||"")===filter.employee)&&(filter.source==="all"||String(quote.lead_source||"")===filter.source)&&(!filter.created||String(quote.created_at||"").slice(0,10)===filter.created)&&(!filter.rental||String(quote.start_at||"").slice(0,10)===filter.rental));}
 
 function proposal(quote) {
   if (!quote) return "";
   const car = model.cars.find(item => item.id === quote.vehicle_id);
   const image = quote.vehicle_image_url || car?.image_url;
   const name = quote.vehicle_name || car?.name || "Rental proposal";
-  const vehicle = image ? `<figure class="bl-proposal-media"><div class="bl-proposal-image"><img src="${escapeHtml(image)}" alt="${escapeHtml(name)}"></div><figcaption>${escapeHtml(name)}</figcaption></figure>` : "";
+  const label = compactVehicleName(name, car);
+  const vehicle = image ? `<figure class="bl-proposal-media"><div class="bl-proposal-image"><img src="${escapeHtml(image)}" alt="${escapeHtml(name)}"></div><figcaption title="${escapeHtml(name)}">${escapeHtml(label)}</figcaption></figure>` : "";
   const groups = [
     ["awaiting", "Awaiting response", "Sent", q => ["sent", "viewed", "follow_up"].includes(q.status)],
     ["draft", "Ready to send", "Draft", q => q.status === "draft"],
@@ -66,7 +72,7 @@ function proposal(quote) {
   ];
   return `<div class="bl-quote-lead"><article class="bl-proposal ${image ? "" : "text-only"}">
     <div class="bl-proposal-copy"><div class="bl-kicker">Rental proposal <span>/</span> ${escapeHtml(quote.quote_number)}</div>
-    <h3>${escapeHtml(name)}</h3><p class="bl-proposal-client">${escapeHtml(fullName(quote))} <span>·</span> ${rentalRange(quote.start_at, quote.end_at)}</p>
+    <h3 title="${escapeHtml(name)}">${escapeHtml(label)}</h3><p class="bl-proposal-client" title="${escapeHtml(fullName(quote) || quote.customer_name)}">${escapeHtml(quoteGuestLabel(quote))} <span>·</span> ${rentalRange(quote.start_at, quote.end_at)}</p>
     <div class="bl-proposal-foot"><div><small>Quoted total</small><strong>${amountLabel(quote.rental_total)}</strong></div><button type="button" class="bl-proposal-open" data-open-quote-button="${escapeHtml(quote.id)}">View quote →</button></div></div>${vehicle}</article>
     <aside class="bl-pipeline"><h3>Quote pipeline</h3><div>${groups.map(([key, label, state, match]) => `<button type="button" data-quote-scope="${key}" aria-pressed="${filter.scope===key}"><span><i data-state="${state}"></i>${label}</span><strong>${model.quotes.filter(match).length}</strong></button>`).join("")}</div></aside></div>`;
 }
@@ -101,7 +107,7 @@ function renderList() {
         </div></details></div></div>
     ${activeFilters ? '<button class="quote-clear" type="button" data-clear-quote-filters>Clear filters</button>' : ""}
     ${quotes.length ? `<table class="bl-quotes-table"><thead><tr><th scope="col">Proposal / Customer</th><th scope="col">Vehicle</th><th scope="col">Rental dates</th><th scope="col">Status</th><th scope="col">Total</th></tr></thead>
-    <tbody>${quotes.map(q=>`<tr data-open-quote="${escapeHtml(q.id)}"><td><button type="button" class="bl-title-button" data-open-quote-button="${escapeHtml(q.id)}"><strong>${escapeHtml(fullName(q) || "Customer")}</strong><small>${escapeHtml(q.quote_number)}</small></button></td><td class="bl-vehicle-cell">${escapeHtml(q.vehicle_name)}</td><td class="bl-date-cell">${rentalRange(q.start_at,q.end_at)}</td><td>${statusBadge(q.status)}</td><td class="bl-amount-cell">${amountLabel(q.rental_total)}</td></tr>`).join("")}</tbody></table>` :
+    <tbody>${quotes.map(q=>`<tr data-open-quote="${escapeHtml(q.id)}"><td><button type="button" class="bl-title-button" data-open-quote-button="${escapeHtml(q.id)}"><strong title="${escapeHtml(fullName(q) || q.customer_name)}">${escapeHtml(quoteGuestLabel(q) || "Customer")}</strong><small>${escapeHtml(q.quote_number)}</small></button></td><td class="bl-vehicle-cell" title="${escapeHtml(q.vehicle_name)}">${escapeHtml(compactVehicleName(q.vehicle_name))}</td><td class="bl-date-cell">${rentalRange(q.start_at,q.end_at)}</td><td>${statusBadge(q.status)}</td><td class="bl-amount-cell">${amountLabel(q.rental_total)}</td></tr>`).join("")}</tbody></table>` :
     `<div class="bl-empty"><strong>${model.quotes.length ? "No matching quotes" : "No quotes yet"}</strong><p>${model.quotes.length ? "Try another search or clear your filters." : "Create a quote to prepare a rental proposal."}</p></div>`}`;
   if (searchFocused) {
     const input = root.querySelector("[data-quote-search]");

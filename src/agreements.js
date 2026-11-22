@@ -1,3 +1,4 @@
+import { compactPersonName, compactVehicleName } from "./crm-compact-labels.js";
 import { rentalRange } from "./crm-billing-display.js";
 import { singleFlight, registerSection } from "./crm-navigation.js";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
@@ -77,14 +78,14 @@ function stageLabel(item) {
 function renderList() {
   const query = search.value.trim().toLowerCase();
   const rows = agreements.filter(item => (agreementScope === "all" || signingScope(item) === agreementScope) &&
-    [item.agreement_number,item.customer_name,item.vehicle_name].some(value => String(value || "").toLowerCase().includes(query)));
+    [item.agreement_number,item.customer_name,compactPersonName(item.customer_name),item.vehicle_name].some(value => String(value || "").toLowerCase().includes(query)));
   list.innerHTML = rows.map(item => {
     const car = inventory.find(car => (item.vehicle_id && car.id === item.vehicle_id) || car.name?.trim().toLowerCase() === item.vehicle_name?.trim().toLowerCase());
     const photo = item.vehicle_image_url || inventoryPhotoUrl(car);
     return `<button type="button" class="ag-row" data-select-agreement="${escapeHtml(item.id)}" aria-haspopup="dialog">
       <span class="ag-car">${photo ? `<img class="ag-thumb" alt="" src="${escapeHtml(photo)}" loading="lazy">` : '<span class="ag-thumb ag-missing" aria-hidden="true">PL</span>'}
-      <span><small>${escapeHtml(item.agreement_number)}</small><strong>${escapeHtml(item.vehicle_name || "Vehicle pending")}</strong></span></span>
-      <span class="ag-guest">${escapeHtml(item.customer_name)}</span><span class="ag-dates">${rentalRange(item.rental_start_at || item.rental_start,item.rental_end_at || item.rental_end)}</span>
+      <span><small>${escapeHtml(item.agreement_number)}</small><strong title="${escapeHtml(item.vehicle_name)}">${escapeHtml(compactVehicleName(item.vehicle_name, car) || "Vehicle pending")}</strong></span></span>
+      <span class="ag-guest" title="${escapeHtml(item.customer_name)}">${escapeHtml(compactPersonName(item.customer_name))}</span><span class="ag-dates">${rentalRange(item.rental_start_at || item.rental_start,item.rental_end_at || item.rental_end)}</span>
       <span class="ag-state" data-stage="${signingScope(item)}">${stageLabel(item)}</span><span class="ag-chevron" aria-hidden="true">›</span></button>`;
   }).join("") || `<p class="bl-empty">${agreements.length ? "No agreements match this view." : "No agreements yet."}</p>`;
   kpis.innerHTML = Object.entries(scopes).map(([key,label]) => `<button type="button" data-agreement-scope="${key}" aria-pressed="${agreementScope === key}"><span>${label}</span><strong>${agreements.filter(item => key === "all" || signingScope(item) === key).length}</strong></button>`).join("");

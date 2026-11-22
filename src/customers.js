@@ -1,3 +1,4 @@
+import { compactPersonName, compactVehicleName } from "./crm-compact-labels.js";
 import { singleFlight, registerSection } from "./crm-navigation.js";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./supabase-config.js?v=fleet-sync-20260714";
@@ -25,7 +26,12 @@ const fullName = (record) => [record?.first_name ?? record?.customer_first_name,
 const contactEmail = (record) => record?.email || record?.customer_email || "";
 const contactPhone = (record) => record?.phone || record?.customer_phone || "";
 const activityDate = (record) => record?.signed_at || record?.paid_at || record?.updated_at || record?.created_at || record?.issue_date || record?.rental_start || "";
-const initials = (name) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "PL";
+function initials(label) {
+  const words = label.trim().split(/\s+/);
+  const first = Array.from(words[0] || "")[0] || "";
+  const last = words.length > 1 ? Array.from(words.at(-1))[0] : "";
+  return (first + last).toUpperCase() || "PL";
+}
 
 function recordMatch(profile, record) {
   if (record.customer_id && profile.id && String(record.customer_id) === String(profile.id)) return true;
@@ -127,7 +133,7 @@ const load = singleFlight(async function (force = false, preferredKey = "") {
 function visibleCustomers() {
   const query = searchTerm.trim().toLowerCase();
   return customers.filter((customer) => {
-    const matchesSearch = !query || [customer.name, customer.email, customer.phone, customer.company, customer.vehicles.join(" ")].some((value) => String(value || "").toLowerCase().includes(query));
+    const matchesSearch = !query || [customer.name, compactPersonName(customer.name, customer), customer.email, customer.phone, customer.company, customer.vehicles.join(" ")].some((value) => String(value || "").toLowerCase().includes(query));
     const matchesView = view === "all" || (view === "renters" && customer.agreements.length) || (view === "repeat" && customer.agreements.length > 1) || (view === "leads" && !customer.agreements.length) || (view === "email_ready" && customer.marketingStatus === "subscribed" && Boolean(customer.email));
     return matchesSearch && matchesView;
   });
@@ -144,7 +150,10 @@ function renderList() {
       <label><span>Search customers</span><input type="search" value="${escapeHtml(searchTerm)}" placeholder="Name, phone, email, or vehicle" data-customer-search></label>
       <div class="customer-view-tabs" role="group" aria-label="Customer views">${[["all","All"],["renters","Renters"],["repeat","Repeat"],["leads","Leads"],["email_ready","Email ready"]].map(([id,label]) => `<button class="${view === id ? "active" : ""}" type="button" data-customer-view="${id}" aria-pressed="${view === id}">${label}</button>`).join("")}</div>
     </div>
-    <div class="customers-list">${visible.length ? visible.map((customer) => `<button class="customer-list-item ${customer.key === selectedKey ? "active" : ""}" type="button" data-customer-key="${escapeHtml(customer.key)}" aria-pressed="${customer.key === selectedKey}"><span class="customer-avatar">${escapeHtml(initials(customer.name))}</span><span class="customer-list-copy"><strong>${escapeHtml(customer.name)}</strong><small>${escapeHtml(customer.email || customer.phone || "No contact details")}</small></span><span class="customer-list-meta"><strong>${customer.recordCount}</strong><small>records</small></span></button>`).join("") : '<div class="customers-list-empty"><strong>No customers found</strong><span>Try another search or view.</span></div>'}</div>
+    <div class="customers-list">${visible.length ? visible.map((customer) => {
+      const label = compactPersonName(customer.name, customer);
+      return `<button class="customer-list-item ${customer.key === selectedKey ? "active" : ""}" type="button" data-customer-key="${escapeHtml(customer.key)}" aria-pressed="${customer.key === selectedKey}"><span class="customer-avatar">${escapeHtml(initials(label))}</span><span class="customer-list-copy"><strong title="${escapeHtml(customer.name)}">${escapeHtml(label)}</strong><small>${escapeHtml(customer.email || customer.phone || "No contact details")}</small></span><span class="customer-list-meta"><strong>${customer.recordCount}</strong><small>records</small></span></button>`;
+    }).join("") : '<div class="customers-list-empty"><strong>No customers found</strong><span>Try another search or view.</span></div>'}</div>
   </aside>`;
 }
 
@@ -156,7 +165,7 @@ function recordRow(type, record) {
   const number = type === "quote" ? record.quote_number : type === "invoice" ? record.invoice_number : record.agreement_number;
   const value = type === "quote" ? record.rental_total : type === "invoice" ? record.total : record.rental_total || record.quote_total;
   const date = type === "invoice" ? record.issue_date : record.rental_start_at || record.rental_start || record.start_at || record.created_at;
-  return `<button class="customer-record-row" type="button" data-customer-record="${type}" data-record-id="${record.id}"><span class="customer-record-kind">${escapeHtml(type)}</span><span><strong>${escapeHtml(number || "Record")}</strong><small>${escapeHtml(record.vehicle_name || "Vehicle not selected")} · ${escapeHtml(dateLabel(date))}</small></span><span><strong>${money(value)}</strong>${statusBadge(record.status)}</span><b aria-hidden="true">→</b></button>`;
+  return `<button class="customer-record-row" type="button" data-customer-record="${type}" data-record-id="${record.id}"><span class="customer-record-kind">${escapeHtml(type)}</span><span><strong>${escapeHtml(number || "Record")}</strong><small><span title="${escapeHtml(record.vehicle_name)}">${escapeHtml(compactVehicleName(record.vehicle_name) || "Vehicle not selected")}</span> · ${escapeHtml(dateLabel(date))}</small></span><span><strong>${money(value)}</strong>${statusBadge(record.status)}</span><b aria-hidden="true">→</b></button>`;
 }
 
 function renderDetail(customer) {
@@ -182,7 +191,7 @@ function renderDetail(customer) {
     <div class="customer-profile-grid">
       <div class="customer-history-column">
         <section class="customer-profile-card"><header><div><span>Rental history</span><h4>Customer records</h4></div><strong>${records.length}</strong></header><div class="customer-records">${records.length ? records.map(({ type, record }) => recordRow(type, record)).join("") : '<div class="customer-card-empty">No linked records yet.</div>'}</div></section>
-        <section class="customer-profile-card"><header><div><span>Vehicles</span><h4>Previous selections</h4></div><strong>${customer.vehicles.length}</strong></header><div class="customer-vehicle-tags">${customer.vehicles.length ? customer.vehicles.map((vehicle) => `<span>${escapeHtml(vehicle)}</span>`).join("") : '<div class="customer-card-empty">No vehicles recorded yet.</div>'}</div></section>
+        <section class="customer-profile-card"><header><div><span>Vehicles</span><h4>Previous selections</h4></div><strong>${customer.vehicles.length}</strong></header><div class="customer-vehicle-tags">${customer.vehicles.length ? customer.vehicles.map((vehicle) => `<span title="${escapeHtml(vehicle)}">${escapeHtml(compactVehicleName(vehicle))}</span>`).join("") : '<div class="customer-card-empty">No vehicles recorded yet.</div>'}</div></section>
         <form class="customer-profile-card customer-marketing-card" data-customer-marketing-form>
           <input type="hidden" name="customer_key" value="${escapeHtml(customer.key)}">
           <header><div><span>Future email marketing</span><h4>Permission & interests</h4></div></header>

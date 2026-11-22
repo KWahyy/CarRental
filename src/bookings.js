@@ -1,3 +1,4 @@
+import { compactPersonName, compactVehicleName } from "./crm-compact-labels.js";
 import { arrow, cash, photo, searchIcon, searchKey, stateLabel, vehiclePhotoSource, handleMissingPhotos } from "./crm-operation-ui.js";
 import { canViewFinancials } from "./crm-permissions.js";
 import { optimizedFleetImageUrl } from "./supabase-fleet.js?v=fleet-images-20260818";
@@ -190,16 +191,16 @@ function renderSchedule() {
       const count=all.filter(e=>e.date===day).length;
       return `<button type="button" data-booking-day="${day}" aria-pressed="${day===activeDay}" aria-label="${dayLabel(day,{weekday:"long",month:"long",day:"numeric"})}, ${count} handoffs"><span>${dayLabel(day,{weekday:"short"})}</span><strong>${Number(day.slice(-2))}</strong><i class="${count?"op-day-mark":""}" aria-hidden="true"></i></button>`;
     }).join("")}</div>
-    <div>${events.length ? events.map(e=>`<button type="button" class="op-event" data-open-booking="${escapeHtml(e.item.key)}"><time datetime="${escapeHtml(e.stamp)}">${e.timeLabel}</time><span class="op-event-body"><span class="op-event-label">${escapeHtml([e.kind,e.location].filter(Boolean).join(" · "))}</span><strong>${escapeHtml(e.item.vehicle||"Vehicle not selected")}</strong></span>${arrow}</button>`).join("") : `<p class="op-empty">No handoffs scheduled for ${dayLabel(activeDay)}.</p>`}</div></div>
-    ${spotlight ? `<aside id="op-book-feature"><div class="op-dispatch-photo">${vehiclePhoto(spotlight.item,"",true)}</div><div class="op-dispatch-copy"><p class="op-kicker">${spotlight.kind==="Return"?"Scheduled return":"Scheduled departure"}</p><h3>${escapeHtml(spotlight.item.vehicle||"Vehicle not selected")}</h3><p class="op-dispatch-meta">${escapeHtml([spotlight.location,spotlight.timeLabel].filter(Boolean).join(" · "))}</p><button class="op-light-link" data-open-booking="${escapeHtml(spotlight.item.key)}">Booking details ${arrow}</button></div></aside>`:""}`;
+    <div>${events.length ? events.map(e=>`<button type="button" class="op-event" data-open-booking="${escapeHtml(e.item.key)}"><time datetime="${escapeHtml(e.stamp)}">${e.timeLabel}</time><span class="op-event-body"><span class="op-event-label">${escapeHtml([e.kind,e.location].filter(Boolean).join(" · "))}</span><strong>${escapeHtml(compactVehicleName(e.item.vehicle) || "Vehicle not selected")}</strong></span>${arrow}</button>`).join("") : `<p class="op-empty">No handoffs scheduled for ${dayLabel(activeDay)}.</p>`}</div></div>
+    ${spotlight ? `<aside id="op-book-feature"><div class="op-dispatch-photo">${vehiclePhoto(spotlight.item,"",true)}</div><div class="op-dispatch-copy"><p class="op-kicker">${spotlight.kind==="Return"?"Scheduled return":"Scheduled departure"}</p><h3>${escapeHtml(compactVehicleName(spotlight.item.vehicle) || "Vehicle not selected")}</h3><p class="op-dispatch-meta">${escapeHtml([spotlight.location,spotlight.timeLabel].filter(Boolean).join(" · "))}</p><button class="op-light-link" data-open-booking="${escapeHtml(spotlight.item.key)}">Booking details ${arrow}</button></div></aside>`:""}`;
 }
 function renderLedger(){
   const all=records();
   const term=searchKey(searchTerm);
-  const filtered=all.filter(r=>(!selectedVehicle || searchKey(carFor(r)?.name || r.vehicle)===searchKey(selectedVehicle)) && searchKey([r.customer_name,r.vehicle,r.customer_email,r.customer_phone,bookingLabel(r),r.id].join(" ")).includes(term));
+  const filtered=all.filter(r=>(!selectedVehicle || searchKey(carFor(r)?.name || r.vehicle)===searchKey(selectedVehicle)) && searchKey([r.customer_name,r.vehicle,r.customer_email,r.customer_phone,bookingLabel(r),r.id,compactPersonName(r.customer_name)].join(" ")).includes(term));
   app.querySelector("[data-booking-count]").textContent=filtered.length+(filtered.length===1?" reservation":" reservations");
   app.querySelector("[data-booking-rows]").innerHTML=filtered.length ? `<div class="op-ledger-head" aria-hidden="true"><span>Vehicle / guest</span><span>Rental dates</span><span>Rental amount</span><span>Status</span></div>${filtered.map(r => `<button type="button" class="op-book-row" data-open-booking="${escapeHtml(r.key)}">
-    <span class="op-book-name">${vehiclePhoto(r,"op-thumb")}<span><strong>${escapeHtml(r.vehicle||"Vehicle not selected")}</strong><small>${escapeHtml(r.customer_name||"Guest")} · ${escapeHtml(bookingLabel(r))}</small></span></span>
+    <span class="op-book-name">${vehiclePhoto(r,"op-thumb")}<span><strong>${escapeHtml(compactVehicleName(r.vehicle) || "Vehicle not selected")}</strong><small>${escapeHtml(compactPersonName(r.customer_name) || "Guest")} · ${escapeHtml(bookingLabel(r))}</small></span></span>
     <span class="op-book-dates">${r.start_date ? dayLabel(r.start_date) : "Start TBD"} – ${r.end_date ? dayLabel(r.end_date) : "Return TBD"}</span><span class="op-book-amount">${cash(number(r.total_amount))}</span><span class="op-book-state">${bookingStatus(r)}${arrow}</span></button>`).join("")}` : `<p class="op-empty">${all.length?"No bookings match these filters.":"No bookings have been recorded. Signed agreements appear here automatically."}</p>`;
 }
 function render(){

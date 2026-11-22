@@ -1,3 +1,4 @@
+import {compactPersonName, compactVehicleName} from "./crm-compact-labels.js";
 import {vehiclePhotoSource} from "./crm-operation-ui.js";
 import {optimizedFleetImageUrl} from "./supabase-fleet.js";
 import {bindRevenue, businessDay, dollars, revenuePanel} from "./crm-desk-overview-revenue.js";
@@ -64,20 +65,23 @@ function hero(view,rows,fleet) {
   const item = featured[state.handoff], car = item?.car;
   const heading = rows.length ? "Next handoff" : item ? "Fleet spotlight" : "Handoffs";
   const make = car?.make || "", name = item?.name || car?.name || "No upcoming handoffs";
-  const model = car?.model || name;
+  const fullTitle = make && car?.model ? make + " " + car.model : name;
+  const title = compactVehicleName(fullTitle, car);
   const details = item?.record ? openButton(item.kind,item.record.id,"View handoff "+icon("arrow"),"pl-handoff-open") : car ? openButton("vehicle",car.id,"Open vehicle "+icon("arrow"),"pl-handoff-open") : button("data-desk-schedule","View schedule "+icon("arrow"),"pl-handoff-open");
   return `<div class="pl-handoff${vehiclePhotoSource(car)?'':' has-no-image'}"><div class="pl-handoff-photo">${image(car,"pl-handoff-frame",true)}</div><div class="pl-handoff-panel">
     <div class="pl-handoff-heading"><span class="pl-handoff-label">${heading}</span>${featured.length?'<span class="pl-handoff-position">'+(state.handoff+1)+' / '+featured.length+'</span>':''}</div>
-    <div class="pl-handoff-record" aria-live="polite"><h2 class="pl-handoff-name ${model.length>18?'long-name':''}">${make?esc(make)+' <em>'+esc(model)+'</em>':esc(name)}</h2>
+    <div class="pl-handoff-record" aria-live="polite"><h2 class="pl-handoff-name ${title.length>18?'long-name':''}" title="${esc(fullTitle)}">${make && title.startsWith(make + " ") ? esc(make) + ' <em>' + esc(title.slice(make.length + 1)) + '</em>' : '<em>' + esc(title) + '</em>'}</h2>
     <p class="pl-handoff-meta">${item?.at ? icon("clock")+esc(when(item.at))+" · "+item.type : view.failedTables.has("rental_agreements")?"Handoff schedule unavailable":car?"No upcoming handoffs scheduled":""}</p>
-    ${item?.client?'<p class="pl-handoff-meta">'+esc(item.client)+'</p>':''}</div>
+    ${item?.client?'<p class="pl-handoff-meta">'+esc(compactPersonName(item.client))+'</p>':''}</div>
     <div class="pl-handoff-actions">${details}${featured.length>1?`<div class="pl-handoff-nav">${[-1,1].map(dir=>button(`data-desk-handoff-step="${dir}" aria-label="${dir<0?'Previous':'Next'} ${rows.length?'handoff':'vehicle'}"`,icon(dir<0?"left":"right"),"pl-handoff-step")).join("")}</div>`:""}</div></div></div>`;
 }
 function issueRow(item,view) {
   const records = item.kind==="agreement"?view.model.agreements:item.kind==="invoice"?view.model.invoices:view.model.quotes;
   const record = records.find(r=>String(r.id)===String(item.id));
-  const name = record?.vehicle_name || record?.vehicle || record?.customer_name || record?.name || "";
-  return openButton(item.kind,item.id,image(carFor(record,view))+`<span><span class="meta">${esc(record?.customer_name||record?.name||"")}</span><span class="title">${esc(item.title)}</span><span class="sub">${esc(name)}${item.issues.length>1?" · +"+(item.issues.length-1)+" more":""}</span></span>`+icon("right"),"issue");
+  const car = carFor(record,view);
+  const name = compactPersonName(record?.customer_name || record?.name);
+  const vehicle = compactVehicleName(record?.vehicle_name || record?.vehicle, car);
+  return openButton(item.kind,item.id,image(car)+`<span><span class="meta">${esc(name)}</span><span class="title">${esc(item.title)}</span><span class="sub">${esc(vehicle)}${item.issues.length>1?" · +"+(item.issues.length-1)+" more":""}</span></span>`+icon("right"),"issue");
 }
 function attentionPanel(view,rows) {
   const pickups = rows.filter(row=>row.type==="Pickup" && businessDay(row.at)===businessDay());
@@ -104,9 +108,9 @@ function paidSources(view) {
 function followups(view) {
   const today = businessDay();
   const proposals = view.model.proposals.filter(p=>!["converted","cancelled","declined","expired"].includes(p.status));
-  const rows = [...proposals.map(p=>({kind:"proposal",id:p.id,at:p.follow_up_at,car:carFor(p,view),name:[p.customer_first_name,p.customer_last_name].filter(Boolean).join(" "),vehicle:p.vehicle_name})),
-    ...view.model.quotes.filter(q=>q.status!=="booked").map(q=>({kind:"quote",id:q.id,at:q.follow_up_at,car:carFor(q,view),name:q.name,vehicle:q.vehicle}))].filter(r=>r.at && businessDay(r.at)<=today).sort((a,b)=>String(a.at).localeCompare(String(b.at)));
-  return `<section id="sales"><div class="section-head"><h2>Sales follow-ups</h2><span class="period">Due by today</span></div><div>${rows.length?rows.slice(0,5).map(row=>openButton(row.kind,row.id,image(row.car)+'<span><span class="title">'+esc(row.name||"Follow up")+'</span><span class="sub">'+esc([row.vehicle,when(row.at)].filter(Boolean).join(" · "))+'</span></span>'+icon("right"),"follow")).join(""):empty(view.failedTables.has("quotes")||view.failedTables.has("quote_requests")?"Follow-ups could not be loaded.":"No follow-ups due today.")}</div>${button('data-dashboard-section="requests"',"Open quotes →","desk-link")}</section>`;
+  const rows = [...proposals.map(p=>({kind:"proposal",id:p.id,at:p.follow_up_at,car:carFor(p,view),name:compactPersonName("",{firstName:p.customer_first_name,lastName:p.customer_last_name}),vehicle:p.vehicle_name})),
+    ...view.model.quotes.filter(q=>q.status!=="booked").map(q=>({kind:"quote",id:q.id,at:q.follow_up_at,car:carFor(q,view),name:compactPersonName(q.name),vehicle:q.vehicle}))].filter(r=>r.at && businessDay(r.at)<=today).sort((a,b)=>String(a.at).localeCompare(String(b.at)));
+  return `<section id="sales"><div class="section-head"><h2>Sales follow-ups</h2><span class="period">Due by today</span></div><div>${rows.length?rows.slice(0,5).map(row=>openButton(row.kind,row.id,image(row.car)+'<span><span class="title">'+esc(row.name||"Follow up")+'</span><span class="sub">'+esc([compactVehicleName(row.vehicle,row.car),when(row.at)].filter(Boolean).join(" · "))+'</span></span>'+icon("right"),"follow")).join(""):empty(view.failedTables.has("quotes")||view.failedTables.has("quote_requests")?"Follow-ups could not be loaded.":"No follow-ups due today.")}</div>${button('data-dashboard-section="requests"',"Open quotes →","desk-link")}</section>`;
 }
 export function overviewMarkup(view) {
   const today = businessDay();
@@ -158,16 +162,16 @@ export function bindOverview(root,view) {
     const filtered=leads.filter(l=>state.leads==="all" || (state.leads==="new")===isNew(l));
     q("[data-desk-lead-filter]").value=state.leads;
     q("#inquiry-list").innerHTML=(filtered.slice(0,leadLimit).map(lead=>{
-      const source=acquisitionSource(lead);
-      return button(`data-desk-inquiry="${esc(lead.id)}" aria-haspopup="dialog"`,image(carFor(lead,view),"inquiry-photo")+`<span class="inquiry-copy"><span class="inquiry-top"><strong>${esc(lead.name||"Unnamed lead")}</strong><time datetime="${esc(lead.created_at||"")}">${esc(lead.created_at?(businessDay(lead.created_at)===businessDay()?clock.format(new Date(lead.created_at)):dayLabel(lead.created_at)):"")}</time></span>
-        <span class="inquiry-car">${esc(lead.vehicle||"Vehicle not selected")}</span><span class="inquiry-meta">${esc([source?view.sourceLabel(source):"",lead.city||lead.location].filter(Boolean).join(" · "))}</span></span>`,"inquiry-row");
+      const source=acquisitionSource(lead), car=carFor(lead,view);
+      return button(`data-desk-inquiry="${esc(lead.id)}" aria-haspopup="dialog"`,image(car,"inquiry-photo")+`<span class="inquiry-copy"><span class="inquiry-top"><strong>${esc(compactPersonName(lead.name)||"Unnamed lead")}</strong><time datetime="${esc(lead.created_at||"")}">${esc(lead.created_at?(businessDay(lead.created_at)===businessDay()?clock.format(new Date(lead.created_at)):dayLabel(lead.created_at)):"")}</time></span>
+        <span class="inquiry-car">${esc(compactVehicleName(lead.vehicle,car)||"Vehicle not selected")}</span><span class="inquiry-meta">${esc([source?view.sourceLabel(source):"",lead.city||lead.location].filter(Boolean).join(" · "))}</span></span>`,"inquiry-row");
     }).join("")||empty(incomplete?"Lead records could not be fully loaded.":state.leads==="all"?"No leads recorded.":state.leads==="new"?"No new leads.":"No contacted leads."))+
       (filtered.length>3?button('data-desk-inquiry-list aria-expanded="'+(leadLimit>3)+'"',leadLimit>3?"Show fewer leads":"View all "+filtered.length+" leads →","desk-link"):"");
   };
   const drawFleet = () => {
     const filtered=fleet.filter(c=>state.fleet==="all"||states.get(c.id)===state.fleet);
     const visible=state.expanded?filtered:filtered.slice(0,3);
-    q(".vehicles").innerHTML=visible.map(car=>openButton("vehicle",car.id,`<span class="photo">${image(car,"",true)}</span><span class="caption"><span class="car-meta"><span>${esc(car.make)}</span><span class="state ${esc(states.get(car.id))}">${esc(statusText[states.get(car.id)]||"Status unavailable")}</span></span><strong class="car-title">${esc(car.model||car.name)}</strong></span>`,"vehicle")).join("")||empty(view.failedTables.has("cars")?"Fleet records could not be loaded.":"No vehicles in this view.");
+    q(".vehicles").innerHTML=visible.map(car=>openButton("vehicle",car.id,`<span class="photo">${image(car,"",true)}</span><span class="caption"><span class="car-meta"><span>${esc(car.make)}</span><span class="state ${esc(states.get(car.id))}">${esc(statusText[states.get(car.id)]||"Status unavailable")}</span></span><strong class="car-title">${esc(car.model||compactVehicleName(car.name,car))}</strong></span>`,"vehicle")).join("")||empty(view.failedTables.has("cars")?"Fleet records could not be loaded.":"No vehicles in this view.");
     q("[data-desk-fleet-count]").textContent=visible.length+" of "+filtered.length+" vehicles";
     const toggle=q("[data-desk-fleet-expand]");
     toggle.hidden=filtered.length<=3;toggle.textContent=state.expanded?"Show fewer vehicles":"View all "+filtered.length+" vehicles →";toggle.setAttribute("aria-expanded",state.expanded);
@@ -191,7 +195,7 @@ export function bindOverview(root,view) {
       (l.email?'<a class="desk-link" data-desk-contact-link href="mailto:'+esc(encodeURIComponent(l.email))+'">Email</a>':"")+'</div><p data-desk-contact-status role="status"></p>');
   };
   const showSchedule = () => openDialog("Handoffs","Upcoming schedule",rows.length?rows.map(row=>openButton(row.kind,row.record.id,
-    image(row.car,"inquiry-photo")+'<span><span class="stamp">'+esc(when(row.at))+' · '+row.type+'</span><span class="title">'+esc(row.name||"Vehicle not assigned")+'</span><span class="sub">'+esc(row.client)+'</span></span>'+icon("right"),"schedule-row")).join(""):empty(view.failedTables.has("rental_agreements")?"Schedule could not be loaded.":"No upcoming handoffs scheduled."));
+    image(row.car,"inquiry-photo")+'<span><span class="stamp">'+esc(when(row.at))+' · '+row.type+'</span><span class="title">'+esc(compactVehicleName(row.name,row.car)||"Vehicle not assigned")+'</span><span class="sub">'+esc(compactPersonName(row.client))+'</span></span>'+icon("right"),"schedule-row")).join(""):empty(view.failedTables.has("rental_agreements")?"Schedule could not be loaded.":"No upcoming handoffs scheduled."));
   const balance = view.balance;
   bindRevenue(desk,{model:view.statementModel,ledger:view.ledger,balance,error:view.error,period:state.period,onPeriod:value=>{state.period=value;},
     onDetail:({total,owned,from,through})=>openDialog("Rental cash", "Cash breakdown",
@@ -271,11 +275,11 @@ export function bindOperatingReports(view) {
     const checks=model.quotes.filter(l=>l.status==="checking");
     const calls=checks.map(l=>{
       const car=carFor(l,view), p=partners.get(String(car?.id));
-      return '<div class="desk-metric-row"><div><strong>'+esc(l.name)+'</strong><small>'+esc([l.vehicle,p?.partner_name].filter(Boolean).join(" · "))+'</small></div>'+
+      return '<div class="desk-metric-row"><div><strong>'+esc(compactPersonName(l.name))+'</strong><small>'+esc([compactVehicleName(l.vehicle,car),p?.partner_name].filter(Boolean).join(" · "))+'</small></div>'+
         (p?.partner_phone?'<a class="desk-link" data-desk-contact-link href="tel:'+esc(String(p.partner_phone).replace(/[^\d+]/g,""))+'">Call partner</a>':button('data-desk-report-lead="'+esc(l.id)+'" data-desk-inquiry="'+esc(l.id)+'"',"Review lead","desk-link"))+'</div>';
     }).join("");
     const priced=model.cars.filter(c=>c.is_active!==false && Number(c.competitor_price)>0).sort((a,b)=>String(a.competitor_checked_at||"").localeCompare(String(b.competitor_checked_at||""))).slice(0,6);
-    const prices=priced.map(c=>'<div class="desk-metric-row"><div><strong>'+esc(c.name)+'</strong><small>'+esc(dollars.format(c.price)+'/day · Competitor '+dollars.format(c.competitor_price)+'/day')+'</small><small>'+esc(c.competitor_checked_at?'Checked '+dayLabel(c.competitor_checked_at):'No check date recorded')+'</small></div><div><strong>'+dollars.format(Math.max(0,c.competitor_price-50))+' target</strong> '+openButton("vehicle",c.id,"Open vehicle →")+'</div></div>').join("");
+    const prices=priced.map(c=>'<div class="desk-metric-row"><div><strong>'+esc(compactVehicleName(c.name,c))+'</strong><small>'+esc(dollars.format(c.price)+'/day · Competitor '+dollars.format(c.competitor_price)+'/day')+'</small><small>'+esc(c.competitor_checked_at?'Checked '+dayLabel(c.competitor_checked_at):'No check date recorded')+'</small></div><div><strong>'+dollars.format(Math.max(0,c.competitor_price-50))+' target</strong> '+openButton("vehicle",c.id,"Open vehicle →")+'</div></div>').join("");
     slot.innerHTML='<section><h3>Fleet traffic &amp; clicks</h3><p>Last 30 days · latest 5,000 events</p><div data-traffic-summary role="status">Loading fleet traffic…</div></section>'+
       '<section><h3>Partner availability calls</h3>'+(calls||empty(view.failedTables.has("quote_requests")?"Lead records unavailable.":"No partner checks pending."))+'</section>'+
       '<section><h3>Competitive pricing</h3>'+(prices||empty(view.failedTables.has("cars")?"Fleet records unavailable.":"No competitor comparisons recorded."))+'</section>';
@@ -294,7 +298,7 @@ export function bindOperatingReports(view) {
       const labels=[["Vehicle impressions","card_impression"],["Detail clicks","vehicle_detail_click"],["Availability checks","availability_open"],["Requests","availability_success"]];
       const score=g=>(g.vehicle_detail_click||0)+(g.availability_open||0)+(g.availability_success||0)*2;
       const ranked=[...byCar].sort((a,b)=>score(b[1])-score(a[1])||(b[1].card_impression||0)-(a[1].card_impression||0)).slice(0,10);
-      const names=new Map(model.cars.map(c=>[c.slug,c.name]));
+      const names=new Map(model.cars.map(c=>[c.slug,compactVehicleName(c.name,c)]));
       traffic.innerHTML='<div class="traffic-kpis">'+labels.map(([l,key])=>'<div><span>'+l+'</span><strong>'+(total.get(key)||0)+'</strong></div>').join("")+'</div><p>'+Number(total.get("fleet_page_view")||0)+' fleet page views</p>'+
         (ranked.length?'<div class="desk-source-table"><table><thead><tr><th>Vehicle</th><th>Impressions</th><th>Clicks</th><th>Checks</th><th>Requests</th><th>CTR</th></tr></thead><tbody>'+ranked.map(([slug,g])=>'<tr><th>'+esc(names.get(slug)||slug)+'</th>'+labels.map(([,key])=>'<td>'+(g[key]||0)+'</td>').join("")+'<td>'+(g.card_impression?Math.round((g.vehicle_detail_click||0)/g.card_impression*100):0)+'%</td></tr>').join("")+'</tbody></table></div>':'');
     } catch {traffic.innerHTML=empty("Fleet traffic could not be loaded. Reopen the report to retry.");loaded=false;}

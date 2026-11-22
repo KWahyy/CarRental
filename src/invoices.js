@@ -1,3 +1,4 @@
+import { compactPersonName, compactVehicleName } from "./crm-compact-labels.js";
 import { amountLabel, rentalRange, statePill } from "./crm-billing-display.js";
 import { singleFlight, registerSection } from "./crm-navigation.js";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
@@ -245,12 +246,12 @@ function applySource() {
 function renderList() {
   const query = (search.value || "").trim().toLowerCase();
   const filtered = invoices.filter(invoice => (!invoiceFilter.value || invoice.status === invoiceFilter.value) &&
-    [invoice.invoice_number, invoice.customer_name, invoice.vehicle_name, invoiceLabels[invoice.status]].some(value => String(value || "").toLowerCase().includes(query)));
+    [invoice.invoice_number, invoice.customer_name, compactPersonName(invoice.customer_name), invoice.vehicle_name, invoiceLabels[invoice.status]].some(value => String(value || "").toLowerCase().includes(query)));
   const selected = filtered.find(invoice => invoice.id === selectedId) || filtered[0];
   selectedId = selected?.id || "";
   invoiceCount.textContent = String(filtered.length);
   list.innerHTML = filtered.map(invoice => `<button type="button" class="bl-invoice-row" data-select-invoice="${escapeHtml(invoice.id)}" aria-pressed="${invoice.id === selectedId}">
-    <span><small>${escapeHtml(invoice.invoice_number)}</small><strong>${escapeHtml(invoice.customer_name)}</strong><span class="bl-list-vehicle">${escapeHtml(invoice.vehicle_name)}</span></span>
+    <span><small>${escapeHtml(invoice.invoice_number)}</small><strong title="${escapeHtml(invoice.customer_name)}">${escapeHtml(compactPersonName(invoice.customer_name))}</strong><span class="bl-list-vehicle" title="${escapeHtml(invoice.vehicle_name)}">${escapeHtml(compactVehicleName(invoice.vehicle_name))}</span></span>
     <span class="bl-invoice-right"><b>${amountLabel(invoice.total)}</b>${statePill(invoiceLabels[invoice.status] || invoice.status)}</span></button>`).join("") ||
     `<p class="bl-empty">${invoices.length ? "No matching invoices. Try another search or status." : "No invoices yet."}</p>`;
   const issued = invoices.filter(invoice => !["draft","void","refunded"].includes(invoice.status));
