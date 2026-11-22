@@ -58,28 +58,47 @@
 
       <section class="admin-dashboard" data-admin-view hidden>
         <a class="desk-skip" href="#workspace-content">Skip to workspace</a>
-        <header class="desk-bar">
-          <div class="desk-bar-inner">
-            <a class="desk-brand" href="/" aria-label="Prestige Luxor website"><img src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="155" height="29"></a>
-            <nav class="desk-nav" aria-label="Overview sections" data-desk-overview-nav>
-              <a href="#overview" data-desk-anchor aria-current="location">Overview</a><a href="#leads" data-desk-anchor>Leads<span data-lead-count hidden></span></a><a href="#revenue" data-desk-anchor>Revenue</a><a href="#fleet" data-desk-anchor>Fleet</a><a href="#sales" data-desk-anchor>Sales</a>
-            </nav>
-            <nav class="desk-nav" aria-label="Primary workspace" data-desk-primary-nav hidden>
-              <button data-desk-route="overview">Overview</button><button data-desk-route="vehicles">Fleet</button><button data-desk-route="requests">Quotes</button><button data-desk-route="bookings">Bookings</button>
-            </nav>
-            <span class="desk-account-label" data-desk-account-label>Team workspace</span>
-            <button type="button" class="desk-launch" data-workspace-menu aria-haspopup="dialog" aria-expanded="false" aria-controls="desk-directory">CRM pages <span aria-hidden="true">▾</span></button>
-          </div>
+        <header class="desk-mobile-bar">
+          <button type="button" class="desk-launch" data-workspace-menu aria-label="Open CRM navigation" aria-haspopup="dialog" aria-expanded="false" aria-controls="desk-directory"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+          <a class="desk-brand" href="/" aria-label="Prestige Luxor website"><img src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="155" height="29"></a>
         </header>
-        <dialog id="desk-directory" aria-labelledby="desk-menu-title">
-          <div class="desk-directory-head"><h2 id="desk-menu-title">CRM pages</h2><button class="desk-close" data-close-directory aria-label="Close CRM pages">×</button></div>
-          <nav class="desk-directory-grid" aria-label="All CRM pages">
-            <section><h3>Daily desk</h3><button data-crm-section="overview">Overview</button><button data-crm-section="bookings">Bookings</button><button data-crm-section="vehicles">Fleet</button></section>
-            <section><h3>Clients &amp; sales</h3><button data-crm-section="requests">Quotes</button><button data-crm-section="customers">Customers</button></section>
-            <section><h3>Documents &amp; billing</h3><button data-crm-section="invoices">Invoices</button><button data-crm-section="agreements">Rental agreements</button></section>
-            <section><h3>Workspace</h3><button data-crm-section="settings">Settings</button><button type="button" data-sign-out>Sign out</button></section>
-          </nav>
-        </dialog>
+        <aside id="desk-sidebar" aria-label="CRM sidebar">
+          <div class="desk-rail-inner">
+            <div class="desk-rail-head"><a class="desk-brand" href="/" aria-label="Prestige Luxor website"><img src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="155" height="29"></a><button type="button" class="desk-rail-close" data-close-directory aria-label="Close navigation"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+            <div class="desk-rail-links">
+              <nav class="desk-rail-nav" data-desk-primary-nav aria-label="CRM pages">
+                <section><h3>Daily desk</h3>
+                  <button type="button" data-crm-section="overview"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 3.5h7v7h-7z M13.5 3.5h7v7h-7z M3.5 13.5h7v7h-7z M13.5 13.5h7v7h-7z"/></svg><span>Overview</span></button>
+                  <button type="button" data-crm-section="bookings"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v15H4z M4 10h16 M8 3v5 M16 3v5"/></svg><span>Bookings</span></button>
+                  <button type="button" data-crm-section="vehicles"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l2-1 2-5h10l2 5 2 1v5H3z M5 12h14 M6 15h2 M16 15h2 M5 18v2 M19 18v2"/></svg><span>Fleet</span></button>
+                </section>
+                <section><h3>Clients &amp; sales</h3>
+                  <button type="button" data-crm-section="requests"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5h10l4 4V21H5z M14 3.5V9h5 M8 12h8 M8 16h5"/></svg><span>Quotes</span></button>
+                  <button type="button" data-crm-section="customers"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 20v-1a5 5 0 0 0-5-5h-2a5 5 0 0 0-5 5v1 M13 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z M16.5 4.5a3.5 3.5 0 0 1 0 6.5 M17 14.5a4.5 4.5 0 0 1 3.5 4.5v1"/></svg><span>Customers</span></button>
+                </section>
+                <section><h3>Documents &amp; billing</h3>
+                  <button type="button" data-crm-section="invoices"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5l2.5 1.5 2.5-1.5 2.5 1.5L15 3.5l4 1.5v16l-2.5-1.5L14 21l-2.5-1.5L9 21l-4-1.5z M8 9h8 M8 13h8"/></svg><span>Invoices</span></button>
+                  <button type="button" data-crm-section="agreements"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4H4v16h15v-7 M10 14l.5-3L18 3.5l2.5 2.5-7.5 7.5z M7 17h8"/></svg><span>Rental agreements</span></button>
+                </section>
+                <section><h3>Workspace</h3>
+                  <button type="button" data-crm-section="settings"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h5m4 0h7M4 17h9m4 0h3 M13 7a2 2 0 1 1-4 0 2 2 0 0 1 4 0z M17 17a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg><span>Settings</span></button>
+                </section>
+              </nav>
+              <details class="desk-rail-shortcuts" data-desk-overview-nav>
+                <summary>Overview sections</summary>
+                <nav aria-label="Overview sections">
+                  <a href="#overview" data-desk-anchor>Overview top</a>
+                  <a href="#leads" data-desk-anchor>New leads<span data-lead-count hidden></span></a>
+                  <a href="#revenue" data-desk-anchor>Revenue</a>
+                  <a href="#fleet" data-desk-anchor>Fleet snapshot</a>
+                  <a href="#sales" data-desk-anchor>Sales follow-ups</a>
+                </nav>
+              </details>
+            </div>
+            <footer class="desk-rail-footer"><span data-desk-account-label>Team workspace</span><button type="button" data-sign-out><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4H4v16h8M9 12h12m-4-4 4 4-4 4"/></svg>Sign out</button></footer>
+          </div>
+        </aside>
+        <dialog id="desk-directory" aria-label="CRM navigation"></dialog>
         <div class="admin-config-warning" data-config-warning hidden>The workspace connection needs attention. Contact your workspace administrator.</div>
         <div class="admin-crm-shell">
           <div class="admin-workspace" id="workspace-content" tabindex="-1">

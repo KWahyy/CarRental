@@ -4,38 +4,70 @@ const directory = document.getElementById("desk-directory");
 const launcher = document.querySelector("[data-workspace-menu]");
 const workspace = document.getElementById("workspace-content");
 const anchors = [...document.querySelectorAll("[data-desk-anchor]")];
-const routes = [...document.querySelectorAll("[data-desk-route]")];
+const sidebar = document.getElementById("desk-sidebar");
+const rail = sidebar.querySelector(".desk-rail-inner");
+const closeButton = rail.querySelector("[data-close-directory]");
+const wideLayout = matchMedia("(min-width: 1100px)");
 const sectionButton = id => document.querySelector(`[data-crm-section="${CSS.escape(id)}"]`);
 const activeSection = () => workspace.querySelector(".active[data-section-panel]")?.dataset.sectionPanel;
 const pageNames = {overview:"Overview", vehicles:"Fleet", bookings:"Bookings", requests:"Quotes", invoices:"Invoices", agreements:"Rental agreements", customers:"Customers", settings:"Settings"};
-let sectionFocus = false;
+let focusAfterClose;
 let followingHistory = false;
 
+function placeNavigation() {
+  const focusInNav = rail.contains(document.activeElement);
+  if (wideLayout.matches) {
+    if (directory.open) {
+      focusAfterClose = sectionButton(activeSection() || "overview");
+      directory.close();
+    }
+    sidebar.append(rail);
+  } else {
+    directory.append(rail);
+    if (focusInNav) launcher.focus({preventScroll:true});
+  }
+}
+placeNavigation();
+wideLayout.addEventListener("change",placeNavigation);
+
 launcher.addEventListener("click", () => {
-  sectionFocus = false;
+  focusAfterClose = launcher;
   directory.showModal();
   launcher.setAttribute("aria-expanded","true");
-  directory.querySelector("[data-close-directory]").focus();
+  closeButton.focus();
 });
-directory.querySelector("[data-close-directory]").addEventListener("click", () => directory.close());
-directory.addEventListener("click", event => {
+closeButton.addEventListener("click", () => directory.close());
+rail.addEventListener("click", event => {
+  const button = event.target.closest("[data-crm-section]");
+  const anchor = event.target.closest("[data-desk-anchor]");
+  if (button?.dataset.crmSection === "overview" && event.isTrusted) {
+    if (location.hash) {
+      const url = new URL(location.href);
+      url.hash = "";
+      history.replaceState(null,"",url);
+    }
+    window.scrollTo({top:0,behavior:"instant"});
+  }
   if (!directory.open) return;
-  if (event.target.closest("[data-crm-section], [data-sign-out]")) {
-    sectionFocus = Boolean(event.target.closest("[data-crm-section]"));
+  if (button || anchor || event.target.closest("[data-sign-out]")) {
+    focusAfterClose = anchor ? document.getElementById(anchor.hash.slice(1)) : workspace;
     directory.close();
-  } else if (event.target === directory) {
-    const box = directory.getBoundingClientRect();
-    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) directory.close();
   }
 });
-directory.addEventListener("close", () => {
-  launcher.setAttribute("aria-expanded","false");
-  if (sectionFocus) workspace.focus({preventScroll:true});
-  else launcher.focus({preventScroll:true});
-  sectionFocus = false;
+directory.addEventListener("click", event => {
+  if (event.target !== directory) return;
+  const box = directory.getBoundingClientRect();
+  if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) directory.close();
 });
-for (const route of routes) route.addEventListener("click", () => sectionButton(route.dataset.deskRoute)?.click());
-
+directory.addEventListener("close", () => {
+  if (directory.open) return;
+  launcher.setAttribute("aria-expanded","false");
+  if (focusAfterClose && !focusAfterClose.closest("[hidden]")) {
+    if (focusAfterClose.matches("section")) focusAfterClose.tabIndex = -1;
+    focusAfterClose.focus({preventScroll:true});
+  }
+  focusAfterClose = null;
+});
 function selectAnchor(id) {
   for (const link of anchors) {
     if (link.hash === "#" + id) link.setAttribute("aria-current","location");
@@ -67,13 +99,8 @@ window.addEventListener("prestige:desk-page", ({detail}) => {
   const isOverview = section === "overview";
   document.title = pageNames[section] + " · Prestige Luxor";
   document.querySelector("[data-desk-overview-nav]").hidden = !isOverview;
-  document.querySelector("[data-desk-primary-nav]").hidden = isOverview;
   const role = document.documentElement.dataset.crmRole;
   document.querySelector('[data-desk-anchor][href="#revenue"]').hidden = !canViewFinancials(role);
-  for (const route of routes) {
-    if (route.dataset.deskRoute === section) route.setAttribute("aria-current","page");
-    else route.removeAttribute("aria-current");
-  }
   document.querySelector("[data-desk-account-label]").textContent = role === "viewer" ? "Read-only access" : "Team workspace";
   const url = new URL(location.href);
   const requested = url.searchParams.get("page");

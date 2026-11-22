@@ -1,6 +1,7 @@
 import { crmBase, openCrmPage } from "./crm-browser-helpers.mjs";
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { fleet } from '../src/fleet-data.js';
 import { rentalLedger } from '../src/crm-desk-overview-ledger.js';
 
 // Rental cash must reconcile across multiple payments, refundable deposits,
@@ -26,15 +27,52 @@ assert.equal(ledger.receipts.filter(r=>r.date.startsWith('2026-11')).reduce((n,r
 assert.deepEqual(ledger.receipts.filter(r=>r.invoice_id==='modern').map(r=>r.source),['referral','referral']);
 assert.equal(ledger.balance,50);
 
+const showcaseSlugs = ['2022-lamborghini-huracan','mercedes-maybach-s580-rental','mclaren-750s-rental'];
+const cars = fleet.filter(car => showcaseSlugs.includes(car.slug) || /DeVille|Impala/.test(car.name)).map(car => ({
+  id:car.id, slug:car.slug, name:car.name, make:car.make, model:car.model, image_url:car.image_url,
+  operational_status:car.slug === 'mclaren-750s-rental' ? 'vehicle_out' : 'available',
+  ownership_type:car.slug === '2022-lamborghini-huracan' ? 'prestige' : 'partner',
+}));
 const browser=await chromium.launch({channel:'chrome',headless:true});
-const mock=`export function createClient(){const fixtures={admin_profiles:[{role:'owner',display_name:'Audit'}],invoices:[],invoice_payments:[],rental_agreements:[],quotes:[],quote_events:[],invoice_events:[],agreement_events:[],booking_sales:[],cars:[],crm_customers:[],quote_requests:[]};const session={user:{id:'audit',email:'audit@example.test'},access_token:'mock'};const query=table=>{let single=false,proxy;proxy=new Proxy({}, {get(_,key){if(key==='then')return resolve=>resolve({data:single?(fixtures[table]?.[0]||null):(fixtures[table]||[]),error:null,count:0});return(...args)=>{if(key==='single'||key==='maybeSingle')single=true;return proxy;};}});return proxy;};return {from:query,auth:{getSession:async()=>({data:{session}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),signOut:async()=>({error:null})},storage:{from:()=>({getPublicUrl:()=>({data:{publicUrl:''}})})}}}`;
+const mock=`export function createClient(){const fixtures={admin_profiles:[{role:'owner',display_name:'Audit'}],invoices:[],invoice_payments:[],rental_agreements:[],quotes:[],quote_events:[],invoice_events:[],agreement_events:[],booking_sales:[],cars:${JSON.stringify(cars)},crm_customers:[],quote_requests:[]};const session={user:{id:'audit',email:'audit@example.test'},access_token:'mock'};const query=table=>{let single=false,proxy;proxy=new Proxy({}, {get(_,key){if(key==='then')return resolve=>resolve({data:single?(fixtures[table]?.[0]||null):(fixtures[table]||[]),error:null,count:0});return(...args)=>{if(key==='single'||key==='maybeSingle')single=true;return proxy;};}});return proxy;};return {from:query,auth:{getSession:async()=>({data:{session}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),signOut:async()=>({error:null})},storage:{from:()=>({getPublicUrl:()=>({data:{publicUrl:''}})})}}}`;
 try{
   const page=await browser.newPage({viewport:{width:1440,height:950}});
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.route('**/supabase-js@2/+esm',route=>route.fulfill({contentType:'text/javascript',body:mock}));
   await page.route('**/api/**',route=>route.fulfill({json:{invoices:[],agreements:[],quotes:[],cars:[],vehicles:[],customers:[],partners:[],employees:[],reservations:[],blocks:[],leads:[],activities:[],items:[],availability:[],template:{title:'Audit',body:'Audit',important_terms:[]}}}));
+  const testedVehicleRecords = [];
+  await page.route('**/api/fleet?**',route=>{
+    const id = new URL(route.request().url()).searchParams.get('id');
+    const vehicles = cars.map(car=>({...car,metrics:{status:car.operational_status},photos:[],agreements:[],blocks:[],expenses:[],maintenance:[],documents:[]}));
+    if (!id) return route.fulfill({json:{vehicles,role:'owner',period:{key:'month'}}});
+    testedVehicleRecords.push(id);
+    return route.fulfill({json:{vehicle:vehicles.find(car=>car.id===id),activity:[],mileage:[]}});
+  });
   await page.goto(crmBase+'/admin/');await page.locator('[data-admin-view]').waitFor();
   const root=page.locator('[data-executive-dashboard]');
+  const snapshot = root.locator('#fleet');
+  const cards = snapshot.locator('[data-desk-record="vehicle"]');
+  await cards.first().waitFor();
+  assert.deepEqual(await cards.evaluateAll(items=>items.map(item=>item.dataset.id)),showcaseSlugs.map(slug=>cars.find(car=>car.slug===slug).id));
+  assert.deepEqual(await cards.locator('.car-title').allTextContents(),['Huracan EVO Spyder','S580','750S']);
+  assert.equal(await cards.nth(1).locator('img').getAttribute('data-original-photo'),'/assets/partner-fleet/mercedes-maybach-s580/02.webp');
+  assert.deepEqual(await cards.locator('.state').allTextContents(),['Available','Available','On rent']);
+  await snapshot.locator('[data-desk-fleet-filter="vehicle_out"]').click();
+  assert.deepEqual(await cards.locator('.car-title').allTextContents(),['750S']);
+  await snapshot.locator('[data-desk-fleet-filter="all"]').click();
+  await snapshot.locator('[data-desk-fleet-expand]').click();
+  assert.equal(await cards.count(),cars.length);
+  await snapshot.locator('[data-desk-fleet-expand]').click();
+  for (const slug of showcaseSlugs) {
+    const car = cars.find(row=>row.slug===slug);
+    await Promise.all([
+      page.waitForResponse(response=>new URL(response.url()).searchParams.get('id')===car.id),
+      snapshot.locator(`[data-id="${car.id}"]`).click(),
+    ]);
+    await page.locator('[data-back-fleet]').waitFor();
+    assert.equal(testedVehicleRecords.at(-1),car.id);
+    await openCrmPage(page,'overview');
+  }
   await root.locator('[data-desk-cash-period]').selectOption('week');
   assert.match(await root.locator('#rv-chart').innerText(), /No rental payments/);
   await root.locator('[data-desk-reports] > summary').click();
@@ -61,5 +99,5 @@ try{
   await traffic.getByText('No partner checks pending.').waitFor();
   await traffic.getByText('No competitor comparisons recorded.').waitFor();
   assert.deepEqual(errors,[]);
-  console.log('PASS: dashboard date range, section links, and invoice/booking/quote quick actions (mocked).');
+  console.log('PASS: featured fleet order, live status filters, linked vehicle records, dashboard date range, section links, and invoice/booking/quote quick actions (mocked).');
 }finally{await browser.close();}

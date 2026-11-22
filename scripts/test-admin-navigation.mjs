@@ -20,7 +20,7 @@ try {
  await page.goto(crmBase+'/admin/');
  await page.locator('[data-admin-view]').waitFor();
  await page.waitForTimeout(4000);
- const panels=['overview','vehicles','requests','customers','invoices','agreements','bookings'];
+ const panels=['overview','vehicles','requests','customers','invoices','agreements','bookings','settings'];
  for(const section of panels) {await openCrmPage(page,section);await page.waitForTimeout(200);}
  const before=requests.length;
  // Keep actual DOM nodes: switching sections must not replace loaded views.
@@ -32,5 +32,5 @@ try {
  assert.equal(requests.length,before,"Cached navigation made new API requests");
  assert(await page.evaluate(()=>window.savedPanels.every(([panel,node])=>panel.firstElementChild===node)),"Cached navigation rebuilt panel");
  assert.deepEqual(errors,[]);
- console.log("PASS: 14 cached switches, zero additional API requests, stable panel nodes, no loading screens.");
+ console.log("PASS: 16 cached switches, zero additional API requests, stable panel nodes, no loading screens.");
 } finally {await browser.close();}

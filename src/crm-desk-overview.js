@@ -32,6 +32,13 @@ const image = (car,cls="",large=false) => {
 };
 const openButton = (kind,id,body,cls="desk-link") => button(`data-desk-record="${esc(kind)}" data-id="${esc(id)}" data-dashboard-open="${esc(kind)}"`,body,cls);
 const state = {handoff:0,leads:"new",fleet:"all",expanded:false,period:"month"};
+// Feature the specific fleet records. Similar model names can belong to other cars.
+const featuredVehicles = new Map([
+  ["674e378c-c689-4f6f-b170-7ce4a6995a43", {order:0}], // Blue Huracán EVO Spyder
+  ["7dc94b87-0f3a-4e89-8dde-8f6c01918357", {order:1, photo:"/assets/partner-fleet/mercedes-maybach-s580/02.webp"}],
+  ["2d0ad0a7-989a-4445-a876-d7df7c513eaf", {order:2}], // Orange McLaren 750S
+]);
+const featuredRank = car => featuredVehicles.get(car.id)?.order ?? featuredVehicles.size;
 const statusText = {available:"Available",reserved:"Scheduled",vehicle_out:"On rent",maintenance:"Maintenance",on_hold:"On hold",partner_unavailable:"Partner unavailable",inactive:"Inactive",unknown:"Status unavailable"};
 const carFor = (record,view) => view.carById.get(String(record?.vehicle_id || "")) || view.resolveVehicle(record?.vehicle_name || record?.vehicle,view.carByName);
 function handoffs(view) {
@@ -130,7 +137,11 @@ export function bindOverview(root,view) {
   const desk = root.querySelector(".desk-overview"), q = selector=>desk.querySelector(selector);
   const {model} = view, rows = handoffs(view);
   const fleet = model.cars.filter(c=>c.is_active!==false && c.operational_status!=="inactive")
-    .sort((a,b)=>Number(Boolean(vehiclePhotoSource(b)))-Number(Boolean(vehiclePhotoSource(a))) || Number(b.ownership_type==="prestige")-Number(a.ownership_type==="prestige") || String(a.name).localeCompare(String(b.name)));
+    .map(car=>{
+      const photo = featuredVehicles.get(car.id)?.photo;
+      return photo ? {...car, image_url:photo} : car;
+    })
+    .sort((a,b)=>featuredRank(a)-featuredRank(b) || Number(Boolean(vehiclePhotoSource(b)))-Number(Boolean(vehiclePhotoSource(a))) || Number(b.ownership_type==="prestige")-Number(a.ownership_type==="prestige") || String(a.name).localeCompare(String(b.name)));
   const leads = [...model.quotes].sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)));
   const contacted = new Set(model.quoteActivities.filter(e=>["call","email"].includes(e.activity_type)||e.metadata?.lead_contacted).map(e=>String(e.quote_request_id)));
   const progressed = new Set(model.proposals.filter(p=>p.sent_at).map(p=>String(p.lead_id)));
@@ -171,7 +182,14 @@ export function bindOverview(root,view) {
   const drawFleet = () => {
     const filtered=fleet.filter(c=>state.fleet==="all"||states.get(c.id)===state.fleet);
     const visible=state.expanded?filtered:filtered.slice(0,3);
-    q(".vehicles").innerHTML=visible.map(car=>openButton("vehicle",car.id,`<span class="photo">${image(car,"",true)}</span><span class="caption"><span class="car-meta"><span>${esc(car.make)}</span><span class="state ${esc(states.get(car.id))}">${esc(statusText[states.get(car.id)]||"Status unavailable")}</span></span><strong class="car-title">${esc(car.model||compactVehicleName(car.name,car))}</strong></span>`,"vehicle")).join("")||empty(view.failedTables.has("cars")?"Fleet records could not be loaded.":"No vehicles in this view.");
+    q(".vehicles").innerHTML=visible.map(car=>{
+      const model = car.model || compactVehicleName(car.name,car);
+      const maybach = /^Mercedes(?:-Benz|-Maybach)?$/i.test(car.make) && /^Maybach\s+/i.test(model);
+      const makeLabel = maybach ? "Mercedes-Maybach" : car.make;
+      const modelLabel = maybach ? model.replace(/^Maybach\s+/i,"") : model;
+      const status = states.get(car.id);
+      return openButton("vehicle",car.id,`<span class="photo">${image(car,"",true)}</span><span class="caption"><span class="car-meta"><span>${esc(makeLabel)}</span><span class="state ${esc(status)}">${esc(statusText[status]||"Status unavailable")}</span></span><strong class="car-title">${esc(modelLabel)}</strong></span>`,"vehicle");
+    }).join("")||empty(view.failedTables.has("cars")?"Fleet records could not be loaded.":"No vehicles in this view.");
     q("[data-desk-fleet-count]").textContent=visible.length+" of "+filtered.length+" vehicles";
     const toggle=q("[data-desk-fleet-expand]");
     toggle.hidden=filtered.length<=3;toggle.textContent=state.expanded?"Show fewer vehicles":"View all "+filtered.length+" vehicles →";toggle.setAttribute("aria-expanded",state.expanded);
