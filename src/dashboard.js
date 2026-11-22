@@ -8,14 +8,16 @@ import { singleFlight, registerSection } from "./crm-navigation.js";
 const root = document.querySelector("[data-executive-dashboard]");
 const overviewButton = document.querySelector('[data-crm-section="overview"]');
 const supabase = window.prestigeLuxorSupabase;
-const failedTables = new Set();
+let failedTables = new Set();
 let cashLedger = [];
 let rentalBalances = 0;
 let statementModel;
 let sessionGeneration = 0;
 let financeVersion = 0;
 let financeRefresh = null;
-let lastFinanceRefresh = 0;
+const overviewFreshMs = 30_000;
+let lastOverviewRead = 0, changeVersion = 0;
+let overview, renderedRole, activityRead;
 
 let loaded = false;
 let ownershipError = "";
@@ -116,7 +118,7 @@ async function safeRows(query) {
   try { const { data, error } = await query; return error ? [] : data || []; } catch { return []; }
 }
 
-async function financialRows(table) {
+async function financialRows(table, failures) {
   const rows = [];
   try {
     for (let from=0; ; from+=500) {
@@ -126,36 +128,37 @@ async function financialRows(table) {
       if((data||[]).length<500) return rows;
       if(from>=49500) throw new Error("Financial history exceeds the safe loading limit.");
     }
-  } catch(error) { failedTables.add(table); return []; }
+  } catch(error) { failures.add(table); return []; }
 }
 
-const loadDashboard = singleFlight(async function (force = false) {
-  if (!root || !supabase || (loaded && !force)) return;
+async function readDashboard(force = false) {
+  if (!root || !supabase || (loaded && !force && Date.now() - lastOverviewRead < overviewFreshMs)) return;
   const generation = sessionGeneration;
-  failedTables.clear();
-  ownershipError = "";
+  const versionAtStart = changeVersion;
+  const failures = new Set();
+  const read = table => financialRows(table, failures);
   const session = (await supabase.auth.getSession()).data.session;
   const userId = session?.user?.id;
   if (!userId) return;
-  const [invoices, invoicePayments, agreements, quotes, quoteActivities, invoiceEvents, agreementEvents, bookings, cars, partners, profiles, proposals, blocks] = await Promise.all([
-    financialRows("invoices"),
-    financialRows("invoice_payments"),
-    financialRows("rental_agreements"),
-    financialRows("quote_requests"),
-    financialRows("quote_activities"),
-    safeRows(supabase.from("invoice_events").select("*").order("created_at", { ascending: false }).limit(100)),
-    safeRows(supabase.from("rental_agreement_events").select("*").order("created_at", { ascending: false }).limit(100)),
-    financialRows("booking_sales"),
-    financialRows("cars"),
-    financialRows("car_partners"),
+  const [invoices, invoicePayments, agreements, quotes, quoteActivities, bookings, cars, partners, profiles, proposals, blocks] = await Promise.all([
+    read("invoices"),
+    read("invoice_payments"),
+    read("rental_agreements"),
+    read("quote_requests"),
+    read("quote_activities"),
+    read("booking_sales"),
+    read("cars"),
+    read("car_partners"),
     safeRows(supabase.from("admin_profiles").select("display_name,role").eq("user_id", userId).limit(1)),
-    financialRows("quotes"),
-    financialRows("vehicle_blocks"),
+    read("quotes"),
+    read("vehicle_blocks"),
   ]);
-  const expenses = canViewFinancials(profiles[0]?.role) ? await financialRows("vehicle_expenses") : [];
+  const expenses = canViewFinancials(profiles[0]?.role) ? await read("vehicle_expenses") : [];
   if (generation !== sessionGeneration) return;
+  failedTables = failures;
+  activityRead = null;
   ownershipError = ["invoices","invoice_payments","booking_sales","rental_agreements","cars","car_partners","vehicle_expenses"].some(table=>failedTables.has(table)) ? "Financial records unavailable" : "";
-  model = { proposals, blocks, expenses, invoices, invoicePayments, agreements, quotes, quoteActivities, invoiceEvents, agreementEvents, bookings, cars, partners, profile: profiles[0] || null, session };
+  model = { proposals, blocks, expenses, invoices, invoicePayments, agreements, quotes, quoteActivities, bookings, cars, partners, profile: profiles[0] || null, session };
   const ledger = rentalLedger(model);
   cashLedger = ledger.receipts;
   rentalBalances = ledger.balance;
@@ -168,8 +171,13 @@ const loadDashboard = singleFlight(async function (force = false) {
     invoicePayments:invoicePayments.map(row=>({...row,paid_at:businessDay(row.paid_at)})),
   };
   loaded = true;
+  lastOverviewRead = versionAtStart === changeVersion ? Date.now() : 0;
+  if (!lastOverviewRead && overviewIsVisible()) return readDashboard();
   render();
-});
+}
+
+let loadSessionDashboard = singleFlight(readDashboard);
+const loadDashboard = (force = false) => loadSessionDashboard(force);
 
 function recordsForRange(range) {
   const agreements = model.agreements.filter((item) => item.status !== "cancelled" && item.signed_at && inRange(item.signed_at, range));
@@ -276,13 +284,17 @@ function render() {
     owner:canViewFinancials(model.profile?.role), error:ownershipError, failedTables,
     attention:groupAttention(attention), carById:new Map(model.cars.map(car=>[String(car.id),car])),
     carByName:vehicleIndex(model.cars), resolveVehicle, sourceLabel, onOpen:openRecord, refresh:()=>loadDashboard(true)};
-  const openReport = !!root.querySelector("[data-desk-reports]")?.open;
-  const openFinancialReport = !!root.querySelector(".executive-reports")?.open;
-  root.innerHTML = overviewMarkup(view) + `<details class="desk-reports" data-desk-reports ${openReport?"open":""}><summary>Rental reports and activity</summary></details>`;
-  bindOverview(root,view);
+  if (!overview || renderedRole !== model.profile?.role) {
+    root.innerHTML = overviewMarkup(view) + '<details class="desk-reports" data-desk-reports><summary>Rental reports and activity</summary></details>';
+    overview = bindOverview(root,view);
+    renderedRole = model.profile?.role;
+  } else {
+    overview.update(view);
+  }
   bindOperatingReports(view);
-  bindDashboard(root);
   const disclosure = root.querySelector("[data-desk-reports]");
+  const openFinancialReport = !!disclosure.querySelector(".executive-reports")?.open;
+  disclosure.querySelector(".desk-report-body")?.remove();
   const showReports = () => {
     if (!disclosure.open || disclosure.querySelector(".desk-report-body")) return;
     renderReports(disclosure,view,invoiceById,attention,openFinancialReport);
@@ -332,7 +344,6 @@ function renderReports(disclosure,view,invoiceById,attention,openFinancialReport
   const receivables = model.invoices.filter(item=>isEarnedInvoice(item) && inRange(invoiceDate(item),range) && rentalBalance(item)>0);
   const overdue = receivables.filter((item)=>item.due_date&&isoDate(item.due_date)<today);
   const pendingDeposits = current.agreements.filter((item)=>item.deposit_status==="pending").reduce((sum,item)=>sum+number(item.refundable_deposit),0);
-  const activity = buildActivity();
   const activeRentals = model.agreements.filter((item) => !["completed", "cancelled"].includes(item.status)).length;
   const hasBusinessData = Boolean(model.invoices.length || model.agreements.length || model.quotes.length || model.bookings.length);
   const secondaryAnalytics = hasBusinessData && owner ? `
@@ -348,8 +359,8 @@ function renderReports(disclosure,view,invoiceById,attention,openFinancialReport
     </div></details>
     <div class="executive-two-column executive-bottom-grid">
       <section class="executive-card"><div class="executive-card-head"><div><h3>Needs Attention <span class="attention-count">${attention.length}</span></h3><p>Resolve outstanding items by rental.</p></div></div><div class="attention-list">${attention.length?groupAttention(attention).slice(0,10).map(attentionRow).join(""):`<p class="admin-empty">No current issues found.</p>`}</div></section>
-      <section class="executive-card"><div class="executive-card-head"><div><h3>Recent Activity</h3><p>Latest activity across billing, rentals, and sales.</p></div></div><div class="activity-list">${activity.length?activity.slice(0,6).map(activityRow).join(""):`<p class="admin-empty">Activity will appear as your team works in the CRM.</p>`}</div></section>
-    </div>` : hasBusinessData ? `<div class="executive-two-column executive-bottom-grid"><section class="executive-card"><div class="executive-card-head"><div><h3>Needs Attention <span class="attention-count">${attention.length}</span></h3><p>Resolve outstanding items by rental.</p></div></div><div class="attention-list">${attention.length?groupAttention(attention).slice(0,10).map(attentionRow).join(""):`<p class="admin-empty">No current issues found.</p>`}</div></section><section class="executive-card"><div class="executive-card-head"><div><h3>Recent Activity</h3><p>Latest team activity.</p></div></div><div class="activity-list">${activity.length?activity.slice(0,6).map(activityRow).join(""):`<p class="admin-empty">Activity will appear as your team works in the CRM.</p>`}</div></section></div>` : "";
+      <section class="executive-card"><div class="executive-card-head"><div><h3>Recent Activity</h3><p>Latest activity across billing, rentals, and sales.</p></div></div><div class="activity-list" aria-busy="true">Loading activity…</div></section>
+    </div>` : hasBusinessData ? `<div class="executive-two-column executive-bottom-grid"><section class="executive-card"><div class="executive-card-head"><div><h3>Needs Attention <span class="attention-count">${attention.length}</span></h3><p>Resolve outstanding items by rental.</p></div></div><div class="attention-list">${attention.length?groupAttention(attention).slice(0,10).map(attentionRow).join(""):`<p class="admin-empty">No current issues found.</p>`}</div></section><section class="executive-card"><div class="executive-card-head"><div><h3>Recent Activity</h3><p>Latest team activity.</p></div></div><div class="activity-list" aria-busy="true">Loading activity…</div></section></div>` : "";
 
   disclosure.insertAdjacentHTML("beforeend", `
     <div class="desk-report-body"><div class="desk-report-toolbar"><h2>Rental reports</h2>
@@ -372,7 +383,23 @@ function renderReports(disclosure,view,invoiceById,attention,openFinancialReport
     ${secondaryAnalytics}</div>`);
   if (openFinancialReport && root.querySelector(".executive-reports")) root.querySelector(".executive-reports").open = true;
   disclosure.querySelector("[data-dashboard-range]").value = rangeKey;
-  bindDashboard(disclosure);
+  bindDashboard(disclosure, () => {
+    const financialOpen = Boolean(disclosure.querySelector(".executive-reports")?.open);
+    disclosure.querySelector(".desk-report-body").remove();
+    renderReports(disclosure, view, invoiceById, attention, financialOpen);
+  });
+  const activityList = disclosure.querySelector(".activity-list");
+  if (activityList) {
+    const read = reportActivity();
+    read.then(items => {
+      if (!activityList.isConnected) return;
+      activityList.innerHTML = items.length ? items.slice(0,6).map(activityRow).join("") : '<p class="admin-empty">No recent activity.</p>';
+      bindDashboard(activityList);
+    }).catch(() => {
+      if (activityRead === read) activityRead = null;
+      activityList.textContent = "Recent activity could not be loaded.";
+    }).finally(() => activityList.removeAttribute("aria-busy"));
+  }
 }
 
 function kpi(label,value,note,index,featured=false){return `<article class="${featured?"featured":""}"><div><span>${escapeHtml(label)}</span><b>${escapeHtml(index)}</b></div><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`;}
@@ -402,19 +429,34 @@ function attentionRow(item){
   const vehicle = record?.vehicle_name || record?.vehicle || "";
   return `<button type="button" data-dashboard-open="${item.kind}" data-id="${item.id}"><i class="priority-${item.priority}" aria-hidden="true">!</i><span><strong>${escapeHtml(compactPersonName(name))}</strong><small>${escapeHtml(compactVehicleName(vehicle))}</small><span class="attention-issues">${item.issues.map(issue=>`<span>${escapeHtml(issue.title)}${issue.title === "Unpaid deposit" ? ` · ${money(record?.refundable_deposit)}` : ""}</span>`).join("")}</span></span><b>Review <span aria-hidden="true">↗</span></b></button>`;
 }
-function buildActivity(){const invoice=model.invoiceEvents.map(item=>({date:item.created_at,title:titleCase(item.event_type),detail:item.detail||"Invoice updated",kind:"invoice",id:item.invoice_id}));const agreements=model.agreementEvents.map(item=>({date:item.created_at,title:titleCase(item.event_type),detail:item.detail||"Rental updated",kind:"agreement",id:item.agreement_id}));const quotes=model.quoteActivities.map(item=>({date:item.created_at,title:titleCase(item.activity_type),detail:item.body||"Quote updated",kind:"quote",id:item.quote_request_id}));return [...invoice,...agreements,...quotes].sort((a,b)=>String(b.date).localeCompare(String(a.date)));}
+function reportActivity() {
+  if (!activityRead) {
+    const recent = table => supabase.from(table).select("*").order("created_at", {ascending:false}).limit(100);
+    const leads = model.quoteActivities;
+    activityRead = Promise.all([recent("invoice_events"), recent("rental_agreement_events")]).then(([invoices, agreements]) => {
+      if (invoices.error || agreements.error) throw new Error("Activity unavailable");
+      return [
+        ...invoices.data.map(item => ({date:item.created_at, title:titleCase(item.event_type), detail:item.detail||"Invoice updated", kind:"invoice", id:item.invoice_id})),
+        ...agreements.data.map(item => ({date:item.created_at, title:titleCase(item.event_type), detail:item.detail||"Rental updated", kind:"agreement", id:item.agreement_id})),
+        ...leads.map(item => ({date:item.created_at, title:titleCase(item.activity_type), detail:item.body||"Quote updated", kind:"quote", id:item.quote_request_id})),
+      ].sort((a,b) => String(b.date).localeCompare(String(a.date)));
+    });
+  }
+  return activityRead;
+}
+
 function activityRow(item){return `<button type="button" data-dashboard-open="${item.kind}" data-id="${item.id}"><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small></span><time datetime="${escapeHtml(item.date)}">${new Date(item.date).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</time></button>`;}
 
-function bindDashboard(scope){
+function bindDashboard(scope, updateReport){
   scope.querySelectorAll("[data-owned-refresh]:not(.desk-overview *)").forEach(button=>button.addEventListener("click",()=>loadDashboard(true)));
   scope.querySelectorAll("[data-owned-vehicle],[data-owned-expense]").forEach(button=>button.addEventListener("click",()=>{
     if(!button.dataset.ownedExpense)document.querySelector('[data-crm-section="vehicles"]')?.click();
     window.dispatchEvent(new CustomEvent("prestige:owned-vehicle",{detail:{id:button.dataset.ownedVehicle||button.dataset.ownedExpense,expense:!!button.dataset.ownedExpense,category:button.dataset.ownedCategory}}));
   }));
-  scope.querySelector("[data-dashboard-range]")?.addEventListener("change",(event)=>{rangeKey=event.target.value;if(rangeKey==="custom"&&!customStart){customStart=todayIso();customEnd=todayIso();}render();});
-  scope.querySelector("[data-dashboard-start]")?.addEventListener("change",(event)=>{customStart=event.target.value;if(customStart>customEnd)customEnd=customStart;if(customStart&&customEnd)render();});
-  scope.querySelector("[data-dashboard-end]")?.addEventListener("change",(event)=>{customEnd=event.target.value;if(customEnd && customEnd<customStart)customStart=customEnd;if(customStart&&customEnd)render();});
-  scope.querySelectorAll("[data-dashboard-toggle]").forEach(button=>button.addEventListener("click",()=>{if(button.dataset.dashboardToggle==="chart")chartMetric=button.dataset.value;else vehicleMetric=button.dataset.value;render();}));
+  scope.querySelector("[data-dashboard-range]")?.addEventListener("change",(event)=>{rangeKey=event.target.value;if(rangeKey==="custom"&&!customStart){customStart=todayIso();customEnd=todayIso();}updateReport();});
+  scope.querySelector("[data-dashboard-start]")?.addEventListener("change",(event)=>{customStart=event.target.value;if(customStart>customEnd)customEnd=customStart;if(customStart&&customEnd)updateReport();});
+  scope.querySelector("[data-dashboard-end]")?.addEventListener("change",(event)=>{customEnd=event.target.value;if(customEnd && customEnd<customStart)customStart=customEnd;if(customStart&&customEnd)updateReport();});
+  scope.querySelectorAll("[data-dashboard-toggle]").forEach(button=>button.addEventListener("click",()=>{if(button.dataset.dashboardToggle==="chart")chartMetric=button.dataset.value;else vehicleMetric=button.dataset.value;updateReport();}));
   scope.querySelectorAll("[data-dashboard-section]").forEach(button=>button.addEventListener("click",()=>document.querySelector(`[data-crm-section="${button.dataset.dashboardSection}"]`)?.click()));
   scope.querySelectorAll("[data-dashboard-create]").forEach(button=>button.addEventListener("click",()=>{
     const type=button.dataset.dashboardCreate;
@@ -435,7 +477,9 @@ function openRecord(kind,id) {
   const event = {invoice:"open-invoice",agreement:"open-agreement",proposal:"open-quote",vehicle:"open-fleet-vehicle",booking:"open-booking"}[kind];
   if (!section) return;
   document.querySelector(`[data-crm-section="${section}"]`)?.click();
-  window.dispatchEvent(new CustomEvent("prestige:"+event,{detail:{id,kind:"manual"}}));
+  const records = kind === "invoice" ? model.invoices : kind === "agreement" ? model.agreements : [];
+  const record = records.find(item => String(item.id) === String(id));
+  window.dispatchEvent(new CustomEvent("prestige:"+event,{detail:{id,kind:"manual",record}}));
 }
 
 function refreshFinancialWrites() {
@@ -448,7 +492,6 @@ function refreshFinancialWrites() {
       readVersion = financeVersion;
       await loadDashboard(true);
     } while (generation === sessionGeneration && readVersion !== financeVersion);
-    if (generation === sessionGeneration) lastFinanceRefresh = Date.now();
   }).finally(() => { financeRefresh = null; });
   return financeRefresh;
 }
@@ -459,13 +502,38 @@ export async function getOwnedFleetSource(force = false) {
   return {model:statementModel || model,error:ownershipError};
 }
 
-overviewButton?.addEventListener("click",()=>loadDashboard());
-window.addEventListener("prestige:desk-page",event=>{
-  if (loaded && !financeRefresh && Date.now() - lastFinanceRefresh > 5000 && event.detail?.section==="overview" && event.detail.previous && event.detail.previous!=="overview") loadDashboard(true);
-});
+overviewButton?.addEventListener("click", () => loadDashboard());
 window.addEventListener("prestige:finance-updated",refreshFinancialWrites);
-supabase?.auth.onAuthStateChange((event,session)=>{if(!session){sessionGeneration++;loaded=false;statementModel=null;cashLedger=[];rentalBalances=0;if(root)root.replaceChildren();const details=document.querySelector(".desk-operating-reports");if(details){details.open=false;details.ontoggle=null;details.onclick=null;details.querySelector("[data-desk-operating-content]")?.replaceChildren();}window.dispatchEvent(new CustomEvent("prestige:overview-leads",{detail:{count:null}}));model={invoices:[],invoicePayments:[],agreements:[],quotes:[],quoteActivities:[],invoiceEvents:[],agreementEvents:[],bookings:[],cars:[],partners:[],profile:null};}else if(document.querySelector('[data-section-panel="overview"]')?.classList.contains("active"))loadDashboard();});
-if (!document.querySelector("[data-admin-view]")?.hidden) loadDashboard();
-
-
+window.addEventListener("prestige:overview-changed", () => {
+  changeVersion++;
+  lastOverviewRead = 0;
+  if (overviewIsVisible()) loadDashboard();
+});
+function overviewIsVisible() {
+  return !document.querySelector("[data-admin-view]")?.hidden && root?.closest("[data-section-panel]")?.classList.contains("active");
+}
+window.addEventListener("prestige:desk-page", ({detail}) => overview?.setActive(detail.section === "overview"));
+supabase?.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    if (overviewIsVisible()) loadDashboard();
+    return;
+  }
+  sessionGeneration++;
+  loaded = false;
+  lastOverviewRead = 0;
+  loadSessionDashboard = singleFlight(readDashboard);
+  overview = renderedRole = statementModel = activityRead = null;
+  cashLedger = [];
+  rentalBalances = 0;
+  root?.replaceChildren();
+  const reports = document.querySelector(".desk-operating-reports");
+  if (reports) {
+    reports.open = false;
+    reports.ontoggle = reports.onclick = null;
+    reports.querySelector("[data-desk-operating-content]")?.replaceChildren();
+  }
+  window.dispatchEvent(new CustomEvent("prestige:overview-leads",{detail:{count:null}}));
+  model = {invoices:[],invoicePayments:[],agreements:[],quotes:[],quoteActivities:[],bookings:[],cars:[],partners:[],profile:null};
+});
+if (overviewIsVisible()) loadDashboard();
 registerSection("overview", loadDashboard);

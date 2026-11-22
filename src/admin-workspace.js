@@ -1,5 +1,13 @@
 import { canViewFinancials } from "./crm-permissions.js";
 
+const startup = document.querySelector("[data-auth-pending]");
+document.querySelector("[data-workspace-bootstrap]").addEventListener("error", () => {
+  if (startup.hidden) return;
+  startup.querySelector("[data-startup-message]").textContent = "Couldn’t connect to the workspace.";
+  startup.querySelector("[data-retry-startup]").hidden = false;
+});
+startup.querySelector("[data-retry-startup]").addEventListener("click", () => location.reload());
+
 const directory = document.getElementById("desk-directory");
 const launcher = document.querySelector("[data-workspace-menu]");
 const workspace = document.getElementById("workspace-content");
@@ -32,6 +40,7 @@ wideLayout.addEventListener("change",placeNavigation);
 
 launcher.addEventListener("click", () => {
   focusAfterClose = launcher;
+  directory.inert = false;
   directory.showModal();
   launcher.setAttribute("aria-expanded","true");
   closeButton.focus();
@@ -61,6 +70,8 @@ directory.addEventListener("click", event => {
 });
 directory.addEventListener("close", () => {
   if (directory.open) return;
+  // A closing drawer remains painted briefly; its controls should leave the tab order now.
+  directory.inert = true;
   launcher.setAttribute("aria-expanded","false");
   if (focusAfterClose && !focusAfterClose.closest("[hidden]")) {
     if (focusAfterClose.matches("section")) focusAfterClose.tabIndex = -1;
@@ -106,7 +117,7 @@ window.addEventListener("prestige:desk-page", ({detail}) => {
   const requested = url.searchParams.get("page");
   if (requested !== section && !followingHistory && !url.hash.includes("access_token=")) {
     url.searchParams.set("page",section);
-    if (previous !== section) url.hash = "";
+    if (previous && previous !== section) url.hash = "";
     history[requested && previous !== section ? "pushState" : "replaceState"](null,"",url);
   }
   if (previous !== section) window.scrollTo({top:0,behavior:"instant"});

@@ -1,8 +1,10 @@
 import {crmBase, openCrmPage} from './crm-browser-helpers.mjs';
 import assert from 'node:assert/strict';
-import {chromium} from 'playwright';
+import {chromium, webkit} from 'playwright';
 import {mkdirSync} from 'node:fs';
-const browser=await chromium.launch({channel:'chrome',headless:true});
+const browser=process.env.CRM_TEST_WEBKIT==='1'
+  ? await webkit.launch({headless:true})
+  : await chromium.launch({channel:'chrome',headless:true});
 mkdirSync('tmp/admin-navigation',{recursive:true});
 const populated=process.env.ADMIN_POPULATED==='1';
 const fixtures=populated?{admin_profiles:[{role:'owner',display_name:'Preview'}],invoices:[{id:'preview-invoice',invoice_number:'PREVIEW-001',customer_name:'Test Customer',vehicle_name:'Test Vehicle',status:'draft',rental_total:1200,total:1200,created_at:new Date().toISOString(),line_items:[]}]}:{admin_profiles:[{role:'owner',display_name:'Preview'}]};
@@ -76,10 +78,44 @@ async function assertRoute(page,id) {
   assert.equal(await page.locator('[data-crm-section][aria-current="page"]').count(),1);
 }
 
+async function checkDrawerMotion(page) {
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  const launcher=page.locator('[data-workspace-menu]');
+  const directory=page.locator('#desk-directory');
+  await launcher.click();
+  await directory.locator('[data-crm-section="bookings"]').click({trial:true});
+  const state=await directory.evaluate(drawer=>{
+    drawer.querySelector('[data-crm-section="bookings"]').click();
+    const animating=drawer.getAnimations().some(animation=>animation.transitionProperty==='transform');
+    return {
+      open:drawer.open, modal:drawer.matches(':modal'), animating,
+      destinationVisible:!document.querySelector('[data-section-panel="bookings"]').hidden,
+      blocksPointer:drawer.contains(document.elementFromPoint(50,50)),
+    };
+  });
+  assert.deepEqual(state,{open:false,modal:false,animating:true,destinationVisible:true,blocksPointer:false});
+  // Reopening during the exit must not leave the next drawer inert or steal focus.
+  await launcher.evaluate(button=>button.click());
+  await page.waitForFunction(()=>{
+    const drawer=document.getElementById('desk-directory');
+    return drawer.matches(':modal') && !drawer.inert && drawer.contains(document.activeElement);
+  });
+  await page.touchscreen.tap(page.viewportSize().width-8,100);
+  await directory.waitFor({state:'hidden'});
+  assert(await launcher.evaluate(el=>el===document.activeElement));
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await launcher.click();
+  const reduced=await directory.evaluate(drawer=>{
+    drawer.querySelector('[data-close-directory]').click();
+    return {display:getComputedStyle(drawer).display,animations:drawer.getAnimations().length};
+  });
+  assert.deepEqual(reduced,{display:'none',animations:0});
+}
+
 try {
   for (const width of [390,768,1099,1100,1440]) {
     const desktop=width>=1100;
-    const page=await browser.newPage({viewport:{width,height:width===390?844:900},reducedMotion:'reduce'});
+    const page=await browser.newPage({viewport:{width,height:width===390?844:900},hasTouch:width===390,isMobile:width===390,reducedMotion:'reduce'});
     const errors=[];
     page.on('pageerror',error=>errors.push(error.message));
     await page.route('**/supabase-js@2/+esm',route=>route.fulfill({contentType:'text/javascript',body:mock}));
@@ -92,6 +128,7 @@ try {
       assert(!await page.locator('[data-workspace-menu]').isVisible());
     } else {
       await checkDrawer(page);
+      if(width===390) await checkDrawerMotion(page);
     }
     await openCrmPage(page,'bookings');
     await assertRoute(page,'bookings');

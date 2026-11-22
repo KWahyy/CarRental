@@ -11,7 +11,8 @@ const fixture={
     {id:'customer-one',first_name:'Preview',last_name:'Customer',email:'preview@example.test',phone:'5551234567',marketing_consent_status:'unknown',marketing_tags:[],notes:''},
     {id:'customer-two',first_name:'Second',last_name:'Customer',email:'second@example.test',phone:'5552345678',marketing_consent_status:'unsubscribed',marketing_tags:['SUV'],notes:''}
   ],
-  rental_agreements:[{id:'agreement-one',customer_id:'customer-one',customer_name:'Preview Customer',vehicle_name:'Preview Vehicle',status:'signed',rental_total:1000,created_at:'2026-10-01T12:00:00Z'}]
+  invoices:[{id:'invoice-one',invoice_number:'PL-I-21',customer_id:'customer-one',customer_name:'Preview Customer',vehicle_name:'Preview Vehicle',status:'draft',total:200,created_at:'2026-09-05T12:00:00Z'}],
+  rental_agreements:[{id:'agreement-one',agreement_number:'PL-A-21',customer_id:'customer-one',customer_name:'Preview Customer',vehicle_name:'Preview Vehicle',status:'signed',rental_total:1000,created_at:'2026-10-01T12:00:00Z'}]
 };
 const mock=`export function createClient(){
   const fixtures=${JSON.stringify(fixture)};
@@ -32,7 +33,22 @@ try {
     const page=await browser.newPage({viewport:{width,height:950}});
     const errors=[];page.on('pageerror',error=>errors.push(error.message));
     await page.route('**/supabase-js@2/+esm',route=>route.fulfill({contentType:'text/javascript',body:mock}));
-    await page.route('**/api/**',route=>route.fulfill({json:{cars:[],vehicles:[],partners:[],quotes:[],customers:[],employees:[],reservations:[],blocks:[],leads:[],activities:[],items:[],availability:[],settings:{},template:{title:'Preview',body:'Preview',important_terms:[]},data:[]}}));
+    const apiReads = [];
+    const delayed = new Map();
+    function hold(path) {
+      let unblock;
+      delayed.set(path, new Promise(resolve => {unblock=resolve;}));
+      return () => {delayed.delete(path); unblock();};
+    }
+    await page.route('**/api/**', async route => {
+      const url = new URL(route.request().url());
+      apiReads.push(url.pathname + url.search);
+      if (delayed.has(url.pathname)) await delayed.get(url.pathname);
+      const result = {cars:[],vehicles:[],partners:[],quotes:[],customers:[],employees:[],reservations:[],blocks:[],leads:[],activities:[],items:[],availability:[],settings:{},template:{title:'Preview',body:'Preview',important_terms:[]},data:[]};
+      if (url.pathname === '/api/invoices') Object.assign(result, {invoices:fixture.invoices,invoice:{...fixture.invoices[0],notes:'Fresh invoice detail'},role:'owner'});
+      if (url.pathname === '/api/agreements') Object.assign(result, {agreements:fixture.rental_agreements,agreement:fixture.rental_agreements[0],events:[],public_url:'https://example.test/test-only',role:'owner'});
+      await route.fulfill({json:result});
+    });
     await page.goto(crmBase+'/admin/');
     await page.locator('[data-admin-view]').waitFor();
 
@@ -40,6 +56,45 @@ try {
     await page.locator('[data-customer-marketing-form]').waitFor();
     assert.equal(await page.locator('.customer-marketing-overview strong').textContent(),'0 contacts opted in');
     assert.equal(await page.locator('[data-customer-key]').count(),2);
+    const directorySearch = page.locator('[data-customer-search]');
+    const notes = page.locator('[data-customer-notes-form] [name="notes"]');
+    const source = page.locator('[name="marketing_source"]');
+    await notes.fill('Unsent notes'); await source.fill('Unsent source');
+    const profileNode = await page.locator('.customer-profile').elementHandle();
+    const inputNode = await directorySearch.elementHandle();
+    await directorySearch.fill('Preview');
+    assert(await directorySearch.evaluate((input, original) => input === original && input === document.activeElement, inputNode));
+    assert(await page.locator('.customer-profile').evaluate((profile, original) => profile === original, profileNode));
+    await directorySearch.fill('Second');
+    assert.equal(await notes.inputValue(),'');
+    await directorySearch.fill('no matching client');
+    assert.equal(await page.locator('[data-customer-key]').count(),0);
+    await directorySearch.fill('Preview');
+    assert.equal(await notes.inputValue(),'Unsent notes');
+    assert.equal(await source.inputValue(),'Unsent source');
+    await notes.fill(''); await source.fill('');
+
+    // Hold the target endpoint so the cached customer record must paint first.
+    const link = type => page.locator(`.customer-record-row[data-customer-record="${type}"]`);
+    const releaseInvoice = hold('/api/invoices');
+    await link('invoice').click();
+    await page.locator('.bl-folio h3').getByText('PL-I-21').waitFor({timeout:5000});
+    releaseInvoice();
+    await page.getByText('Fresh invoice detail').waitFor();
+    const listReads = apiReads.filter(path => path === '/api/invoices').length;
+    await openCrmPage(page,'customers'); await link('invoice').click();
+    await page.waitForFunction(() => document.querySelector('.bl-folio h3')?.textContent === 'PL-I-21');
+    assert.equal(apiReads.filter(path => path === '/api/invoices').length,listReads);
+    await openCrmPage(page,'customers');
+    const releaseAgreement = hold('/api/agreements');
+    await link('agreement').click();
+    await page.locator('[data-agreement-editor][open] [data-agreement-title]').getByText('PL-A-21').waitFor({timeout:5000});
+    const detailRead = page.waitForResponse(response => response.url().includes('/api/agreements?id=agreement-one'));
+    await page.locator('[data-close-agreement-editor]').click();
+    releaseAgreement(); await detailRead;
+    assert.equal(await page.locator('[data-agreement-editor][open]').count(),0);
+    assert.equal(apiReads.filter(path => path === '/api/agreement-settings').length,0);
+    await openCrmPage(page,'customers');
     await page.locator('[data-customer-search]').fill('Second');
     assert.equal(await page.locator('[data-customer-key]').count(),1);
     await page.locator('[data-customer-search]').fill('');
@@ -92,7 +147,7 @@ try {
     await page.keyboard.press('Escape');
     assert(!await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth));
     assert.deepEqual(errors,[]);
-    console.log(`${width}: consent capture, eligibility, opt-out and layout passed`);
+    console.log(`${width}: customer search, unsaved profile edits, linked billing records, consent and layout passed`);
     await page.close();
   }
 }finally{await browser.close();}

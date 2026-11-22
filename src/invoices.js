@@ -65,6 +65,11 @@ let quotes = [];
 let currentInvoice = null;
 let employeeRole = "staff";
 let loaded = false;
+let sourcesLoaded = false;
+let sessionGeneration = 0;
+let linkedId = "";
+let linkedInvoice = null;
+let linkVersion = 0;
 const INVOICE_DRAFT_KEY = "prestige-luxor:draft:new-invoice:v1";
 
 function escapeHtml(value) {
@@ -247,7 +252,7 @@ function renderList() {
   const query = (search.value || "").trim().toLowerCase();
   const filtered = invoices.filter(invoice => (!invoiceFilter.value || invoice.status === invoiceFilter.value) &&
     [invoice.invoice_number, invoice.customer_name, compactPersonName(invoice.customer_name), invoice.vehicle_name, invoiceLabels[invoice.status]].some(value => String(value || "").toLowerCase().includes(query)));
-  const selected = filtered.find(invoice => invoice.id === selectedId) || filtered[0];
+  const selected = filtered.find(invoice => invoice.id === (linkedId || selectedId)) || (!linkedId && filtered[0]);
   selectedId = selected?.id || "";
   invoiceCount.textContent = String(filtered.length);
   list.innerHTML = filtered.map(invoice => `<button type="button" class="bl-invoice-row" data-select-invoice="${escapeHtml(invoice.id)}" aria-pressed="${invoice.id === selectedId}">
@@ -371,33 +376,57 @@ function openInvoice(invoice = null) {
   renderTotals();
   renderList();
   if (restored) setStatus("Your unsaved invoice was restored.", "success");
+  if (!locked && type === "quote") prepareSourceOptions();
 }
 
-async function loadSourceRecords() {
-  const [quoteResult, imagesResult] = await Promise.all([
-    supabase.from("quote_requests").select("*").order("created_at", { ascending: false }).limit(500),
-    supabase.from("cars").select("id,name,image_url").order("name").limit(500),
-  ]);
-  fleetImages = imagesResult.data || [];
-  if (!quoteResult.error) quotes = quoteResult.data || [];
+const loadQuoteSources = singleFlight(async () => {
+  if (sourcesLoaded) return;
+  const generation = sessionGeneration;
+  const result = await supabase.from("quote_requests").select("*").order("created_at", { ascending: false }).limit(500);
+  if (generation !== sessionGeneration) return;
+  if (result.error) throw result.error;
+  quotes = result.data || [];
+  sourcesLoaded = true;
+});
+
+async function prepareSourceOptions() {
+  try {
+    await loadQuoteSources();
+    if (invoiceDialog.open && !sourceType.disabled && sourceType.value === "quote") populateSources(sourceSelect.value);
+  } catch {
+    if (invoiceDialog.open && sourceType.value === "quote") setStatus("Quote options could not load. Select the source again to retry.", "error");
+  }
 }
 
 const loadInvoices = singleFlight(async function (force = false) {
   if (!configured || (loaded && !force)) return;
+  if (force) clearLinkedSelection();
+  const generation = sessionGeneration;
   try {
-    if (!loaded) setStatus("Loading invoices...");
-    const [, data] = await Promise.all([loadSourceRecords(), invoiceApi("invoices")]);
+    if (!loaded && !linkedId) setStatus("Loading invoices...");
+    const [data, images] = await Promise.all([
+      invoiceApi("invoices"),
+      supabase.from("cars").select("id,name,image_url").order("name").limit(500),
+    ]);
+    if (generation !== sessionGeneration) return;
+    fleetImages = images.data || [];
     if (force) paymentCache.clear();
     invoices = data.invoices || [];
-    employeeRole = data.role || "staff";
+    if (linkedInvoice && !force) {
+      const index = invoices.findIndex(item => item.id === linkedInvoice.id);
+      if (index === -1) invoices.unshift(linkedInvoice);
+      else if ((linkedInvoice.updated_at || "") >= (invoices[index].updated_at || "")) invoices[index] = linkedInvoice;
+    }
+    employeeRole = data.role || document.documentElement.dataset.crmRole || "viewer";
     loaded = true;
-    if (currentInvoice) currentInvoice = invoices.find((item) => item.id === currentInvoice.id) || null;
+    if (force && currentInvoice) currentInvoice = invoices.find((item) => item.id === currentInvoice.id) || null;
     renderList();
-    if (currentInvoice && invoiceDialog.open) openInvoice(currentInvoice);
-    else if (!force && !invoiceDialog.open && document.querySelector('[data-section-panel="invoices"]')?.classList.contains("active") && draftData(INVOICE_DRAFT_KEY)) openInvoice();
+    if (force && currentInvoice && invoiceDialog.open) openInvoice(currentInvoice);
+    else if (!force && !linkedId && !invoiceDialog.open && document.querySelector('[data-section-panel="invoices"]')?.classList.contains("active") && draftData(INVOICE_DRAFT_KEY)) openInvoice();
     if (!draftData(INVOICE_DRAFT_KEY) || currentInvoice) setStatus("");
   } catch (error) {
-    const hasDraft = !currentInvoice && Boolean(draftData(INVOICE_DRAFT_KEY));
+    if (generation !== sessionGeneration) return;
+    const hasDraft = !linkedId && !currentInvoice && Boolean(draftData(INVOICE_DRAFT_KEY));
     if (hasDraft && document.querySelector('[data-section-panel="invoices"]')?.classList.contains("active")) openInvoice();
     setStatus(hasDraft ? `Draft restored. ${error.message}` : error.message, "error");
   }
@@ -555,7 +584,7 @@ discardDraftButton?.addEventListener("click", () => {
   renderList();
   setStatus("Unsaved invoice draft discarded.", "success");
 });
-search?.addEventListener("input", renderList);
+search?.addEventListener("input", () => { clearLinkedSelection(); renderList(); });
 form?.addEventListener("input", renderTotals);
 form?.addEventListener("input", () => {
   if (!currentInvoice) scheduleDraft(INVOICE_DRAFT_KEY, () => ({ fields: serializeForm(form) }));
@@ -569,30 +598,66 @@ window.addEventListener("pagehide", () => {
 depositMethod?.addEventListener("change", renderTotals);
 rentalStartInput?.addEventListener("input", syncRentalDays);
 rentalEndInput?.addEventListener("input", syncRentalDays);
-sourceType?.addEventListener("change", () => populateSources());
+sourceType?.addEventListener("change", () => {
+  populateSources();
+  if (sourceType.value === "quote") prepareSourceOptions();
+});
 sourceSelect?.addEventListener("change", applySource);
 list?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-select-invoice]");
   if (!button) return;
+  clearLinkedSelection();
   selectedId = button.dataset.selectInvoice;
   renderList();
   list.querySelector('[aria-pressed="true"]')?.focus({preventScroll:true});
 });
 panelButton?.addEventListener("click", () => loadInvoices());
-window.addEventListener("prestige:open-invoice", async (event) => {
+function clearLinkedSelection() {
+  linkVersion++;
+  linkedId = "";
+  linkedInvoice = null;
+}
+
+function showLinkedInvoice(invoice) {
+  const index = invoices.findIndex(item => item.id === invoice.id);
+  if (index < 0) invoices.unshift(invoice);
+  else invoices[index] = invoice;
+  linkedInvoice = invoice;
+  selectedId = invoice.id;
+  renderList();
+}
+
+window.addEventListener("prestige:open-invoice", async ({detail}) => {
+  if (!detail?.id) return;
+  const version = ++linkVersion;
+  linkedId = String(detail.id);
+  linkedInvoice = null;
+  search.value = ""; invoiceFilter.value = "";
+  employeeRole = document.documentElement.dataset.crmRole || employeeRole;
+  const cached = invoices.find(item => String(item.id) === linkedId)
+    || (String(detail.record?.id) === linkedId && detail.record);
+  if (cached) showLinkedInvoice(cached);
+  else { renderList(); setStatus("Loading invoice…"); }
   try {
-    await loadInvoices(true);
-    const invoice = invoices.find((item) => String(item.id) === String(event.detail?.id));
-    if (!invoice) throw new Error("Invoice not found.");
-    search.value = ""; invoiceFilter.value = ""; selectedId = invoice.id; renderList();
+    const {invoice,role} = await invoiceApi(`invoices?id=${encodeURIComponent(linkedId)}`);
+    if (version !== linkVersion) return;
+    if (!invoice || String(invoice.id) !== linkedId) throw new Error("Invoice not found.");
+    employeeRole = role || employeeRole;
+    if (invoice.amount_paid !== cached?.amount_paid) paymentCache.delete(invoice.id);
+    showLinkedInvoice(invoice);
+    setStatus("");
   } catch (error) {
-    setStatus(error.message, "error");
+    if (version === linkVersion) setStatus(error.message, "error");
   }
+});
+window.addEventListener("prestige:desk-page", ({detail}) => {
+  if (detail.section !== "invoices") clearLinkedSelection();
 });
 supabase?.auth.onAuthStateChange((event, session) => {
   if (event === "SIGNED_OUT") {
+    sessionGeneration++; clearLinkedSelection();
     paymentCache.clear();
-    invoices = [];
+    invoices = []; fleetImages = []; quotes = []; sourcesLoaded = false;
     loaded = false;
     currentInvoice = null;
     renderList();
@@ -605,7 +670,7 @@ registerSection("invoices", loadInvoices);
 
 
 invoiceFilter.insertAdjacentHTML("beforeend", Object.entries(invoiceLabels).map(([value,label]) => `<option value="${value}">${label}</option>`).join(""));
-invoiceFilter.addEventListener("change",renderList);
+invoiceFilter.addEventListener("change",() => { clearLinkedSelection(); renderList(); });
 document.querySelector("[data-close-invoice-editor]").addEventListener("click", () => invoiceDialog.close());
 invoiceDialog.addEventListener("close", () => {
   if (!currentInvoice && !form.hidden) writeDraft(INVOICE_DRAFT_KEY,{fields:serializeForm(form)});

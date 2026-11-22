@@ -14,14 +14,14 @@ export const dollars = new Intl.NumberFormat("en-US",{style:"currency",currency:
 const money = value => dollars.format(value);
 const compact = new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",notation:"compact",maximumFractionDigits:1});
 
-export function bindRevenue(root, {model,ledger,balance,error,period,onPeriod,onDetail}) {
+export function bindRevenue(root, {onDetail}) {
   const select = root.querySelector("[data-desk-cash-period]");
   if (!select) return;
-  let points, start, end, selected;
+  let data, points, start, end, selected;
+  let chartKey = "";
   const el = selector => root.querySelector(selector);
-  select.value = period;
   const render = () => {
-    onPeriod(select.value);
+    const {model, ledger, balance, error} = data;
     const today = businessDay();
     end = dayIndex(today);
     start = select.value === "week" ? end - 6 : dayIndex(today.slice(0,7)+"-01");
@@ -40,11 +40,16 @@ export function bindRevenue(root, {model,ledger,balance,error,period,onPeriod,on
     details.hidden = Boolean(error);
     details.querySelector("[data-open-balances]").textContent = money(balance);
     details.querySelector("[data-owned-retained]").textContent = owned ? money(owned.cash) : "—";
-    details.querySelector("[data-desk-cash-detail]").onclick = () => onDetail({total,balance,owned,from:range.start,through:today});
+    const info = error ? null : {total,balance,owned,from:range.start,through:today};
+    details.querySelector("[data-desk-cash-detail]").onclick = () => { if (info) onDetail(info); };
     const chart = el("#rv-chart");
+    const nextKey = JSON.stringify([start, end, error, points.map(p=>[p.day,p.amount])]);
+    if (nextKey === chartKey) return info;
+    chartKey = nextKey;
+    const hadChartFocus = chart.contains(document.activeElement);
     if (error || !points.length) {
       chart.innerHTML = error ? '<p class="rv-empty">Financial records could not be loaded. <button type="button" class="desk-link" data-owned-refresh>Retry</button></p>' : '<p class="rv-empty">No rental payments recorded in this period.</p>';
-      return;
+      return info;
     }
     const magnitude = 10 ** Math.floor(Math.log10(total / 2));
     const half = [1,2,2.5,4,5,8,10].find(n=>n*magnitude >= total/2) * magnitude;
@@ -60,9 +65,13 @@ export function bindRevenue(root, {model,ledger,balance,error,period,onPeriod,on
       ${points.map((p,i)=>`<i class="rv-point" data-rv-point="${i}" style="left:${x(p.day)}%;top:${y(p.total)}%"></i>`).join("")}
       </div></div><div class="rv-dates" aria-hidden="true">${dates.map(d=>`<span style="left:${x(d)}%">${shortDate.format(d*dayMillis)}</span>`).join("")}</div></div>
       <p class="sr" id="rv-instructions">Use the arrow keys to inspect payment dates.</p>`;
+    selected = -1;
     inspect(points.length-1);
+    if (hadChartFocus) el(".rv-plot").focus({preventScroll:true});
+    return info;
   };
   const inspect = index => {
+    if (selected === index) return;
     selected = index;
     const p = points[index], label = shortDate.format(p.day*dayMillis);
     el("#rv-date").textContent = label+" · "+money(p.amount)+" received";
@@ -95,7 +104,7 @@ export function bindRevenue(root, {model,ledger,balance,error,period,onPeriod,on
     inspect(Math.max(0,Math.min(points.length-1,next)));
   };
   select.onchange = render;
-  render();
+  return nextData => { data = nextData; return render(); };
 }
 
 export function revenuePanel() {

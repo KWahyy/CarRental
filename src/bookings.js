@@ -244,7 +244,8 @@ app?.addEventListener("click",event=>{
   else if(b.hasAttribute("data-close-booking"))b.closest("dialog")?.close();
   else if(bookingVehicle || bookingAgreement){
     b.closest("dialog")?.close();document.querySelector(`[data-crm-section="${bookingVehicle?"vehicles":"agreements"}"]`)?.click();
-    window.dispatchEvent(new CustomEvent(bookingVehicle?"prestige:open-fleet-vehicle":"prestige:open-agreement",{detail:{id:bookingVehicle||bookingAgreement}}));
+    const detail = bookingVehicle ? {id:bookingVehicle} : {id:bookingAgreement, record:agreements.find(row => row.id === bookingAgreement)};
+    window.dispatchEvent(new CustomEvent(bookingVehicle?"prestige:open-fleet-vehicle":"prestige:open-agreement",{detail}));
   }
 });
 function blankRecord() {

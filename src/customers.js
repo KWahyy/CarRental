@@ -15,6 +15,8 @@ let selectedKey = "";
 let searchTerm = "";
 let view = "all";
 let showTotals = false;
+const profileDrafts = new Map();
+let sessionGeneration = 0;
 
 const escapeHtml = (value) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 const money = (value) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(Number(value || 0));
@@ -110,6 +112,7 @@ async function fetchRows(query, label) {
 
 const load = singleFlight(async function (force = false, preferredKey = "") {
   if (loaded && !force) return;
+  const generation = sessionGeneration;
   if (!loaded) root.innerHTML = '<div class="crm-loading-state">Organizing customer records…</div>';
   try {
     const [customerRows, quoteRows, invoiceRows, agreementRows, carResult] = await Promise.all([
@@ -119,6 +122,7 @@ const load = singleFlight(async function (force = false, preferredKey = "") {
       fetchRows(supabase.from("rental_agreements").select("*").order("created_at", { ascending: false }).limit(1000), "Agreements"),
       supabase.from("cars").select("id,name,image_url").limit(1000),
     ]);
+    if (generation !== sessionGeneration) return;
     fleetPhotos = carResult.data || [];
     customers = organize({ customerRows, quoteRows, invoiceRows, agreementRows });
     loaded = true;
@@ -126,6 +130,7 @@ const load = singleFlight(async function (force = false, preferredKey = "") {
     if (!customers.some((item) => item.key === selectedKey)) selectedKey = customers[0]?.key || "";
     render();
   } catch (error) {
+    if (generation !== sessionGeneration) return;
     root.innerHTML = `<div class="customers-error"><strong>Customers need attention</strong><p>${escapeHtml(error.message)}</p><button class="secondary-button" type="button" data-customer-retry>Retry</button></div>`;
   }
 });
@@ -143,18 +148,57 @@ function kpi(label, value, note) {
   return `<article><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`;
 }
 
-function renderList() {
-  const visible = visibleCustomers();
+function renderList(visible) {
   return `<aside class="customers-directory-card">
     <div class="customers-toolbar"><header class="desk-subhead"><h3>Directory</h3><span>${customers.length}</span></header>
       <label><span>Search customers</span><input type="search" value="${escapeHtml(searchTerm)}" placeholder="Name, phone, email, or vehicle" data-customer-search></label>
       <div class="customer-view-tabs" role="group" aria-label="Customer views">${[["all","All"],["renters","Renters"],["repeat","Repeat"],["leads","Leads"],["email_ready","Email ready"]].map(([id,label]) => `<button class="${view === id ? "active" : ""}" type="button" data-customer-view="${id}" aria-pressed="${view === id}">${label}</button>`).join("")}</div>
     </div>
-    <div class="customers-list">${visible.length ? visible.map((customer) => {
+    <div class="customers-list">${directoryRows(visible)}</div>
+  </aside>`;
+}
+
+function directoryRows(visible) {
+  return visible.length ? visible.map((customer) => {
       const label = compactPersonName(customer.name, customer);
       return `<button class="customer-list-item ${customer.key === selectedKey ? "active" : ""}" type="button" data-customer-key="${escapeHtml(customer.key)}" aria-pressed="${customer.key === selectedKey}"><span class="customer-avatar">${escapeHtml(initials(label))}</span><span class="customer-list-copy"><strong title="${escapeHtml(customer.name)}">${escapeHtml(label)}</strong><small>${escapeHtml(customer.email || customer.phone || "No contact details")}</small></span><span class="customer-list-meta"><strong>${customer.recordCount}</strong><small>records</small></span></button>`;
-    }).join("") : '<div class="customers-list-empty"><strong>No customers found</strong><span>Try another search or view.</span></div>'}</div>
-  </aside>`;
+    }).join("") : '<div class="customers-list-empty"><strong>No customers found</strong><span>Try another search or view.</span></div>';
+}
+
+function restoreProfileDraft(key) {
+  const fields = profileDrafts.get(key);
+  if (!fields) return;
+  for (const [name, value] of fields) {
+    const input = root.querySelector(`.customer-profile [name="${CSS.escape(name)}"]`);
+    if (input) input.value = value;
+  }
+}
+
+function finishProfileSave(oldKey, newKey, fields) {
+  const draft = profileDrafts.get(oldKey);
+  if (!draft) return;
+  profileDrafts.delete(oldKey);
+  for (const [name, value] of fields) {
+    if (draft.get(name) === value) draft.delete(name);
+  }
+  if (draft.size) profileDrafts.set(newKey, draft);
+}
+
+function filterDirectory(preferred = selectedKey) {
+  const visible = visibleCustomers();
+  const selected = visible.find(customer => customer.key === preferred) || visible[0];
+  selectedKey = selected?.key || "";
+  root.querySelector(".customers-list").innerHTML = directoryRows(visible);
+  for (const button of root.querySelectorAll("[data-customer-view]")) {
+    const active = button.dataset.customerView === view;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  }
+  const profile = root.querySelector("[data-profile-key]");
+  if (profile.dataset.profileKey !== selectedKey) {
+    profile.outerHTML = renderDetail(selected);
+    restoreProfileDraft(selectedKey);
+  }
 }
 
 function statusBadge(status = "draft") {
@@ -169,7 +213,7 @@ function recordRow(type, record) {
 }
 
 function renderDetail(customer) {
-  if (!customer) return '<section class="customer-profile-empty"><strong>Select a customer</strong><span>Choose a customer to see their complete CRM history.</span></section>';
+  if (!customer) return '<section class="customer-profile-empty" data-profile-key=""><strong>Select a customer</strong><span>Choose a customer to see their complete CRM history.</span></section>';
   const marketingLabel = customer.marketingStatus === "subscribed" ? "Opted in" : customer.marketingStatus === "unsubscribed" ? "Opted out" : "Not recorded";
   const marketingNote = customer.marketingStatus === "subscribed" ? "Eligible for future marketing emails" : "Do not include in marketing sends";
   const records = [
@@ -185,7 +229,7 @@ function renderDetail(customer) {
     const image = record.vehicle_image_url || car?.image_url || "";
     vehiclePanel = `<div class="customer-vehicle-focus">${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(record.vehicle_name)}" loading="lazy">` : ""}<div><small>Latest rental record</small><h4>${escapeHtml(record.vehicle_name)}</h4><button type="button" data-customer-record="${type}" data-record-id="${escapeHtml(record.id)}">View ${type} <span aria-hidden="true">→</span></button></div></div>`;
   }
-  return `<section class="customer-profile" aria-label="Selected customer" tabindex="-1">
+  return `<section class="customer-profile" data-profile-key="${escapeHtml(customer.key)}" aria-label="Selected customer" tabindex="-1">
     <header class="customer-profile-hero"><div><span>Customer profile</span><h3>${escapeHtml(customer.name)}</h3><p>${escapeHtml(customer.company || customer.leadSource || "Prestige Luxor client")}</p></div><div class="customer-contact-actions"><button class="secondary-button" type="button" data-customer-create-quote>Create quote <span aria-hidden="true">→</span></button></div></header>
     ${vehiclePanel}
     <div class="customer-profile-grid">
@@ -224,13 +268,16 @@ function render() {
   const visible = visibleCustomers();
   if (!visible.some((customer) => customer.key === selectedKey)) selectedKey = visible[0]?.key || "";
   const selected = visible.find((customer) => customer.key === selectedKey);
-  root.innerHTML = `<div class="customers-layout">${renderList()}${renderDetail(selected)}</div><details class="directory-totals" ${showTotals ? "open" : ""}><summary>Directory totals</summary><div class="customers-kpis">${kpi("Total customers", customers.length, "Unique CRM contacts")}${kpi("Rental customers", renters, "With an agreement")}${kpi("Repeat customers", repeat, "More than one agreement")}${kpi("Payments recorded", money(paid), "Across customer invoices")}</div><div class="customer-marketing-overview"><div><span>Email marketing readiness</span><strong>${emailReady} contact${emailReady === 1 ? "" : "s"} opted in</strong><p>Only customers with a recorded opt-in and an email address qualify for future campaigns.</p></div><button type="button" data-customer-email-ready>View eligible contacts <span aria-hidden="true">→</span></button></div></details>`;
+  root.innerHTML = `<div class="customers-layout">${renderList(visible)}${renderDetail(selected)}</div><details class="directory-totals" ${showTotals ? "open" : ""}><summary>Directory totals</summary><div class="customers-kpis">${kpi("Total customers", customers.length, "Unique CRM contacts")}${kpi("Rental customers", renters, "With an agreement")}${kpi("Repeat customers", repeat, "More than one agreement")}${kpi("Payments recorded", money(paid), "Across customer invoices")}</div><div class="customer-marketing-overview"><div><span>Email marketing readiness</span><strong>${emailReady} contact${emailReady === 1 ? "" : "s"} opted in</strong><p>Only customers with a recorded opt-in and an email address qualify for future campaigns.</p></div><button type="button" data-customer-email-ready>View eligible contacts <span aria-hidden="true">→</span></button></div></details>`;
+  restoreProfileDraft(selectedKey);
 }
 
 function openRecord(type, id) {
   const section = type === "quote" ? "requests" : type === "invoice" ? "invoices" : "agreements";
+  const customer = customers.find(item => item.key === selectedKey);
+  const record = customer?.[section]?.find(item => String(item.id) === id);
   document.querySelector(`[data-crm-section="${section}"]`)?.click();
-  window.dispatchEvent(new CustomEvent(`prestige:open-${type}`, { detail: { id } }));
+  window.dispatchEvent(new CustomEvent(`prestige:open-${type}`, { detail: { id, record } }));
 }
 
 async function saveNotes(form) {
@@ -238,7 +285,8 @@ async function saveNotes(form) {
   if (!customer) return;
   const status = form.querySelector("[data-customer-note-status]");
   const button = form.querySelector('button[type="submit"]');
-  const notes = form.elements.notes.value.trim();
+  const fields = new FormData(form);
+  const notes = fields.get("notes").trim();
   button.disabled = true;
   status.textContent = "Saving…";
   try {
@@ -254,7 +302,9 @@ async function saveNotes(form) {
       saved = result.data;
     }
     status.textContent = "Notes saved.";
-    await load(true, `customer:${saved.id}`);
+    const newKey = `customer:${saved.id}`;
+    finishProfileSave(customer.key, newKey, fields);
+    await load(true, selectedKey === customer.key ? newKey : "");
   } catch (error) {
     status.textContent = error.message;
   } finally {
@@ -266,6 +316,7 @@ async function saveNotes(form) {
 async function saveMarketing(form) {
   const customer = customers.find((item) => item.key === form.elements.customer_key.value);
   if (!customer) return;
+  const submitted = new FormData(form);
   const status = form.elements.marketing_status.value;
   const email = form.elements.marketing_email.value.trim();
   const source = form.elements.marketing_source.value.trim();
@@ -301,8 +352,11 @@ async function saveMarketing(form) {
       }).select().single();
     }
     if (result.error) throw result.error;
-    await load(true, `customer:${result.data.id}`);
-    root.querySelector("[data-customer-marketing-message]").textContent = "Preferences saved.";
+    const newKey = `customer:${result.data.id}`;
+    finishProfileSave(customer.key, newKey, submitted);
+    await load(true, selectedKey === customer.key ? newKey : "");
+    const savedMessage = root.querySelector("[data-customer-marketing-message]");
+    if (selectedKey === newKey && savedMessage) savedMessage.textContent = "Preferences saved.";
   } catch (error) {
     message.textContent = /marketing_consent_status|marketing_tags|schema cache/i.test(error.message) ? "Marketing fields need the customer-marketing-readiness SQL update." : error.message;
   } finally { button.disabled = false; }
@@ -310,11 +364,11 @@ async function saveMarketing(form) {
 
 root?.addEventListener("click", (event) => {
   if (event.target.closest("[data-customer-retry]")) return load(true);
-  if (event.target.closest("[data-customer-email-ready]")) { view = "email_ready"; return render(); }
+  if (event.target.closest("[data-customer-email-ready]")) { view = "email_ready"; return filterDirectory(); }
   const viewButton = event.target.closest("[data-customer-view]");
-  if (viewButton) { view = viewButton.dataset.customerView; return render(); }
+  if (viewButton) { view = viewButton.dataset.customerView; return filterDirectory(); }
   const customerButton = event.target.closest("[data-customer-key]");
-  if (customerButton) { selectedKey = customerButton.dataset.customerKey; render();
+  if (customerButton) { filterDirectory(customerButton.dataset.customerKey);
     const profile = root.querySelector(".customer-profile");
     if (window.matchMedia("(max-width: 700px)").matches) { profile?.focus({preventScroll:true}); profile?.scrollIntoView({block:"start"}); }
     else root.querySelector('[data-customer-key][aria-pressed="true"]')?.focus({preventScroll:true});
@@ -340,13 +394,15 @@ root?.addEventListener("toggle", event => {
 }, true);
 
 root?.addEventListener("input", (event) => {
-  if (!event.target.matches("[data-customer-search]")) return;
-  searchTerm = event.target.value;
-  const cursor = event.target.selectionStart;
-  render();
-  const next = root.querySelector("[data-customer-search]");
-  next?.focus();
-  next?.setSelectionRange(cursor, cursor);
+  const field = event.target;
+  if (field.matches("[data-customer-search]")) {
+    searchTerm = field.value;
+    filterDirectory();
+  } else if (field.form?.matches("[data-customer-notes-form],[data-customer-marketing-form]") && field.name) {
+    const key = field.form.elements.customer_key.value;
+    if (!profileDrafts.has(key)) profileDrafts.set(key, new Map());
+    profileDrafts.get(key).set(field.name, field.value);
+  }
 });
 
 root?.addEventListener("submit", (event) => {
@@ -357,7 +413,7 @@ root?.addEventListener("submit", (event) => {
 navButton?.addEventListener("click", () => load());
 refreshButton?.addEventListener("click", () => load(true, selectedKey));
 supabase.auth.onAuthStateChange((event, session) => {
-  if (!session) { loaded = false; customers = []; selectedKey = ""; }
+  if (!session) { sessionGeneration++; loaded = false; customers = []; selectedKey = ""; searchTerm = ""; view = "all"; profileDrafts.clear(); root.replaceChildren(); }
   else if (event === "SIGNED_IN" && !loaded && document.querySelector('[data-section-panel="customers"]')?.classList.contains("active")) load();
 });
 setTimeout(() => {

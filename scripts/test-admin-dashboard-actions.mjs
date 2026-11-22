@@ -1,6 +1,6 @@
 import { crmBase, openCrmPage } from "./crm-browser-helpers.mjs";
 import assert from 'node:assert/strict';
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
 import { fleet } from '../src/fleet-data.js';
 import { rentalLedger } from '../src/crm-desk-overview-ledger.js';
 
@@ -33,9 +33,99 @@ const cars = fleet.filter(car => showcaseSlugs.includes(car.slug) || /DeVille|Im
   operational_status:car.slug === 'mclaren-750s-rental' ? 'vehicle_out' : 'available',
   ownership_type:car.slug === '2022-lamborghini-huracan' ? 'prestige' : 'partner',
 }));
-const browser=await chromium.launch({channel:'chrome',headless:true});
-const mock=`export function createClient(){const fixtures={admin_profiles:[{role:'owner',display_name:'Audit'}],invoices:[],invoice_payments:[],rental_agreements:[],quotes:[],quote_events:[],invoice_events:[],agreement_events:[],booking_sales:[],cars:${JSON.stringify(cars)},crm_customers:[],quote_requests:[]};const session={user:{id:'audit',email:'audit@example.test'},access_token:'mock'};const query=table=>{let single=false,proxy;proxy=new Proxy({}, {get(_,key){if(key==='then')return resolve=>resolve({data:single?(fixtures[table]?.[0]||null):(fixtures[table]||[]),error:null,count:0});return(...args)=>{if(key==='single'||key==='maybeSingle')single=true;return proxy;};}});return proxy;};return {from:query,auth:{getSession:async()=>({data:{session}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),signOut:async()=>({error:null})},storage:{from:()=>({getPublicUrl:()=>({data:{publicUrl:''}})})}}}`;
+const browser = process.env.CRM_TEST_WEBKIT === '1'
+  ? await webkit.launch({headless:true})
+  : await chromium.launch({channel:'chrome',headless:true});
+// The last (expenses) read can be held open to interact with the dashboard
+// before and after an actual asynchronous refresh completes.
+const mock = `export function createClient() {
+  const session = {user:{id:'audit',email:'audit@example.test'}, access_token:'mock'};
+  const tables = window.deskFixtures = {
+    admin_profiles:[{role:'owner',display_name:'Audit'}], cars:${JSON.stringify(cars)},
+    booking_sales:[], quote_requests:Array.from({length:5}, (_,i)=>({id:'lead-'+i,name:'Test '+i,status:'new'})),
+  };
+  window.overviewReads = 0;
+  function from(table) {
+    let single = false;
+    const proxy = new Proxy({}, {get(_, key) {
+      if (key === 'then') return async resolve => {
+        if (table === 'vehicle_expenses') {
+          window.overviewReads++;
+          await window.expenseGate;
+        }
+        const rows = tables[table] || [];
+        resolve({data:single ? rows[0] || null : rows,error:null,count:rows.length});
+      };
+      return () => { if (key==='single' || key==='maybeSingle') single=true; return proxy; };
+    }});
+    return proxy;
+  }
+  return {from, auth:{getSession:async()=>({data:{session}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),signOut:async()=>({error:null})},
+    storage:{from:()=>({getPublicUrl:()=>({data:{publicUrl:''}})})}};
+}`;
+async function testOverviewReturn(width) {
+  const page = await browser.newPage({viewport:{width,height:900},hasTouch:width < 500,isMobile:width < 500});
+  try {
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.route('**/supabase-js@2/+esm', route => route.fulfill({contentType:'text/javascript',body:mock}));
+    await page.route('**/api/**', route => route.fulfill({json:{vehicles:[],role:'owner',period:{key:'month'}}}));
+    const now = new Date('2026-11-22T18:00:00Z');
+    await page.clock.setFixedTime(now);
+    await page.goto(crmBase+'/admin/?page=overview');
+    await page.getByRole('button',{name:'View all 5 leads →'}).click();
+    assert.equal(await page.locator('[data-desk-inquiry]').count(),5);
+    const reads = () => page.evaluate(() => window.overviewReads);
+    const initialReads = await reads();
+    for (let pass=0; pass<2; pass++) {
+      await openCrmPage(page,'vehicles');
+      await openCrmPage(page,'overview');
+      assert.equal(await page.locator('[data-desk-inquiry-list]').getAttribute('aria-expanded'),'true');
+    }
+    assert.equal(await reads(),initialReads,'A fresh Overview should not fetch expenses on return');
+
+    // Expire the cached snapshot, return, then open the schedule before the read finishes.
+    await openCrmPage(page,'vehicles');
+    await page.clock.setFixedTime(new Date(now.valueOf()+61_000));
+    await page.evaluate(() => {
+      window.expenseGate = new Promise(resolve => { window.releaseExpenses = resolve; });
+      window.deskFixtures.booking_sales = [{id:'paid-rental',total_amount:125,amount_paid:125,booked_on:'2026-11-22'}];
+    });
+    await openCrmPage(page,'overview');
+    await page.waitForFunction(n => window.overviewReads > n,initialReads);
+    await page.getByRole('button',{name:'View schedule',exact:true}).click();
+    const schedule = page.getByRole('dialog',{name:'Upcoming schedule'});
+    await schedule.waitFor();
+    await page.evaluate(() => {
+      window.scheduleNode = document.querySelector('[data-desk-dialog]');
+      window.leadsNode = document.querySelector('[data-desk-inquiry]');
+      window.releaseExpenses();
+    });
+    await page.waitForFunction(() => document.querySelector('#rv-total')?.textContent === '$125');
+    assert(await schedule.isVisible(),'Completing the in-flight refresh dismissed the schedule');
+    assert(await page.evaluate(() => window.scheduleNode === document.querySelector('[data-desk-dialog]') && window.leadsNode === document.querySelector('[data-desk-inquiry]')));
+    await page.goBack();
+    await page.locator('[data-section-panel="vehicles"]:visible').waitFor();
+    assert.equal(await page.locator('dialog:modal').count(),0,'Hidden Overview trapped focus on Fleet');
+    await page.goForward();
+    await schedule.waitFor();
+    await schedule.getByRole('button',{name:'Close details'}).click();
+    await page.getByRole('button',{name:'Show fewer leads'}).waitFor();
+
+    // A payment notification updates balances immediately, even inside the freshness window.
+    await page.evaluate(() => {
+      window.deskFixtures.booking_sales[0].amount_paid = 150;
+      window.deskFixtures.booking_sales[0].total_amount = 150;
+      window.dispatchEvent(new CustomEvent('prestige:finance-updated'));
+    });
+    await page.waitForFunction(() => document.querySelector('#rv-total')?.textContent === '$150');
+    assert.equal(await page.locator('[data-desk-inquiry]').count(),5);
+    assert.deepEqual(errors,[]);
+    console.log('PASS: '+width+' px, two warm returns with zero Overview reloads; late refresh retained schedule, lead rows, and expansion; payment updated Revenue.');
+  } finally { await page.close(); }
+}
 try{
+  for (const width of [1440,390]) await testOverviewReturn(width);
   const page=await browser.newPage({viewport:{width:1440,height:950}});
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.route('**/supabase-js@2/+esm',route=>route.fulfill({contentType:'text/javascript',body:mock}));

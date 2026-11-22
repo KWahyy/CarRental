@@ -10,7 +10,7 @@ export function initAdminLogin({ document, auth, onSignedIn, location, history }
   function message(text, error = false) { status.textContent = text; status.dataset.tone = error ? 'error' : ''; }
   function mode(value) {
     login.hidden = value !== 'login'; reset.hidden = value !== 'reset'; update.hidden = value !== 'update';
-    find('[data-login-title]').textContent = { login:'Team sign-in', reset:'Reset your password.', update:'Choose a new password.' }[value];
+    find('[data-login-title]').textContent = { login:'Welcome back.', reset:'Reset your password.', update:'Choose a new password.' }[value];
     find('[data-login-description]').textContent = { login:'Sign in to your Prestige Luxor workspace.', reset:'We’ll email a secure link to your account address.', update:invitation ? 'Choose your password to access your Prestige Luxor workspace.' : 'Set a new password to regain access to your workspace.' }[value];
     message('');
   }
@@ -35,9 +35,9 @@ export function initAdminLogin({ document, auth, onSignedIn, location, history }
     recovery = false; history.replaceState({}, '', location.pathname); update.reset(); mode('login'); login.elements.email.focus();
   }));
   login.addEventListener('submit', event => { event.preventDefault(); run(login, 'Signing in…', async () => {
-    const { error } = await auth.signInWithPassword({ email:login.elements.email.value.trim(), password:password.value });
+    const { data, error } = await auth.signInWithPassword({ email:login.elements.email.value.trim(), password:password.value });
     if (error) { message(error.status === 429 ? 'Too many attempts. Please wait a moment and try again.' : 'Unable to sign in. Check your email and password, or reset your password.', true); return; }
-    password.value = ''; message(''); onSignedIn();
+    password.value = ''; message(''); await onSignedIn(data.session);
   }); });
   reset.addEventListener('submit', event => { event.preventDefault(); run(reset, 'Sending link…', async () => {
     const redirectTo = new URL('/admin/?recovery=1', location.origin).href;
@@ -52,7 +52,7 @@ export function initAdminLogin({ document, auth, onSignedIn, location, history }
       if (sessionError || !data.session) { message('This reset link has expired or is invalid. Request a new link.', true); return; }
       const { error } = await auth.updateUser({ password:update.elements.password.value });
       if (error) { message('Password could not be updated. Try a different password or request a new reset link.', true); return; }
-      update.reset(); recovery = false; history.replaceState({}, '', location.pathname); message(''); onSignedIn();
+      update.reset(); recovery = false; history.replaceState({}, '', location.pathname); message(''); await onSignedIn(data.session);
     });
   });
   if (recovery) mode('update');

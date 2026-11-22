@@ -14,21 +14,37 @@
     <link rel="stylesheet" href="/src/crm-desk-overview.css" />
     <link rel="stylesheet" href="/src/crm-desk-operations.css" />
     <link rel="stylesheet" href="/src/crm-desk-billing.css" />
+    <link rel="stylesheet" href="/src/admin-login.css" />
   </head>
   <body class="admin-page" data-workspace-design="rental-desk">
     <main class="admin-shell">
-      <section class="admin-login" data-login-view aria-label="Team sign in">
+      <section class="desk-startup" data-auth-pending aria-label="Workspace access">
+        <div class="desk-startup-brand"><img src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="145" height="27"></div>
+        <div class="desk-startup-status">
+          <p role="status" data-startup-message>Opening workspace…</p>
+          <button type="button" data-retry-startup hidden>Try again</button>
+          <noscript>Enable JavaScript to open your workspace.</noscript>
+        </div>
+      </section>
+      <section class="admin-login" data-login-view aria-label="Team sign in" hidden>
         <header class="admin-login-header">
           <a class="brand admin-brand" href="/" aria-label="Prestige Luxor home"><img class="brand-logo brand-logo-wide" src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" /></a>
           <a href="/">Back to website <span aria-hidden="true">↗</span></a>
         </header>
         <div class="admin-login-layout">
-          <figure class="desk-access-photo">
-            <img src="/assets/partner-fleet/rolls-royce-cullinan-black-badge/01.jpg" alt="Black Rolls-Royce Cullinan Black Badge from the Prestige Luxor fleet" width="900" height="600" fetchpriority="high" />
-            <figcaption><span>Prestige Luxor fleet</span><strong>Cullinan Black Badge</strong></figcaption>
-          </figure>
+          <div class="admin-login-intro">
+            <p class="eyebrow">Prestige Luxor · Team workspace</p>
+            <h2>Every detail.<br /><em>In your hands.</em></h2>
+            <p>Manage your fleet, reservations, and client relationships in one place.</p>
+            <div class="admin-login-topics">
+              <span>Fleet management</span>
+              <span>Bookings &amp; clients</span>
+              <span>Documents &amp; payments</span>
+            </div>
+          </div>
           <div class="admin-panel admin-login-panel">
-            <h1 data-login-title>Team sign-in</h1>
+            <p class="eyebrow">Authorized team access</p>
+            <h1 data-login-title>Welcome back.</h1>
             <p data-login-description>Sign in to your Prestige Luxor workspace.</p>
             <form class="admin-form" data-login-form>
               <label for="admin-email">Email address<input id="admin-email" type="email" name="email" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="you@company.com" required /></label>
@@ -50,7 +66,7 @@
               <button class="admin-auth-back" type="button" data-back-login>Back to sign in</button>
             </form>
             <p class="admin-status" role="status" aria-live="polite" aria-atomic="true" data-login-status></p>
-            <p class="admin-access-note">Need access? Contact your workspace administrator.</p>
+            <p class="admin-access-note">Need access? Contact your workspace administrator. Accounts are provided to authorized team members.</p>
           </div>
         </div>
         <footer class="admin-login-footer"><span>Prestige Luxor · Private workspace</span><a href="/privacy">Privacy policy</a></footer>
@@ -102,7 +118,7 @@
         <div class="admin-config-warning" data-config-warning hidden>The workspace connection needs attention. Contact your workspace administrator.</div>
         <div class="admin-crm-shell">
           <div class="admin-workspace" id="workspace-content" tabindex="-1">
-            <section class="admin-section crm-page-container active" data-section-panel="overview" id="overview" aria-label="Rental overview">
+            <section class="admin-section crm-page-container" data-section-panel="overview" id="overview" aria-label="Rental overview" hidden>
               <div class="executive-dashboard" data-executive-dashboard>
                 <p class="crm-loading-state" role="status">Loading rental overview…</p>
               </div>
@@ -623,7 +639,7 @@
     </main>
 
     <script type="module" src="/src/admin-workspace.js"></script>
-    <script type="module" src="/src/admin.js"></script>
+    <script type="module" src="/src/admin.js" data-workspace-bootstrap></script>
     <script type="module" src="/src/quotes.js"></script>
     <script type="module" src="/src/customers.js"></script>
     <script type="module" src="/src/fleet-operations.js"></script>

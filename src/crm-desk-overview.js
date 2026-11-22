@@ -31,7 +31,7 @@ const image = (car,cls="",large=false) => {
   return `<img src="${esc(src)}" data-original-photo="${esc(cover)}" alt="" class="${cls}" decoding="async"${large?'':' loading="lazy"'}>`;
 };
 const openButton = (kind,id,body,cls="desk-link") => button(`data-desk-record="${esc(kind)}" data-id="${esc(id)}" data-dashboard-open="${esc(kind)}"`,body,cls);
-const state = {handoff:0,leads:"new",fleet:"all",expanded:false,period:"month"};
+
 // Feature the specific fleet records. Similar model names can belong to other cars.
 const featuredVehicles = new Map([
   ["674e378c-c689-4f6f-b170-7ce4a6995a43", {order:0}], // Blue Huracán EVO Spyder
@@ -66,7 +66,7 @@ function fleetStatus(car,view) {
   if (block) return "on_hold";
   return car.operational_status || "available";
 }
-function hero(view,rows,fleet) {
+function hero(view,rows,fleet,state) {
   const featured = rows.length ? rows : fleet.filter(c=>vehiclePhotoSource(c)).slice(0,3).map(car=>({car,name:car.name}));
   state.handoff = Math.min(state.handoff,Math.max(0,featured.length-1));
   const item = featured[state.handoff], car = item?.car;
@@ -94,9 +94,9 @@ function attentionPanel(view,rows) {
   const pickups = rows.filter(row=>row.type==="Pickup" && businessDay(row.at)===businessDay());
   const issueIds = new Set(view.attention.filter(issue=>issue.kind==="agreement").map(issue=>String(issue.id)));
   const ready = pickups.filter(({record:r})=>r.signed_at && !issueIds.has(String(r.id)) && !(r.source_type==="invoice" && view.model.invoices.some(i=>String(i.id)===String(r.source_id)&&Number(i.amount_paid)<Number(i.subtotal)))).length;
-  return `<section class="attention"><div class="inset-head"><h2>Needs attention</h2>${button('data-desk-issues aria-label="View all items needing attention"',String(view.attention.length),"count")}</div>
+  return `<div class="inset-head"><h2>Needs attention</h2>${button('data-desk-issues aria-label="View all items needing attention"',String(view.attention.length),"count")}</div>
     <div id="issues">${view.attention.slice(0,2).map(item=>issueRow(item,view)).join("")||empty(view.failedTables.has("rental_agreements")?"Rental records unavailable.":"No open issues in the current records.")}</div>
-    <div class="readiness"><div><span>Pickups ready today</span><strong>${ready} of ${pickups.length}</strong></div><progress max="${Math.max(1,pickups.length)}" value="${ready}" aria-label="Pickups ready today"></progress></div></section>`;
+    <div class="readiness"><div><span>Pickups ready today</span><strong>${ready} of ${pickups.length}</strong></div><progress max="${Math.max(1,pickups.length)}" value="${ready}" aria-label="Pickups ready today"></progress></div>`;
 }
 function paidSources(view) {
   const today = businessDay(), start=today.slice(0,7)+"-01", groups=new Map();
@@ -109,61 +109,62 @@ function paidSources(view) {
   }
   const rows = [...groups].sort((a,b)=>b[1].amount-a[1].amount);
   const incomplete = view.error || view.failedTables.has("quote_requests") || view.failedTables.has("quotes");
-  return `<section id="booking-sources"><div class="section-head"><h2>Paid booking sources</h2><span class="period">${fmt({month:"long",year:"numeric"}).format(new Date())}</span></div>
-    ${incomplete?empty("Booking source records could not be fully loaded."):rows.length?`<table class="source-table"><thead><tr><th>Source</th><th>Paid bookings</th><th>Collected</th></tr></thead><tbody>${rows.map(([label,r])=>'<tr><th scope="row">'+esc(label)+'</th><td>'+r.ids.size+'</td><td>'+dollars.format(r.amount)+'</td></tr>').join("")}</tbody></table>`:empty("No paid bookings recorded this month.")}</section>`;
+  return `<div class="section-head"><h2>Paid booking sources</h2><span class="period">${fmt({month:"long",year:"numeric"}).format(new Date())}</span></div>
+    ${incomplete?empty("Booking source records could not be fully loaded."):rows.length?`<table class="source-table"><thead><tr><th>Source</th><th>Paid bookings</th><th>Collected</th></tr></thead><tbody>${rows.map(([label,r])=>'<tr><th scope="row">'+esc(label)+'</th><td>'+r.ids.size+'</td><td>'+dollars.format(r.amount)+'</td></tr>').join("")}</tbody></table>`:empty("No paid bookings recorded this month.")}`;
 }
 function followups(view) {
   const today = businessDay();
   const proposals = view.model.proposals.filter(p=>!["converted","cancelled","declined","expired"].includes(p.status));
   const rows = [...proposals.map(p=>({kind:"proposal",id:p.id,at:p.follow_up_at,car:carFor(p,view),name:compactPersonName("",{firstName:p.customer_first_name,lastName:p.customer_last_name}),vehicle:p.vehicle_name})),
     ...view.model.quotes.filter(q=>q.status!=="booked").map(q=>({kind:"quote",id:q.id,at:q.follow_up_at,car:carFor(q,view),name:compactPersonName(q.name),vehicle:q.vehicle}))].filter(r=>r.at && businessDay(r.at)<=today).sort((a,b)=>String(a.at).localeCompare(String(b.at)));
-  return `<section id="sales"><div class="section-head"><h2>Sales follow-ups</h2><span class="period">Due by today</span></div><div>${rows.length?rows.slice(0,5).map(row=>openButton(row.kind,row.id,image(row.car)+'<span><span class="title">'+esc(row.name||"Follow up")+'</span><span class="sub">'+esc([compactVehicleName(row.vehicle,row.car),when(row.at)].filter(Boolean).join(" · "))+'</span></span>'+icon("right"),"follow")).join(""):empty(view.failedTables.has("quotes")||view.failedTables.has("quote_requests")?"Follow-ups could not be loaded.":"No follow-ups due today.")}</div>${button('data-dashboard-section="requests"',"Open quotes →","desk-link")}</section>`;
+  return `<div class="section-head"><h2>Sales follow-ups</h2><span class="period">Due by today</span></div><div>${rows.length?rows.slice(0,5).map(row=>openButton(row.kind,row.id,image(row.car)+'<span><span class="title">'+esc(row.name||"Follow up")+'</span><span class="sub">'+esc([compactVehicleName(row.vehicle,row.car),when(row.at)].filter(Boolean).join(" · "))+'</span></span>'+icon("right"),"follow")).join(""):empty(view.failedTables.has("quotes")||view.failedTables.has("quote_requests")?"Follow-ups could not be loaded.":"No follow-ups due today.")}</div>${button('data-dashboard-section="requests"',"Open quotes →","desk-link")}`;
 }
 export function overviewMarkup(view) {
   const today = businessDay();
   return `<div class="desk-overview"><header class="page-head"><div><p class="date-line"><time datetime="${today}">${fullDay.format(new Date(today+"T12:00:00Z"))}</time></p><h1>Rental overview</h1></div>
     ${button("data-desk-schedule",icon("calendar")+" View schedule","outline")}</header>
-    <div class="lead-grid"><section id="handoff-stage" aria-label="Upcoming handoffs"></section>${attentionPanel(view,handoffs(view))}</div>
+    <div class="lead-grid"><section id="handoff-stage" aria-label="Upcoming handoffs"></section><section class="attention"></section></div>
     <div class="business-grid ${view.owner?"":"desk-no-finance"}"><section id="leads"><div class="section-head inquiry-head"><div class="inquiry-heading"><h2>New leads</h2><span id="inquiry-count" class="count"></span></div>
     <label class="inquiry-filter"><span class="sr">Filter leads by status</span><select data-desk-lead-filter><option value="new">New</option><option value="contacted">Contacted</option><option value="all">All leads</option></select></label></div><div id="inquiry-list"></div></section>${view.owner?revenuePanel():""}</div>
     <section id="fleet"><div class="section-head"><h2>Fleet snapshot</h2><div class="filters" role="group" aria-label="Filter fleet">${[["all","All"],["available","Available"],["vehicle_out","On rent"]].map(([id,label])=>button('data-desk-fleet-filter="'+id+'"',label)).join("")}</div></div>
     <div class="vehicles"></div><div class="fleet-end"><span role="status" data-desk-fleet-count></span><div>${button("data-desk-fleet-expand","","desk-link")}${button('data-dashboard-section="vehicles"',"Open fleet →","desk-link")}</div></div></section>
-    <div class="lower-grid">${followups(view)}${view.owner?paidSources(view):""}</div>
+    <div class="lower-grid"><section id="sales"></section>${view.owner?'<section id="booking-sources"></section>':""}</div>
     <dialog data-desk-dialog aria-labelledby="desk-detail-title"><div class="dialog-shell"><div class="dialog-head"><p class="date-line" data-desk-detail-type></p>${button('data-desk-dialog-close aria-label="Close details"',icon("close"),"icon-button")}</div><div data-desk-detail-body></div></div></dialog>
     <span class="sr" role="status" data-desk-announce></span></div>`;
 }
 
-export function bindOverview(root,view) {
-  const desk = root.querySelector(".desk-overview"), q = selector=>desk.querySelector(selector);
-  const {model} = view, rows = handoffs(view);
-  const fleet = model.cars.filter(c=>c.is_active!==false && c.operational_status!=="inactive")
-    .map(car=>{
-      const photo = featuredVehicles.get(car.id)?.photo;
-      return photo ? {...car, image_url:photo} : car;
-    })
-    .sort((a,b)=>featuredRank(a)-featuredRank(b) || Number(Boolean(vehiclePhotoSource(b)))-Number(Boolean(vehiclePhotoSource(a))) || Number(b.ownership_type==="prestige")-Number(a.ownership_type==="prestige") || String(a.name).localeCompare(String(b.name)));
-  const leads = [...model.quotes].sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)));
-  const contacted = new Set(model.quoteActivities.filter(e=>["call","email"].includes(e.activity_type)||e.metadata?.lead_contacted).map(e=>String(e.quote_request_id)));
-  const progressed = new Set(model.proposals.filter(p=>p.sent_at).map(p=>String(p.lead_id)));
-  const isNew = lead => (!lead.status||lead.status==="new")&&!contacted.has(String(lead.id))&&!progressed.has(String(lead.id));
-  const states = new Map(fleet.map(c=>[c.id,fleetStatus(c,view)]));
+export function bindOverview(root, initialView) {
+  const desk = root.querySelector(".desk-overview"), q = selector => desk.querySelector(selector);
+  const state = {handoff:0, leads:"new", allLeads:false, fleet:"all", expanded:false};
   const dialog = q("[data-desk-dialog]");
-  let returnFocus, leadLimit=3;
-  const readOnly = !EMPLOYEE_ROLES.includes(model.profile?.role);
+  const rendered = new WeakMap();
+  let view, model, rows, fleet, leads, contacted, progressed, states, readOnly, heroRows;
+  let returnFocus, currentDialog, suspended = false;
+  // Compare the generated markup, since browser-normalized innerHTML can differ from the source.
+  function setContent(element, html) {
+    if (rendered.get(element) === html) return;
+    element.innerHTML = html;
+    rendered.set(element, html);
+  }
+  const isNew = lead => (!lead.status || lead.status === "new") && !contacted.has(String(lead.id)) && !progressed.has(String(lead.id));
   const announce = value => {q("[data-desk-announce]").textContent=value;};
   const openDialog = (label,title,body) => {
     if (!dialog.open) returnFocus=document.activeElement;
     q("[data-desk-detail-type]").textContent=label;
-    q("[data-desk-detail-body]").innerHTML='<h2 id="desk-detail-title">'+esc(title)+'</h2>'+body;
-    if (!dialog.open) dialog.showModal();
-    dialog.scrollTop=0;q("[data-desk-dialog-close]").focus({preventScroll:true});
+    setContent(q("[data-desk-detail-body]"), '<h2 id="desk-detail-title">'+esc(title)+'</h2>'+body);
+    if (!dialog.open) {
+      dialog.showModal();
+      dialog.scrollTop = 0;
+      q("[data-desk-dialog-close]").focus({preventScroll:true});
+    }
   };
   dialog.onclose = () => {
+    if (dialog.open || suspended) return;
+    currentDialog = null;
     if (!desk.isConnected || desk.closest("[hidden]")) return;
     (returnFocus?.isConnected ? returnFocus : q("[data-desk-lead-filter]"))?.focus({preventScroll:true});
   };
-  const heroRows = rows.length || fleet.filter(c=>vehiclePhotoSource(c)).slice(0,3).length;
-  const drawHero = () => {q("#handoff-stage").innerHTML=hero(view,rows,fleet);};
+  const drawHero = () => setContent(q("#handoff-stage"), hero(view,rows,fleet,state));
   const drawLeads = () => {
     const count=leads.filter(isNew).length;
     const incomplete = ["quote_requests","quote_activities","quotes"].some(table=>view.failedTables.has(table));
@@ -172,24 +173,24 @@ export function bindOverview(root,view) {
     window.dispatchEvent(new CustomEvent("prestige:overview-leads",{detail:{count:incomplete?null:count}}));
     const filtered=leads.filter(l=>state.leads==="all" || (state.leads==="new")===isNew(l));
     q("[data-desk-lead-filter]").value=state.leads;
-    q("#inquiry-list").innerHTML=(filtered.slice(0,leadLimit).map(lead=>{
+    setContent(q("#inquiry-list"), ((state.allLeads ? filtered : filtered.slice(0,3)).map(lead=>{
       const source=acquisitionSource(lead), car=carFor(lead,view);
       return button(`data-desk-inquiry="${esc(lead.id)}" aria-haspopup="dialog"`,image(car,"inquiry-photo")+`<span class="inquiry-copy"><span class="inquiry-top"><strong>${esc(compactPersonName(lead.name)||"Unnamed lead")}</strong><time datetime="${esc(lead.created_at||"")}">${esc(lead.created_at?(businessDay(lead.created_at)===businessDay()?clock.format(new Date(lead.created_at)):dayLabel(lead.created_at)):"")}</time></span>
         <span class="inquiry-car">${esc(compactVehicleName(lead.vehicle,car)||"Vehicle not selected")}</span><span class="inquiry-meta">${esc([source?view.sourceLabel(source):"",lead.city||lead.location].filter(Boolean).join(" · "))}</span></span>`,"inquiry-row");
     }).join("")||empty(incomplete?"Lead records could not be fully loaded.":state.leads==="all"?"No leads recorded.":state.leads==="new"?"No new leads.":"No contacted leads."))+
-      (filtered.length>3?button('data-desk-inquiry-list aria-expanded="'+(leadLimit>3)+'"',leadLimit>3?"Show fewer leads":"View all "+filtered.length+" leads →","desk-link"):"");
+      (filtered.length>3?button('data-desk-inquiry-list aria-expanded="'+state.allLeads+'"',state.allLeads?"Show fewer leads":"View all "+filtered.length+" leads →","desk-link"):""));
   };
   const drawFleet = () => {
     const filtered=fleet.filter(c=>state.fleet==="all"||states.get(c.id)===state.fleet);
     const visible=state.expanded?filtered:filtered.slice(0,3);
-    q(".vehicles").innerHTML=visible.map(car=>{
+    setContent(q(".vehicles"), visible.map(car=>{
       const model = car.model || compactVehicleName(car.name,car);
       const maybach = /^Mercedes(?:-Benz|-Maybach)?$/i.test(car.make) && /^Maybach\s+/i.test(model);
       const makeLabel = maybach ? "Mercedes-Maybach" : car.make;
       const modelLabel = maybach ? model.replace(/^Maybach\s+/i,"") : model;
       const status = states.get(car.id);
       return openButton("vehicle",car.id,`<span class="photo">${image(car,"",true)}</span><span class="caption"><span class="car-meta"><span>${esc(makeLabel)}</span><span class="state ${esc(status)}">${esc(statusText[status]||"Status unavailable")}</span></span><strong class="car-title">${esc(modelLabel)}</strong></span>`,"vehicle");
-    }).join("")||empty(view.failedTables.has("cars")?"Fleet records could not be loaded.":"No vehicles in this view.");
+    }).join("")||empty(view.failedTables.has("cars")?"Fleet records could not be loaded.":"No vehicles in this view."));
     q("[data-desk-fleet-count]").textContent=visible.length+" of "+filtered.length+" vehicles";
     const toggle=q("[data-desk-fleet-expand]");
     toggle.hidden=filtered.length<=3;toggle.textContent=state.expanded?"Show fewer vehicles":"View all "+filtered.length+" vehicles →";toggle.setAttribute("aria-expanded",state.expanded);
@@ -197,7 +198,8 @@ export function bindOverview(root,view) {
   };
   const openLead = id => {
     const l=leads.find(r=>String(r.id)===String(id));
-    if (!l) return;
+    if (!l) return dialog.open && openDialog("Lead details","Lead unavailable",empty("This lead is no longer in this directory."));
+    currentDialog = {type:"lead",id};
     const source=acquisitionSource(l), car=carFor(l,view);
     const proposals=model.proposals.filter(p=>String(p.lead_id)===String(l.id));
     const customerId=proposals.find(p=>p.customer_id)?.customer_id;
@@ -214,12 +216,50 @@ export function bindOverview(root,view) {
   };
   const showSchedule = () => openDialog("Handoffs","Upcoming schedule",rows.length?rows.map(row=>openButton(row.kind,row.record.id,
     image(row.car,"inquiry-photo")+'<span><span class="stamp">'+esc(when(row.at))+' · '+row.type+'</span><span class="title">'+esc(compactVehicleName(row.name,row.car)||"Vehicle not assigned")+'</span><span class="sub">'+esc(compactPersonName(row.client))+'</span></span>'+icon("right"),"schedule-row")).join(""):empty(view.failedTables.has("rental_agreements")?"Schedule could not be loaded.":"No upcoming handoffs scheduled."));
-  const balance = view.balance;
-  bindRevenue(desk,{model:view.statementModel,ledger:view.ledger,balance,error:view.error,period:state.period,onPeriod:value=>{state.period=value;},
-    onDetail:({total,owned,from,through})=>openDialog("Rental cash", "Cash breakdown",
+  const showIssues = () => openDialog("Rental operations","Needs attention",view.attention.map(i=>issueRow(i,view)).join("")||empty("No outstanding issues."));
+  const showCash = ({total,owned,from,through,balance}) => openDialog("Rental cash", "Cash breakdown",
       '<p class="dialog-sub">'+esc(dayLabel(from)+" – "+dayLabel(through))+'</p>'+detailFields([["Rental cash collected",dollars.format(total)],["Open rental balances",dollars.format(balance)],["Prestige-owned receipts",dollars.format(owned.revenue)],["Recorded owned-car costs",dollars.format(owned.costs)],["Owned-car cash retained",dollars.format(owned.cash)]])+
-      '<div class="desk-sheet-actions">'+button('data-dashboard-section="invoices"',"Open invoices →","desk-link")+button('data-desk-statement',"Owned-car statement →","desk-link")+'</div>')});
-  drawHero();drawFleet();drawLeads();
+      '<div class="desk-sheet-actions">'+button('data-dashboard-section="invoices"',"Open invoices →","desk-link")+button('data-desk-statement',"Owned-car statement →","desk-link")+'</div>');
+  const revenue = bindRevenue(desk, {
+    onDetail: info => { currentDialog = {type:"cash"}; showCash(info); }
+  });
+  function update(nextView) {
+    view = nextView;
+    model = view.model;
+    rows = handoffs(view);
+    fleet = model.cars.filter(c=>c.is_active!==false && c.operational_status!=="inactive")
+      .map(car => {
+        const photo = featuredVehicles.get(car.id)?.photo;
+        return photo ? {...car, image_url:photo} : car;
+      })
+      .sort((a,b)=>featuredRank(a)-featuredRank(b) || Number(Boolean(vehiclePhotoSource(b)))-Number(Boolean(vehiclePhotoSource(a))) || Number(b.ownership_type==="prestige")-Number(a.ownership_type==="prestige") || String(a.name).localeCompare(String(b.name)));
+    leads = [...model.quotes].sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)));
+    contacted = new Set(model.quoteActivities.filter(e=>["call","email"].includes(e.activity_type)||e.metadata?.lead_contacted).map(e=>String(e.quote_request_id)));
+    progressed = new Set(model.proposals.filter(p=>p.sent_at).map(p=>String(p.lead_id)));
+    states = new Map(fleet.map(c=>[c.id,fleetStatus(c,view)]));
+    readOnly = !EMPLOYEE_ROLES.includes(model.profile?.role);
+    heroRows = rows.length || Math.min(3, fleet.filter(c=>vehiclePhotoSource(c)).length);
+    const today = businessDay(), date = q(".page-head time");
+    if (date.dateTime !== today) {
+      date.dateTime = today;
+      date.textContent = fullDay.format(new Date(today+"T12:00:00Z"));
+    }
+    drawHero();
+    drawFleet();
+    drawLeads();
+    setContent(q(".attention"), attentionPanel(view,rows));
+    setContent(q("#sales"), followups(view));
+    if (view.owner) setContent(q("#booking-sources"), paidSources(view));
+    const cash = revenue?.({model:view.statementModel, ledger:view.ledger, balance:view.balance, error:view.error});
+    if (!dialog.open) return;
+    if (currentDialog?.type === "schedule") showSchedule();
+    if (currentDialog?.type === "issues") showIssues();
+    if (currentDialog?.type === "lead") openLead(currentDialog.id);
+    if (currentDialog?.type === "cash") {
+      if (cash) showCash(cash);
+      else openDialog("Rental cash", "Cash breakdown", empty("Financial records could not be loaded."));
+    }
+  }
   desk.addEventListener("error",event=>{
     const img=event.target;
     if (!(img instanceof HTMLImageElement)) return;
@@ -229,7 +269,7 @@ export function bindOverview(root,view) {
     placeholder.className="desk-no-photo "+img.className;placeholder.textContent="PL";placeholder.setAttribute("aria-label","Vehicle photo unavailable");
     img.replaceWith(placeholder);
   },true);
-  q("[data-desk-lead-filter]").onchange = e=>{state.leads=e.target.value;leadLimit=3;drawLeads();};
+  q("[data-desk-lead-filter]").onchange = e=>{state.leads=e.target.value;state.allLeads=false;drawLeads();};
   desk.addEventListener("click",async event=>{
     const target=event.target.closest("button");
     if (!target) {
@@ -239,14 +279,14 @@ export function bindOverview(root,view) {
     const d=target.dataset;
     if ("ownedRefresh" in d) return view.refresh();
     if ("deskDialogClose" in d) return dialog.close();
-    if ("deskSchedule" in d) return showSchedule();
-    if ("deskIssues" in d) return openDialog("Rental operations","Needs attention",view.attention.map(i=>issueRow(i,view)).join("")||empty("No outstanding issues."));
+    if ("deskSchedule" in d) {currentDialog={type:"schedule"};return showSchedule();}
+    if ("deskIssues" in d) {currentDialog={type:"issues"};return showIssues();}
     if (d.deskHandoffStep) {
       state.handoff=(state.handoff+Number(d.deskHandoffStep)+heroRows)%heroRows;drawHero();
       q('[data-desk-handoff-step="'+d.deskHandoffStep+'"]')?.focus({preventScroll:true});return;
     }
     if ("deskInquiryList" in d) {
-      leadLimit=leadLimit>3?3:leads.length;drawLeads();q("[data-desk-inquiry-list]")?.focus({preventScroll:true});return;
+      state.allLeads=!state.allLeads;drawLeads();q("[data-desk-inquiry-list]")?.focus({preventScroll:true});return;
     }
     if (d.deskInquiry) return openLead(d.deskInquiry);
     if (d.deskFleetFilter) {state.fleet=d.deskFleetFilter;state.expanded=false;drawFleet();return;}
@@ -274,11 +314,26 @@ export function bindOverview(root,view) {
       if (dialog.open) dialog.close();
       return view.onOpen(d.deskRecord,d.id);
     }
-    if (d.dashboardSection && dialog.open) {
-      dialog.close();document.querySelector('[data-crm-section="'+d.dashboardSection+'"]')?.click();
+    if (d.dashboardSection) {
+      if (dialog.open) dialog.close();
+      document.querySelector('[data-crm-section="'+d.dashboardSection+'"]')?.click();
     }
   });
   desk.addEventListener("desk:open-lead",event=>openLead(event.detail.id));
+  function setActive(active) {
+    // Browser Back/Forward can switch pages while a native sheet is open.
+    // Release its focus trap on other pages and restore the sheet on return.
+    if (!active && dialog.open) {
+      suspended = true;
+      dialog.close();
+    } else if (active && suspended) {
+      suspended = false;
+      dialog.showModal();
+      update(view);
+    }
+  }
+  update(initialView);
+  return {update, setActive};
 }
 
 export function bindOperatingReports(view) {

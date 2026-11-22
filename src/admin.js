@@ -15,6 +15,12 @@ if (unsafeParams.has("email") || unsafeParams.has("password")) {
 
 const loginView = document.querySelector("[data-login-view]");
 const adminView = document.querySelector("[data-admin-view]");
+const authPending = document.querySelector("[data-auth-pending]");
+// Every section binds its route handler from a deferred module. The initial
+// navigation must also work when a cached login resolves before those modules.
+const workspaceScriptsReady = document.readyState === "complete" ? Promise.resolve()
+  : new Promise(resolve => document.addEventListener("DOMContentLoaded", resolve, {once:true}));
+let accessGeneration = 0;
 const loginForm = document.querySelector("[data-login-form]");
 const loginStatus = document.querySelector("[data-login-status]");
 const adminStatus = document.querySelector("[data-admin-status]");
@@ -132,7 +138,7 @@ const defaultRequests = [];
 
 const configured = Boolean(SUPABASE_URL && SUPABASE_URL.startsWith("https://"));
 const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
-const loginController = initAdminLogin({ document, auth:supabase?.auth, onSignedIn:() => showAdmin(true), location:window.location, history:window.history });
+const loginController = initAdminLogin({ document, auth:supabase?.auth, onSignedIn:showAdmin, location:window.location, history:window.history });
 window.prestigeLuxorSupabase = supabase;
 
 let cars = [];
@@ -591,31 +597,34 @@ async function runQuery(query) {
 
 const setViewerRole = installViewerGuard(document);
 
-async function showAdmin(isAdmin) {
-  if (isAdmin) {
-    const { data: { session } } = await supabase.auth.getSession();
-    const { data: profile, error } = session ? await supabase.from("admin_profiles").select("role").eq("user_id", session.user.id).maybeSingle() : { data: null };
-    if (error || !profile || !["owner","manager","staff","viewer"].includes(profile.role)) {
+async function showAdmin(session) {
+  const generation = ++accessGeneration;
+  let role = null;
+  if (session && !loginController.isRecovery()) {
+    const { data: profile, error } = await supabase.from("admin_profiles").select("role").eq("user_id", session.user.id).maybeSingle();
+    if (generation !== accessGeneration) return;
+    if (error) throw error;
+    if (!["owner","manager","staff","viewer"].includes(profile?.role)) {
       setStatus(loginStatus, "Dashboard access has not been enabled for this account.", "error");
-      isAdmin = false;
+    } else {
+      role = profile.role;
+      await workspaceScriptsReady;
+      if (generation !== accessGeneration) return;
     }
-    setViewerRole(isAdmin ? profile.role : null);
-  } else setViewerRole(null);
-  prepareWorkspace(isAdmin);
-  loginView.hidden = isAdmin;
-  adminView.hidden = !isAdmin;
-  if (!isAdmin) return;
-  window.requestAnimationFrame(() => {
-    let savedSection = "overview";
-    try {
-      savedSection = new URL(location.href).searchParams.get("page") || localStorage.getItem(ACTIVE_SECTION_KEY) || "overview";
-    } catch {
-      savedSection = "overview";
-    }
-    const savedButton = sectionButtons.find((button) => button.dataset.crmSection === savedSection)
-      || sectionButtons.find((button) => button.dataset.crmSection === "overview");
-    savedButton?.click();
-  });
+  }
+  setViewerRole(role);
+  prepareWorkspace(Boolean(role));
+  authPending.hidden = true;
+  loginView.hidden = Boolean(role);
+  adminView.hidden = !role;
+  if (!role) return;
+  let savedSection = new URL(location.href).searchParams.get("page");
+  if (!savedSection) {
+    try { savedSection = localStorage.getItem(ACTIVE_SECTION_KEY); } catch { /* Storage is optional. */ }
+  }
+  const savedButton = sectionButtons.find(button => button.dataset.crmSection === savedSection)
+    || sectionButtons.find(button => button.dataset.crmSection === "overview");
+  savedButton.click();
 }
 
 function renderCrmStats() {
@@ -2184,18 +2193,20 @@ async function init() {
   fillStoredForms();
 
   if (!configured) {
-    showAdmin(false);
+    showAdmin(null);
     loginStatus.textContent = "Supabase Project URL is missing. Add it before logging in.";
     return;
   }
 
+  const generation = accessGeneration;
   try {
     const { data, error } = await supabase.auth.getSession();
+    if (generation !== accessGeneration) return;
     if (error) throw error;
-    await showAdmin(Boolean(data.session) && !loginController.isRecovery());
+    await showAdmin(data.session);
     renderCrm();
   } catch {
-    showAdmin(false);
+    showAdmin(null);
     setStatus(loginStatus, "Unable to restore your session. Please sign in again.", "error");
   }
 }
@@ -2274,14 +2285,15 @@ copyMonthlySpecialButton?.addEventListener("click", () => {
 monthlySpecialForm?.addEventListener("submit", saveMonthlySpecial);
 
 function leaveWorkspace() {
-  if (adminView.hidden) return;
-  adminView.hidden = true;
-  loginView.hidden = false;
-  prepareWorkspace(false);
+  const wasOpen = !adminView.hidden;
+  showAdmin(null);
   // Drop case files and cached financials when the account leaves this browser tab.
-  location.replace(location.pathname);
+  if (wasOpen) location.replace(location.pathname);
 }
-supabase?.auth.onAuthStateChange(event => { if (event === "SIGNED_OUT") leaveWorkspace(); });
+supabase?.auth.onAuthStateChange(event => {
+  if (event === "SIGNED_OUT") leaveWorkspace();
+  if (event === "PASSWORD_RECOVERY") showAdmin(null);
+});
 signOutButton.addEventListener("click", async () => {
   try {
     const { error } = await supabase.auth.signOut();

@@ -52,7 +52,10 @@ function toast(message, tone="success") {
 }
 
 async function token(){const {data}=await supabase.auth.getSession();if(!data.session?.access_token)throw new Error("Sign in again to use quotes.");return data.session.access_token;}
-async function api(path="quotes",options={}){const response=await fetch(`/api/${path}`,{...options,headers:{Authorization:`Bearer ${await token()}`,...(options.body?{"Content-Type":"application/json"}:{}),...(options.headers||{})}});const data=await response.json().catch(()=>({}));if(!response.ok){const message=data.error||"Quote request failed.";if(/quotes|crm_customers|quote_events/i.test(message)&&/schema|table|not found|cache/i.test(message))throw new Error("The new quote database is not installed yet. Run supabase/quotes-v2.sql in Supabase SQL Editor, then refresh the CRM.");throw new Error(message);}return data;}
+async function api(path="quotes",options={}){const response=await fetch(`/api/${path}`,{...options,headers:{Authorization:`Bearer ${await token()}`,...(options.body?{"Content-Type":"application/json"}:{}),...(options.headers||{})}});const data=await response.json().catch(()=>({}));if(!response.ok){const message=data.error||"Quote request failed.";if(/quotes|crm_customers|quote_events/i.test(message)&&/schema|table|not found|cache/i.test(message))throw new Error("The new quote database is not installed yet. Run supabase/quotes-v2.sql in Supabase SQL Editor, then refresh the CRM.");throw new Error(message);}
+  if (options.method && options.method !== "GET" && path.split("?")[0] === "quotes") window.dispatchEvent(new Event("prestige:overview-changed"));
+  return data;
+}
 
 function statusBadge(status){return statePill(STATUS_LABELS[status] || status);}
 function quoteScope(quote){if(filter.scope==="draft")return quote.status==="draft";if(filter.scope==="awaiting")return ["sent","viewed","follow_up"].includes(quote.status);if(filter.scope==="open")return OPEN.includes(quote.status);if(filter.scope==="accepted")return ACCEPTED.includes(quote.status);if(filter.scope==="converted")return quote.status==="converted";if(filter.scope==="lost")return LOST.includes(quote.status);return true;}
