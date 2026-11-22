@@ -60,5 +60,10 @@ export function styleEditorialGuide(html, page, inventory, picture) {
  [...copy.querySelectorAll(':scope > section')].forEach((section,i)=>{section.id='article-section-'+(i+1);const title=section.querySelector('h2');if(!title)return;const a=d.createElement('a');a.href='#'+section.id;a.textContent=title.textContent;nav.append(a);});
  layout.append(nav,copy);
  if(!comparison&&cars[1])copy.querySelectorAll(':scope > section')[2]?.after(figure(cars[1],true));
+ const preferredSource = d.createElement('a');
+ preferredSource.className = 'editorial-preferred-source';
+ preferredSource.href = 'https://www.google.com/preferences/source?q=prestigeluxor.com';
+ preferredSource.textContent = 'Add Prestige Luxor on Google';
+ copy.append(preferredSource);
  return '<!doctype html>\n'+d.documentElement.outerHTML;
 }
