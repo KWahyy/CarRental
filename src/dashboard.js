@@ -1,5 +1,6 @@
 import { loadNewportFunnel, newportCounts } from "./newport-funnel.js";
 import { canViewFinancials } from "./crm-permissions.js";
+import { ownedFleet } from "./owned-fleet.js";
 import { renderOwnedFleet } from "./owned-fleet-view.js";
 import { singleFlight, registerSection } from "./crm-navigation.js";
 const root = document.querySelector("[data-executive-dashboard]");
@@ -296,9 +297,8 @@ function render() {
   const pendingDeposits = current.agreements.filter((item)=>item.deposit_status==="pending").reduce((sum,item)=>sum+number(item.refundable_deposit),0);
   const attention = buildAttention(invoiceById);
   const activity = buildActivity();
-  const rawName = model.profile?.display_name || model.session?.user?.user_metadata?.full_name || model.session?.user?.email?.split("@")[0] || "there";
-  const normalizedName = String(rawName).split("@")[0].replace(/\d+$/g, "");
-  const displayName = /^khaled/i.test(normalizedName) ? "Khaled" : normalizedName.split(/[._-]/).filter(Boolean).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
+  const ownership = owner && !ownershipError ? ownedFleet(model, range) : null;
+  const previousCash = root.querySelector("[data-retained-cash]")?.textContent;
   const activeRentals = model.agreements.filter((item) => !["completed", "cancelled"].includes(item.status)).length;
   const hasBusinessData = Boolean(model.invoices.length || model.agreements.length || model.quotes.length || model.bookings.length);
   const secondaryAnalytics = hasBusinessData && owner ? `
@@ -319,12 +319,16 @@ function render() {
 
   root.innerHTML = `
     <header class="executive-head executive-command-hero crm-page-header">
-      <div class="executive-command-copy"><p class="eyebrow">Prestige Luxor command</p><h2>Good ${new Date().getHours()<12?"morning":new Date().getHours()<18?"afternoon":"evening"}, ${escapeHtml(displayName)}</h2><p>Start with the invoice. The rental workflow continues from there.</p><div class="executive-route" aria-label="Prestige Luxor rental workflow"><span>Invoice</span><i aria-hidden="true"></i><span>Agreement</span><i aria-hidden="true"></i><span>Rental</span></div></div>
+      <div class="executive-command-copy"><h2>Fleet overview</h2><p>${dateLabel(range.start)} – ${dateLabel(range.end)}</p></div>
       <div class="executive-command-tools">
         <div class="executive-primary-actions" aria-label="Dashboard quick actions"><button type="button" class="executive-action-primary" data-dashboard-create="invoice">New invoice <span aria-hidden="true">→</span></button><button type="button" class="executive-action-secondary" data-dashboard-create="booking">Add booking</button><button type="button" class="executive-action-secondary" data-dashboard-create="quote">New quote</button></div>
         <div class="executive-date-control crm-page-actions"><label><span>Date range</span><select data-dashboard-range><option value="today">Today</option><option value="this_week">This Week</option><option value="this_month">This Month</option><option value="last_month">Last Month</option><option value="ytd">YTD</option><option value="custom">Custom</option></select></label><div class="executive-custom-dates" ${rangeKey==="custom"?"":"hidden"}><input type="date" value="${escapeHtml(customStart)}" data-dashboard-start aria-label="Custom start date"><input type="date" value="${escapeHtml(customEnd)}" data-dashboard-end aria-label="Custom end date"></div></div>
       </div>
     </header>
+    ${ownership ? ownershipSpotlight(ownership) : ""}
+    ${owner ? `<section class="executive-card studio-funnel"><div class="executive-card-head"><div><h3>Direct booking activity</h3><p>Newport Beach · Huracán EVO</p></div></div>
+    ${model.newport && !ownershipError ? '<div class="traffic-kpis">' + newportCounts(model.newport,model,range).map((count,index) => '<article><span>' + ['Button clicks','Browser sessions','Reservation requests','Requests with a paid booking'][index] + '</span><strong>' + count + '</strong></article>').join('') + '</div>' : '<p>Tracking data unavailable. Refresh to try again.</p>'}
+    <p class="executive-data-note">Paid rentals link automatically when one request matches the pickup date, vehicle and contact details. Each request counts once.</p></section>` : ''}
     <section class="executive-kpis">
       ${owner ? kpi("Revenue collected",money(current.revenue),`${delta(current.revenue,previous.revenue)} vs previous period`,"01",true) : kpi("Bookings",current.bookings.length,"Signed and manually added","01",true)}
       ${kpi("Active Rentals",activeRentals,activeRentals?"Currently in the agreement workflow":"No active rentals","02")}
@@ -337,13 +341,28 @@ function render() {
       <section class="executive-card"><div class="executive-card-head"><div><h3>Sales Pipeline</h3><p>Active lead movement and value.</p></div><button class="text-button" data-dashboard-section="requests">Open Quotes</button></div><div class="pipeline-grid">${pipelineCell("New Leads",pipeline.new)}${pipelineCell("Contacted",pipeline.contacted)}${pipelineCell("Quotes Sent",pipeline.sent)}${pipelineCell("Follow-Ups Due",pipeline.followup)}${pipelineCell("Booked",pipeline.booked)}${pipelineCell("Lost",pipeline.lost)}</div><div class="pipeline-summary"><span>Lead → Booking Conversion<strong>${conversion.toFixed(1)}%</strong></span><span>Open Pipeline Value<strong>${money(pipelineValue)}</strong></span></div></section>
     </div>
     <section class="executive-card executive-performance ${hasBusinessData?"":"is-empty"}">${hasBusinessData?`<div class="executive-card-head"><div><h3>${owner ? "Performance" : "Booking activity"}</h3><p>${dateLabel(range.start)} – ${dateLabel(range.end)}</p></div>${owner ? toggle("chart",["revenue","profit","bookings"],chartMetric) : ""}</div>${chartSvg(chart,owner ? chartMetric : "bookings")}`:emptyPerformance()}</section>
-    ${owner ? `<section class="executive-card"><div class="executive-card-head"><div><h3>Newport Beach · Huracán EVO</h3><p>Check my dates clicks in the selected period and their booking outcomes.</p></div></div>
-    ${model.newport && !ownershipError ? '<div class="traffic-kpis">' + newportCounts(model.newport,model,range).map((count,index) => '<article><span>' + ['Button clicks','Browser sessions','Reservation requests','Requests with a paid booking'][index] + '</span><strong>' + count + '</strong></article>').join('') + '</div>' : '<p>Tracking data unavailable. Refresh to try again.</p>'}
-    <p class="executive-data-note">Paid rentals link automatically when one request matches the pickup date, vehicle and contact details. Each request counts once.</p></section>` : ''}
-    ${owner ? renderOwnedFleet(model, range, {error:ownershipError,readOnly:model.profile?.role === "viewer"}) : ""}
+    ${owner ? renderOwnedFleet(model, range, {error:ownershipError,readOnly:model.profile?.role === "viewer",data:ownership}) : ""}
     ${secondaryAnalytics}`;
   root.querySelector("[data-dashboard-range]").value = rangeKey;
+  const cash = root.querySelector("[data-retained-cash]");
+  if (cash && previousCash && cash.textContent !== previousCash && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    cash.animate([{ opacity: .65, transform: "translateY(3px)" }, { opacity: 1, transform: "translateY(0)" }], { duration: 190, easing: "ease-out" });
+  }
   bindDashboard();
+}
+
+function ownershipSpotlight({rows, unassigned, unknownOwnership}) {
+  const evo = rows.find(car => car.slug === "2022-lamborghini-huracan");
+  const car = evo || rows[0];
+  if (!car) return "";
+  const photo = evo ? "/assets/owned-fleet/huracan-evo/cover.jpg" : car.image_url;
+  const share = car.revenue > 0 ? Math.min(100, Math.max(0, car.cash / car.revenue * 100)) : 0;
+  return `<section class="studio-spotlight" aria-label="Owned vehicle performance">
+    <figure>${photo ? `<img src="${escapeHtml(photo)}" alt="">` : ""}<figcaption><small>Prestige-owned</small><strong>${escapeHtml(car.name)}</strong></figcaption></figure>
+    <article class="studio-ledger"><small>Owned vehicle performance</small><h3>Cash retained</h3><strong data-retained-cash>${money(car.cash)}</strong>
+    <div class="studio-meter" aria-hidden="true"><i style="width:${share}%"></i></div>
+    <dl><div><dt>Rental revenue collected</dt><dd>${money(car.revenue)}</dd></div><div><dt>Payments &amp; expenses</dt><dd>${money(car.costs)}</dd></div></dl>
+    ${car.missing.length || unassigned || unknownOwnership ? '<p>Based on recorded entries. Review incomplete records under Prestige-owned cars.</p>' : ""}</article></section>`;
 }
 
 function kpi(label,value,note,index,featured=false){return `<article class="${featured?"featured":""}"><div><span>${escapeHtml(label)}</span><b>${escapeHtml(index)}</b></div><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`;}

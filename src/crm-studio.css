@@ -1,0 +1,59 @@
+/* Editorial workspace surfaces and movement shared by every CRM section. */
+body.admin-page .admin-dashboard {
+  --studio-paper: #f4f3ef;
+  --studio-ink: #20211f;
+  --studio-line: #d9d8d2;
+  --studio-muted: #62635d;
+}
+body.admin-page .admin-dashboard .admin-workspace { background:var(--studio-paper)!important; }
+body.admin-page .admin-workspace [data-section-panel] .crm-page-header h2 {
+  font: 400 clamp(32px,3.1vw,50px)/1.08 Georgia,serif!important;
+  letter-spacing:-.045em!important; text-transform:none!important;
+}
+body.admin-page .admin-workspace [data-section-panel] > .crm-page-header,
+body.admin-page .admin-workspace [data-section-panel="overview"] .executive-command-hero {
+  padding:0 0 20px!important; border:0!important; border-bottom:1px solid var(--studio-line)!important;
+  background:transparent!important; border-radius:0!important; box-shadow:none!important;
+}
+body.admin-page .admin-workspace [data-section-panel] .crm-page-header h2,
+body.admin-page .admin-workspace [data-section-panel="overview"] .executive-command-copy h2 { color:var(--studio-ink)!important; }
+body.admin-page .admin-workspace [data-section-panel] .crm-page-header p,
+body.admin-page .admin-workspace [data-section-panel="overview"] .executive-command-copy p,
+body.admin-page .admin-workspace [data-section-panel="overview"] .executive-date-control label>span { color:var(--studio-muted)!important; }
+body.admin-page .admin-workspace [data-section-panel="overview"] .executive-command-tools .executive-action-primary { background:#20211f!important;color:white!important;border-color:#20211f!important; }
+body.admin-page .admin-workspace [data-section-panel="overview"] .executive-command-tools .executive-action-primary span {color:inherit!important}
+body.admin-page .admin-workspace [data-section-panel="overview"] .executive-command-tools .executive-action-secondary,
+body.admin-page .admin-workspace [data-section-panel="overview"] .executive-date-control select {background:white!important;color:var(--studio-ink)!important;border-color:var(--studio-line)!important;}
+.studio-spotlight {display:grid;grid-template-columns:minmax(0,1.46fr) minmax(0,1fr);gap:18px;color:var(--studio-ink);}
+.studio-spotlight figure,.studio-ledger {min-width:0;margin:0;border-radius:12px;overflow:hidden;}
+.studio-spotlight figure {background:#171816;display:grid;grid-template-rows:minmax(145px,1fr) auto;}
+.studio-spotlight figure img {width:100%;height:100%;min-height:0;max-height:300px;object-fit:cover;object-position:center 56%;}
+.studio-spotlight figcaption {padding:16px 22px;color:#fff;display:grid;gap:5px;grid-row:2;}
+.studio-spotlight small {display:block;font:600 10px/1.4 Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;}
+.studio-spotlight figcaption small {color:#c8c6bf;}
+.studio-spotlight figcaption strong {font:400 clamp(21px,2vw,30px)/1.1 Georgia,serif;}
+.studio-ledger {background:white;border:1px solid var(--studio-line);padding:clamp(20px,2.4vw,36px);display:flex;flex-direction:column;justify-content:center;}
+.studio-ledger small,.studio-ledger dt,.studio-ledger p {color:var(--studio-muted);}
+.studio-ledger h3 {font:400 20px/1.25 Georgia,serif;margin:22px 0 2px;}
+.studio-ledger > strong {font:500 clamp(34px,4vw,64px)/1.1 Arial,sans-serif;letter-spacing:-.06em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}
+.studio-meter {height:4px;background:#e8e7e1;margin:18px 0;border-radius:4px;overflow:hidden;}
+.studio-meter i {display:block;background:#242622;height:100%;}
+.studio-ledger dl {margin:0;}
+.studio-ledger dl div {display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--studio-line);font-size:13px;}
+.studio-ledger dd {margin:0;font-weight:600;font-variant-numeric:tabular-nums;}
+.studio-ledger p {margin:12px 0 0;font-size:12px;line-height:1.5;}
+body.admin-page .admin-workspace .studio-funnel .traffic-kpis {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
+body.admin-page .admin-workspace .studio-funnel .traffic-kpis article {display:grid;align-content:start;gap:8px;padding:12px 0;border-top:1px solid var(--studio-line);background:transparent;color:var(--studio-ink);}
+.studio-funnel .traffic-kpis span {font-size:13px;}
+.studio-funnel .traffic-kpis strong {font-size:26px;font-variant-numeric:tabular-nums;}
+body.admin-page .admin-dashboard :is(button,a,input,select,summary):focus-visible {outline:2px solid currentColor!important;outline-offset:3px!important;}
+@media(prefers-reduced-motion:no-preference){
+  body.admin-page .admin-dashboard .admin-workspace > .crm-page-container.active,
+  body.admin-page dialog[open] { animation: studio-arrive 160ms ease-out both!important; }
+  @keyframes studio-arrive {from {opacity:.9;translate:0 3px;} to {opacity:1;translate:0;}}
+}
+@media(max-width:760px){
+  .studio-spotlight {grid-template-columns:minmax(0,1fr);gap:12px;}
+  .studio-spotlight figure img {aspect-ratio:2/1;}
+  body.admin-page .admin-workspace .studio-funnel .traffic-kpis {grid-template-columns:repeat(2,minmax(0,1fr));}
+}

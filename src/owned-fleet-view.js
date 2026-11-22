@@ -1,9 +1,10 @@
 import {ownedFleet,expenseLabels} from './owned-fleet.js';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:0,maximumFractionDigits:2}).format(v);
-export function renderOwnedFleet(model,range,{error='',now=new Date(),readOnly=false}={}) {
+export function renderOwnedFleet(model,range,{error='',now=new Date(),readOnly=false,data=null}={}) {
  if(error)return `<section class="owned-fleet"><h3>Our fleet performance</h3><p role="status">Financial records could not be fully loaded. Totals are hidden until the connection is restored.</p><button type="button" data-owned-refresh>Retry financial records</button></section>`;
- const data=ownedFleet(model,range,now),{rows,totals}=data;
+ data ??= ownedFleet(model,range,now);
+ const {rows,totals}=data;
  const pending=rows.filter(r=>r.missing.length).length;
  const months=Array.from({length:6},(_,i)=>{const end=new Date(Math.min(range.end,now));const start=new Date(end.getFullYear(),end.getMonth()-5+i,1);const finish=new Date(start.getFullYear(),start.getMonth()+1,0,23,59,59);return {label:start.toLocaleDateString('en-US',{month:'short'}),data:ownedFleet(model,{start,end:finish},now)};});
  return `<section class="owned-fleet" aria-labelledby="owned-fleet-title">
