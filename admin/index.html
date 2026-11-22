@@ -13,10 +13,6 @@
     <link rel="stylesheet" href="/src/admin-login.css?v=20261014-dashboard-palette" />
     <link rel="stylesheet" href="/src/admin-workspace.css?v=20261014-customers" />
     <link rel="stylesheet" href="/src/owned-fleet.css">
-    <link rel="stylesheet" href="/src/crm-studio.css">
-    <link rel="stylesheet" href="/src/crm-dispatch.css?v=dispatch-1">
-    <link rel="stylesheet" href="/src/crm-desk-calendar.css?v=dispatch-1">
-    <link rel="stylesheet" href="/src/crm-rental-desk.css?v=dispatch-1">
 </head>
   <body class="admin-page">
     <main class="admin-shell">
@@ -62,7 +58,12 @@
           <a class="brand admin-brand" href="/" aria-label="Prestige Luxor home">
             <img class="brand-logo brand-logo-wide" src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" />
           </a>
-          <div class="admin-title-block dispatch-breadcrumb"><span>Workspace</span><span aria-hidden="true">/</span><strong data-workspace-title>Overview</strong></div>
+          <div class="admin-title-block">
+            <p class="eyebrow">Private fleet CRM</p>
+            <h1>Team workspace</h1>
+            <span>Fleet, quotes, invoices, and client follow-up.</span>
+          </div>
+          <button class="admin-workspace-menu" type="button" aria-expanded="false" aria-controls="admin-sidebar" data-workspace-menu>Menu</button>
           <button class="ghost-button" type="button" data-sign-out>Sign out</button>
         </header>
 
@@ -80,7 +81,7 @@
               </div>
             </div>
             <nav class="admin-crm-nav" aria-label="Workspace sections">
-              <button class="active" type="button" data-crm-section="overview">Overview</button>
+              <button class="active" type="button" data-crm-section="overview">Dashboard</button>
               <button type="button" data-crm-section="vehicles">Fleet</button>
               <button type="button" data-crm-section="requests">Quotes</button>
               <button type="button" data-crm-section="customers">Customers</button>
@@ -89,19 +90,14 @@
               <button type="button" data-crm-section="bookings">Bookings</button>
               <button type="button" data-crm-section="settings">Settings</button>
             </nav>
-            <div class="dispatch-account"><small>Signed in</small><strong data-workspace-user></strong><span data-workspace-role></span></div>
+            <div class="admin-crm-sidebar-card">
+              <small>Today's fleet check</small>
+              <span data-admin-fleet-check>No live data loaded yet.</span>
+              <button class="secondary-button compact" type="button" data-jump-section="requests">Open action queue</button>
+              <strong data-car-count hidden>0 cars</strong>
+            </div>
           </aside>
 
-          <nav class="dispatch-tabs" aria-label="Primary workspace navigation">
-            <button type="button" data-workspace-tab="overview">Overview</button>
-            <button type="button" data-workspace-tab="bookings">Bookings</button>
-            <button type="button" data-workspace-tab="vehicles">Fleet</button>
-            <button type="button" data-workspace-menu aria-controls="workspace-sheet" aria-expanded="false" aria-haspopup="dialog">More</button>
-          </nav>
-          <dialog id="workspace-sheet" class="dispatch-sheet" aria-labelledby="workspace-sheet-title">
-            <header><h2 id="workspace-sheet-title">Workspace</h2><button type="button" data-workspace-close aria-label="Close menu">×</button></header>
-            <nav aria-label="More workspace sections" data-workspace-links></nav>
-          </dialog>
           <div class="admin-workspace">
             <section class="admin-section crm-page-container active" data-section-panel="overview">
               <div class="command-topbar">
@@ -110,8 +106,8 @@
                 <strong>Executive overview</strong>
               </div>
 
-              <div class="executive-dashboard" data-executive-dashboard>
-                <div class="executive-dashboard-loading crm-loading-state" role="status">Loading rental records…</div>
+              <div class="executive-dashboard" data-executive-dashboard aria-live="polite">
+                <div class="executive-dashboard-loading crm-loading-state">Loading your command center…</div>
               </div>
 
               <div class="fleet-command-layout">
@@ -933,14 +929,14 @@
       </section>
     </main>
 
-    <script type="module" src="/src/admin-workspace.js?v=dispatch-1"></script>
-    <script type="module" src="/src/admin.js?v=dispatch-1"></script>
-    <script type="module" src="/src/quotes.js?v=dispatch-1"></script>
+    <script type="module" src="/src/admin-workspace.js"></script>
+    <script type="module" src="/src/admin.js?v=prestige-crm-performance-20260812"></script>
+    <script type="module" src="/src/quotes.js?v=prestige-quotes-performance-20260812"></script>
     <script type="module" src="/src/customers.js?v=20261014-marketing-ready"></script>
     <script type="module" src="/src/fleet-operations.js?v=prestige-fleet-images-20260818"></script>
-    <script type="module" src="/src/invoices.js?v=dispatch-1"></script>
-    <script type="module" src="/src/agreements.js?v=dispatch-1"></script>
-    <script type="module" src="/src/bookings.js?v=dispatch-1"></script>
-    <script type="module" src="/src/dashboard.js?v=dispatch-1"></script>
+    <script type="module" src="/src/invoices.js?v=prestige-invoice-cash-ledger-20260906-1"></script>
+    <script type="module" src="/src/agreements.js?v=prestige-agreements-vehicle-picker-20260906-7"></script>
+    <script type="module" src="/src/bookings.js?v=prestige-booking-ledger-20260906-2"></script>
+    <script type="module" src="/src/dashboard.js?v=prestige-dashboard-vehicle-merge-20260906-1"></script>
   </body>
 </html>

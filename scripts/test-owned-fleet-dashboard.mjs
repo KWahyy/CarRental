@@ -2,9 +2,7 @@ import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 import {mkdirSync} from 'node:fs';
 const browser=await chromium.launch({channel:'chrome',headless:true});
-const output = process.env.CRM_SCREENSHOT_DIR || 'output/owned-fleet';
-mkdirSync(output,{recursive:true});
-const preview = (process.env.CRM_PREVIEW_URL || 'http://127.0.0.1:8775') + '/admin/';
+mkdirSync('output/admin-workspace',{recursive:true});
 const populated=process.env.ADMIN_POPULATED==='1';
 const fixtures={admin_profiles:[{role:'owner',display_name:'Preview'}],rental_agreements:[{id:'preview-agreement',customer_name:'Preview Customer With A Long Name',vehicle_name:'Lamborghini Huracán EVO Spyder',status:'signed',signed_at:'2026-10-01',rental_start:'2026-10-20',rental_end:'2026-10-22',deposit_status:'pending',refundable_deposit:1000}],rental_agreement_events:['signed','opened','created'].map((event_type,i)=>({id:`event-${i}`,agreement_id:'preview-agreement',event_type,detail:'Agreement updated by the preview customer.',created_at:'2026-10-12T12:00:00Z'}))};
 fixtures.cars=[{id:'owned-car',name:'Ferrari Roma',ownership_type:'prestige',image_url:'/assets/partner-fleet/ferrari-roma/01.png',is_active:true}];
@@ -16,12 +14,10 @@ try {
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/supabase-js@2/+esm',r=>r.fulfill({contentType:'text/javascript',body:mock}));
  await page.route('**/api/**',r=>r.fulfill({json:{vehicles:[],quotes:[],customers:[],settings:{},template:{title:'Preview',body:'',important_terms:[]}}}));
- await page.goto(preview);
- await page.locator('[data-desk-view="reports"]').click();
- await page.locator('.owned-report > summary').click();
+ await page.goto('http://127.0.0.1:8775/admin/');
  await page.locator('.owned-car').waitFor();
  assert.equal(await page.locator('.owned-car h4').textContent(),'Ferrari Roma');
- await page.locator('.owned-fleet').screenshot({path:output + '/dashboard-integration.png'});
+ await page.locator('.owned-fleet').screenshot({path:'output/owned-fleet/dashboard-integration.png'});
  await page.setViewportSize({width:390,height:1000});
  assert(!await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth));
  assert.deepEqual(errors,[]);
@@ -29,9 +25,8 @@ try {
  const staff=await browser.newPage();
  await staff.route('**/supabase-js@2/+esm',r=>r.fulfill({contentType:'text/javascript',body:mock.replace('role:"owner"','role:"staff"').replace('"role":"owner"','"role":"staff"')}));
  await staff.route('**/api/**',r=>r.fulfill({json:{vehicles:[],quotes:[],settings:{}}}));
- await staff.goto(preview);
- await staff.locator('[data-desk-view="reports"]').click();
- assert.equal(await staff.locator('.owned-report').count(),0);
+ await staff.goto('http://127.0.0.1:8775/admin/');
+ await staff.locator('.executive-operations').waitFor();
  assert.equal(await staff.locator('.owned-fleet').count(),0);
  console.log('PASS: owned performance integrated, responsive, and hidden for staff.');
 } finally {await browser.close();}
