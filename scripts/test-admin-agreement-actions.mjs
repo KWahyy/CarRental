@@ -1,3 +1,4 @@
+import { crmBase, openCrmPage } from "./crm-browser-helpers.mjs";
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 
@@ -21,8 +22,8 @@ try{
     }
     return route.fulfill({json:{invoices:[],quotes:[],cars:[],vehicles:[],customers:[],partners:[],employees:[],reservations:[],blocks:[],leads:[],activities:[],items:[],availability:[]}});
   });
-  await page.goto('http://127.0.0.1:8775/admin/');await page.locator('[data-admin-view]').waitFor();
-  await page.locator('[data-crm-section="agreements"]').click();await page.locator('[data-new-agreement]').click();
+  await page.goto(crmBase+'/admin/');await page.locator('[data-admin-view]').waitFor();
+  await openCrmPage(page,"agreements");await page.locator('[data-new-agreement]').click();
   const form=page.locator('[data-agreement-form]');
   await form.locator('[name="customer_name"]').fill('Audit Customer');
   await form.locator('[data-open-agreement-vehicle-picker]').click();
@@ -42,6 +43,7 @@ try{
   await page.getByText('Agreement emailed', {exact:false}).waitFor();
   assert(calls.some(call=>call.body?.action==='send'));
   agreement={...agreement,status:'signed',signed_pdf_path:'audit-signed.pdf'};
+  await page.locator('[data-close-agreement-editor]').click();
   await page.locator('[data-select-agreement]').click();
   await page.locator('[data-download-agreement]').getByText('Download signed PDF').waitFor();
   const download=page.waitForEvent('download');await page.locator('[data-download-agreement]').click();await download;

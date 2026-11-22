@@ -10,7 +10,7 @@ export function initAdminLogin({ document, auth, onSignedIn, location, history }
   function message(text, error = false) { status.textContent = text; status.dataset.tone = error ? 'error' : ''; }
   function mode(value) {
     login.hidden = value !== 'login'; reset.hidden = value !== 'reset'; update.hidden = value !== 'update';
-    find('[data-login-title]').textContent = { login:'Welcome back.', reset:'Reset your password.', update:'Choose a new password.' }[value];
+    find('[data-login-title]').textContent = { login:'Team sign-in', reset:'Reset your password.', update:'Choose a new password.' }[value];
     find('[data-login-description]').textContent = { login:'Sign in to your Prestige Luxor workspace.', reset:'We’ll email a secure link to your account address.', update:invitation ? 'Choose your password to access your Prestige Luxor workspace.' : 'Set a new password to regain access to your workspace.' }[value];
     message('');
   }

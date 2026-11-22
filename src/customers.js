@@ -9,9 +9,11 @@ const supabase = window.prestigeLuxorSupabase || createClient(SUPABASE_URL, SUPA
 
 let loaded = false;
 let customers = [];
+let fleetPhotos = [];
 let selectedKey = "";
 let searchTerm = "";
 let view = "all";
+let showTotals = false;
 
 const escapeHtml = (value) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 const money = (value) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(Number(value || 0));
@@ -104,12 +106,14 @@ const load = singleFlight(async function (force = false, preferredKey = "") {
   if (loaded && !force) return;
   if (!loaded) root.innerHTML = '<div class="crm-loading-state">Organizing customer records…</div>';
   try {
-    const [customerRows, quoteRows, invoiceRows, agreementRows] = await Promise.all([
+    const [customerRows, quoteRows, invoiceRows, agreementRows, carResult] = await Promise.all([
       fetchRows(supabase.from("crm_customers").select("*").order("updated_at", { ascending: false }).limit(1000), "Customers"),
       fetchRows(supabase.from("quotes").select("*").order("created_at", { ascending: false }).limit(1000), "Quotes"),
       fetchRows(supabase.from("invoices").select("*").order("created_at", { ascending: false }).limit(1000), "Invoices"),
       fetchRows(supabase.from("rental_agreements").select("*").order("created_at", { ascending: false }).limit(1000), "Agreements"),
+      supabase.from("cars").select("id,name,image_url").limit(1000),
     ]);
+    fleetPhotos = carResult.data || [];
     customers = organize({ customerRows, quoteRows, invoiceRows, agreementRows });
     loaded = true;
     selectedKey = preferredKey && customers.some((item) => item.key === preferredKey) ? preferredKey : selectedKey;
@@ -136,7 +140,7 @@ function kpi(label, value, note) {
 function renderList() {
   const visible = visibleCustomers();
   return `<aside class="customers-directory-card">
-    <div class="customers-toolbar">
+    <div class="customers-toolbar"><header class="desk-subhead"><h3>Directory</h3><span>${customers.length}</span></header>
       <label><span>Search customers</span><input type="search" value="${escapeHtml(searchTerm)}" placeholder="Name, phone, email, or vehicle" data-customer-search></label>
       <div class="customer-view-tabs" role="group" aria-label="Customer views">${[["all","All"],["renters","Renters"],["repeat","Repeat"],["leads","Leads"],["email_ready","Email ready"]].map(([id,label]) => `<button class="${view === id ? "active" : ""}" type="button" data-customer-view="${id}" aria-pressed="${view === id}">${label}</button>`).join("")}</div>
     </div>
@@ -164,11 +168,19 @@ function renderDetail(customer) {
     ...customer.invoices.map((record) => ({ type: "invoice", record })),
     ...customer.agreements.map((record) => ({ type: "agreement", record })),
   ].sort((a, b) => String(activityDate(b.record)).localeCompare(String(activityDate(a.record))));
-  return `<section class="customer-profile">
-    <header class="customer-profile-hero"><div class="customer-avatar large">${escapeHtml(initials(customer.name))}</div><div><span>Customer profile</span><h3>${escapeHtml(customer.name)}</h3><p>${escapeHtml(customer.company || customer.leadSource || "Prestige Luxor client")}</p><span class="customer-marketing-chip" data-status="${customer.marketingStatus}">${marketingLabel}</span></div><div class="customer-contact-actions">${customer.phone ? `<a href="tel:${escapeHtml(customer.phone)}">Call</a>` : ""}${customer.email ? `<a href="mailto:${escapeHtml(customer.email)}">Email</a>` : ""}</div></header>
-    <div class="customer-profile-kpis">${kpi("Quotes", customer.quotes.length, "All proposals")}${kpi("Invoices", customer.invoices.length, "Billing records")}${kpi("Agreements", customer.agreements.length, `${customer.signed} signed or active`)}${kpi("Payments recorded", money(customer.paid), "Across invoices")}</div>
+  const latest = records.find(item => item.record.vehicle_name);
+  let vehiclePanel = "";
+  if (latest) {
+    const {record, type} = latest;
+    const car = fleetPhotos.find(item => item.id === record.vehicle_id) || fleetPhotos.find(item => nameKey(item.name) === nameKey(record.vehicle_name));
+    const image = record.vehicle_image_url || car?.image_url || "";
+    vehiclePanel = `<div class="customer-vehicle-focus">${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(record.vehicle_name)}" loading="lazy">` : ""}<div><small>Latest rental record</small><h4>${escapeHtml(record.vehicle_name)}</h4><button type="button" data-customer-record="${type}" data-record-id="${escapeHtml(record.id)}">View ${type} <span aria-hidden="true">→</span></button></div></div>`;
+  }
+  return `<section class="customer-profile" aria-label="Selected customer" tabindex="-1">
+    <header class="customer-profile-hero"><div><span>Customer profile</span><h3>${escapeHtml(customer.name)}</h3><p>${escapeHtml(customer.company || customer.leadSource || "Prestige Luxor client")}</p></div><div class="customer-contact-actions"><button class="secondary-button" type="button" data-customer-create-quote>Create quote <span aria-hidden="true">→</span></button></div></header>
+    ${vehiclePanel}
     <div class="customer-profile-grid">
-      <main>
+      <div class="customer-history-column">
         <section class="customer-profile-card"><header><div><span>Rental history</span><h4>Customer records</h4></div><strong>${records.length}</strong></header><div class="customer-records">${records.length ? records.map(({ type, record }) => recordRow(type, record)).join("") : '<div class="customer-card-empty">No linked records yet.</div>'}</div></section>
         <section class="customer-profile-card"><header><div><span>Vehicles</span><h4>Previous selections</h4></div><strong>${customer.vehicles.length}</strong></header><div class="customer-vehicle-tags">${customer.vehicles.length ? customer.vehicles.map((vehicle) => `<span>${escapeHtml(vehicle)}</span>`).join("") : '<div class="customer-card-empty">No vehicles recorded yet.</div>'}</div></section>
         <form class="customer-profile-card customer-marketing-card" data-customer-marketing-form>
@@ -186,10 +198,10 @@ function renderDetail(customer) {
           <p class="customer-marketing-date">${customer.marketingStatus === "subscribed" && customer.marketingConsentAt ? `Opted in ${escapeHtml(dateLabel(customer.marketingConsentAt))}` : customer.marketingStatus === "unsubscribed" && customer.marketingUnsubscribedAt ? `Opted out ${escapeHtml(dateLabel(customer.marketingUnsubscribedAt))}` : "No marketing permission on file"}</p>
           <div class="customer-marketing-save"><span data-customer-marketing-message role="status">${customer.id ? "Saved with customer profile" : "A profile will be created when you save"}</span><button class="primary-button compact" type="submit">Save preferences</button></div>
         </form>
-      </main>
+      </div>
       <aside>
-        <section class="customer-profile-card customer-contact-card"><header><div><span>Contact</span><h4>Customer details</h4></div></header><dl><div><dt>Phone</dt><dd>${escapeHtml(customer.phone || "—")}</dd></div><div><dt>Email</dt><dd>${escapeHtml(customer.email || "—")}</dd></div><div><dt>Company</dt><dd>${escapeHtml(customer.company || "—")}</dd></div><div><dt>Lead source</dt><dd>${escapeHtml(customer.leadSource || "—")}</dd></div><div><dt>Last activity</dt><dd>${escapeHtml(dateLabel(customer.lastActivity))}</dd></div></dl></section>
-        <form class="customer-profile-card customer-notes-card" data-customer-notes-form><input type="hidden" name="customer_key" value="${escapeHtml(customer.key)}"><header><div><span>Staff only</span><h4>Internal notes</h4></div></header><textarea name="notes" rows="7" placeholder="Preferences, communication details, or important context…">${escapeHtml(customer.notes)}</textarea><div><span data-customer-note-status>${customer.id ? "Saved with customer profile" : "A profile will be created when you save"}</span><button class="primary-button compact" type="submit">Save notes</button></div></form>
+        <section class="customer-profile-card customer-contact-card"><header><div><span>Contact</span><h4>Customer details</h4></div></header><dl><div><dt>Phone</dt><dd>${customer.phone ? `<a data-desk-contact-link href="tel:${escapeHtml(customer.phone)}">${escapeHtml(customer.phone)}</a>` : "—"}</dd></div><div><dt>Email</dt><dd>${customer.email ? `<a data-desk-contact-link href="mailto:${escapeHtml(customer.email)}">${escapeHtml(customer.email)}</a>` : "—"}</dd></div><div><dt>Company</dt><dd>${escapeHtml(customer.company || "—")}</dd></div><div><dt>Lead source</dt><dd>${escapeHtml(customer.leadSource || "—")}</dd></div><div><dt>Last activity</dt><dd>${escapeHtml(dateLabel(customer.lastActivity))}</dd></div></dl></section>
+        <form class="customer-profile-card customer-notes-card" data-customer-notes-form><input type="hidden" name="customer_key" value="${escapeHtml(customer.key)}"><header><div><span>Staff only</span><h4>Concierge notes</h4></div></header><textarea name="notes" aria-label="Concierge notes" rows="4" placeholder="Preferences, communication details, or important context…">${escapeHtml(customer.notes)}</textarea><div><span data-customer-note-status>${customer.id ? "Saved with customer profile" : "A profile will be created when you save"}</span><button class="primary-button compact" type="submit">Save notes</button></div></form>
       </aside>
     </div>
   </section>`;
@@ -203,7 +215,7 @@ function render() {
   const visible = visibleCustomers();
   if (!visible.some((customer) => customer.key === selectedKey)) selectedKey = visible[0]?.key || "";
   const selected = visible.find((customer) => customer.key === selectedKey);
-  root.innerHTML = `<div class="customers-kpis">${kpi("Total customers", customers.length, "Unique CRM contacts")}${kpi("Rental customers", renters, "With an agreement")}${kpi("Repeat customers", repeat, "More than one agreement")}${kpi("Payments recorded", money(paid), "Across customer invoices")}</div><div class="customer-marketing-overview"><div><span>Email marketing readiness</span><strong>${emailReady} contact${emailReady === 1 ? "" : "s"} opted in</strong><p>Only customers with a recorded opt-in and an email address qualify for future campaigns.</p></div><button type="button" data-customer-email-ready>View eligible contacts <span aria-hidden="true">→</span></button></div><div class="customers-layout">${renderList()}${renderDetail(selected)}</div>`;
+  root.innerHTML = `<div class="customers-layout">${renderList()}${renderDetail(selected)}</div><details class="directory-totals" ${showTotals ? "open" : ""}><summary>Directory totals</summary><div class="customers-kpis">${kpi("Total customers", customers.length, "Unique CRM contacts")}${kpi("Rental customers", renters, "With an agreement")}${kpi("Repeat customers", repeat, "More than one agreement")}${kpi("Payments recorded", money(paid), "Across customer invoices")}</div><div class="customer-marketing-overview"><div><span>Email marketing readiness</span><strong>${emailReady} contact${emailReady === 1 ? "" : "s"} opted in</strong><p>Only customers with a recorded opt-in and an email address qualify for future campaigns.</p></div><button type="button" data-customer-email-ready>View eligible contacts <span aria-hidden="true">→</span></button></div></details>`;
 }
 
 function openRecord(type, id) {
@@ -293,10 +305,30 @@ root?.addEventListener("click", (event) => {
   const viewButton = event.target.closest("[data-customer-view]");
   if (viewButton) { view = viewButton.dataset.customerView; return render(); }
   const customerButton = event.target.closest("[data-customer-key]");
-  if (customerButton) { selectedKey = customerButton.dataset.customerKey; return render(); }
+  if (customerButton) { selectedKey = customerButton.dataset.customerKey; render();
+    const profile = root.querySelector(".customer-profile");
+    if (window.matchMedia("(max-width: 700px)").matches) { profile?.focus({preventScroll:true}); profile?.scrollIntoView({block:"start"}); }
+    else root.querySelector('[data-customer-key][aria-pressed="true"]')?.focus({preventScroll:true});
+    return;
+  }
+  if (event.target.closest("[data-customer-create-quote]")) {
+    const customer = customers.find(item => item.key === selectedKey);
+    if (!customer) return;
+    const names = customer.name.split(/\s+/);
+    document.querySelector('[data-crm-section="requests"]').click();
+    window.dispatchEvent(new CustomEvent("prestige:new-customer-quote", {detail:{
+      customer_id:customer.id || "", first_name:customer.firstName || names.shift(), last_name:customer.lastName || (customer.firstName ? "" : names.join(" ")),
+      phone:customer.phone, email:customer.email, company:customer.company
+    }}));
+    return;
+  }
   const recordButton = event.target.closest("[data-customer-record]");
   if (recordButton) openRecord(recordButton.dataset.customerRecord, recordButton.dataset.recordId);
 });
+
+root?.addEventListener("toggle", event => {
+  if (event.target.matches(".directory-totals") && event.target.isConnected) showTotals = event.target.open;
+}, true);
 
 root?.addEventListener("input", (event) => {
   if (!event.target.matches("[data-customer-search]")) return;
@@ -324,3 +356,42 @@ setTimeout(() => {
 }, 800);
 
 registerSection("customers", load);
+
+window.addEventListener("prestige:open-customer", async ({detail}) => {
+  if (!detail?.id) return;
+  await load();
+  const customer = customers.find(row => String(row.id) === String(detail.id));
+  if (!customer) return;
+  view = "all"; searchTerm = ""; selectedKey = customer.key; render();
+  root.querySelector(".customer-profile")?.scrollIntoView({block:"start"});
+});
+const newDialog = document.querySelector("[data-customer-create-dialog]");
+const newForm = newDialog.querySelector("form");
+const newStatus = newForm.querySelector("[role=status]");
+const addButton = document.querySelector("[data-new-customer]");
+addButton.addEventListener("click", () => {
+  newForm.reset(); newStatus.textContent = ""; newDialog.showModal(); newForm.elements.first_name.focus();
+});
+newDialog.querySelector("[data-cancel-new-customer]").onclick = () => newDialog.close();
+newForm.addEventListener("submit", async event => {
+  event.preventDefault();
+  const values = Object.fromEntries([...new FormData(newForm)].map(([key,value]) => [key,String(value).trim()]));
+  if (!values.first_name || !(values.email || phoneKey(values.phone))) {
+    newStatus.textContent = "Enter a first name and at least one contact method.";
+    return;
+  }
+  const submit = newForm.querySelector("[type=submit]");
+  if (submit.disabled) return;
+  submit.disabled = true;
+  newStatus.textContent = "Saving customer…";
+  try {
+    const {data,error} = await supabase.from("crm_customers").insert(values).select("id").single();
+    if (error) throw error;
+    searchTerm = ""; view = "all";
+    await load(true, "customer:" + data.id);
+    newDialog.close();
+    root.querySelector(".customer-profile")?.focus();
+  } catch(error) {
+    newStatus.textContent = error.code === "23505" ? "A customer already uses that email or phone. Find them in the directory." : "Could not save this customer. " + error.message;
+  } finally { submit.disabled = false; }
+});

@@ -1,3 +1,4 @@
+import { crmBase, openCrmPage } from "./crm-browser-helpers.mjs";
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { fleet } from '../src/fleet-data.js';
@@ -26,9 +27,10 @@ try{
     if(url.searchParams.has('id'))return route.fulfill({json:{vehicle:vehicles.find(item=>item.id===url.searchParams.get('id')),activity:[],mileage:[]}});
     return route.fulfill({json:{vehicles,role:'owner',period:{key:'month'}}});
   });
-  await page.goto('http://127.0.0.1:8775/admin/');await page.locator('[data-admin-view]').waitFor();
-  await page.locator('[data-crm-section="vehicles"]').click();await page.locator('.fleet-vehicle-card').waitFor();
-  await page.locator('.fleet-vehicle-card').first().click();
+  await page.goto(crmBase+'/admin/');await page.locator('[data-admin-view]').waitFor();
+  await openCrmPage(page,"vehicles");await page.locator('[data-inventory-vehicle]').first().waitFor();
+  await page.locator('[data-inventory-vehicle]').first().click();
+  await page.locator('[data-vehicle-summary] [data-open-vehicle]').click();
   for(const tab of ['reservations','calendar','financials','maintenance','documents','activity','overview']){
     await page.locator(`[data-vehicle-tab="${tab}"]`).click();
     assert.match(await page.locator(`[data-vehicle-tab="${tab}"]`).getAttribute('class'),/active/);
@@ -58,11 +60,15 @@ try{
   assert(await page.locator('[data-fleet-action-dialog]').evaluate(dialog=>dialog.open));
   assert(!calls.some(call=>call.body?.action==='document'));
   await page.locator('[data-close-fleet-action]').last().click();
-  await page.locator('[data-fleet-add]').click();
+  await page.locator('[data-back-fleet]').click();
+  await page.locator('[data-fleet-tools]').click();
+  await page.locator('[data-fleet-add-inline]').click();
   const form=page.locator('[data-fleet-vehicle-form]');
   await form.locator('[name="name"]').fill('Audit Roadster');
   await form.locator('[name="make"]').fill('Audit');
   await form.locator('[name="model"]').fill('Roadster');
+  assert(await form.locator('[name="ownership_type"]').evaluate(input=>input.required && input.validity.valueMissing));
+  await form.locator('[name="ownership_type"]').selectOption("prestige");
   await form.getByRole('button',{name:'Save Vehicle'}).click();
   await page.getByText('Audit photo service unavailable').waitFor();
   assert.equal(await form.getAttribute('data-vehicle-id'),'audit-created');

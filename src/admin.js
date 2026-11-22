@@ -312,6 +312,7 @@ function clampPercent(value) {
 }
 
 function switchSection(section, activeButton = null) {
+  const previous = sectionPanels.find(panel => !panel.hidden)?.dataset.sectionPanel;
   const requestedButton = activeButton || sectionButtons.find((button) => button.dataset.crmSection === section);
   const selectedButton = requestedButton || sectionButtons.find((button) => button.dataset.crmSection === "overview");
   const selectedSection = selectedButton?.dataset.crmSection || "overview";
@@ -326,6 +327,7 @@ function switchSection(section, activeButton = null) {
     panel.hidden = !active;
     panel.classList.toggle("active", active);
   });
+  window.dispatchEvent(new CustomEvent("prestige:desk-page", { detail: { section: selectedSection, previous } }));
   try {
     localStorage.setItem(ACTIVE_SECTION_KEY, selectedSection);
   } catch {
@@ -606,7 +608,7 @@ async function showAdmin(isAdmin) {
   window.requestAnimationFrame(() => {
     let savedSection = "overview";
     try {
-      savedSection = localStorage.getItem(ACTIVE_SECTION_KEY) || "overview";
+      savedSection = new URL(location.href).searchParams.get("page") || localStorage.getItem(ACTIVE_SECTION_KEY) || "overview";
     } catch {
       savedSection = "overview";
     }
@@ -2271,9 +2273,25 @@ copyMonthlySpecialButton?.addEventListener("click", () => {
 
 monthlySpecialForm?.addEventListener("submit", saveMonthlySpecial);
 
+function leaveWorkspace() {
+  if (adminView.hidden) return;
+  adminView.hidden = true;
+  loginView.hidden = false;
+  prepareWorkspace(false);
+  // Drop case files and cached financials when the account leaves this browser tab.
+  location.replace(location.pathname);
+}
+supabase?.auth.onAuthStateChange(event => { if (event === "SIGNED_OUT") leaveWorkspace(); });
 signOutButton.addEventListener("click", async () => {
-  await supabase?.auth.signOut();
-  showAdmin(false);
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    leaveWorkspace();
+  } catch {
+    const warning = document.querySelector("[data-config-warning]");
+    warning.textContent = "Sign-out could not be completed. Check your connection and try again.";
+    warning.hidden = false;
+  }
 });
 
 sectionButtons.forEach((button) => {
@@ -2283,13 +2301,13 @@ sectionButtons.forEach((button) => {
 
 
 jumpSectionButtons.forEach((button) => {
-  button.addEventListener("click", () => switchSection(button.dataset.jumpSection));
+  button.addEventListener("click", () => sectionButtons.find(item => item.dataset.crmSection === button.dataset.jumpSection)?.click());
 });
 
 document.addEventListener("click", (event) => {
   const jumpButton = event.target.closest("[data-jump-section]");
   if (!jumpButton || jumpSectionButtons.includes(jumpButton)) return;
-  switchSection(jumpButton.dataset.jumpSection);
+  sectionButtons.find(item => item.dataset.crmSection === jumpButton.dataset.jumpSection)?.click();
 });
 
 addDemoRequestButtons.forEach((button) => {

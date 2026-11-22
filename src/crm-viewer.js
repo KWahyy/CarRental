@@ -1,6 +1,9 @@
 // Presentation guard only; Supabase RLS and API authorization enforce access.
 // Default-deny action controls for viewers, including controls rendered later.
 export const VIEWER_READ_CONTROLS = [
+  'desk-customer-link','desk-route','desk-anchor','close-directory','desk-handoff-step','desk-schedule','desk-dialog-close','desk-issues','desk-inquiry-list','desk-statement','desk-inquiry','desk-lead-filter','desk-cash-period','desk-cash-detail','desk-fleet-filter','desk-fleet-expand',
+  'fleet-tools','fleet-status','fleet-statement','statement-period','close-statement','vehicle-bookings','booking-week','booking-day','booking-car','booking-agreement','booking-vehicle',
+  'close-invoice-editor','view-invoice-details','invoice-filter','invoice-pdf','agreement-scope','close-agreement-editor',
   'crm-section','workspace-menu','sign-out','jump-section','action-queue',
   'dashboard-open','dashboard-section','dashboard-toggle','dashboard-range','dashboard-start','dashboard-end',
   'owned-refresh','owned-vehicle','open-vehicle','back-fleet','vehicle-tab',
@@ -16,7 +19,7 @@ export const VIEWER_READ_CONTROLS = [
 ];
 const readSelector = VIEWER_READ_CONTROLS.map(name=>`[data-${name}]`).join(',');
 export function isViewerReadControl(node) {
-  return node.matches(readSelector) || node.matches('[data-detail-action="pdf"]');
+  return node.matches(readSelector) || node.matches('a[data-desk-contact-link][href^="tel:"],a[data-desk-contact-link][href^="mailto:"],a.desk-skip[href="#workspace-content"]') || node.matches('[data-detail-action="pdf"]');
 }
 export function installViewerGuard(document) {
   let active = false;
@@ -35,9 +38,6 @@ export function installViewerGuard(document) {
       }
     }
   }
-  const style = document.createElement('style');
-  style.textContent = '[data-viewer-hidden]{display:none!important}.crm-viewer-notice{padding:10px 16px;margin:12px 0;border:1px solid #d8d7d2;border-radius:8px;color:#555;background:#f4f3ef;font-size:13px}';
-  document.head.append(style);
   const observer = new MutationObserver(records=>{
     if (!active) return;
     for (const record of records) {

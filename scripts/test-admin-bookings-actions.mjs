@@ -1,3 +1,4 @@
+import { crmBase, openCrmPage } from "./crm-browser-helpers.mjs";
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 
@@ -19,13 +20,13 @@ const mock = `export function createClient(){
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 950 } });
   const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
+  page.on('pageerror', error => errors.push(error.stack));
   page.on('dialog', dialog => dialog.accept());
   await page.route('**/supabase-js@2/+esm', route => route.fulfill({ contentType: 'text/javascript', body: mock }));
   await page.route('**/api/**', route => route.fulfill({ json: { vehicles: [], invoices: [], quotes: [], customers: [], agreements: [], template: { title: 'Audit', body: 'Audit', important_terms: [] } } }));
-  await page.goto('http://127.0.0.1:8775/admin/');
+  await page.goto(crmBase+'/admin/');
   await page.locator('[data-admin-view]').waitFor();
-  await page.locator('[data-crm-section="bookings"]').click();
+  await openCrmPage(page,"bookings");
   await page.locator('[data-new-booking]').click();
   await page.locator('[data-booking-dialog][open]').waitFor();
   const form = page.locator('[data-booking-form]');
@@ -46,7 +47,8 @@ try {
   assert.equal(writes[0].payload.total_amount, 1200);
   assert.equal(writes[0].payload.amount_paid, 300);
   assert.equal(writes[0].payload.payment_status, 'partial');
-  await page.locator('[data-open-booking]').click();
+  await page.locator('.op-book-row[data-open-booking]').click();
+  await page.locator('[data-ledger-edit-booking]').click();
   await form.locator('[name="amount_paid"]').fill('1300');
   await form.getByRole('button', { name: 'Save booking' }).click();
   assert.match(await form.locator('[data-booking-status]').textContent(), /cannot exceed/);
@@ -57,10 +59,12 @@ try {
   await form.getByRole('button', { name: 'Save booking' }).click();
   writes = await page.evaluate(() => window.__auditWrites);
   assert.equal(writes[1].payload.payment_status, 'partial');
-  await page.locator('[data-open-booking]').click();
+  await page.locator('.op-book-row[data-open-booking]').click();
+  await page.locator('[data-ledger-edit-booking]').click();
   await form.locator('[data-close-booking]').last().click();
   await page.locator('[data-booking-dialog][open]').waitFor({state:'hidden'});
-  await page.locator('[data-open-booking]').click();
+  await page.locator('.op-book-row[data-open-booking]').click();
+  await page.locator('[data-ledger-edit-booking]').click();
   await form.locator('[data-delete-booking]').click();
   await page.locator('[data-open-booking]').waitFor({state:'hidden'});
   writes = await page.evaluate(() => window.__auditWrites);

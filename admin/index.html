@@ -2,19 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="robots" content="noindex, nofollow, noarchive" />
-    <meta name="theme-color" content="#070606" />
-    <title>Prestige Luxor Admin</title>
+    <meta name="theme-color" content="#1b1c1a" />
+    <title>Team workspace · Prestige Luxor</title>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/prestige-luxor-favicon-32.png?v=prestige-luxor-20260806" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/prestige-luxor-favicon-16.png?v=prestige-luxor-20260806" />
     <link rel="apple-touch-icon" href="/assets/prestige-luxor-apple-touch-icon.png?v=prestige-luxor-20260806" />
-    <link rel="stylesheet" href="/src/styles.css?v=prestige-scrollbars-20260906-1" />
-    <link rel="stylesheet" href="/src/admin-login.css?v=20261014-dashboard-palette" />
-    <link rel="stylesheet" href="/src/admin-workspace.css?v=20261014-customers" />
-    <link rel="stylesheet" href="/src/owned-fleet.css">
-</head>
-  <body class="admin-page">
+    <link rel="stylesheet" href="/src/crm-desk-base.css" />
+    <link rel="stylesheet" href="/src/crm-desk-clients.css" />
+    <link rel="stylesheet" href="/src/crm-desk-overview.css" />
+    <link rel="stylesheet" href="/src/crm-desk-operations.css" />
+    <link rel="stylesheet" href="/src/crm-desk-billing.css" />
+  </head>
+  <body class="admin-page" data-workspace-design="rental-desk">
     <main class="admin-shell">
       <section class="admin-login" data-login-view aria-label="Team sign in">
         <header class="admin-login-header">
@@ -22,10 +23,12 @@
           <a href="/">Back to website <span aria-hidden="true">↗</span></a>
         </header>
         <div class="admin-login-layout">
-          <div class="admin-login-intro"><p class="eyebrow">Prestige Luxor · Team workspace</p><h2>Every detail.<br /><em>In your hands.</em></h2><p>Manage your fleet, reservations, and client relationships in one place.</p><div class="admin-login-topics"><span>Fleet management</span><span>Bookings &amp; clients</span><span>Documents &amp; payments</span></div></div>
+          <figure class="desk-access-photo">
+            <img src="/assets/partner-fleet/rolls-royce-cullinan-black-badge/01.jpg" alt="Black Rolls-Royce Cullinan Black Badge from the Prestige Luxor fleet" width="900" height="600" fetchpriority="high" />
+            <figcaption><span>Prestige Luxor fleet</span><strong>Cullinan Black Badge</strong></figcaption>
+          </figure>
           <div class="admin-panel admin-login-panel">
-            <p class="eyebrow">Authorized team access</p>
-            <h1 data-login-title>Welcome back.</h1>
+            <h1 data-login-title>Team sign-in</h1>
             <p data-login-description>Sign in to your Prestige Luxor workspace.</p>
             <form class="admin-form" data-login-form>
               <label for="admin-email">Email address<input id="admin-email" type="email" name="email" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="you@company.com" required /></label>
@@ -47,390 +50,58 @@
               <button class="admin-auth-back" type="button" data-back-login>Back to sign in</button>
             </form>
             <p class="admin-status" role="status" aria-live="polite" aria-atomic="true" data-login-status></p>
-            <p class="admin-access-note">Need access? Contact your workspace administrator. Accounts are provided to authorized team members.</p>
+            <p class="admin-access-note">Need access? Contact your workspace administrator.</p>
           </div>
         </div>
         <footer class="admin-login-footer"><span>Prestige Luxor · Private workspace</span><a href="/privacy">Privacy policy</a></footer>
       </section>
 
       <section class="admin-dashboard" data-admin-view hidden>
-        <header class="admin-topbar">
-          <a class="brand admin-brand" href="/" aria-label="Prestige Luxor home">
-            <img class="brand-logo brand-logo-wide" src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="1684" height="315" />
-          </a>
-          <div class="admin-title-block">
-            <p class="eyebrow">Private fleet CRM</p>
-            <h1>Team workspace</h1>
-            <span>Fleet, quotes, invoices, and client follow-up.</span>
-          </div>
-          <button class="admin-workspace-menu" type="button" aria-expanded="false" aria-controls="admin-sidebar" data-workspace-menu>Menu</button>
-          <button class="ghost-button" type="button" data-sign-out>Sign out</button>
-        </header>
-
-        <div class="admin-config-warning" data-config-warning hidden>
-          Add your Supabase Project URL in <strong>src/supabase-config.js</strong> to connect this admin panel.
-        </div>
-
-        <div class="admin-crm-shell">
-          <aside id="admin-sidebar" class="admin-crm-sidebar" aria-label="Admin sections">
-            <div class="admin-crm-profile">
-              <span>PL</span>
-              <div>
-                <strong>Prestige Luxor</strong>
-                <small>Team workspace</small>
-              </div>
-            </div>
-            <nav class="admin-crm-nav" aria-label="Workspace sections">
-              <button class="active" type="button" data-crm-section="overview">Dashboard</button>
-              <button type="button" data-crm-section="vehicles">Fleet</button>
-              <button type="button" data-crm-section="requests">Quotes</button>
-              <button type="button" data-crm-section="customers">Customers</button>
-              <button type="button" data-crm-section="invoices">Invoices</button>
-              <button type="button" data-crm-section="agreements">Agreements</button>
-              <button type="button" data-crm-section="bookings">Bookings</button>
-              <button type="button" data-crm-section="settings">Settings</button>
+        <a class="desk-skip" href="#workspace-content">Skip to workspace</a>
+        <header class="desk-bar">
+          <div class="desk-bar-inner">
+            <a class="desk-brand" href="/" aria-label="Prestige Luxor website"><img src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="155" height="29"></a>
+            <nav class="desk-nav" aria-label="Overview sections" data-desk-overview-nav>
+              <a href="#overview" data-desk-anchor aria-current="location">Overview</a><a href="#leads" data-desk-anchor>Leads<span data-lead-count hidden></span></a><a href="#revenue" data-desk-anchor>Revenue</a><a href="#fleet" data-desk-anchor>Fleet</a><a href="#sales" data-desk-anchor>Sales</a>
             </nav>
-            <div class="admin-crm-sidebar-card">
-              <small>Today's fleet check</small>
-              <span data-admin-fleet-check>No live data loaded yet.</span>
-              <button class="secondary-button compact" type="button" data-jump-section="requests">Open action queue</button>
-              <strong data-car-count hidden>0 cars</strong>
-            </div>
-          </aside>
-
-          <div class="admin-workspace">
-            <section class="admin-section crm-page-container active" data-section-panel="overview">
-              <div class="command-topbar">
-                <span>Dashboard</span>
-                <span>/</span>
-                <strong>Executive overview</strong>
+            <nav class="desk-nav" aria-label="Primary workspace" data-desk-primary-nav hidden>
+              <button data-desk-route="overview">Overview</button><button data-desk-route="vehicles">Fleet</button><button data-desk-route="requests">Quotes</button><button data-desk-route="bookings">Bookings</button>
+            </nav>
+            <span class="desk-account-label" data-desk-account-label>Team workspace</span>
+            <button type="button" class="desk-launch" data-workspace-menu aria-haspopup="dialog" aria-expanded="false" aria-controls="desk-directory">CRM pages <span aria-hidden="true">▾</span></button>
+          </div>
+        </header>
+        <dialog id="desk-directory" aria-labelledby="desk-menu-title">
+          <div class="desk-directory-head"><h2 id="desk-menu-title">CRM pages</h2><button class="desk-close" data-close-directory aria-label="Close CRM pages">×</button></div>
+          <nav class="desk-directory-grid" aria-label="All CRM pages">
+            <section><h3>Daily desk</h3><button data-crm-section="overview">Overview</button><button data-crm-section="bookings">Bookings</button><button data-crm-section="vehicles">Fleet</button></section>
+            <section><h3>Clients &amp; sales</h3><button data-crm-section="requests">Quotes</button><button data-crm-section="customers">Customers</button></section>
+            <section><h3>Documents &amp; billing</h3><button data-crm-section="invoices">Invoices</button><button data-crm-section="agreements">Rental agreements</button></section>
+            <section><h3>Workspace</h3><button data-crm-section="settings">Settings</button><button type="button" data-sign-out>Sign out</button></section>
+          </nav>
+        </dialog>
+        <div class="admin-config-warning" data-config-warning hidden>The workspace connection needs attention. Contact your workspace administrator.</div>
+        <div class="admin-crm-shell">
+          <div class="admin-workspace" id="workspace-content" tabindex="-1">
+            <section class="admin-section crm-page-container active" data-section-panel="overview" id="overview" aria-label="Rental overview">
+              <div class="executive-dashboard" data-executive-dashboard>
+                <p class="crm-loading-state" role="status">Loading rental overview…</p>
               </div>
-
-              <div class="executive-dashboard" data-executive-dashboard aria-live="polite">
-                <div class="executive-dashboard-loading crm-loading-state">Loading your command center…</div>
-              </div>
-
-              <div class="fleet-command-layout">
-                <aside class="fleet-control-rail">
-                  <div>
-                    <h2>Fleet control</h2>
-                    <p>Saved views and queues used to manage cars, quotes, invoices, and rental risks.</p>
-                  </div>
-                  <div class="rail-group">
-                    <h3>Views</h3>
-                    <button type="button">Fleet overview</button>
-                    <button type="button">Available cars</button>
-                    <button type="button">Booked cars</button>
-                    <button type="button">Cars needing attention</button>
-                  </div>
-                  <div class="rail-group">
-                    <h3>Car lenses</h3>
-                    <button type="button">Exotic cars <span>7 active</span></button>
-                    <button type="button">Luxury SUVs <span>4 active</span></button>
-                    <button type="button">High demand <span>5 cars</span></button>
-                    <button type="button">Maintenance watch <span>2 cars</span></button>
-                  </div>
-                  <div class="rail-group">
-                    <h3>Queues</h3>
-                    <button type="button">New quotes <span>12</span></button>
-                    <button type="button">Deposit pending <span>4</span></button>
-                    <button type="button">Missing photos <span>6</span></button>
-                    <button type="button">Maintenance due <span>2</span></button>
-                  </div>
-                </aside>
-
-                <div class="fleet-command-main">
-                  <div class="command-pills">
-                    <span>Overview</span>
-                    <span>Fleet</span>
-                    <span>Quotes</span>
-                  </div>
-
-                  <div class="command-header">
-                    <div>
-                    <h2>Today’s operations</h2>
-                    <p>Contact customers, verify partner inventory, close quotes, and protect today’s revenue.</p>
-                    </div>
-                    <div class="dashboard-quick-actions" aria-label="Dashboard quick actions">
-                      <button class="primary-button compact" type="button" data-jump-section="requests">Open quotes</button>
-                      <button class="secondary-button compact" type="button" data-add-demo-request>Add lead</button>
-                      <button class="secondary-button compact" type="button" data-new-dashboard-car>Add vehicle</button>
-                    </div>
-                  </div>
-
-                  <div class="command-kpis" data-overview-stats>
-                    <article><span>New inquiries</span><strong>0</strong><small>Need first response</small></article>
-                    <article><span>Partner checks</span><strong>0</strong><small>Waiting for availability</small></article>
-                    <article><span>Quotes ready</span><strong>0</strong><small>Customer follow-up</small></article>
-                    <article><span>Active fleet</span><strong>0</strong><small>Ready to quote</small></article>
-                  </div>
-
-                  <div class="dashboard-operations-grid">
-                    <section class="command-card dashboard-pipeline-card">
-                      <div class="command-card-head">
-                        <div>
-                          <h3>Availability pipeline</h3>
-                          <p>Your live path from inquiry to confirmed rental.</p>
-                        </div>
-                        <button class="text-button" type="button" data-jump-section="requests">Manage quotes</button>
-                      </div>
-                      <div class="dashboard-pipeline" data-dashboard-pipeline></div>
-                    </section>
-
-                  </div>
-
-                  <section class="command-card traffic-performance-card">
-                    <div class="command-card-head">
-                      <div>
-                        <h3>Fleet traffic & clicks</h3>
-                        <p>Last 30 days of vehicle impressions, detail clicks, availability checks, and completed requests.</p>
-                      </div>
-                    </div>
-                    <div class="traffic-insights" data-traffic-insights>
-                      <p class="admin-empty">Traffic data will appear after visitors use the fleet.</p>
-                    </div>
-                  </section>
-
-                  <div class="dashboard-operations-grid dashboard-operations-secondary">
-                    <section class="command-card dashboard-partner-card">
-                      <div class="command-card-head">
-                        <div>
-                          <h3>Partner availability calls</h3>
-                          <p>Shared-fleet requests that still need a supplier confirmation.</p>
-                        </div>
-                      </div>
-                      <div class="dashboard-partner-queue" data-dashboard-partner-queue></div>
-                    </section>
-
-                    <section class="command-card dashboard-pricing-card">
-                      <div class="command-card-head">
-                        <div>
-                          <h3>Competitive pricing</h3>
-                          <p>Verified comparisons, $50 targets, and rates that need another check.</p>
-                        </div>
-                        <button class="text-button" type="button" data-jump-section="vehicles">Manage pricing</button>
-                      </div>
-                      <div class="dashboard-pricing-alerts" data-dashboard-pricing-alerts></div>
-                    </section>
-                  </div>
-
-                  <div class="command-analytics dashboard-legacy" aria-hidden="true">
-                    <section class="command-card availability-card">
-                      <div class="command-card-head">
-                        <div>
-                          <h3>Fleet readiness</h3>
-                          <p>Which vehicle groups are ready, booked, or blocked before the next request.</p>
-                        </div>
-                        <button class="text-button" type="button" data-jump-section="vehicles">Manage fleet</button>
-                      </div>
-                      <div class="availability-chart" aria-label="Fleet availability chart" data-fleet-readiness>
-                        <div class="chart-row">
-                          <span>Lamborghini</span>
-                          <div><b style="width: 62%"></b><i style="width: 24%"></i><em style="width: 14%"></em></div>
-                          <small>2 cars</small>
-                        </div>
-                        <div class="chart-row">
-                          <span>Mercedes</span>
-                          <div><b style="width: 58%"></b><i style="width: 30%"></i><em style="width: 12%"></em></div>
-                          <small>2 SUVs</small>
-                        </div>
-                        <div class="chart-row">
-                          <span>Porsche</span>
-                          <div><b style="width: 54%"></b><i style="width: 34%"></i><em style="width: 12%"></em></div>
-                          <small>1 car</small>
-                        </div>
-                        <div class="chart-row">
-                          <span>Audi</span>
-                          <div><b style="width: 50%"></b><i style="width: 32%"></i><em style="width: 18%"></em></div>
-                          <small>1 car</small>
-                        </div>
-                        <div class="chart-row">
-                          <span>BMW</span>
-                          <div><b style="width: 68%"></b><i style="width: 22%"></i><em style="width: 10%"></em></div>
-                          <small>2 cars</small>
-                        </div>
-                        <div class="chart-legend">
-                          <span><b></b> Available</span>
-                          <span><i></i> Booked</span>
-                          <span><em></em> Maintenance</span>
-                        </div>
-                      </div>
-
-                      <div class="fleet-summary-blocks" data-fleet-highlights>
-                        <article>
-                          <strong>2022 Lamborghini Huracan</strong>
-                          <span>Available · $800/day</span>
-                          <p>Main image is set, gallery needs more photos</p>
-                          <div><button type="button">Edit car</button><button type="button">Manage photos</button></div>
-                        </article>
-                        <article>
-                          <strong>2022 Porsche 911 Carrera</strong>
-                          <span>Weekend favorite · $400/day</span>
-                          <p>Strong fit for repeat quote follow-up</p>
-                          <div><button type="button">Edit car</button><button type="button">Manage photos</button></div>
-                        </article>
-                        <article>
-                          <strong>2016 Ferrari 488 GTB</strong>
-                          <span>Quote-heavy · $750/day</span>
-                          <p>Use for nightlife and content add-on leads</p>
-                          <div><button type="button">Edit car</button><button type="button">Manage photos</button></div>
-                        </article>
-                        <article>
-                          <strong>2019 Mercedes G63 AMG</strong>
-                          <span>SUV demand · $400/day</span>
-                          <p>Needs exact G63 photo set added</p>
-                          <div><button type="button">Edit car</button><button type="button">Manage photos</button></div>
-                        </article>
-                      </div>
-
-                      <div class="interpretation-grid" data-fleet-insights>
-                        <div>
-                          <h4>Fleet read</h4>
-                          <ul>
-                            <li>Weekend demand is strongest for Huracan, Ferrari, and SUV rentals.</li>
-                            <li>Fast quote follow-up is the biggest revenue lever.</li>
-                            <li>Gallery depth is affecting rental confidence.</li>
-                          </ul>
-                        </div>
-                        <div>
-                          <h4>Pressure points</h4>
-                          <ul>
-                            <li>4 deposits pending</li>
-                            <li>6 cars missing updated photos</li>
-                            <li>2 cars need inspection</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </section>
-
-                    <aside class="command-card quote-confidence">
-                      <div class="command-card-head">
-                        <div>
-                          <h3>Lead quality</h3>
-                          <p>The fastest way to turn a quote into a confirmed rental.</p>
-                        </div>
-                      </div>
-                      <div class="mini-card-grid" data-lead-kpis>
-                        <article><span>Hot quotes</span><strong>9</strong><small>Ready for follow-up</small></article>
-                        <article><span>Expected rentals</span><strong>$18,600</strong><small>If deposits close</small></article>
-                      </div>
-                      <div class="quality-list" data-lead-quality>
-                        <h4>Call quality</h4>
-                        <p><span>Quotes with phone number</span><strong>82%</strong></p>
-                        <p><span>Quotes with date selected</span><strong>74%</strong></p>
-                        <p><span>Quotes with deposit link sent</span><strong>58%</strong></p>
-                      </div>
-                      <div class="blocker-list" data-blocker-list>
-                        <h4>Blockers this week</h4>
-                        <p><span>No follow-up after quote</span><strong>7</strong></p>
-                        <p><span>Deposit not paid</span><strong>4</strong></p>
-                        <p><span>Insurance not verified</span><strong>3</strong></p>
-                      </div>
-                      <div class="revenue-list" data-revenue-list>
-                        <h4>What changes revenue</h4>
-                        <article><strong>Huracan weekend rental · +$1,600</strong><span>Deposit link would confirm the rental.</span></article>
-                        <article><strong>G63 airport delivery · +$1,200</strong><span>Insurance verification needed.</span></article>
-                        <article><strong>Ferrari 488 birthday rental · +$750</strong><span>Customer needs final call today.</span></article>
-                      </div>
-                    </aside>
-                  </div>
-
-                  <section class="command-card rental-risks">
-                    <div class="command-card-head">
-                      <div>
-                        <h3>Action queue</h3>
-                        <p>Requests, invoices, and vehicles that need a clear next step.</p>
-                      </div>
-                    </div>
-                    <div class="risk-table-wrap crm-table-container">
-                      <table class="risk-table">
-                        <thead>
-                          <tr>
-                            <th>Customer / request</th>
-                            <th>Car</th>
-                            <th>Dates</th>
-                            <th>Value</th>
-                            <th>Status</th>
-                            <th>Issue</th>
-                            <th>Next step</th>
-                            <th>Risk</th>
-                          </tr>
-                        </thead>
-                        <tbody data-action-queue>
-                          <tr>
-                            <td>Ahmed R. · Weekend rental</td>
-                            <td>2022 Lamborghini Huracan</td>
-                            <td>Jun 28–30</td>
-                            <td>$1,600</td>
-                            <td><span class="quote-badge contacted">Quote sent</span></td>
-                            <td>No deposit</td>
-                            <td>Send deposit link</td>
-                            <td><span class="risk-badge high">High</span></td>
-                          </tr>
-                          <tr>
-                            <td>Jason M. · Airport delivery</td>
-                            <td>2019 Mercedes G63 AMG</td>
-                            <td>Jul 3–5</td>
-                            <td>$1,200</td>
-                            <td><span class="quote-badge new">Pending</span></td>
-                            <td>Insurance missing</td>
-                            <td>Verify insurance</td>
-                            <td><span class="risk-badge medium">Medium</span></td>
-                          </tr>
-                          <tr>
-                            <td>Sarah K. · Birthday rental</td>
-                            <td>2016 Ferrari 488 GTB</td>
-                            <td>Jul 6</td>
-                            <td>$750</td>
-                            <td><span class="quote-badge deposit">Hot lead</span></td>
-                            <td>Needs final call</td>
-                            <td>Call today</td>
-                            <td><span class="risk-badge high">High</span></td>
-                          </tr>
-                          <tr>
-                            <td>Omar A. · SUV rental</td>
-                            <td>2022 Mercedes GLE53 AMG</td>
-                            <td>Jul 10–12</td>
-                            <td>$2,100</td>
-                            <td><span class="quote-badge booked">Hold</span></td>
-                            <td>Car inspection due</td>
-                            <td>Confirm availability</td>
-                            <td><span class="risk-badge medium">Medium</span></td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </section>
-
-                  <section class="command-card fleet-management-snapshot dashboard-legacy" aria-hidden="true">
-                    <div class="command-card-head">
-                      <div>
-                        <h3>Vehicle health</h3>
-                        <p>Snapshot of the fleet records, rental status, and content readiness.</p>
-                      </div>
-                      <button class="primary-button compact" type="button" data-jump-section="vehicles">Add car</button>
-                    </div>
-                    <div class="fleet-field-grid" data-vehicle-health>
-                      <article><strong>2022 Lamborghini Huracan</strong><span>Make Lamborghini · Model Huracan · $800/day</span><small>Photos 1 · <b class="status-badge photos">Needs gallery</b> · Main image ready · Add more angles</small></article>
-                      <article><strong>2022 Porsche 911 Carrera</strong><span>Make Porsche · Model 911 Carrera · $400/day</span><small>Photos 5 · <b class="status-badge available">Available</b> · Great weekend option</small></article>
-                      <article><strong>2019 Mercedes G63 AMG</strong><span>Make Mercedes · Model G63 AMG · $400/day</span><small>Photos 1 · <b class="status-badge photos">Needs exact photos</b> · SUV requests should be verified</small></article>
-                      <article><strong>2016 Ferrari 488 GTB</strong><span>Make Ferrari · Model 488 GTB · $750/day</span><small>Photos 5 · <b class="status-badge available">Available</b> · Strong content add-on fit</small></article>
-                    </div>
-                  </section>
-                </div>
-              </div>
+              <details class="desk-operating-reports">
+                <summary>Fleet traffic and operations</summary>
+                <div class="desk-operations-detail" data-desk-operating-content></div>
+              </details>
             </section>
 
             <section class="admin-section crm-page-container" data-section-panel="requests" hidden>
               <div class="admin-section-head crm-page-header">
                 <div>
-                  <p class="eyebrow">Sales proposals</p>
                   <h2>Quotes</h2>
-                  <p>Create, send, track and convert customer quotes.</p>
+                  <p>Sales proposals</p>
                 </div>
-                <button class="primary-button compact" type="button" data-new-quote>+ New Quote</button>
+                <button class="primary-button compact" type="button" data-new-quote>+ New quote</button>
               </div>
-              <div class="quotes-app" data-quotes-app aria-live="polite">
+              <div class="quotes-app bl-page" data-quotes-app>
                 <div class="crm-loading-state quotes-loading">Loading quotes…</div>
               </div>
             </section>
@@ -438,54 +109,53 @@
             <section class="admin-section crm-page-container customer-workspace" data-section-panel="customers" hidden>
               <div class="admin-section-head crm-page-header">
                 <div>
-                  <p class="eyebrow">Client directory</p>
                   <h2>Customers</h2>
-                  <p>Customer relationships, rental history, and contact preferences in one place.</p>
+                  <p>Guest profiles and rental history</p>
                 </div>
-                <button class="secondary-button compact" type="button" data-refresh-customers>Refresh</button>
+                <div class="desk-actions"><button class="secondary-button compact" type="button" data-refresh-customers>Refresh</button><button class="primary-button" type="button" data-new-customer>+ Add customer</button></div>
               </div>
+              <dialog data-customer-create-dialog aria-labelledby="create-customer-title">
+                <header class="desk-directory-head"><h2 id="create-customer-title">Add customer</h2><button type="button" class="desk-close" data-cancel-new-customer aria-label="Close customer form">×</button></header>
+                <form class="desk-customer-form">
+                  <label>First name<input name="first_name" required maxlength="100" autocomplete="given-name"></label><label>Last name<input name="last_name" maxlength="100" autocomplete="family-name"></label>
+                  <label>Email<input name="email" type="email" autocomplete="email"></label><label>Phone<input name="phone" type="tel" autocomplete="tel"></label>
+                  <label>Company <small>Optional</small><input name="company" autocomplete="organization" maxlength="180"></label>
+                  <div class="desk-actions"><button type="submit" class="primary-button">Save customer</button><p role="status" class="admin-status"></p></div>
+                </form>
+              </dialog>
               <div class="customers-app" data-customers-app aria-live="polite">
                 <div class="crm-loading-state">Loading customers…</div>
               </div>
             </section>
 
-            <section class="admin-section crm-page-container invoice-workspace" data-section-panel="invoices" hidden>
+            <section class="admin-section crm-page-container invoice-workspace bl-page" data-section-panel="invoices" hidden>
               <div class="admin-section-head invoice-section-head crm-page-header">
                 <div>
-                  <p class="eyebrow">Prestige Luxor billing</p>
                   <h2>Invoices</h2>
-                  <p>Start every rental here. Create the invoice, then continue into the agreement and vehicle handoff workflow.</p>
+                  <p>Rental billing</p>
                 </div>
-                <button class="primary-button compact" type="button" data-new-invoice>New invoice</button>
+                <button class="primary-button compact" type="button" data-new-invoice>+ New invoice</button>
               </div>
 
-              <ol class="rental-process-flow" aria-label="Rental process">
-                <li class="active"><b>1</b><span>Invoice</span></li><li><b>2</b><span>Agreement</span></li><li><b>3</b><span>Signature</span></li><li><b>4</b><span>Pickup</span></li><li><b>5</b><span>Return &amp; deposit</span></li>
-              </ol>
-
-              <div class="invoice-kpis" data-invoice-kpis></div>
+              <div class="bl-accounts" data-invoice-kpis aria-label="Invoice summary"></div>
+              <div class="bl-register-head"><h3>Invoice register <span class="bl-count" data-invoice-count>0</span></h3>
+                <div class="bl-controls"><label class="bl-search"><input type="search" aria-label="Search invoices" placeholder="Search invoices" data-invoice-search /></label>
+                  <select aria-label="Filter invoices by status" data-invoice-filter><option value="">All statuses</option></select></div>
+              </div>
               <p class="admin-status" role="status" data-invoice-status></p>
-
-              <div class="invoice-layout">
-                <aside class="admin-panel invoice-list-panel">
-                  <label class="invoice-search">
-                    <span>Search invoices</span>
-                    <input type="search" placeholder="Number, customer, or vehicle" data-invoice-search />
-                  </label>
-                  <div class="invoice-list" data-invoice-list></div>
-                </aside>
-
-                <section class="admin-panel invoice-editor-panel">
-                  <div class="invoice-empty" data-invoice-empty>
-                    <strong>Select an invoice or create a new one.</strong>
-                    <span>Save an invoice, update it anytime, and download the PDF.</span>
-                  </div>
+              <div class="bl-invoice-layout">
+                <div class="bl-invoice-list" data-invoice-list></div>
+                <section aria-label="Selected invoice" data-invoice-document></section>
+              </div>
+              <dialog class="bill-editor" data-invoice-dialog aria-labelledby="invoice-editor-title">
+                <div class="bill-editor-tools"><button type="button" class="secondary-button compact" data-close-invoice-editor>Close</button></div>
+                <p class="admin-status" role="status" data-invoice-editor-status></p>
                   <form class="invoice-form" data-invoice-form hidden>
                     <input type="hidden" name="id" />
                     <div class="invoice-editor-head">
                       <div>
                         <p class="eyebrow">Invoice editor</p>
-                        <h3 data-invoice-title>New invoice</h3>
+                        <h3 id="invoice-editor-title" data-invoice-title>New invoice</h3>
                         <span data-invoice-lock-note>Invoices can be edited after saving.</span>
                       </div>
                       <span class="invoice-status-badge draft" data-invoice-badge>Draft</span>
@@ -594,28 +264,28 @@
                       <button class="primary-button" type="submit" data-save-invoice>Save invoice</button>
                     </div>
                   </form>
-                </section>
-              </div>
+              </dialog>
             </section>
 
             <section class="admin-section crm-page-container agreement-workspace" data-section-panel="agreements" hidden>
               <div class="admin-section-head invoice-section-head crm-page-header">
-                <div><p class="eyebrow">Simple e-signature</p><h2>Rental Agreements</h2><p>Create from existing rental data, send a private link, and keep the signed PDF with the customer record.</p></div>
-                <button class="primary-button compact" type="button" data-new-agreement>New agreement</button>
+                <div><h2>Rental agreements</h2><p>Signing status and rental terms</p></div>
+                <button class="primary-button compact" type="button" data-new-agreement>+ New agreement</button>
               </div>
-              <div class="agreement-kpis invoice-kpis" data-agreement-kpis></div>
+              <div class="ag-scopes" role="group" aria-label="Filter agreements by signing status" data-agreement-kpis></div>
               <p class="admin-status" role="status" data-agreement-status></p>
-              <div class="invoice-layout agreement-simple-layout">
-                <aside class="admin-panel invoice-list-panel">
-                  <label class="invoice-search"><span>Search agreements</span><input type="search" placeholder="Number, renter, or vehicle" data-agreement-search /></label>
-                  <div class="invoice-list" data-agreement-list></div>
-                </aside>
-                <section class="admin-panel invoice-editor-panel agreement-simple-editor">
-                  <div class="invoice-empty" data-agreement-empty><strong>Select an agreement or create a new one.</strong><span>Start with an invoice so rental details are filled automatically.</span></div>
+              <section class="ag-register" aria-label="Agreement register">
+                <div class="bl-register-head"><h3>Agreement register</h3><label class="bl-search"><input type="search" aria-label="Search agreements by number, renter or vehicle" placeholder="Search agreements" data-agreement-search /></label></div>
+                <div class="ag-headings" aria-hidden="true"><span>Agreement / Vehicle</span><span>Renter</span><span>Rental dates</span><span>Status</span><span></span></div>
+                <div data-agreement-list></div>
+              </section>
+              <dialog class="bill-editor" aria-labelledby="agreement-editor-title" data-agreement-editor>
+                <div class="bill-editor-tools"><button type="button" class="secondary-button compact" data-close-agreement-editor>Close</button></div>
+                <p class="admin-status" role="status" data-agreement-editor-status></p>
                   <form class="invoice-form agreement-form" data-agreement-form hidden>
                     <input type="hidden" name="id" />
-                    <div class="invoice-editor-head"><div><p class="eyebrow">Rental agreement</p><h3 data-agreement-title>New agreement</h3><span data-agreement-subtitle>Review the rental summary before sending it to the renter.</span></div><span class="invoice-status-badge draft" data-agreement-badge>Draft</span></div>
-                    <div class="agreement-admin-progress"><span class="active">1 · Create</span><span>2 · Send</span><span>3 · Renter initials</span><span>4 · Signature</span><span>5 · Signed PDF</span></div>
+                    <div class="invoice-editor-head"><div><p class="eyebrow">Rental agreement</p><h3 id="agreement-editor-title" data-agreement-title>New agreement</h3><span data-agreement-subtitle>Review the rental summary before sending it to the renter.</span></div><span class="invoice-status-badge draft" data-agreement-badge>Draft</span></div>
+                    <div class="agreement-admin-progress" data-agreement-progress></div>
                     <section class="invoice-form-section agreement-source-section" data-agreement-editable>
                       <h4>Use existing rental data</h4>
                       <p>Choose an invoice. Customer, vehicle, dates, payment, deposit, and mileage details are carried over automatically.</p>
@@ -665,23 +335,22 @@
                       </div>
                     </dialog>
                     <section class="agreement-link-card" data-agreement-link-card hidden><div><p>Private signing link</p><strong data-agreement-link-status>Ready to send</strong><span data-agreement-link-description>Share the private link so your renter can review and sign.</span></div><div><button class="secondary-button" type="button" data-copy-agreement-link>Copy link</button><button class="secondary-button" type="button" data-open-agreement-link>Open signing screen</button></div></section>
+                    <details class="agreement-saved-terms" data-agreement-terms hidden><summary>Agreement terms and acknowledgments</summary><div data-agreement-terms-body></div></details>
                     <details class="agreement-audit" data-agreement-audit hidden><summary>Agreement Details &amp; Audit Log</summary><div data-agreement-audit-list></div></details>
                     <div class="invoice-actions agreement-admin-actions"><button class="danger-button invoice-delete-button" type="button" data-delete-agreement hidden>Delete agreement</button><div class="agreement-document-actions"><button class="secondary-button" type="button" data-download-agreement hidden>Download PDF</button><button class="secondary-button" type="button" data-resend-agreement hidden>Send by email</button><button class="primary-button" type="submit" data-save-agreement>Save &amp; create signing link</button></div></div>
                   </form>
-                </section>
-              </div>
+              </dialog>
             </section>
 
             <section class="admin-section crm-page-container booking-workspace" data-section-panel="bookings" hidden>
               <div class="admin-section-head crm-page-header booking-section-head">
                 <div>
-                  <p class="eyebrow">Rental ledger</p>
                   <h2>Bookings</h2>
-                  <p>Signed agreements appear automatically. Add phone bookings, record collected payments, and enter the real costs for each rental.</p>
+                  <p>Rental schedule &amp; ledger</p>
                 </div>
                 <button class="primary-button compact" type="button" data-new-booking>+ Add booking</button>
               </div>
-              <div class="booking-app" data-booking-app aria-live="polite">
+              <div class="booking-app" data-booking-app>
                 <div class="crm-loading-state">Loading bookings…</div>
               </div>
             </section>
@@ -689,16 +358,14 @@
             <section class="admin-section crm-page-container" data-section-panel="vehicles" hidden>
               <div class="admin-section-head crm-page-header">
                 <div>
-                  <p class="eyebrow">Fleet operations</p>
                   <h2>Fleet</h2>
-                  <p>Manage vehicles, availability, performance and operations.</p>
+                  <p>Vehicle operations</p>
                 </div>
                 <div class="crm-page-actions">
-                  <button class="secondary-button compact" type="button" data-fleet-calendar>Calendar View</button>
-                  <button class="primary-button compact" type="button" data-fleet-add>+ Add Vehicle</button>
+                  <button class="secondary-button compact" type="button" data-jump-section="bookings">View bookings <span aria-hidden="true">→</span></button>
                 </div>
               </div>
-              <div class="fleet-operations-app" data-fleet-operations aria-live="polite">
+              <div class="fleet-operations-app" data-fleet-operations>
                 <div class="crm-loading-state fleet-operations-loading">Loading fleet operations…</div>
               </div>
 
@@ -913,16 +580,23 @@
 
 
             <section class="admin-section crm-page-container" data-section-panel="settings" hidden>
-              <div class="admin-section-head crm-page-header">
-                <div><p class="eyebrow">CRM settings</p><h2>Agreement Template</h2><p>Edit the one master agreement used for future rentals. Signed and existing agreements keep their original wording.</p></div>
+              <div class="admin-section-head crm-page-header"><div><h2>Settings</h2><p>Manage the agreement template used for new rentals.</p></div></div>
+              <div class="desk-settings">
+                <form class="agreement-template-settings" data-agreement-template-form>
+                  <header class="desk-subhead"><h3>Agreement template</h3><span data-template-version></span></header>
+                  <label>Document title<input name="title" required /></label>
+                  <label>Agreement text<textarea name="body" rows="12" required spellcheck="true"></textarea></label>
+                  <div class="desk-token-row"><label>Rental field<select data-template-token>
+                    <option value="agreement_number">Agreement number</option><option value="customer_name">Customer name</option><option value="vehicle">Vehicle</option><option value="start_date">Pickup date</option><option value="end_date">Return date</option><option value="rental_price">Rental price</option><option value="security_deposit">Security deposit</option><option value="mileage_allowance">Included mileage</option><option value="overage_rate">Mileage overage</option>
+                  </select></label><button type="button" class="secondary-button" data-template-insert>Insert field</button></div>
+                  <section><h3>Terms requiring initials</h3><div class="agreement-template-terms" data-agreement-template-terms></div></section>
+                  <div class="agreement-template-actions"><button class="primary-button" type="submit">Save new version</button><p class="admin-status" role="status" data-agreement-template-status></p></div>
+                </form>
+                <section class="desk-paper-column" aria-label="Document preview">
+                  <header class="desk-subhead"><h3>Document preview</h3><span>Template</span></header>
+                  <article class="desk-paper"><img src="/assets/prestige-luxor-logo-light.png" alt="Prestige Luxor" width="130"><h3 data-paper-title>Rental agreement</h3><p data-paper-body></p><div data-paper-terms></div></article>
+                </section>
               </div>
-              <form class="admin-panel agreement-template-settings" data-agreement-template-form>
-                <div class="agreement-template-note"><strong>Dynamic rental fields</strong><span>{{agreement_number}} · {{customer_name}} · {{vehicle}} · {{start_date}} · {{end_date}} · {{rental_price}} · {{security_deposit}} · {{mileage_allowance}} · {{overage_rate}}</span></div>
-                <label>Template title<input name="title" required /></label>
-                <label>Master rental agreement<textarea name="body" rows="24" required spellcheck="true"></textarea></label>
-                <section><div><h3>Important terms requiring initials</h3><p>Keep this list short and limited to the acknowledgments the renter must initial.</p></div><div class="agreement-template-terms" data-agreement-template-terms></div></section>
-                <div class="agreement-template-actions"><p class="admin-status" role="status" data-agreement-template-status></p><button class="primary-button" type="submit">Save new template version</button></div>
-              </form>
             </section>
           </div>
         </div>
@@ -930,13 +604,13 @@
     </main>
 
     <script type="module" src="/src/admin-workspace.js"></script>
-    <script type="module" src="/src/admin.js?v=prestige-crm-performance-20260812"></script>
-    <script type="module" src="/src/quotes.js?v=prestige-quotes-performance-20260812"></script>
-    <script type="module" src="/src/customers.js?v=20261014-marketing-ready"></script>
-    <script type="module" src="/src/fleet-operations.js?v=prestige-fleet-images-20260818"></script>
-    <script type="module" src="/src/invoices.js?v=prestige-invoice-cash-ledger-20260906-1"></script>
-    <script type="module" src="/src/agreements.js?v=prestige-agreements-vehicle-picker-20260906-7"></script>
-    <script type="module" src="/src/bookings.js?v=prestige-booking-ledger-20260906-2"></script>
-    <script type="module" src="/src/dashboard.js?v=prestige-dashboard-vehicle-merge-20260906-1"></script>
+    <script type="module" src="/src/admin.js"></script>
+    <script type="module" src="/src/quotes.js"></script>
+    <script type="module" src="/src/customers.js"></script>
+    <script type="module" src="/src/fleet-operations.js"></script>
+    <script type="module" src="/src/invoices.js"></script>
+    <script type="module" src="/src/agreements.js"></script>
+    <script type="module" src="/src/bookings.js"></script>
+    <script type="module" src="/src/dashboard.js"></script>
   </body>
 </html>

@@ -1,3 +1,4 @@
+import { crmBase, openCrmPage } from "./crm-browser-helpers.mjs";
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 import {mkdirSync} from 'node:fs';
@@ -16,16 +17,16 @@ try {
    await new Promise(resolve=>setTimeout(resolve,100));
    await r.fulfill({json:{cars:[],vehicles:[],partners:[],quotes:[],customers:[],employees:[],reservations:[],blocks:[],leads:[],activities:[],items:[],availability:[],settings:{},template:{title:'Preview',body:'Preview',important_terms:[]},data:[]}});
  });
- await page.goto('http://127.0.0.1:8775/admin/');
+ await page.goto(crmBase+'/admin/');
  await page.locator('[data-admin-view]').waitFor();
  await page.waitForTimeout(4000);
  const panels=['overview','vehicles','requests','customers','invoices','agreements','bookings'];
- for(const section of panels) {await page.locator(`[data-crm-section="${section}"]`).click();await page.waitForTimeout(200);}
+ for(const section of panels) {await openCrmPage(page,section);await page.waitForTimeout(200);}
  const before=requests.length;
  // Keep actual DOM nodes: switching sections must not replace loaded views.
  await page.evaluate(()=>{window.savedPanels=[...document.querySelectorAll('[data-section-panel]')].map(e=>[e,e.firstElementChild]);});
  for(let pass=0;pass<2;pass++) for(const section of panels) {
-   await page.locator(`[data-crm-section="${section}"]`).click();
+   await openCrmPage(page,section);
    assert.equal(await page.locator(`[data-section-panel="${section}"]`).evaluate(e=>e.textContent.includes("Loading ")),false,section);
  }
  assert.equal(requests.length,before,"Cached navigation made new API requests");

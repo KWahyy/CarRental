@@ -1,6 +1,10 @@
+import { arrow, cash, photo, searchIcon, searchKey, stateLabel, vehiclePhotoSource, handleMissingPhotos } from "./crm-operation-ui.js";
+import { canViewFinancials } from "./crm-permissions.js";
+import { optimizedFleetImageUrl } from "./supabase-fleet.js?v=fleet-images-20260818";
 import { linkPaidBooking } from "./request-match.js";
 import { singleFlight, registerSection } from "./crm-navigation.js";
 const app = document.querySelector("[data-booking-app]");
+handleMissingPhotos(app);
 const sectionButton = document.querySelector('[data-crm-section="bookings"]');
 const newButton = document.querySelector("[data-new-booking]");
 const supabase = window.prestigeLuxorSupabase;
@@ -11,10 +15,12 @@ let agreements = [];
 let ledgerRows = [];
 let cars = [];
 let profile = null;
-let selectedKey = "";
+let selectedVehicle = "";
+let activeDay = pacificDay(new Date());
+let sessionGeneration = 0;
 let searchTerm = "";
 
-const money = (value) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(Number(value || 0));
+const money = value => cash(Number(value || 0));
 const escapeHtml = (value) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 const iso = (value) => String(value || "").slice(0, 10);
 const today = () => {
@@ -23,13 +29,8 @@ const today = () => {
   return new Date(date.getTime() - offset).toISOString().slice(0, 10);
 };
 const number = (value) => Math.max(0, Number(value || 0));
-const isOwner = () => profile?.role === "owner";
-
-function dateLabel(value) {
-  if (!value) return "Date not set";
-  const date = new Date(`${iso(value)}T12:00:00`);
-  return Number.isNaN(date.getTime()) ? "Date not set" : date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
+const canSeeTotals = () => canViewFinancials(profile?.role);
+const readOnly = () => profile?.role === "viewer" || document.documentElement.dataset.crmRole === "viewer";
 
 function parseFinance(notes) {
   const value = String(notes || "");
@@ -58,7 +59,7 @@ function agreementShadow(agreement) {
 
 function records() {
   const agreementRecords = agreements
-    .filter((item) => item.signed_at && item.status !== "cancelled")
+    .filter((item) => item.signed_at)
     .map((agreement) => {
       const shadow = agreementShadow(agreement);
       const finance = parseFinance(shadow?.notes);
@@ -82,7 +83,7 @@ function records() {
         payment_status: shadow?.payment_status || "pending",
         notes: finance.notes || "",
         finance,
-        cancelled: false,
+        cancelled: agreement.status==="cancelled" || Boolean(finance.cancelled),
       };
     });
 
@@ -99,14 +100,16 @@ const load = singleFlight(async function (force = false) {
   loading = true;
   if (!loaded) app.innerHTML = '<div class="crm-loading-state">Loading bookings…</div>';
   try {
+    const generation = sessionGeneration;
     const session = (await supabase.auth.getSession()).data.session;
     const userId = session?.user?.id;
     const [agreementResult, ledgerResult, carResult, profileResult] = await Promise.all([
       supabase.from("rental_agreements").select("*").order("created_at", { ascending: false }).limit(500),
       supabase.from("booking_sales").select("*").order("created_at", { ascending: false }).limit(500),
-      supabase.from("cars").select("id,name,image_url,price,is_active").eq("is_active", true).order("name"),
+      supabase.from("cars").select("id,name,image_url,price,is_active").order("name"),
       userId ? supabase.from("admin_profiles").select("display_name,role").eq("user_id", userId).limit(1) : Promise.resolve({ data: [] }),
     ]);
+    if (generation !== sessionGeneration) return;
     if (agreementResult.error) throw agreementResult.error;
     if (ledgerResult.error) throw ledgerResult.error;
     agreements = agreementResult.data || [];
@@ -121,66 +124,153 @@ const load = singleFlight(async function (force = false) {
   } finally { loading = false; }
 });
 
-function render() {
-  if (!app) return;
-  const all = records();
-  const filtered = all.filter((item) => `${item.customer_name} ${item.vehicle} ${item.customer_phone || ""}`.toLowerCase().includes(searchTerm.toLowerCase()));
-  const collected = all.filter((item) => !item.cancelled).reduce((sum, item) => sum + number(item.amount_paid), 0);
-  const costs = all.filter((item) => !item.cancelled).reduce((sum, item) => sum + costsFor(item), 0);
-  const active = all.filter((item) => !item.cancelled && (!item.end_date || iso(item.end_date) >= today())).length;
-  const ownerSummary = isOwner() ? `
-    <div class="booking-kpis">
-      <article class="featured"><span>Cash collected</span><strong>${money(collected)}</strong><small>Refundable deposits excluded</small></article>
-      <article><span>Recorded costs</span><strong>${money(costs)}</strong><small>Partner, card, delivery, detailing and other</small></article>
-      <article><span>Profit</span><strong>${money(collected - costs)}</strong><small>Collected cash minus recorded costs</small></article>
-      <article><span>Bookings</span><strong>${all.filter((item) => !item.cancelled).length}</strong><small>${active} active or upcoming</small></article>
-    </div>` : `<div class="booking-staff-note"><strong>Booking operations</strong><span>Financial totals are visible to the owner only.</span></div>`;
-
-  app.innerHTML = `${ownerSummary}
-    <section class="booking-ledger-card">
-      <header><div><p class="eyebrow">All rentals</p><h3>Booking ledger</h3><span>Signed agreements are added automatically.</span></div><label><span>Search</span><input type="search" value="${escapeHtml(searchTerm)}" placeholder="Customer or vehicle" data-booking-search></label></header>
-      <div class="booking-list">${filtered.length ? filtered.map(bookingCard).join("") : '<div class="admin-empty">No matching bookings yet.</div>'}</div>
-    </section>
-    <dialog class="booking-dialog" data-booking-dialog><div class="booking-dialog-shell" data-booking-editor></div></dialog>`;
-
-  app.querySelector("[data-booking-search]")?.addEventListener("input", (event) => { searchTerm = event.target.value; render(); app.querySelector("[data-booking-search]")?.focus(); });
-  app.querySelectorAll("[data-open-booking]").forEach((button) => button.addEventListener("click", () => openEditor(button.dataset.openBooking)));
+function pacificDay(value) {
+  return new Intl.DateTimeFormat("en-CA",{timeZone:"America/Los_Angeles",year:"numeric",month:"2-digit",day:"2-digit"}).format(value);
 }
-
-function bookingCard(item) {
-  const cost = costsFor(item);
-  const financial = isOwner() ? `<div><span>Collected</span><strong>${money(item.amount_paid)}</strong></div><div><span>Costs</span><strong>${money(cost)}</strong></div><div><span>Profit</span><strong>${money(number(item.amount_paid) - cost)}</strong></div>` : "";
-  const status = item.cancelled ? "Cancelled" : item.amount_paid > 0 ? "Paid" : "No payment";
-  return `<button class="booking-row ${item.cancelled ? "cancelled" : ""}" type="button" data-open-booking="${escapeHtml(item.key)}">
-    <span class="booking-row-source">${item.kind === "agreement" ? "SIGNED AGREEMENT" : "MANUAL BOOKING"}</span>
-    <span class="booking-row-main"><strong>${escapeHtml(item.customer_name || "Customer")}</strong><small>${escapeHtml(item.vehicle || "Vehicle not selected")}</small></span>
-    <span class="booking-row-dates"><strong>${dateLabel(item.start_date)}</strong><small>${item.end_date ? `to ${dateLabel(item.end_date)}` : "End date not set"}</small></span>
-    ${financial}<span class="booking-row-status"><i>${status}</i><b aria-hidden="true">→</b></span>
-  </button>`;
+function calendarDate(day, offset=0) {
+  const date = new Date(day+"T12:00:00Z");
+  date.setUTCDate(date.getUTCDate()+offset);
+  return date;
 }
-
+function dayLabel(day,format={month:"short",day:"numeric"}) {
+  return day ? calendarDate(iso(day)).toLocaleDateString("en-US",{...format,timeZone:"UTC"}) : "Date not set";
+}
+function carFor(item) {
+  const id = item.agreement?.vehicle_id || item.vehicle_id;
+  const clean = name => searchKey(name).replace(/\b(?:19|20)\d{2}\b/g,"").replace(/[^a-z0-9]/g,"");
+  if(id) {
+    const exact = cars.find(c=>String(c.id)===String(id));
+    if(exact)return exact;
+  }
+  const matching=cars.filter(c=>clean(c.name)===clean(item.vehicle) && item.vehicle);
+  return matching.length===1 ? matching[0] : null;
+}
+function vehiclePhoto(item,cls,wide=false) {
+  const img = vehiclePhotoSource(carFor(item));
+  return photo(img ? optimizedFleetImageUrl(img,{width:wide?900:320,height:wide?530:210,quality:78}) : "",cls,wide,img);
+}
+function bookingLabel(item) {
+  return item.agreement?.agreement_number || ("Booking "+String(item.id).slice(0,8));
+}
+function rentalStatus(item) {
+  if(item.cancelled)return "Cancelled";
+  if(item.kind==="agreement")return ({signed:"Confirmed",vehicle_out:"On rent",returned:"Returned",completed:"Completed"})[item.agreement.status] || "Signed";
+  return item.finance?.rental_status || (item.end_date && item.end_date < pacificDay(new Date()) ? "Past rental" : "Booked");
+}
+function bookingStatus(item) {
+  const status=rentalStatus(item);
+  return stateLabel(status,{"Confirmed":"reserved","Booked":"reserved","On rent":"road","Completed":"ready","Returned":"ready"}[status]);
+}
+function handoff(item,side) {
+  const isStart=side==="start";
+  const full=item.agreement?.[isStart ? "rental_start_at" : "rental_end_at"];
+  const parsed = full && new Date(full);
+  const tz = {timeZone:"America/Los_Angeles"};
+  const recordedTime = item.finance?.[isStart ? "pickup_time" : "return_time"];
+  let date=item[isStart?"start_date":"end_date"], time=recordedTime || "";
+  if(parsed && Number.isFinite(parsed.getTime())){
+    date=pacificDay(parsed);
+    time=parsed.toLocaleTimeString("en-GB",{...tz,hour12:false,hour:"2-digit",minute:"2-digit"});
+  }
+  const minutes = /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time) ? time : "";
+  const timeLabel = minutes ? new Date("2000-01-01T"+minutes+":00Z").toLocaleTimeString("en-US",{timeZone:"UTC",hour:"numeric",minute:"2-digit"}) : "Time TBD";
+  return {item,date:iso(date),time:minutes,timeLabel,kind:isStart ? item.finance?.handoff || "Pickup" : "Return",location:item.finance?.location || "",stamp:full || (date ? iso(date)+(minutes?"T"+minutes:"") : "")};
+}
+function renderSchedule() {
+  const schedule=app.querySelector("[data-handoff-schedule]");
+  const all=records().filter(r=>!r.cancelled).flatMap(r=>[handoff(r,"start"),handoff(r,"end")]).filter(e=>e.date);
+  const events=all.filter(e=>e.date===activeDay).sort((a,b)=>(a.time || "99").localeCompare(b.time || "99"));
+  const week=calendarDate(activeDay,-calendarDate(activeDay).getUTCDay()).toISOString().slice(0,10);
+  const days=Array.from({length:7},(_,i)=>calendarDate(week,i).toISOString().slice(0,10));
+  const spotlight=events.find(e=>e.kind!=="Return") || events[0];
+  schedule.classList.toggle("op-schedule-single",!spotlight);
+  schedule.innerHTML=`<div class="op-schedule-main"><header class="op-section-head"><div><h2>Handoff schedule</h2><p>${dayLabel(week)}–${dayLabel(days[6],week.slice(0,7)===days[6].slice(0,7)?{day:"numeric"}:{month:"short",day:"numeric"})}, ${days[6].slice(0,4)} · Pacific time</p></div><div class="op-arrows">
+    <button data-booking-week="-1" type="button" aria-label="Previous week">‹</button><button data-booking-week="1" type="button" aria-label="Next week">›</button></div></header>
+    <div class="op-days" role="group" aria-label="Select schedule date">${days.map(day=>{
+      const count=all.filter(e=>e.date===day).length;
+      return `<button type="button" data-booking-day="${day}" aria-pressed="${day===activeDay}" aria-label="${dayLabel(day,{weekday:"long",month:"long",day:"numeric"})}, ${count} handoffs"><span>${dayLabel(day,{weekday:"short"})}</span><strong>${Number(day.slice(-2))}</strong><i class="${count?"op-day-mark":""}" aria-hidden="true"></i></button>`;
+    }).join("")}</div>
+    <div>${events.length ? events.map(e=>`<button type="button" class="op-event" data-open-booking="${escapeHtml(e.item.key)}"><time datetime="${escapeHtml(e.stamp)}">${e.timeLabel}</time><span class="op-event-body"><span class="op-event-label">${escapeHtml([e.kind,e.location].filter(Boolean).join(" · "))}</span><strong>${escapeHtml(e.item.vehicle||"Vehicle not selected")}</strong></span>${arrow}</button>`).join("") : `<p class="op-empty">No handoffs scheduled for ${dayLabel(activeDay)}.</p>`}</div></div>
+    ${spotlight ? `<aside id="op-book-feature"><div class="op-dispatch-photo">${vehiclePhoto(spotlight.item,"",true)}</div><div class="op-dispatch-copy"><p class="op-kicker">${spotlight.kind==="Return"?"Scheduled return":"Scheduled departure"}</p><h3>${escapeHtml(spotlight.item.vehicle||"Vehicle not selected")}</h3><p class="op-dispatch-meta">${escapeHtml([spotlight.location,spotlight.timeLabel].filter(Boolean).join(" · "))}</p><button class="op-light-link" data-open-booking="${escapeHtml(spotlight.item.key)}">Booking details ${arrow}</button></div></aside>`:""}`;
+}
+function renderLedger(){
+  const all=records();
+  const term=searchKey(searchTerm);
+  const filtered=all.filter(r=>(!selectedVehicle || searchKey(carFor(r)?.name || r.vehicle)===searchKey(selectedVehicle)) && searchKey([r.customer_name,r.vehicle,r.customer_email,r.customer_phone,bookingLabel(r),r.id].join(" ")).includes(term));
+  app.querySelector("[data-booking-count]").textContent=filtered.length+(filtered.length===1?" reservation":" reservations");
+  app.querySelector("[data-booking-rows]").innerHTML=filtered.length ? `<div class="op-ledger-head" aria-hidden="true"><span>Vehicle / guest</span><span>Rental dates</span><span>Rental amount</span><span>Status</span></div>${filtered.map(r => `<button type="button" class="op-book-row" data-open-booking="${escapeHtml(r.key)}">
+    <span class="op-book-name">${vehiclePhoto(r,"op-thumb")}<span><strong>${escapeHtml(r.vehicle||"Vehicle not selected")}</strong><small>${escapeHtml(r.customer_name||"Guest")} · ${escapeHtml(bookingLabel(r))}</small></span></span>
+    <span class="op-book-dates">${r.start_date ? dayLabel(r.start_date) : "Start TBD"} – ${r.end_date ? dayLabel(r.end_date) : "Return TBD"}</span><span class="op-book-amount">${cash(number(r.total_amount))}</span><span class="op-book-state">${bookingStatus(r)}${arrow}</span></button>`).join("")}` : `<p class="op-empty">${all.length?"No bookings match these filters.":"No bookings have been recorded. Signed agreements appear here automatically."}</p>`;
+}
+function render(){
+  if(!app)return;
+  const all=records();
+  const stats=all.filter(r=>!r.cancelled);
+  const collected=stats.reduce((sum,r)=>sum+number(r.amount_paid),0), costs=stats.reduce((sum,r)=>sum+costsFor(r),0);
+  const vehicles=Array.from(new Set([selectedVehicle,...all.map(r=>carFor(r)?.name || r.vehicle),...cars.filter(c=>c.is_active).map(c=>c.name)].filter(Boolean))).sort();
+  app.innerHTML=`<section class="op-schedule" data-handoff-schedule aria-label="Rental handoffs"></section>
+    <section class="op-ledger" aria-label="Booking ledger"><header class="op-section-head"><div><h2>Booking ledger</h2><p data-booking-count role="status"></p></div>
+    <div class="op-ledger-filter"><label class="op-search"><span class="op-screenreader">Search bookings</span>${searchIcon}<input type="search" data-booking-search placeholder="Guest or booking" value="${escapeHtml(searchTerm)}"></label>
+    <label><span class="op-screenreader">Filter by vehicle</span><select data-booking-car><option value="">All vehicles</option>${vehicles.map(v=>`<option value="${escapeHtml(v)}" ${v===selectedVehicle?"selected":""}>${escapeHtml(v)}</option>`).join("")}</select></label></div></header>
+    <div id="op-ledger-items" data-booking-rows></div></section>
+    ${canSeeTotals()?`<details class="op-owner-summary"><summary>Booking financial summary</summary><dl class="op-facts">${[["Cash collected",collected],["Recorded costs",costs],["Cash less costs",collected-costs]].map(([k,v])=>`<div><dt>${k}</dt><dd>${cash(v)}</dd></div>`).join("")}<div><dt>Active or upcoming</dt><dd>${stats.filter(r=>!r.end_date || r.end_date>=today()).length}</dd></div></dl></details>`:""}
+    <dialog class="op-sheet booking-dialog" data-booking-dialog aria-labelledby="op-booking-title"><div data-booking-editor></div></dialog>`;
+  renderSchedule();renderLedger();
+}
+function showBooking(key){
+  const item=records().find(row=>row.key===key);
+  if(!item)return;
+  const dialog=app.querySelector("[data-booking-dialog]");
+  const car=carFor(item), pickup=handoff(item,"start"), ret=handoff(item,"end");
+  const facts=[["Guest",item.customer_name],["Phone",item.customer_phone],["Email",item.customer_email||item.finance?.customer_email],[pickup.kind,pickup.date ? dayLabel(pickup.date)+" · "+pickup.timeLabel : ""],["Return",ret.date ? dayLabel(ret.date)+" · "+ret.timeLabel : ""],["Location",pickup.location],["Rental amount",cash(item.total_amount)],["Payment status",item.payment_status]];
+  if(canSeeTotals())facts.push(["Collected",cash(number(item.amount_paid))],["Costs",cash(costsFor(item))],["Cash less costs",cash(number(item.amount_paid)-costsFor(item))]);
+  dialog.querySelector("[data-booking-editor]").innerHTML=`<header><div><p class="eyebrow">Booking details</p><h2 id="op-booking-title">${escapeHtml(bookingLabel(item))}</h2></div><button type="button" data-close-booking aria-label="Close">×</button></header>
+  <div class="op-book-summary">${vehiclePhoto(item,"op-sheet-thumb")}<div><h3>${escapeHtml(item.vehicle||"Vehicle not selected")}</h3>${bookingStatus(item)}</div></div>
+  <dl class="op-facts">${facts.filter(([,v])=>v).map(([k,v])=>`<div><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd></div>`).join("")}</dl>${item.notes?`<p class="op-notes">${escapeHtml(item.notes)}</p>`:""}
+  <div class="op-actions">${readOnly()?"":`<button type="button" class="primary-button" data-ledger-edit-booking="${escapeHtml(item.key)}">Edit booking</button>`}
+    ${car?`<button type="button" class="secondary-button" data-booking-vehicle="${escapeHtml(car.id)}">Vehicle record ${arrow}</button>`:""}
+    ${item.kind==="agreement"?`<button type="button" class="secondary-button" data-booking-agreement="${escapeHtml(item.id)}">Rental agreement ${arrow}</button>`:""}</div>`;
+  if(!dialog.open)dialog.showModal();
+}
+app?.addEventListener("input",event=>{if(event.target.matches("[data-booking-search]")){searchTerm=event.target.value;renderLedger();}});
+app?.addEventListener("change",event=>{if(event.target.matches("[data-booking-car]")){selectedVehicle=event.target.value;renderLedger();}});
+app?.addEventListener("click",event=>{
+  const b=event.target.closest("button");if(!b)return;
+  const {bookingDay,bookingWeek,openBooking,ledgerEditBooking,bookingVehicle,bookingAgreement}=b.dataset;
+  if(bookingDay || bookingWeek){activeDay=bookingDay || calendarDate(activeDay,7*Number(bookingWeek)).toISOString().slice(0,10);renderSchedule();app.querySelector(bookingDay ? `[data-booking-day="${bookingDay}"]` : `[data-booking-week="${bookingWeek}"]`)?.focus({preventScroll:true});}
+  else if(openBooking)showBooking(openBooking);
+  else if(ledgerEditBooking && !readOnly())openEditor(ledgerEditBooking);
+  else if(b.hasAttribute("data-close-booking"))b.closest("dialog")?.close();
+  else if(bookingVehicle || bookingAgreement){
+    b.closest("dialog")?.close();document.querySelector(`[data-crm-section="${bookingVehicle?"vehicles":"agreements"}"]`)?.click();
+    window.dispatchEvent(new CustomEvent(bookingVehicle?"prestige:open-fleet-vehicle":"prestige:open-agreement",{detail:{id:bookingVehicle||bookingAgreement}}));
+  }
+});
 function blankRecord() {
   return { key: "new", kind: "manual", customer_name: "", customer_email: "", customer_phone: "", vehicle: "", start_date: "", end_date: "", booked_on: today(), total_amount: 0, amount_paid: 0, partner_cost: 0, payment_status: "pending", notes: "", finance: { payment_date: today(), payment_method: "stripe", cost_date: today(), processing_fee: 0, delivery_cost: 0, detailing_cost: 0, other_cost: 0 }, cancelled: false };
 }
 
 function openEditor(key = "new") {
   const item = key === "new" ? blankRecord() : records().find((row) => row.key === key);
-  if (!item) return;
-  selectedKey = key;
+  if (!item || !loaded) return;
+  if (readOnly()) return;
   const dialog = app.querySelector("[data-booking-dialog]");
   const editor = app.querySelector("[data-booking-editor]");
   const lockedSource = item.kind === "agreement";
   const meta = item.finance || {};
-  editor.innerHTML = `<header><div><p class="eyebrow">${lockedSource ? "Signed rental" : "Manual booking"}</p><h3>${key === "new" ? "Add booking" : `Edit ${escapeHtml(item.customer_name || "booking")}`}</h3><span>${lockedSource ? "Rental details come from the signed agreement. Add payment and cost details here." : "Use this for phone bookings and historical rentals."}</span></div><button type="button" data-close-booking aria-label="Close">×</button></header>
+  editor.innerHTML = `<header><div><p class="eyebrow">${lockedSource ? "Signed rental" : "Manual booking"}</p><h3 id="op-booking-title">${key === "new" ? "Add booking" : `Edit ${escapeHtml(item.customer_name || "booking")}`}</h3><span>${lockedSource ? "Rental details come from the signed agreement. Add payment and cost details here." : "Use this for phone bookings and historical rentals."}</span></div><button type="button" data-close-booking aria-label="Close">×</button></header>
     <form data-booking-form>
       <section><h4>Booking details</h4><div class="booking-form-grid">
         <label>Customer name<input name="customer_name" value="${escapeHtml(item.customer_name)}" required ${lockedSource ? "readonly" : ""}></label>
         <label>Phone<input name="customer_phone" value="${escapeHtml(item.customer_phone || "")}" ${lockedSource ? "readonly" : ""}></label>
         <label>Email<input name="customer_email" type="email" value="${escapeHtml(item.customer_email || meta.customer_email || "")}" ${lockedSource ? "readonly" : ""}></label>
-        <label>Vehicle<input name="vehicle" list="booking-vehicles" value="${escapeHtml(item.vehicle)}" required ${lockedSource ? "readonly" : ""}><datalist id="booking-vehicles">${cars.map((car) => `<option value="${escapeHtml(car.name)}"></option>`).join("")}</datalist></label>
+        <label>Vehicle<input name="vehicle" list="booking-vehicles" value="${escapeHtml(item.vehicle)}" required ${lockedSource ? "readonly" : ""}><datalist id="booking-vehicles">${cars.filter(car=>car.is_active).map((car) => `<option value="${escapeHtml(car.name)}"></option>`).join("")}</datalist></label>
         <label>Rental starts<input name="start_date" type="date" value="${iso(item.start_date)}" ${lockedSource ? "readonly" : ""}></label>
         <label>Rental ends<input name="end_date" type="date" value="${iso(item.end_date)}" ${lockedSource ? "readonly" : ""}></label>
         <label>Booking date<input name="booked_on" type="date" value="${iso(item.booked_on) || today()}" required ${lockedSource ? "readonly" : ""}></label>
+        ${lockedSource ? "" : `<label>Pickup time (Pacific)<input type="time" name="pickup_time" value="${escapeHtml(meta.pickup_time || "")}"></label><label>Return time (Pacific)<input type="time" name="return_time" value="${escapeHtml(meta.return_time || "")}"></label>
+        <label>Handoff<select name="handoff">${["Pickup","Delivery"].map(x=>`<option ${meta.handoff===x?"selected":""}>${x}</option>`).join("")}</select></label><label>Location<input name="location" maxlength="180" value="${escapeHtml(meta.location || "")}"></label>
+        <label>Rental status<select name="rental_status"><option value="">By rental dates</option>${["Confirmed","On rent","Completed"].map(x=>`<option ${meta.rental_status===x?"selected":""}>${x}</option>`).join("")}</select></label>`}
         <label class="booking-cancel"><input name="cancelled" type="checkbox" ${item.cancelled ? "checked" : ""}> Cancelled booking</label>
       </div></section>
       <section class="booking-money-section"><h4>Payment received</h4><p>Enter rental money actually collected. Do not include a refundable security deposit.</p><div class="booking-form-grid">
@@ -208,7 +298,8 @@ function openEditor(key = "new") {
   editor.querySelectorAll("[data-close-booking]").forEach((button) => button.addEventListener("click", () => dialog.close()));
   editor.querySelector("[data-delete-booking]")?.addEventListener("click", () => remove(item));
   updatePreview(form);
-  dialog.showModal();
+  if (!dialog.open) dialog.showModal();
+  else {const heading=editor.querySelector("h3");heading.tabIndex=-1;heading.focus();}
 }
 
 function updatePreview(form) {
@@ -222,6 +313,7 @@ async function save(event, item) {
   event.preventDefault();
   const form = event.currentTarget;
   const status = form.querySelector("[data-booking-status]");
+  if (readOnly() || form.dataset.saving) return;
   const data = new FormData(form);
   const amountPaid = number(data.get("amount_paid"));
   const totalAmount = item.kind === "agreement" ? number(item.total_amount) : number(data.get("total_amount"));
@@ -237,7 +329,14 @@ async function save(event, item) {
     status.dataset.tone = "error";
     return;
   }
+  const pickupTime=String(data.get("pickup_time") || ""), returnTime=String(data.get("return_time") || "");
+  if(startDate && endDate===startDate && pickupTime && returnTime && returnTime<=pickupTime){
+    status.textContent="Choose a return time after pickup.";status.dataset.tone="error";return;
+  }
   const meta = {
+    ...item.finance,
+    notes: undefined,
+    ...(item.kind==="manual" ? {pickup_time:pickupTime,return_time:returnTime,handoff:data.get("handoff"),location:String(data.get("location")||"").trim(),rental_status:data.get("rental_status")||""} : {}),
     agreement_id: item.kind === "agreement" ? item.id : undefined,
     customer_email: String(data.get("customer_email") || "").trim(),
     payment_date: data.get("payment_date") || null,
@@ -260,6 +359,8 @@ async function save(event, item) {
   };
   status.textContent = "Saving booking…";
   const existingId = item.shadowId || (item.kind === "manual" ? item.id : "");
+  form.dataset.saving = "true";
+  const submit=form.querySelector('[type="submit"]');submit.disabled=true;
   try {
     const result = existingId
       ? await supabase.from("booking_sales").update(payload).eq("id", existingId).select().single()
@@ -274,11 +375,11 @@ async function save(event, item) {
   } catch (error) {
     status.textContent = error.message || "Booking could not be saved. Please try again.";
     status.dataset.tone = "error";
-  }
+  } finally {delete form.dataset.saving;submit.disabled=false;}
 }
 
 async function remove(item) {
-  if (!window.confirm("Delete this manual booking?")) return;
+  if (readOnly() || !window.confirm("Delete this manual booking?")) return;
   const result = await supabase.from("booking_sales").delete().eq("id", item.id);
   if (result.error) return window.alert(result.error.message);
   ledgerRows = ledgerRows.filter((row) => row.id !== item.id);
@@ -299,6 +400,19 @@ sectionButton?.addEventListener("click", () => {
 });
 newButton?.addEventListener("click", async () => { if (!loaded) await load(); openEditor("new"); });
 window.addEventListener("prestige:agreement-signed", () => load(true));
-supabase?.auth.onAuthStateChange((event, session) => { if (!session) { loaded = false; agreements = []; ledgerRows = []; } });
+supabase?.auth.onAuthStateChange((event, session) => { if (!session) { ++sessionGeneration;loaded=false;agreements=[];ledgerRows=[];cars=[];profile=null;selectedVehicle="";searchTerm="";app?.replaceChildren(); } });
 
 registerSection("bookings", load);
+
+window.addEventListener("prestige:vehicle-bookings",async e=>{
+  await load();
+  if(!loaded)return;
+  selectedVehicle=cars.find(c=>String(c.id)===String(e.detail?.id))?.name || e.detail?.name || "";searchTerm="";render();
+  app.querySelector(".op-ledger")?.scrollIntoView({block:"start"});
+});
+window.addEventListener("prestige:open-booking",async e=>{
+  await load();
+  if(!loaded)return;
+  const item=records().find(r=>String(r.id)===String(e.detail?.id)&&(!e.detail?.kind||r.kind===e.detail.kind));
+  if(item)showBooking(item.key);
+});

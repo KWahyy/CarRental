@@ -1,3 +1,4 @@
+import { crmBase, openCrmPage } from "./crm-browser-helpers.mjs";
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 
@@ -41,13 +42,14 @@ try{
     if(body.action==='convert'){quote.status='converted';return route.fulfill({json:{quote,reservation:{agreement_number:'AUDIT-AGREEMENT'}}});}
     return route.fulfill({json:{quote,delivery:{delivered:true}}});
   });
-  await page.goto('http://127.0.0.1:8775/admin/');await page.locator('[data-admin-view]').waitFor();
-  await page.locator('[data-crm-section="requests"]').click();await page.locator('[data-open-quote-button]').first().waitFor();
-  const open=async id=>{await page.locator('[data-crm-section="requests"]').click();await page.locator(`[data-open-quote-button="${id}"]`).click();await page.locator(`[data-detail-action]`).first().waitFor();};
+  await page.goto(crmBase+'/admin/');await page.locator('[data-admin-view]').waitFor();
+  await openCrmPage(page,"requests");await page.locator('[data-open-quote-button]').first().waitFor();
+  const closeDetail=async()=>{const back=page.locator(".quote-detail-sheet[open] [data-back-quotes]");if(await back.isVisible())await back.click();};
+  const open=async id=>{await closeDetail();await page.locator(`.bl-quotes-table [data-open-quote-button="${id}"]`).click();await page.locator(".quote-detail-sheet[open] [data-detail-action]").first().waitFor();};
   await open('draft');
   await page.locator('[data-detail-action="edit"]').click();await page.locator('[data-quote-builder-dialog][open]').waitFor();await page.keyboard.press('Escape');
-  await page.locator('[data-detail-action="duplicate"]').click();await page.locator('[data-detail-action="delete"]').waitFor();
-  await page.locator('[data-detail-action="delete"]').click();
+  await page.locator('[data-detail-action="duplicate"]').click();await page.locator(".quote-detail-sheet .bl-document-title").getByText("AUDIT-COPY").waitFor();
+  await page.locator('[data-detail-action="delete"]').click();await page.locator(".quote-detail-sheet[open]").waitFor({state:"hidden"});
   await open('draft');await page.locator('[data-detail-action="send"]').click();
   await page.waitForTimeout(500);
   assert.match(await page.locator('[data-detail-action="send"]').textContent(),/Resend/);
@@ -57,7 +59,7 @@ try{
   await page.locator('[data-detail-action="send"]').click();
   await page.waitForTimeout(300);
   assert.equal(calls.filter(call=>call.body?.action==='send'&&call.body?.id==='draft').length,2);
-  await page.locator('[data-save-followup]').click();
+  await Promise.all([page.waitForResponse(r=>r.url().includes("/api/quotes?id=draft")&&r.request().method()==="GET"),page.locator('[data-save-followup]').click()]);
   await page.locator('[data-detail-action="send"]').waitFor();
   assert(calls.some(call=>call.body?.action==='follow_up'));
   await open('sent');await page.locator('[data-detail-action="accept"]').click();
@@ -81,7 +83,7 @@ try{
   await page.waitForTimeout(300);
   assert.equal(quotes.find(item=>item.id==='cancel').status,'cancelled');
   await open('accepted');await page.locator('[data-detail-action="convert"]').count().then(count=>assert.equal(count,0));
-  await page.locator('[data-crm-section="requests"]').click();
+  await closeDetail();
   await page.locator('[data-new-quote]').click();
   const builder=page.locator('[data-quote-builder-dialog]');
   await builder.locator('[name="customer_first_name"]').fill('New');

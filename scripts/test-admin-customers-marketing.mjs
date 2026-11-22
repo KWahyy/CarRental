@@ -1,3 +1,4 @@
+import { crmBase, openCrmPage } from "./crm-browser-helpers.mjs";
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 import {mkdirSync} from 'node:fs';
@@ -32,10 +33,10 @@ try {
     const errors=[];page.on('pageerror',error=>errors.push(error.message));
     await page.route('**/supabase-js@2/+esm',route=>route.fulfill({contentType:'text/javascript',body:mock}));
     await page.route('**/api/**',route=>route.fulfill({json:{cars:[],vehicles:[],partners:[],quotes:[],customers:[],employees:[],reservations:[],blocks:[],leads:[],activities:[],items:[],availability:[],settings:{},template:{title:'Preview',body:'Preview',important_terms:[]},data:[]}}));
-    await page.goto('http://127.0.0.1:8775/admin/');
+    await page.goto(crmBase+'/admin/');
     await page.locator('[data-admin-view]').waitFor();
-    if(width<760)await page.locator('[data-workspace-menu]').click();
-    await page.locator('[data-crm-section="customers"]').click();
+
+    await openCrmPage(page,"customers");
     await page.locator('[data-customer-marketing-form]').waitFor();
     assert.equal(await page.locator('.customer-marketing-overview strong').textContent(),'0 contacts opted in');
     assert.equal(await page.locator('[data-customer-key]').count(),2);
@@ -56,6 +57,7 @@ try {
     await page.locator('[name="marketing_source"]').fill('Preview website checkbox');
     await page.locator('[name="marketing_tags"]').fill('convertibles, weddings');
     await page.locator('[data-customer-marketing-form] button[type="submit"]').click();
+    await page.locator('.directory-totals summary').click();
     await page.locator('.customer-marketing-overview strong').getByText('1 contact opted in').waitFor();
     await page.locator('[data-customer-email-ready]').click();
     assert.equal(await page.locator('[data-customer-key]').count(),1);
@@ -74,6 +76,20 @@ try {
     await page.locator('[data-marketing-status]').selectOption('unknown');
     await page.locator('[data-customer-marketing-form] button[type="submit"]').click();
     assert.match(await page.locator('[data-customer-marketing-message]').textContent(),/Keep this contact opted out/);
+    await page.locator('[data-new-customer]').click();
+    const createForm=page.locator('[data-customer-create-dialog]');
+    await createForm.getByLabel('First name').fill('Alex');
+    await createForm.getByRole('button',{name:'Save customer'}).click();
+    await createForm.getByRole('status').getByText('Enter a first name and at least one contact method.').waitFor();
+    await createForm.getByLabel('Email').fill('alex@example.test');
+    await createForm.getByRole('button',{name:'Save customer'}).click();
+    await createForm.waitFor({state:'hidden'});
+    await page.locator('.customer-profile-hero h3').getByText('Alex',{exact:true}).waitFor();
+    await page.locator('[data-customer-create-quote]').click();
+    const quote=page.locator('dialog[open] [name="customer_first_name"]');
+    await quote.waitFor();
+    assert.equal(await quote.inputValue(),'Alex');
+    await page.keyboard.press('Escape');
     assert(!await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth));
     assert.deepEqual(errors,[]);
     console.log(`${width}: consent capture, eligibility, opt-out and layout passed`);

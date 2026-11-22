@@ -89,14 +89,14 @@ async function loadFleet(token, period, customStart, customEnd) {
         const end = row.rental_end_at || `${row.rental_end}T23:59:59`;
         return new Date(start) < new Date(range.end) && new Date(end) > new Date(range.start);
       });
-      const normalizedCar = { ...car, ownership_type: car.ownership_type || (partnerRecord ? "partner" : "prestige"), operational_status: car.operational_status || "available" };
+      const normalizedCar = { ...car, ownership_type: partnerRecord ? "partner" : car.ownership_type || null, operational_status: car.operational_status || "available" };
       return { ...normalizedCar, partner: partnerRecord, photos: photoMap.get(car.id) || [], agreements: carAgreements, blocks: blockMap.get(car.id) || [], expenses: expenseMap.get(car.id) || [], maintenance: maintenanceMap.get(car.id) || [], documents: documentMap.get(car.id) || [], metrics: deriveVehicleMetrics(normalizedCar, carAgreements, blockMap.get(car.id) || [], maintenanceMap.get(car.id) || [], documentMap.get(car.id) || [], expenseMap.get(car.id) || [], new Date(), periodAgreements) };
     }),
   };
 }
 
-async function cachedFleet(token, period, customStart, customEnd) {
-  const key = `${period}|${customStart}|${customEnd}`;
+async function cachedFleet(token, identity, period, customStart, customEnd) {
+  const key = `${identity}|${period}|${customStart}|${customEnd}`;
   const cached = fleetCache.get(key);
   if (cached && cached.expiresAt > Date.now()) return cached.value;
   const value = await loadFleet(token, period, customStart, customEnd);
@@ -110,7 +110,7 @@ export default async function handler(req, res) {
     const { user, profile, token } = await requireEmployee(req, undefined, { allowViewerRead: true });
     if (req.method === "GET") {
       if (req.query?.availability === "1") return json(res, 200, await vehicleAvailability(req.query.vehicle_id, req.query.start_at, req.query.end_at, token, { excludeAgreementId: req.query.exclude_agreement_id }));
-      const fleet = await cachedFleet(token, clean(req.query?.period, 30) || "month", clean(req.query?.start, 20), clean(req.query?.end, 20));
+      const fleet = await cachedFleet(token, `${user.id}|${profile.role}`, clean(req.query?.period, 30) || "month", clean(req.query?.start, 20), clean(req.query?.end, 20));
       const id = validUuid(req.query?.id); const vehicle = id ? fleet.vehicles.find((row) => row.id === id) : null;
       if (id && !vehicle) throw Object.assign(new Error("Vehicle not found."), { status: 404 });
       let activity = [], mileage = [];

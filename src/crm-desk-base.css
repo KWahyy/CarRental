@@ -1,0 +1,147 @@
+/* The private workspace has its own design system and no public-site cascade. */
+:root {
+  color-scheme: light;
+  --paper: #f6f5ef; --panel: #fefdf8; --ink: #21231e; --sub: #5a5d52;
+  --line: #d8d8cc; --dark: #1b1c1a; --accent: #9e7443; --focus: #526b8a;
+  --serif: Georgia, "Times New Roman", serif;
+  --ui: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --muted: var(--sub); --dim: var(--sub); --gold: #77623e; --bg: var(--paper);
+  --bg-soft: #edeee4; --panel-strong: #eeeee5; --text: var(--ink);
+}
+*, *::before, *::after {box-sizing: border-box}
+[hidden], [data-viewer-hidden] {display: none !important}
+html {scroll-padding-top: 86px}
+body {margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.45 var(--ui); -webkit-font-smoothing: antialiased}
+body:has(dialog[open]) {overflow: hidden}
+img {max-width: 100%; vertical-align: middle}
+svg {vertical-align: middle}
+h1,h2,h3,h4,p,figure,dl {margin: 0}
+h1,h2,h3,h4 {line-height: 1.19}
+a {color: inherit; text-underline-offset: .2em}
+button, input, select, textarea {font: inherit; color: inherit}
+button,a,summary {-webkit-tap-highlight-color: transparent; touch-action: manipulation}
+button {cursor: pointer; background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px}
+button:disabled, input:disabled, select:disabled, textarea:disabled {opacity: .63; cursor: default}
+:where(a,button,select,input,textarea,summary,[tabindex="0"]):focus-visible {outline: 3px solid var(--focus); outline-offset: 3px}
+:where(input:not([type=checkbox],[type=radio],[type=hidden]),select,textarea) {background: #fffefa; border: 1px solid #b8bbae; border-radius: 5px; min-height: 44px; min-width: 0; max-width: 100%; padding: 9px 11px}
+:where(input[type=checkbox],input[type=radio]) {width: 18px; height: 18px; accent-color: #464f3c}
+:where(input[type=file]) {width: 100%}
+textarea {resize: vertical}
+:where(form label) {display: grid; gap: 6px; min-width: 0; font-size: 14px; font-weight: 550}
+:where(form label) :is(input:not([type=checkbox],[type=radio]),select,textarea) {width: 100%; font-weight: 400}
+:where(fieldset) {min-width: 0; border: 1px solid var(--line); border-radius: 6px; margin: 0}
+:where(table) {border-collapse: collapse; font-size: 14px}
+:where(th,td) {text-align: start; padding: 10px; border-bottom: 1px solid var(--line); vertical-align: middle}
+:where(th) {color: var(--sub); font-size: 12px}
+.primary-button,.secondary-button,.ghost-button,.danger-button {
+  display: inline-flex; justify-content: center; align-items: center; gap: 7px;
+  min-height: 44px; padding: 9px 15px; border-radius: 6px; font: 600 14px/1.3 var(--ui); text-decoration: none;
+}
+.primary-button {color: #fff; background: #292e26; border: 1px solid #292e26}
+.secondary-button,.ghost-button {color: var(--ink); border: 1px solid #b9bdad; background: transparent}
+.danger-button {border: 1px solid #ccaca3; color: #743c32; background: #fbf2ed}
+@media (hover:hover) {
+  button:not(:disabled):hover {border-color: #7e8770}
+  .primary-button:not(:disabled):hover {background: #424a3a}
+  .secondary-button:hover,.ghost-button:hover {background: #e7e8dd}
+}
+.desk-actions {display: flex; align-items: center; gap: 8px; flex-wrap: wrap}
+.admin-status {color: var(--sub); font-size: 14px; overflow-wrap: anywhere}
+.admin-status:empty {display:none}
+[data-tone="error"],.crm-error {color: #873a2b}
+[data-tone="success"] {color: #38582d}
+.crm-loading-state,.crm-empty-state {padding: 20px 0; color: var(--sub)}
+.crm-viewer-notice {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.desk-skip {position: fixed; z-index: 10; top: 6px; left: 6px; background: var(--panel); padding: 8px 14px; clip-path: inset(100%)}
+.desk-skip:focus {clip-path: none}
+.desk-bar,.admin-login-header {background: var(--dark); color: #f6f5ec}
+.desk-bar {position: sticky; top: 0; z-index: 12}
+.desk-bar-inner,.admin-workspace,.admin-login-header,.admin-login-footer {
+  padding-inline: clamp(24px,4.8vw,82px);
+}
+.desk-bar-inner,.admin-workspace {max-width: 1536px; margin-inline: auto}
+.desk-bar-inner,.admin-login-header {display: flex; align-items: center; gap: clamp(18px,2.5vw,42px); min-height: 67px}
+.desk-brand,.admin-brand {display: inline-flex; align-items: center; flex-shrink: 0; min-height: 44px}
+.desk-brand img,.admin-brand img {width: 155px; height: auto}
+.desk-nav {display: flex; align-self: stretch; gap: clamp(10px,1.8vw,28px)}
+.desk-nav :is(a,button) {display: inline-flex; align-items: center; justify-content: center; gap: 4px; position: relative; min-height: 44px; color: #c7c9bd; font: 500 14px var(--ui); text-decoration: none; border: 0; border-radius: 0; padding: 0 3px}
+.desk-nav :is(a,button):hover,.desk-nav [aria-current] {color:#fff}
+.desk-nav [aria-current]::after {position: absolute; content: ""; bottom: 0; inset-inline: 2px; height: 3px; background: #ddc99c}
+.desk-nav [data-lead-count] {font-size: 10px; border-radius: 4px; background: #46493d; color: #fcf9e8; padding: 2px 4px}
+.desk-account-label {margin-left: auto; font-size: 12px; color: #d4d6c9; white-space: nowrap}
+.desk-launch {display: inline-flex; flex: none; align-items: center; gap: 7px; min-height: 44px; background: #2b2d28; border-color: #55584e; color: #f8f7ee; font: 600 14px var(--ui); padding: 0 14px}
+.desk-launch span {color: #dfcea8; font-size: 11px}
+.admin-workspace {min-width: 0; padding-bottom: 80px}
+.admin-section,.crm-page-container {min-width: 0}
+.admin-section-head {display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; padding: clamp(28px,3.7vw,58px) 0 clamp(24px,2.6vw,38px)}
+.admin-section-head h2,.admin-login-panel h1 {font: 400 clamp(38px,4.25vw,67px)/1.04 var(--serif); letter-spacing: -.055em}
+.admin-section-head .eyebrow {display:none}
+.admin-section-head p:not(.eyebrow) {color:var(--sub); margin-top:8px; max-width:60ch; font-size:15px}
+.admin-config-warning {padding: 12px; text-align: center; background: #f1e2c4}
+dialog {border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); width: min(680px,calc(100% - 36px)); max-width: 100%; max-height: 90dvh; overflow: auto; overscroll-behavior: contain; padding: 20px 24px; box-shadow: 0 16px 64px #1a201b29}
+dialog::backdrop {background: rgb(25 28 23 / 54%)}
+.desk-directory-head,.desk-subhead {display:flex; align-items:center; justify-content:space-between; gap:14px}
+.desk-directory-head h2,.desk-subhead h3 {font: normal 29px/1.1 var(--serif); letter-spacing:-.04em}
+.desk-close {font: normal 24px/1 var(--ui); width:44px; height:44px; padding:0; flex-shrink:0}
+#desk-directory {width:min(580px,calc(100% - 32px))}
+.desk-directory-head {margin-bottom:20px}
+.desk-directory-grid {display:grid; grid-template-columns:1fr 1fr; gap:18px 24px}
+.desk-directory-grid section {border-top:1px solid var(--line); padding-top:12px}
+.desk-directory-grid h3 {font:600 12px var(--ui); color:var(--sub); margin-bottom:6px}
+.desk-directory-grid button {display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:44px; text-align:left; width:100%; border:0; padding:6px 8px}
+.desk-directory-grid button::after {content:"↗"; font-size:14px; color:var(--sub)}
+.desk-directory-grid button:hover,.desk-directory-grid [aria-current] {background:#e9eadd}
+#workspace-content:focus {outline:none}
+.admin-login {min-height:100svh; display:flex; flex-direction:column}
+.admin-login-header,.admin-login-footer {justify-content:space-between}
+.admin-login-header>a:last-child,.admin-login-footer a {display:inline-flex; align-items:center; min-height:44px; text-decoration:none; font-size:14px; gap:6px}
+.admin-login-layout {display:grid; grid-template-columns:1.18fr 1fr; align-items:stretch; width:min(1060px,calc(100% - 64px)); margin:auto; padding-block:clamp(28px,6vh,72px)}
+.desk-access-photo {display:grid; grid-template-rows:minmax(220px,1fr) auto; border-radius:7px 0 0 7px; overflow:hidden; background:#272b24; color:#faf9f4}
+.desk-access-photo img {width:100%; height:100%; object-fit:cover; object-position:50% 52%}
+.desk-access-photo figcaption {padding:20px 24px}
+.desk-access-photo figcaption span {display:block; font-size:12px; color:#d1d4c8}
+.desk-access-photo figcaption strong {display:block; margin-top:6px; font:normal clamp(27px,3.4vw,45px)/1.1 var(--serif); letter-spacing:-.045em}
+.admin-login-panel {display:grid; align-content:center; padding:clamp(24px,4vw,54px); background:#eeeee5; border-radius:0 7px 7px 0}
+.admin-login-panel h1 {font-size:clamp(36px,4vw,56px)}
+.admin-login-panel [data-login-description],.admin-login-panel [data-login-status] {font-size:14px; color:var(--sub); margin-top:8px}
+.admin-login-panel .admin-form {display:grid; gap:14px; margin-top:22px}
+.admin-password-field {display:flex; position:relative}
+.admin-password-field input {padding-inline-end:68px}
+.admin-password-field button {position:absolute; height:100%; top:0; right:0; border:0; background:none; font-size:13px}
+.admin-forgot,.admin-auth-back {font-size:14px; width:fit-content; padding:0; min-height:36px; color:var(--sub); border:0; text-decoration:underline;text-underline-offset:3px}
+.admin-forgot {justify-self:end}
+.admin-access-note,.admin-password-hint,.admin-caps-note,.admin-login-footer {font-size:12px;color:var(--sub)}
+.admin-access-note {border-top:1px solid var(--line);margin-top:22px;padding-top:12px}
+.admin-login-footer {display:flex;align-items:center;min-height:56px}
+@media (prefers-reduced-motion:no-preference) {
+  button,a {transition: background-color .13s ease,border-color .13s ease}
+  dialog[open] {animation:desk-present .16s ease-out}
+  @keyframes desk-present {from {opacity:0; transform:translateY(5px)} to {opacity:1;transform:translateY(0)}}
+}
+@media(max-width:820px) {
+  .admin-workspace,.desk-bar-inner,.admin-login-header,.admin-login-footer {padding-inline:22px}
+  .desk-bar-inner {gap:14px}.desk-brand img {width:132px}.desk-nav {gap:12px}
+}
+@media(max-width:680px) {
+  html {scroll-padding-top:68px}
+  .desk-bar-inner,.admin-login-header {min-height:55px;gap:10px}
+  .admin-workspace,.desk-bar-inner,.admin-login-header,.admin-login-footer {padding-inline:16px}
+  .desk-brand img,.admin-brand img {width:118px}.desk-account-label {font-size:11px}
+  .desk-launch {min-height:44px;background:transparent;border:0;padding-inline:5px;font-size:13px}
+  .desk-nav {position:fixed;bottom:0;inset-inline:0;background:var(--dark);border-top:1px solid #41443b;display:grid;grid-auto-columns:1fr;grid-auto-flow:column;gap:0;padding:0 5px env(safe-area-inset-bottom)}
+  .desk-nav :is(button,a) {min-height:52px;font-size:13px;padding:0;gap:2px}
+  .desk-nav [aria-current]::after {top:0;bottom:auto;left:25%;right:25%;height:2px}
+  .admin-workspace {padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+  .admin-section-head {align-items:flex-start;flex-wrap:wrap;gap:14px;padding:24px 0 22px}
+  .admin-section-head p:not(.eyebrow) {font-size:14px}
+  dialog,#desk-directory {width:100%;max-width:100%;max-height:90dvh;margin:auto 0 0;border-radius:12px 12px 0 0;padding:18px 18px max(22px,env(safe-area-inset-bottom))}
+  .desk-directory-grid {gap:15px}
+  .admin-login-layout {width:min(430px,calc(100% - 32px));grid-template-columns:1fr;padding-block:20px}
+  .desk-access-photo {grid-template-rows:clamp(110px,24vh,185px) auto;border-radius:7px 7px 0 0}
+  .desk-access-photo figcaption {padding:10px 18px}.desk-access-photo figcaption span {font-size:11px}
+  .desk-access-photo figcaption strong {font-size:24px;margin-top:3px}
+  .admin-login-panel {padding:22px 18px;border-radius:0 0 7px 7px}
+}
+@media(max-width:370px) {.desk-bar-inner {gap:4px;padding-inline:10px}.desk-account-label {font-size:10px}.desk-brand img {width:104px}}
+@media(prefers-reduced-motion:reduce) {*,*::before,*::after {animation-duration:0s!important;transition-duration:0s!important;scroll-behavior:auto!important}}
+@media print {.desk-bar,#desk-directory,.desk-skip,.admin-login-header,.admin-login-footer {display:none!important}.admin-workspace{max-width:none;padding:0}}
