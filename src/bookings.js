@@ -163,9 +163,27 @@ function blankRecord() {
   return { key: "new", kind: "manual", customer_name: "", customer_email: "", customer_phone: "", vehicle: "", start_date: "", end_date: "", booked_on: today(), total_amount: 0, amount_paid: 0, partner_cost: 0, payment_status: "pending", notes: "", finance: { payment_date: today(), payment_method: "stripe", cost_date: today(), processing_fee: 0, delivery_cost: 0, detailing_cost: 0, other_cost: 0 }, cancelled: false };
 }
 
+function openBookingDetails(item) {
+  const dialog = app.querySelector("[data-booking-dialog]");
+  const editor = dialog.querySelector("[data-booking-editor]");
+  const fields = item ? [
+    ["Vehicle", item.vehicle], ["Pickup", dateLabel(item.start_date)], ["Return", dateLabel(item.end_date)],
+    ["Contact", item.customer_phone || item.customer_email || parseFinance(item.notes).customer_email],
+    ["Rental total", money(item.total_amount)], ["Collected", money(item.amount_paid)],
+  ] : [];
+  editor.innerHTML = `<header><div><p class="eyebrow">Booking details</p><h3>${escapeHtml(item ? item.customer_name || "Booking" : "Booking unavailable")}</h3></div><button type="button" data-close-booking aria-label="Close">×</button></header>
+    ${item ? `<dl class="bp-read-record">${fields.map(([name,value]) => `<div><dt>${name}</dt><dd>${escapeHtml(value || "—")}</dd></div>`).join("")}</dl>` : '<p role="status">This booking could not be loaded.</p>'}`;
+  editor.querySelector("[data-close-booking]").addEventListener("click", () => dialog.close());
+  dialog.showModal();
+}
+
 function openEditor(key = "new") {
   const item = key === "new" ? blankRecord() : records().find((row) => row.key === key);
   if (!item) return;
+  if (profile?.role === "viewer") {
+    if (key !== "new") openBookingDetails(item);
+    return;
+  }
   selectedKey = key;
   const dialog = app.querySelector("[data-booking-dialog]");
   const editor = app.querySelector("[data-booking-editor]");
@@ -298,6 +316,22 @@ sectionButton?.addEventListener("click", () => {
   load();
 });
 newButton?.addEventListener("click", async () => { if (!loaded) await load(); openEditor("new"); });
+window.addEventListener("prestige:open-booking", async event => {
+  const id = event.detail?.id;
+  if (!id) return;
+  if (!loaded) await load();
+  const dialog = app.querySelector("[data-booking-dialog]");
+  if (!loaded || !dialog) return;
+  let booking = ledgerRows.find(row => String(row.id) === String(id));
+  if (!booking) {
+    // A future handoff can belong to a booking older than the ledger's first 500 rows.
+    const { data } = await supabase.from("booking_sales")
+      .select("id,customer_name,customer_phone,vehicle,start_date,end_date,total_amount,amount_paid,notes")
+      .eq("id", id).maybeSingle();
+    booking = data;
+  }
+  if (dialog.isConnected && !app.closest("[data-section-panel]").hidden && !app.closest("[data-admin-view]").hidden) openBookingDetails(booking);
+});
 window.addEventListener("prestige:agreement-signed", () => load(true));
 supabase?.auth.onAuthStateChange((event, session) => { if (!session) { loaded = false; agreements = []; ledgerRows = []; } });
 

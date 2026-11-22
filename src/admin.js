@@ -1,5 +1,5 @@
 import { linkPaidBooking } from "./request-match.js";
-import { installViewerGuard } from "./crm-viewer.js";
+import { installViewerGuard } from "./crm-viewer.js?v=dispatch-1";
 import { prepareWorkspace } from "./crm-navigation.js";
 import { initAdminLogin } from "./admin-login.js";
 import { brandFor } from './vehicle-brands.js';
@@ -48,7 +48,6 @@ const carCountDisplays = [...document.querySelectorAll("[data-car-count-display]
 const overviewStats = document.querySelector("[data-overview-stats]");
 const overviewRequests = document.querySelector("[data-overview-requests]");
 const overviewCalendar = document.querySelector("[data-overview-calendar]");
-const overviewFleetCheck = document.querySelector("[data-admin-fleet-check]");
 const overviewFleetReadiness = document.querySelector("[data-fleet-readiness]");
 const overviewFleetHighlights = document.querySelector("[data-fleet-highlights]");
 const overviewFleetInsights = document.querySelector("[data-fleet-insights]");
@@ -326,6 +325,7 @@ function switchSection(section, activeButton = null) {
     panel.hidden = !active;
     panel.classList.toggle("active", active);
   });
+  window.dispatchEvent(new CustomEvent("prestige:section-changed", { detail: selectedSection }));
   try {
     localStorage.setItem(ACTIVE_SECTION_KEY, selectedSection);
   } catch {
@@ -597,12 +597,17 @@ async function showAdmin(isAdmin) {
       setStatus(loginStatus, "Dashboard access has not been enabled for this account.", "error");
       isAdmin = false;
     }
+    document.querySelector('[data-workspace-user]').textContent = isAdmin ? session.user.email || "Team member" : "";
+    document.querySelector('[data-workspace-role]').textContent = isAdmin ? profile.role : "";
     setViewerRole(isAdmin ? profile.role : null);
   } else setViewerRole(null);
   prepareWorkspace(isAdmin);
   loginView.hidden = isAdmin;
   adminView.hidden = !isAdmin;
-  if (!isAdmin) return;
+  if (!isAdmin) {
+    for (const dialog of document.querySelectorAll(".dispatch-handoff[open],.dispatch-sheet[open]")) dialog.close();
+    return;
+  }
   window.requestAnimationFrame(() => {
     let savedSection = "overview";
     try {
@@ -1095,15 +1100,6 @@ function renderOverviewDetails() {
 
   renderTrafficInsights();
   renderOperationsDashboard();
-
-  if (overviewFleetCheck) {
-    const parts = [
-      `${activeCars.length} active ${activeCars.length === 1 ? "vehicle" : "vehicles"}`,
-      `${openRequests.length} open ${openRequests.length === 1 ? "quote" : "quotes"}`,
-      `${photoGapCars.length} photo ${photoGapCars.length === 1 ? "gap" : "gaps"}`,
-    ];
-    overviewFleetCheck.textContent = parts.join(" · ");
-  }
 
   if (overviewFleetReadiness) {
     const grouped = activeCars.reduce((acc, car) => {
@@ -2387,6 +2383,7 @@ async function updateQuoteRecord(id, databasePatch, localPatch, successMessage =
   writeJson(REQUESTS_KEY, requests);
   renderCrm();
   setStatus(quotePageStatus, successMessage, "success");
+  window.dispatchEvent(new CustomEvent("prestige:rental-record-updated"));
   return true;
 }
 

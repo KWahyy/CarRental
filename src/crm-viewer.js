@@ -1,8 +1,11 @@
 // Presentation guard only; Supabase RLS and API authorization enforce access.
 // Default-deny action controls for viewers, including controls rendered later.
 export const VIEWER_READ_CONTROLS = [
+  'workspace-tab','workspace-close',
+  'desk-view','desk-tab','desk-search','desk-status','desk-page','desk-calendar-nav','desk-calendar-day','desk-calendar-handoff',
+  'attention-filter','dispatch-scope','dispatch-handoff','dispatch-close','dispatch-agreement','dispatch-refresh',
   'crm-section','workspace-menu','sign-out','jump-section','action-queue',
-  'dashboard-open','dashboard-section','dashboard-toggle','dashboard-range','dashboard-start','dashboard-end',
+  'dashboard-chart-period','dashboard-open','dashboard-section','dashboard-toggle','dashboard-range','dashboard-start','dashboard-end',
   'owned-refresh','owned-vehicle','open-vehicle','back-fleet','vehicle-tab',
   'fleet-ownership','fleet-view','fleet-filter','fleet-period','fleet-search','fleet-calendar','calendar-range','retry-fleet',
   'open-reservation','open-document','select-request','request-search','request-filter','request-sort',

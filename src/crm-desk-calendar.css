@@ -1,0 +1,59 @@
+body.admin-page .admin-workspace .desk-calendar {
+  --calendar-ground:#242623; --calendar-text:#fbf9f2; --calendar-muted:#c0c2b9;
+  --calendar-rule:#464943; --calendar-gold:#e7d6ad;
+  color-scheme:dark; min-width:0; box-sizing:border-box; background:var(--calendar-ground);
+  color:var(--calendar-text); border:0; border-radius:12px;
+  padding:16px clamp(14px,1.6vw,23px) 18px; font-family:"Helvetica Neue",Arial,sans-serif;
+}
+body.admin-page .admin-workspace .desk-calendar :is(span,small,strong,b) {color:inherit!important}
+body.admin-page .admin-workspace .desk-calendar button {
+  box-sizing:border-box; font-family:inherit; text-transform:none; letter-spacing:normal;
+  margin:0; padding:0; min-height:0; width:auto; border:0; box-shadow:none; background:transparent;
+  color:var(--calendar-text); cursor:pointer; transform:none;
+}
+body.admin-page .admin-workspace .desk-calendar button:disabled {cursor:default; opacity:.35}
+body.admin-page .admin-workspace .desk-calendar button:focus-visible {outline:2px solid var(--calendar-gold)!important;outline-offset:0!important}
+.desk-calendar-head,.desk-calendar-datehead,.desk-calendar-arrows {display:flex;align-items:center;justify-content:space-between;gap:8px}
+body.admin-page .admin-workspace .desk-calendar-head {color:var(--calendar-muted);font:500 12px/1.4 "Helvetica Neue",Arial,sans-serif}
+body.admin-page .admin-workspace .desk-calendar button.desk-calendar-today {
+  padding:3px 9px; min-height:28px; border:1px solid #5c6058; border-radius:5px; font:500 12px/1.3 "Helvetica Neue",Arial,sans-serif;
+}
+.desk-calendar-datehead {margin:18px 0 12px}
+body.admin-page .admin-workspace .desk-calendar .desk-calendar-datehead h3 {
+  color:var(--calendar-text)!important; margin:0!important; font:400 clamp(23px,2vw,30px)/1.1 Georgia,serif!important; letter-spacing:-.045em!important;
+}
+.desk-calendar-arrows {gap:1px}
+.desk-calendar-arrows svg,.desk-calendar-agenda button svg {width:16px;height:16px;flex:none}
+body.admin-page .admin-workspace .desk-calendar-arrows button {display:grid;place-items:center;width:30px;height:32px;border-radius:5px}
+.desk-calendar-week {display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px}
+body.admin-page .admin-workspace .desk-calendar .desk-calendar-date {
+  display:grid; grid-template-rows:auto auto 4px; justify-content:stretch; justify-items:center; align-content:center;
+  gap:4px; min-width:0; width:100%; min-height:62px; border-radius:6px; font-variant-numeric:tabular-nums;
+}
+body.admin-page .admin-workspace .desk-calendar .desk-calendar-date span {font-size:11px;line-height:1.15;font-weight:500}
+body.admin-page .admin-workspace .desk-calendar .desk-calendar-date b {font-size:16px;line-height:1.15;font-weight:600}
+body.admin-page .admin-workspace .desk-calendar .desk-calendar-date[aria-pressed="true"] {background:var(--calendar-gold);color:#282923}
+.desk-calendar-date i {height:4px;width:4px;border-radius:100%;background:transparent}
+.desk-calendar-date i[data-occupied="true"] {background:currentColor}
+.desk-calendar-agenda {margin-top:16px;border-top:1px solid var(--calendar-rule);padding-top:14px}
+body.admin-page .admin-workspace .desk-calendar .desk-calendar-agenda h4 {color:var(--calendar-text)!important;font:600 13px/1.4 "Helvetica Neue",Arial,sans-serif!important;letter-spacing:normal!important;text-transform:none!important;margin:0!important}
+body.admin-page .admin-workspace .desk-calendar .desk-calendar-quiet {color:var(--calendar-muted)!important;font:400 13px/1.45 "Helvetica Neue",Arial,sans-serif;margin:6px 0 0!important}
+.desk-calendar-agenda ul {padding:0;margin:4px 0 0;list-style:none;max-height:240px;overflow:auto}
+.desk-calendar-agenda li+li {border-top:1px solid var(--calendar-rule)}
+body.admin-page .admin-workspace .desk-calendar-agenda button {display:flex;gap:12px;align-items:center;justify-content:space-between;width:100%;text-align:left;padding:9px 3px;min-height:46px;border-radius:4px}
+.desk-calendar-info {min-width:0;display:grid;gap:2px}
+.desk-calendar-info strong {font:550 14px/1.3 "Helvetica Neue",Arial,sans-serif;overflow-wrap:anywhere}
+body.admin-page .admin-workspace .desk-calendar .desk-calendar-info small {font:400 12px/1.45 "Helvetica Neue",Arial,sans-serif;color:var(--calendar-muted)!important}
+@media(hover:hover) {
+  body.admin-page .admin-workspace .desk-calendar button:enabled:not([aria-pressed="true"]):hover {background:#3a3d37}
+}
+@media(pointer:coarse) {
+  body.admin-page .admin-workspace .desk-calendar :is(.desk-calendar-today,.desk-calendar-arrows button) {min-height:44px;min-width:44px}
+}
+@media(prefers-reduced-motion:no-preference) {
+  .desk-calendar-agenda {animation:desk-agenda-in .16s ease-out}
+  @keyframes desk-agenda-in {from {opacity:.6;transform:translateY(2px)}}
+}
+@media(prefers-reduced-motion:reduce) {
+  body.admin-page .admin-workspace .desk-calendar button {transition:none!important}
+}

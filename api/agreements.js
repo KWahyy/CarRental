@@ -95,6 +95,17 @@ export default async function handler(req, res) {
       } else if (action === "sign") {
         if (!clean(body.signature_name, 180) || !String(body.signature_data || "").startsWith("data:image/png;base64,")) throw Object.assign(new Error("Signature name and drawn signature are required."), { status: 400 });
         patch = { status: "signed", signature_name: clean(body.signature_name, 180), signature_data: clean(body.signature_data, 300000), signed_at: new Date().toISOString() }; detail = "Customer signature captured.";
+      } else if (action === "pickup_ready") {
+        if (current.status !== "signed" || !current.signed_at) {
+          throw Object.assign(new Error("A signed agreement awaiting pickup is required."), { status: 409 });
+        }
+        // A single event per rental makes double clicks and retried writes idempotent.
+        const eventId = crypto.createHash("sha256").update("pickup_ready/" + id.toLowerCase()).digest("hex").slice(0, 32);
+        await db("rental_agreement_events?on_conflict=id", {
+          method: "POST", headers: { Prefer: "resolution=ignore-duplicates,return=minimal" },
+          body: JSON.stringify({ id: eventId, agreement_id: id, event_type: "pickup_ready", detail: "Vehicle prepared for pickup.", created_by: user.id }),
+        }, token);
+        return json(res, 200, { ready: true });
       } else if (action === "pickup") {
         if (!current.signed_at) throw Object.assign(new Error("Capture the customer signature before pickup."), { status: 409 });
         if (body.pickup_mileage === "" || body.pickup_mileage == null || !clean(body.pickup_fuel, 40)) throw Object.assign(new Error("Pickup mileage and fuel level are required."), { status: 400 });

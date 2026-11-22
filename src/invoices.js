@@ -128,6 +128,9 @@ async function invoiceApi(path = "", options = {}) {
     }
     throw new Error(message);
   }
+  if (options.method && options.method !== "GET" && !path.startsWith("agreement-settings")) {
+    window.dispatchEvent(new CustomEvent("prestige:rental-record-updated"));
+  }
   return data;
 }
 

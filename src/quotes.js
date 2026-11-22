@@ -18,6 +18,7 @@ const COST_TYPES = ["Delivery cost", "Detail cost", "Sales commission", "Process
 let model = { quotes:[], customers:[], leads:[], cars:[], partners:[], employees:[], reservations:[], blocks:[], role:"staff" };
 let loaded = false;
 let selected = null;
+let detailVersion = 0;
 let detailEvents = [];
 let detailRevisions = [];
 let filter = { scope:"all", search:"", status:"all", vehicle:"all", employee:"all", source:"all", created:"", rental:"" };
@@ -43,7 +44,10 @@ function toast(message, tone="success") {
 }
 
 async function token(){const {data}=await supabase.auth.getSession();if(!data.session?.access_token)throw new Error("Sign in again to use quotes.");return data.session.access_token;}
-async function api(path="quotes",options={}){const response=await fetch(`/api/${path}`,{...options,headers:{Authorization:`Bearer ${await token()}`,...(options.body?{"Content-Type":"application/json"}:{}),...(options.headers||{})}});const data=await response.json().catch(()=>({}));if(!response.ok){const message=data.error||"Quote request failed.";if(/quotes|crm_customers|quote_events/i.test(message)&&/schema|table|not found|cache/i.test(message))throw new Error("The new quote database is not installed yet. Run supabase/quotes-v2.sql in Supabase SQL Editor, then refresh the CRM.");throw new Error(message);}return data;}
+async function api(path="quotes",options={}){const response=await fetch(`/api/${path}`,{...options,headers:{Authorization:`Bearer ${await token()}`,...(options.body?{"Content-Type":"application/json"}:{}),...(options.headers||{})}});const data=await response.json().catch(()=>({}));if(!response.ok){const message=data.error||"Quote request failed.";if(/quotes|crm_customers|quote_events/i.test(message)&&/schema|table|not found|cache/i.test(message))throw new Error("The new quote database is not installed yet. Run supabase/quotes-v2.sql in Supabase SQL Editor, then refresh the CRM.");throw new Error(message);}if (options.method && options.method !== "GET" && !path.startsWith("agreement-settings")) {
+    window.dispatchEvent(new CustomEvent("prestige:rental-record-updated"));
+  }
+  return data;}
 
 function statusBadge(status){return `<span class="quote-v2-status ${escapeHtml(status)}">${escapeHtml(STATUS_LABELS[status]||status)}</span>`;}
 function quoteScope(quote){if(filter.scope==="open")return OPEN.includes(quote.status);if(filter.scope==="accepted")return ACCEPTED.includes(quote.status);if(filter.scope==="converted")return quote.status==="converted";if(filter.scope==="lost")return LOST.includes(quote.status);return true;}
@@ -52,6 +56,7 @@ function visibleQuotes(){const search=filter.search.toLowerCase();return model.q
 function renderKpis(){const open=model.quotes.filter((q)=>OPEN.includes(q.status));const sent=model.quotes.filter((q)=>q.sent_at);const converted=model.quotes.filter((q)=>q.status==="converted");const soon=Date.now()+48*3600000;return `<div class="quote-v2-kpis"><article><span>Open Quotes</span><strong>${open.length}</strong></article><article><span>Quote Value</span><strong>${shortMoney(open.reduce((s,q)=>s+Number(q.rental_total||0),0))}</strong></article><article><span>Accepted</span><strong>${model.quotes.filter((q)=>ACCEPTED.includes(q.status)).length}</strong></article><article><span>Conversion Rate</span><strong>${sent.length?Math.round(converted.length/sent.length*100):0}%</strong></article><article><span>Expiring Soon</span><strong>${open.filter((q)=>q.expires_at&&new Date(q.expires_at).getTime()<=soon&&new Date(q.expires_at)>new Date()).length}</strong></article></div>`;}
 
 function renderList(){
+  detailVersion++;
   const searchFocused=document.activeElement?.matches("[data-quote-search]");
   const searchPosition=searchFocused?document.activeElement.selectionStart:null;
   selected=null; const quotes=visibleQuotes(); const sources=[...new Set(model.quotes.map((q)=>q.lead_source).filter(Boolean))].sort();
@@ -70,7 +75,7 @@ function timeline(events){const important=["created","sent","resent","viewed","a
 
 function contextualActions(q){const actions=[`<button class="secondary-button compact" data-detail-action="pdf">Download PDF</button>`];if(!["converted","cancelled","expired"].includes(q.status))actions.push(`<button class="secondary-button compact" data-detail-action="edit">Edit Quote</button>`);if(q.status==="draft")actions.push(`<button class="primary-button compact" data-detail-action="send">Email PDF Quote</button>`);if(["sent","viewed","follow_up","accepted","deposit_pending"].includes(q.status))actions.push(`<button class="secondary-button compact" data-detail-action="send">Resend PDF</button>`);actions.push(`<button class="secondary-button compact" data-detail-action="copy">Copy Link</button>`);actions.push(`<button class="secondary-button compact" data-detail-action="duplicate">Duplicate</button>`);if(["sent","viewed","follow_up"].includes(q.status))actions.push(`<button class="secondary-button compact" data-detail-action="accept">Mark Accepted</button><button class="secondary-button compact" data-detail-action="decline">Mark Declined</button>`);if(q.accepted_at&&Number(q.amount_required)>Number(q.deposit_paid_amount))actions.push(`<button class="secondary-button compact" data-detail-action="payment">Record Reservation Payment</button>`);if(q.accepted_at&&Number(q.amount_required)<=Number(q.deposit_paid_amount)&&q.status!=="converted")actions.push(`<button class="primary-button compact" data-detail-action="convert">Convert to Reservation</button>`);if(q.status==="draft")actions.push(`<button class="danger-button compact" data-detail-action="delete">Delete Draft</button>`);else if(!["converted","cancelled"].includes(q.status))actions.push(`<button class="danger-button compact" data-detail-action="cancel">Cancel Quote</button>`);return actions.join("");}
 
-async function openDetail(id){const cached=model.quotes.find(quote=>String(quote.id)===String(id));if(cached){selected=cached;detailEvents=[];detailRevisions=[];renderDetail();}else if(!loaded)root.innerHTML=`<div class="crm-loading-state quotes-loading">Loading quote…</div>`;try{const data=await api(`quotes?id=${encodeURIComponent(id)}`);if(selected&&String(selected.id)!==String(id))return;selected=data.quote;detailEvents=data.events||[];detailRevisions=data.revisions||[];renderDetail();}catch(error){if(cached)return;root.innerHTML=`<div class="quote-v2-error"><strong>Quote could not be opened</strong><p>${escapeHtml(error.message)}</p><button class="secondary-button" data-back-quotes>Back to quotes</button></div>`;}}
+async function openDetail(id){const version=++detailVersion;const cached=model.quotes.find(quote=>String(quote.id)===String(id));if(cached){selected=cached;detailEvents=[];detailRevisions=[];renderDetail();}else if(!loaded)root.innerHTML=`<div class="crm-loading-state quotes-loading">Loading quote…</div>`;try{const data=await api(`quotes?id=${encodeURIComponent(id)}`);if(version!==detailVersion)return;selected=data.quote;detailEvents=data.events||[];detailRevisions=data.revisions||[];renderDetail();}catch(error){if(cached||version!==detailVersion)return;root.innerHTML=`<div class="quote-v2-error"><strong>Quote could not be opened</strong><p>${escapeHtml(error.message)}</p><button class="secondary-button" data-back-quotes>Back to quotes</button></div>`;}}
 
 function renderDetail(){const q=selected;const lineItems=(q.line_items||[]).map((i)=>`<p><span>${escapeHtml(i.description)} <small>${i.quantity} × ${money(i.rate)}</small></span><strong>${money(i.amount)}</strong></p>`).join("");const costs=(q.internal_costs||[]).map((i)=>`<p><span>${escapeHtml(i.description)}</span><strong>-${money(i.amount)}</strong></p>`).join("");root.innerHTML=`<div class="quote-detail-nav"><button type="button" class="quote-back-button" data-back-quotes>← All quotes</button><div>${contextualActions(q)}</div></div>
     <section class="quote-v2-detail-head"><div><p class="eyebrow">${escapeHtml(q.quote_number)}</p><h3>${escapeHtml(fullName(q))}</h3><span>${escapeHtml(q.vehicle_name)} · ${dateLabel(q.start_at,true)} – ${dateLabel(q.end_at,true)}</span></div><div><strong>${money(q.rental_total)}</strong>${statusBadge(q.status)}</div></section>
@@ -132,6 +137,27 @@ function bindDialogEvents(){const dialog=document.querySelector("[data-quote-bui
 
 async function detailAction(action,extra={}){if(!selected)return;const quoteId=selected.id;try{if(action==="pdf")return await downloadQuotePdf(selected);if(action==="edit")return openBuilder(selected);if(action==="copy"){await navigator.clipboard.writeText(selected.public_url);toast("Secure quote link copied.");return;}if(action==="delete"){if(!confirm(`Delete draft ${selected.quote_number}?`))return;await api(`quotes?id=${encodeURIComponent(selected.id)}`,{method:"DELETE"});toast("Draft quote deleted.");return load(true);}if(action==="duplicate"){const r=await api("quotes",{method:"POST",body:JSON.stringify({action:"duplicate",id:selected.id})});await load(true);toast("Quote duplicated.");return openDetail(r.quote.id);}if(action==="send"){const r=await api("quotes",{method:"POST",body:JSON.stringify({action:"send",id:selected.id})});toast(r.delivery?.delivered?"Quote emailed with PDF attachment.":"Secure link is ready to send manually.");await load(true);return openDetail(quoteId);}if(action==="accept")await api("quotes",{method:"POST",body:JSON.stringify({action:"status",status:"accepted",id:selected.id})});else if(action==="decline")await api("quotes",{method:"POST",body:JSON.stringify({action:"status",status:"declined",id:selected.id,...extra})});else if(action==="cancel"){if(!confirm(`Cancel ${selected.quote_number}?`))return;await api("quotes",{method:"POST",body:JSON.stringify({action:"status",status:"cancelled",id:selected.id})});}else if(action==="payment")await api("quotes",{method:"POST",body:JSON.stringify({action:"record_payment",id:selected.id,...extra})});else if(action==="convert"){if(!confirm(`Convert ${selected.quote_number} to the existing invoice and reservation workflow?`))return;const result=await api("quotes",{method:"POST",body:JSON.stringify({action:"convert",id:selected.id})});toast(result.existing?"This quote was already converted.":`Reservation ${result.reservation.agreement_number} created.`);}await load(true);await openDetail(quoteId);}catch(error){toast(error.message,"error");}}
 
+export async function prepareQuoteForInquiry(record, stillOpen) {
+  if (!loaded) await load();
+  if (!stillOpen()) return;
+  if (!loaded) throw new Error("Quote records could not be loaded. Try again.");
+  if (model.role === "viewer") throw new Error("This account has read-only access.");
+  const saved = draftData(QUOTE_DRAFT_KEY);
+  const sameLead = saved?.draft?.lead_id === record.id;
+  if (saved && !sameLead && (Object.keys(saved.draft || {}).length || saved.lineItems?.length || saved.costs?.length)) {
+    throw new Error("A different quote is in progress. Finish that draft in Quotes, then return to this inquiry.");
+  }
+
+  // An older inquiry may fall outside the quote builder's recent-lead window.
+  if (!model.leads.some(lead => lead.id === record.id)) model.leads.push(record);
+  navButton?.click();
+  openBuilder();
+  if (sameLead) return;
+  const select = quoteForm().querySelector("[data-builder-lead]");
+  select.value = record.id;
+  select.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
 function reopenQuoteDraft(){const dialog=document.querySelector("[data-quote-builder-dialog]");if(draftData(QUOTE_DRAFT_KEY)&&document.querySelector('[data-section-panel="requests"]')?.classList.contains("active")&&!dialog?.open)openBuilder();}
 const load = singleFlight(async function (force=false){if(loaded&&!force)return;if(!loaded)root.innerHTML=`<div class="crm-loading-state quotes-loading">Loading quotes…</div>`;try{model=await api();loaded=true;renderList();reopenQuoteDraft();}catch(error){root.innerHTML=`<div class="quote-v2-error"><strong>Quotes need attention</strong><p>${escapeHtml(error.message)}</p><button class="secondary-button" type="button" data-retry-quotes>Retry</button></div>`;reopenQuoteDraft();}});
 
@@ -141,8 +167,13 @@ root?.addEventListener("click",async e=>{if(e.target.closest("[data-clear-quote-
 root?.addEventListener("keydown",e=>{const row=e.target.closest("[data-open-quote]");if(row&&["Enter"," "].includes(e.key)){e.preventDefault();openDetail(row.dataset.openQuote);}});
 newButton?.addEventListener("click",()=>{if(!loaded)return load(true).then(()=>openBuilder());openBuilder();});
 window.addEventListener("prestige:new-quote-for-vehicle",async(event)=>{if(!loaded)await load(true);const vehicle=event.detail?.vehicle;openBuilder();if(vehicle){builder.draft.vehicle_id=vehicle.id;applyVehicleDefaults(model.cars.find(c=>c.id===vehicle.id)||vehicle);builder.step=1;renderBuilderStep();}});
-window.addEventListener("prestige:open-quote",async(event)=>{if(!loaded)await load(true);const quote=model.quotes.find(item=>String(item.id)===String(event.detail?.id));if(quote)await openDetail(quote.id);});
-navButton?.addEventListener("click",()=>load());
+window.addEventListener("prestige:open-quote", async event => {
+  const id = event.detail?.id;
+  if (!id) return;
+  if (!loaded) await load();
+  await openDetail(id);
+});
+navButton?.addEventListener("click",()=>{if(loaded)renderList();else load();});
 supabase.auth.onAuthStateChange((event,session)=>{if(!session){loaded=false;model={quotes:[],customers:[],leads:[],cars:[],partners:[],employees:[],reservations:[],blocks:[]};}else if(document.querySelector('[data-section-panel="requests"]')?.classList.contains("active"))load();});
 ensureDialogs();
 
