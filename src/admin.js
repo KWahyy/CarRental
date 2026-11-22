@@ -1011,6 +1011,7 @@ async function loadTrafficAnalytics() {
   const { data, error } = await supabase
     .from("fleet_events")
     .select("event_type, car_slug, created_at")
+    .neq("event_type", "call_prompt_click")
     .gte("created_at", since)
     .order("created_at", { ascending: false })
     .limit(5000);

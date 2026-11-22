@@ -29,6 +29,25 @@ export function applySiteChrome(document,{path='/',year=2026}={}) {
  document.querySelectorAll('body > header,[data-mobile-menu],body > footer').forEach(node=>node.remove());
  document.body.insertAdjacentHTML('afterbegin',header+mobile);
  document.body.insertAdjacentHTML('beforeend',footer);
+ if(!document.querySelector('[data-call-prompt]')) {
+  document.body.insertAdjacentHTML('beforeend', `<dialog class="call-prompt" data-call-prompt aria-labelledby="call-prompt-title" aria-describedby="call-prompt-copy" hidden>
+   <div class="call-prompt-layout">
+    <button class="call-prompt-close" type="button" data-call-prompt-close aria-label="Dismiss call invitation">×</button>
+    <div class="call-prompt-content">
+     <p class="call-prompt-label">24/7 reservations</p>
+     <h2 class="call-prompt-title" id="call-prompt-title">Driving soon?</h2>
+     <p class="call-prompt-copy" id="call-prompt-copy">Call with your dates and delivery city. We’ll check the fleet and give you a price over the phone.</p>
+     <a class="call-prompt-link" href="tel:+19496200024"><span class="call-prompt-action">Call</span> <span class="call-prompt-number">(949) 620-0024</span></a>
+     <button class="call-prompt-later" type="button" data-call-prompt-later>Keep browsing</button>
+    </div>
+    <figure class="call-prompt-media">
+     <img class="call-prompt-photo" data-call-photo width="1200" height="630" alt="" />
+     <figcaption class="call-prompt-caption"></figcaption>
+    </figure>
+   </div>
+  </dialog><script type="module" src="/src/call-prompt.js"></script>`);
+  document.head.insertAdjacentHTML('beforeend','<link rel="stylesheet" href="/src/call-prompt.css" data-call-prompt-style />');
+ }
  if(!document.querySelector('[data-shared-nav-script]'))document.body.insertAdjacentHTML('beforeend','<script type="module" src="/src/site-navigation.js" data-shared-nav-script></script>');
  if(!document.querySelector('[data-public-mobile-style]'))document.head.insertAdjacentHTML('beforeend','<link rel="stylesheet" href="/src/public-mobile.css" data-public-mobile-style />');
  if(!document.querySelector('[data-shared-nav-style]'))document.head.insertAdjacentHTML('beforeend','<link rel="stylesheet" href="/src/site-navigation.css" data-shared-nav-style />');

@@ -336,6 +336,26 @@ export function bindOverview(root, initialView) {
   return {update, setActive};
 }
 
+async function renderPopupCallMetrics(db, since, slot) {
+  try {
+    const {data, error} = await db.rpc("popup_call_metrics", {since});
+    if (error) throw error;
+    const metrics = data?.[0];
+    const formatCount = value => {
+      if (!/^\d+$/.test(String(value))) throw new Error("Missing popup call count");
+      return BigInt(value).toLocaleString("en-US");
+    };
+    slot.innerHTML = '<div class="traffic-kpis"><div><span>Popup call taps</span><strong>' +
+      formatCount(metrics?.tap_count) + '</strong></div><div><span>Sessions that tapped</span><strong>' +
+      formatCount(metrics?.session_count) + '</strong></div></div>' +
+      '<p>One person can browse in several sessions. A tap opens the phone dialer.</p>';
+    return true;
+  } catch {
+    slot.textContent = "Popup call metrics are unavailable. Reopen the report to retry.";
+    return false;
+  }
+}
+
 export function bindOperatingReports(view) {
   const details = document.querySelector(".desk-operating-reports");
   if (!details) return;
@@ -353,13 +373,15 @@ export function bindOperatingReports(view) {
     }).join("");
     const priced=model.cars.filter(c=>c.is_active!==false && Number(c.competitor_price)>0).sort((a,b)=>String(a.competitor_checked_at||"").localeCompare(String(b.competitor_checked_at||""))).slice(0,6);
     const prices=priced.map(c=>'<div class="desk-metric-row"><div><strong>'+esc(compactVehicleName(c.name,c))+'</strong><small>'+esc(dollars.format(c.price)+'/day · Competitor '+dollars.format(c.competitor_price)+'/day')+'</small><small>'+esc(c.competitor_checked_at?'Checked '+dayLabel(c.competitor_checked_at):'No check date recorded')+'</small></div><div><strong>'+dollars.format(Math.max(0,c.competitor_price-50))+' target</strong> '+openButton("vehicle",c.id,"Open vehicle →")+'</div></div>').join("");
-    slot.innerHTML='<section><h3>Fleet traffic &amp; clicks</h3><p>Last 30 days · latest 5,000 events</p><div data-traffic-summary role="status">Loading fleet traffic…</div></section>'+
+    slot.innerHTML='<section><h3>Fleet traffic &amp; clicks</h3><p>Last 30 days</p><div data-popup-call-summary role="status">Loading popup call metrics…</div><p>Fleet activity · latest 5,000 events</p><div data-traffic-summary role="status">Loading fleet traffic…</div></section>'+
       '<section><h3>Partner availability calls</h3>'+(calls||empty(view.failedTables.has("quote_requests")?"Lead records unavailable.":"No partner checks pending."))+'</section>'+
       '<section><h3>Competitive pricing</h3>'+(prices||empty(view.failedTables.has("cars")?"Fleet records unavailable.":"No competitor comparisons recorded."))+'</section>';
     const traffic=slot.querySelector("[data-traffic-summary]");
+    const db=window.prestigeLuxorSupabase, since=new Date(Date.now()-30*86400000).toISOString();
+    const popupRead=renderPopupCallMetrics(db, since, slot.querySelector("[data-popup-call-summary]"));
+    let fleetLoaded=true;
     try {
-      const since=new Date(Date.now()-30*86400000).toISOString();
-      const {data,error}=await window.prestigeLuxorSupabase.from("fleet_events").select("event_type,car_slug").gte("created_at",since).order("created_at",{ascending:false}).limit(5000);
+      const {data,error}=await db.from("fleet_events").select("event_type,car_slug").neq("event_type","call_prompt_click").gte("created_at",since).order("created_at",{ascending:false}).limit(5000);
       if(error)throw error;
       const byCar=new Map(), total=new Map();
       for(const event of data||[]) {
@@ -374,7 +396,8 @@ export function bindOperatingReports(view) {
       const names=new Map(model.cars.map(c=>[c.slug,compactVehicleName(c.name,c)]));
       traffic.innerHTML='<div class="traffic-kpis">'+labels.map(([l,key])=>'<div><span>'+l+'</span><strong>'+(total.get(key)||0)+'</strong></div>').join("")+'</div><p>'+Number(total.get("fleet_page_view")||0)+' fleet page views</p>'+
         (ranked.length?'<div class="desk-source-table"><table><thead><tr><th>Vehicle</th><th>Impressions</th><th>Clicks</th><th>Checks</th><th>Requests</th><th>CTR</th></tr></thead><tbody>'+ranked.map(([slug,g])=>'<tr><th>'+esc(names.get(slug)||slug)+'</th>'+labels.map(([,key])=>'<td>'+(g[key]||0)+'</td>').join("")+'<td>'+(g.card_impression?Math.round((g.vehicle_detail_click||0)/g.card_impression*100):0)+'%</td></tr>').join("")+'</tbody></table></div>':'');
-    } catch {traffic.innerHTML=empty("Fleet traffic could not be loaded. Reopen the report to retry.");loaded=false;}
+    } catch {traffic.innerHTML=empty("Fleet traffic could not be loaded. Reopen the report to retry.");fleetLoaded=false;}
+    loaded=(await popupRead) && fleetLoaded;
   };
   details.onclick=event=>{
     const btn=event.target.closest("button");if(!btn) return;

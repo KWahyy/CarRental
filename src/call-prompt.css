@@ -1,0 +1,212 @@
+dialog.call-prompt[hidden],
+dialog.call-prompt:not([open]) { display: none !important; }
+
+html:has(dialog.call-prompt[open]) { overflow: hidden; }
+
+body > dialog.call-prompt {
+  box-sizing: border-box;
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  padding: 0;
+  width: min(880px, calc(100% - 48px));
+  max-width: none;
+  height: fit-content;
+  max-height: calc(100dvh - 48px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #686459;
+  border-radius: 8px;
+  background: #20211d;
+  color: #f8f4e9;
+  box-shadow: 0 24px 90px #0005;
+  font: 400 15px/1.5 "Helvetica Neue", Arial, sans-serif;
+  text-align: left;
+  color-scheme: dark;
+}
+
+dialog.call-prompt::backdrop { background: rgb(12 13 11 / 68%); }
+
+.call-prompt .call-prompt-layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.16fr);
+}
+
+.call-prompt .call-prompt-content {
+  align-self: center;
+  padding: clamp(26px, 3vw, 36px);
+}
+
+.call-prompt .call-prompt-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 16px;
+  color: #e5d2ab;
+  font: 600 10px/1.4 "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.call-prompt-label::before {
+  content: "";
+  width: 24px;
+  height: 1px;
+  background: currentColor;
+}
+
+.call-prompt .call-prompt-title {
+  margin: 0;
+  color: #faf7ee;
+  font: 400 clamp(36px, 3.7vw, 48px)/1.01 Georgia, "Times New Roman", serif;
+  letter-spacing: -.047em;
+  text-wrap: balance;
+  text-transform: none;
+}
+
+.call-prompt .call-prompt-copy {
+  margin: 13px 0 21px;
+  color: #d8d6ca;
+  font: 400 15px/1.55 "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.call-prompt .call-prompt-close {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid #ffffff50;
+  border-radius: 50%;
+  background: #1f201b;
+  color: #faf7ee;
+  font: 400 24px/1 Arial, sans-serif;
+  cursor: pointer;
+}
+
+.call-prompt .call-prompt-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2px .32em;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 50px;
+  padding: 11px 12px;
+  border-radius: 4px;
+  background: #f1ead8;
+  color: #23241f;
+  font: 600 16px/1.4 "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: -.012em;
+  text-decoration: none;
+  text-transform: none;
+}
+
+.call-prompt .call-prompt-number { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.call-prompt .call-prompt-later {
+  display: block;
+  min-height: 44px;
+  margin: 3px auto -10px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: #dbd8cc;
+  font: 500 13px/1.4 "Helvetica Neue", Arial, sans-serif;
+  cursor: pointer;
+}
+
+.call-prompt :is(a, button):focus-visible {
+  outline: 2px solid #fce3a6;
+  outline-offset: 3px;
+}
+
+.call-prompt .call-prompt-media {
+  position: relative;
+  margin: 0;
+  min-width: 0;
+  min-height: 326px;
+  padding: 0;
+  overflow: hidden;
+  background: #141511;
+}
+
+.call-prompt .call-prompt-photo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.call-prompt .call-prompt-caption {
+  position: absolute;
+  inset: auto 0 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 28px 19px 13px;
+  background: linear-gradient(transparent, #0c0c0bba);
+  color: #fffaf0;
+  font: 500 12px/1.4 "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: .015em;
+}
+
+@media (hover: hover) {
+  .call-prompt .call-prompt-link:hover { background: #fffaf0; color: #10110e; }
+  .call-prompt .call-prompt-later:hover { color: white; text-decoration: underline; text-underline-offset: 3px; }
+  .call-prompt .call-prompt-close:hover { color: white; background: #37392f; }
+}
+
+@media (max-width: 640px) {
+  body > dialog.call-prompt {
+    width: min(440px, calc(100% - 28px));
+    max-height: calc(100dvh - max(14px, env(safe-area-inset-top)) - max(14px, env(safe-area-inset-bottom)));
+  }
+  .call-prompt .call-prompt-layout { grid-template-columns: minmax(0, 1fr); }
+  .call-prompt .call-prompt-media {
+    grid-row: 1;
+    aspect-ratio: 1.86;
+    min-height: 0;
+  }
+  .call-prompt .call-prompt-caption { padding: 20px 15px 9px; }
+  .call-prompt .call-prompt-content { padding: 23px 24px 19px; }
+  .call-prompt .call-prompt-label { margin-bottom: 11px; }
+  .call-prompt .call-prompt-title { font-size: clamp(33px, 9vw, 41px); }
+  .call-prompt .call-prompt-copy { margin: 10px 0 17px; font-size: 14px; }
+}
+
+@media (min-width: 520px) and (max-height: 460px) {
+  body > dialog.call-prompt { width: min(800px, calc(100% - 28px)); max-height: calc(100dvh - 24px); }
+  .call-prompt .call-prompt-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .call-prompt .call-prompt-media { grid-row: auto; min-height: 0; aspect-ratio: auto; }
+  .call-prompt .call-prompt-content { padding: 20px; }
+  .call-prompt .call-prompt-label { margin-bottom: 10px; }
+  .call-prompt .call-prompt-title { font-size: 34px; }
+  .call-prompt .call-prompt-copy { margin: 9px 0 13px; font-size: 14px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  dialog.call-prompt[open] { animation: call-prompt-enter 180ms ease-out both; }
+  dialog.call-prompt[open]::backdrop { animation: call-prompt-dim 180ms ease-out both; }
+  @keyframes call-prompt-enter {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes call-prompt-dim { from { opacity: 0; } to { opacity: 1; } }
+}
+
+@media print {
+  body > dialog.call-prompt,
+  dialog.call-prompt::backdrop { display: none !important; }
+}

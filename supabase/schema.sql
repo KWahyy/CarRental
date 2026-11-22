@@ -36,7 +36,7 @@ create table if not exists public.car_partners (
 
 create table if not exists public.fleet_events (
   id uuid primary key default gen_random_uuid(),
-  event_type text not null check (event_type in ('fleet_page_view', 'card_impression', 'vehicle_detail_view', 'vehicle_detail_click', 'availability_open', 'availability_submit', 'availability_success')),
+  event_type text not null check (event_type in ('fleet_page_view', 'card_impression', 'vehicle_detail_view', 'vehicle_detail_click', 'availability_open', 'availability_submit', 'availability_success', 'call_prompt_click')),
   car_slug text not null default '',
   session_id text not null default '',
   page_path text not null default '',
@@ -46,6 +46,19 @@ create table if not exists public.fleet_events (
 
 create index if not exists fleet_events_created_at_idx on public.fleet_events (created_at desc);
 create index if not exists fleet_events_car_slug_idx on public.fleet_events (car_slug, created_at desc);
+create index if not exists fleet_events_call_prompt_idx on public.fleet_events (created_at) include (session_id)
+where event_type = 'call_prompt_click';
+
+create or replace function public.popup_call_metrics(since timestamptz)
+returns table (tap_count bigint, session_count bigint)
+language sql stable security invoker set search_path = ''
+as $$
+  select count(*), count(distinct nullif(e.session_id, ''))
+  from public.fleet_events as e
+  where e.event_type = 'call_prompt_click' and e.created_at >= $1;
+$$;
+revoke all on function public.popup_call_metrics(timestamptz) from public, anon;
+grant execute on function public.popup_call_metrics(timestamptz) to authenticated, service_role;
 
 create table if not exists public.car_photos (
   id uuid primary key default gen_random_uuid(),
@@ -321,7 +334,7 @@ create policy "Public can record fleet analytics"
 on public.fleet_events for insert
 to anon, authenticated
 with check (
-  event_type in ('fleet_page_view', 'card_impression', 'vehicle_detail_view', 'vehicle_detail_click', 'availability_open', 'availability_submit', 'availability_success')
+  event_type in ('fleet_page_view', 'card_impression', 'vehicle_detail_view', 'vehicle_detail_click', 'availability_open', 'availability_submit', 'availability_success', 'call_prompt_click')
   and char_length(car_slug) <= 120
   and char_length(session_id) <= 120
   and char_length(page_path) <= 240

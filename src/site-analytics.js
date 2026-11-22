@@ -68,10 +68,16 @@ document.addEventListener("click", (event) => {
   const href = link.getAttribute("href") || "";
   const context = link.closest("header") ? "header" : link.closest("footer") ? "footer" : link.closest(".hero, [class*='hero']") ? "hero" : "content";
   if (href.startsWith("tel:")) {
-    window.prestigeTrack("call_clicked", { link_context: context });
+    const fromPrompt = Boolean(link.closest("[data-call-prompt]"));
+    window.prestigeTrack("call_clicked", { link_context: fromPrompt ? "call_prompt" : context });
     if (GOOGLE_ADS_HOSTS.has(window.location.hostname) && typeof window.gtag_report_call_conversion === "function") {
-      event.preventDefault();
-      window.gtag_report_call_conversion(href);
+      if (fromPrompt) {
+        // Keep the dialer launch inside the tap gesture, independent of ad tracking.
+        window.gtag_report_call_conversion();
+      } else {
+        event.preventDefault();
+        window.gtag_report_call_conversion(href);
+      }
     }
   }
   else if (href.startsWith("sms:")) window.prestigeTrack("text_clicked", { link_context: context });
