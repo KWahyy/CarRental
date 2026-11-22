@@ -14,6 +14,24 @@ export function refineNewportPage(html,page,inventory,enhancements){
  <section class="nb-process"><p class="nb-kicker">A personal handoff</p><h2>Your arrival, in three steps.</h2><ol><li><strong>Choose your car.</strong><p>Send your preferred vehicle, dates and delivery address.</p></li><li><strong>We confirm the details.</strong><p>Your team member confirms availability, pricing and rental requirements.</p></li><li><strong>Enjoy the drive.</strong><p>Complete approval and your agreement, then meet us at the confirmed handoff.</p></li></ol><p class="nb-short">Only need a few hours? Include your exact times. Short-duration requests are reviewed individually; availability and minimum charges vary.</p></section>
  ${enhancements}
  <aside class="nb-finish"><p>Make a little more of your time on the coast.</p><a href="/guides/orange-county-exotic-car-weekend">Plan an Orange County weekend ↗</a><small>Coastal scenes are AI-generated illustrations, not photographs of our fleet or delivery locations. View individual vehicle listings for actual car photos.</small></aside>`;
+ const evo = inventory.find(car => car.slug === '2022-lamborghini-huracan');
+ if (evo) {
+   const photo = '/assets/owned-fleet/huracan-evo/cover.jpg';
+   const query = new URLSearchParams({ vehicle: evo.slug, city: 'Newport Beach' });
+   const price = Number(evo.price);
+   const rate = price > 0 ? 'From ' + new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0}).format(price) + ' / day' : '';
+   const hero = main.querySelector('.nb-hero');
+   hero.className = 'nb-evo';
+   hero.innerHTML = `
+     <div class="nb-evo-heading"><p>Newport Beach exotic car rental</p>
+       <h1>Lamborghini<br><em>Huracán EVO.</em></h1></div>
+     <figure><img src="${photo}" width="1200" height="630" alt="Our blue Lamborghini Huracán EVO Spyder with its top down at sunset" fetchpriority="high"></figure>
+     <div class="nb-evo-book"><p>Take our blue Spyder down the coast. Arrange delivery to your Newport Beach hotel or residence.</p>
+       ${rate ? `<strong>${rate}</strong>` : ''}
+       <a class="nb-button" href="/booking?${query.toString().replaceAll('&','&amp;')}">Check my dates <span aria-hidden="true">→</span></a>
+     </div>`;
+   document.querySelector('meta[property="og:image"]')?.setAttribute('content', 'https://www.prestigeluxor.com' + photo);
+ }
  const copy=main.querySelector('.location-quote-copy');if(copy)copy.innerHTML='<p>Let’s plan your arrival</p><h2>Your Newport drive starts here.</h2><span>Choose your car and dates. A team member will contact you to confirm availability and final pricing before your reservation is finalized.</span>';
  return '<!doctype html>\n'+document.documentElement.outerHTML;
 }

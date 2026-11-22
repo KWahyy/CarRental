@@ -48,6 +48,8 @@ export function initBookingDialog(car, doc = document) {
   steps.innerHTML = '<span><b>01</b> Your trip</span><span><b>02</b> Your details</span>';
   request.querySelector('form').before(steps);
   const form = request.querySelector('form');
+  const city = destination.searchParams.get('city')?.trim();
+  if (city && !form.elements.deliveryLocation.value) form.elements.deliveryLocation.value = city;
   for (const fieldName of ['date', 'returnDate']) {
     const input = form.elements[fieldName];
     const existing = input.value;

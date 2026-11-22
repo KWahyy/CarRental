@@ -553,7 +553,7 @@ function renderVehicle() {
       )
       .join("");
   }
-  if (slug === "2022-lamborghini-huracan") enhanceHuracanProduct(car);
+  if (slug === "2022-lamborghini-huracan" && !document.body.hasAttribute("data-booking-page")) enhanceHuracanProduct(car);
   initBookingDialog(car);
 }
 

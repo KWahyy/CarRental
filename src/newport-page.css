@@ -4,3 +4,32 @@
 body.site-theme.newport-page,body.site-theme.newport-page .newport-main{background:#faf9f6;color:#222222}body.site-theme.newport-page .newport-main a:not(.nb-button){color:inherit}body.site-theme.newport-page .newport-main .nb-kicker{color:#65615b}body.site-theme.newport-page .newport-main h2{text-transform:none}body.site-theme.newport-page .newport-main .location-faq-list summary{color:#222222}body.site-theme.newport-page .newport-main .location-quote-copy>p{color:#65615b}.nb-harbor figure{background:#f0eee9}.nb-harbor figcaption{padding:18px;color:#55514c}.nb-harbor h2 em{color:#77736d}
 
 body.site-theme.newport-page .newport-main .location-quote-section{background:#f0eee9;color:#222}body.site-theme.newport-page .newport-main .location-quote-form{background:#fff;border:1px solid #dedbd5;box-shadow:none;padding:28px;border-radius:4px}body.site-theme.newport-page .newport-main .location-quote-form label>span{color:#55514c}body.site-theme.newport-page .newport-main .location-quote-form input,body.site-theme.newport-page .newport-main .location-quote-form select,body.site-theme.newport-page .newport-main .location-quote-form textarea{color:#222;background:#fff;color-scheme:light}body.site-theme.newport-page .newport-main .site-date-placeholder{color:#65615b}body.site-theme.newport-page .newport-main .location-quote-form button{background:#222;color:#fff;box-shadow:none}body.site-theme.newport-page .newport-main .location-quote-form input::placeholder,body.site-theme.newport-page .newport-main .location-quote-form textarea::placeholder{color:#76716a}.newport-main .nb-choices article,.newport-main .nb-cars,.newport-main .nb-process,.newport-main .nb-harbor dl>div{border-color:#d8d4ce}@media(max-width:700px){body.site-theme.newport-page .newport-main .location-quote-form{padding:22px 16px}.newport-main .location-form-grid>*{min-width:0}}
+
+.nb-evo {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.55fr);
+  grid-template-areas: "heading photo" "booking photo";
+  align-content: center;
+  column-gap: clamp(2rem, 5vw, 6rem);
+  max-width: 1560px;
+  margin: auto;
+  padding: clamp(2rem, 5vw, 5rem) 5vw;
+  border-bottom: 1px solid #d9d6cf;
+}
+.nb-evo-heading { grid-area: heading; align-self: end; }
+.nb-evo-heading p { margin: 0; font-size: .75rem; font-weight: 650; text-transform: uppercase; letter-spacing: .13em; }
+.newport-main .nb-evo h1 { margin: 1rem 0; text-transform: none; font-size: clamp(2.6rem, 4.5vw, 5rem); line-height: 1.02; }
+.nb-evo h1 em { color: #295469; }
+.nb-evo figure { grid-area: photo; align-self: center; margin: 0; }
+.nb-evo img { display: block; width: 100%; height: auto; }
+.nb-evo-book { grid-area: booking; align-self: start; }
+.nb-evo-book p { max-width: 35ch; margin: 0 0 1rem; font-size: 1.0625rem; line-height: 1.5; color: #504e49; }
+.nb-evo-book strong { display: block; margin-bottom: 1rem; font-size: 1rem; }
+.nb-evo .nb-button { align-items: center; justify-content: space-between; font-weight: 600; min-height: 48px; padding: .85rem 1.25rem; }
+.nb-evo .nb-button:hover { background: #294c5c; }
+.nb-evo .nb-button:focus-visible { outline: 3px solid #295469; outline-offset: 4px; }
+@media (max-width: 760px) {
+  .nb-evo { grid-template-columns: minmax(0,1fr); grid-template-areas: "heading" "photo" "booking"; gap: 1.25rem; padding: 2rem 5vw; }
+  .newport-main .nb-evo h1 { margin-bottom: 0; }
+  .nb-evo-book p { max-width: 44ch; }
+}
