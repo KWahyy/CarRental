@@ -1,3 +1,9 @@
+import { trackNewportDateClick } from "./newport-click.js";
+const newportDates = document.querySelector("[data-newport-evo-dates]");
+if (newportDates) {
+  newportDates.addEventListener("click", trackNewportDateClick);
+  newportDates.addEventListener("auxclick", trackNewportDateClick);
+}
 import { showBookingReceipt } from './booking-receipt.js';
 import { submitQuoteRequest } from "./quote-api.js?v=lead-conversion-20260906";
 

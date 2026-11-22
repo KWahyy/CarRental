@@ -28,7 +28,7 @@ export function refineNewportPage(html,page,inventory,enhancements){
      <figure><img src="${photo}" width="1200" height="630" alt="Our blue Lamborghini Huracán EVO Spyder with its top down at sunset" fetchpriority="high"></figure>
      <div class="nb-evo-book"><p>Take our blue Spyder down the coast. Arrange delivery to your Newport Beach hotel or residence.</p>
        ${rate ? `<strong>${rate}</strong>` : ''}
-       <a class="nb-button" href="/booking?${query.toString().replaceAll('&','&amp;')}">Check my dates <span aria-hidden="true">→</span></a>
+       <a class="nb-button" data-newport-evo-dates href="/booking?${query.toString().replaceAll('&','&amp;')}">Check my dates <span aria-hidden="true">→</span></a>
      </div>`;
    document.querySelector('meta[property="og:image"]')?.setAttribute('content', 'https://www.prestigeluxor.com' + photo);
  }

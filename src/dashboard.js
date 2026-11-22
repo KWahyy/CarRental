@@ -1,3 +1,4 @@
+import { loadNewportFunnel, newportCounts } from "./newport-funnel.js";
 import { canViewFinancials } from "./crm-permissions.js";
 import { renderOwnedFleet } from "./owned-fleet-view.js";
 import { singleFlight, registerSection } from "./crm-navigation.js";
@@ -140,7 +141,8 @@ const loadDashboard = singleFlight(async function (force = false) {
     userId ? safeRows(supabase.from("admin_profiles").select("display_name,role").eq("user_id", userId).limit(1)) : [],
   ]);
   const expenses = canViewFinancials(profiles[0]?.role) ? await financialRows("vehicle_expenses") : [];
-  model = { expenses, invoices, invoicePayments, agreements, quotes, quoteActivities, invoiceEvents, agreementEvents, bookings, cars, partners, profile: profiles[0] || null, session };
+  const newport = canViewFinancials(profiles[0]?.role) ? await loadNewportFunnel(supabase).catch(() => null) : null;
+  model = { newport, expenses, invoices, invoicePayments, agreements, quotes, quoteActivities, invoiceEvents, agreementEvents, bookings, cars, partners, profile: profiles[0] || null, session };
   loaded = true;
   render();
 });
@@ -335,6 +337,9 @@ function render() {
       <section class="executive-card"><div class="executive-card-head"><div><h3>Sales Pipeline</h3><p>Active lead movement and value.</p></div><button class="text-button" data-dashboard-section="requests">Open Quotes</button></div><div class="pipeline-grid">${pipelineCell("New Leads",pipeline.new)}${pipelineCell("Contacted",pipeline.contacted)}${pipelineCell("Quotes Sent",pipeline.sent)}${pipelineCell("Follow-Ups Due",pipeline.followup)}${pipelineCell("Booked",pipeline.booked)}${pipelineCell("Lost",pipeline.lost)}</div><div class="pipeline-summary"><span>Lead → Booking Conversion<strong>${conversion.toFixed(1)}%</strong></span><span>Open Pipeline Value<strong>${money(pipelineValue)}</strong></span></div></section>
     </div>
     <section class="executive-card executive-performance ${hasBusinessData?"":"is-empty"}">${hasBusinessData?`<div class="executive-card-head"><div><h3>${owner ? "Performance" : "Booking activity"}</h3><p>${dateLabel(range.start)} – ${dateLabel(range.end)}</p></div>${owner ? toggle("chart",["revenue","profit","bookings"],chartMetric) : ""}</div>${chartSvg(chart,owner ? chartMetric : "bookings")}`:emptyPerformance()}</section>
+    ${owner ? `<section class="executive-card"><div class="executive-card-head"><div><h3>Newport Beach · Huracán EVO</h3><p>Check my dates clicks in the selected period and their booking outcomes.</p></div></div>
+    ${model.newport && !ownershipError ? '<div class="traffic-kpis">' + newportCounts(model.newport,model,range).map((count,index) => '<article><span>' + ['Button clicks','Browser sessions','Reservation requests','Requests with a paid booking'][index] + '</span><strong>' + count + '</strong></article>').join('') + '</div>' : '<p>Tracking data unavailable. Refresh to try again.</p>'}
+    <p class="executive-data-note">Record the rental payment on a booking or invoice linked to the original request. Each request counts once.</p></section>` : ''}
     ${owner ? renderOwnedFleet(model, range, {error:ownershipError,readOnly:model.profile?.role === "viewer"}) : ""}
     ${secondaryAnalytics}`;
   root.querySelector("[data-dashboard-range]").value = rangeKey;
