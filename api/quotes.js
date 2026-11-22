@@ -1,3 +1,4 @@
+import { linkPaymentRequest } from "./_request-link.js";
 import { createQuotePdf, quotePdfFilename } from "./_quote-pdf.js";
 import { emailFrame, emailDetails, emailButton } from "./_email-template.js";
 import { sendBusinessEmail, emailConfigured } from "./_email.js";
@@ -208,6 +209,7 @@ export async function convertQuote(quote, userId, token) {
     }, token);
     reservation = rows[0];
   }
+  await linkPaymentRequest(quote, token, "quote");
   const convertedAt = new Date().toISOString();
   const updated = await db(`quotes?id=eq.${encodeURIComponent(quote.id)}`, {
     method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify({ status: "converted", invoice_id: invoice.id, reservation_id: reservation.id, converted_at: convertedAt, updated_by: userId }),

@@ -1,3 +1,4 @@
+import { linkPaymentRequest } from "./_request-link.js";
 import crypto from "node:crypto";
 import { addEvent, clean, db, json } from "./_invoice-core.js";
 import { convertQuote } from "./quotes.js";
@@ -113,6 +114,7 @@ export default async function handler(req, res) {
           paid_at: paid >= Number(invoice.total || 0) ? new Date().toISOString() : null,
         }),
       });
+      if (paid > 0) await linkPaymentRequest(invoice);
       await addEvent(invoice.id, "stripe_payment_succeeded", `Stripe payment received: $${paid.toFixed(2)}.`, null, { stripe_event_id: event.id, payment_intent_id: object.id });
     } else if (event.type === "payment_intent.amount_capturable_updated" && invoice.deposit_method === "authorization_hold") {
       await db(`invoices?id=eq.${encodeURIComponent(invoice.id)}`, {

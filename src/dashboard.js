@@ -339,7 +339,7 @@ function render() {
     <section class="executive-card executive-performance ${hasBusinessData?"":"is-empty"}">${hasBusinessData?`<div class="executive-card-head"><div><h3>${owner ? "Performance" : "Booking activity"}</h3><p>${dateLabel(range.start)} – ${dateLabel(range.end)}</p></div>${owner ? toggle("chart",["revenue","profit","bookings"],chartMetric) : ""}</div>${chartSvg(chart,owner ? chartMetric : "bookings")}`:emptyPerformance()}</section>
     ${owner ? `<section class="executive-card"><div class="executive-card-head"><div><h3>Newport Beach · Huracán EVO</h3><p>Check my dates clicks in the selected period and their booking outcomes.</p></div></div>
     ${model.newport && !ownershipError ? '<div class="traffic-kpis">' + newportCounts(model.newport,model,range).map((count,index) => '<article><span>' + ['Button clicks','Browser sessions','Reservation requests','Requests with a paid booking'][index] + '</span><strong>' + count + '</strong></article>').join('') + '</div>' : '<p>Tracking data unavailable. Refresh to try again.</p>'}
-    <p class="executive-data-note">Record the rental payment on a booking or invoice linked to the original request. Each request counts once.</p></section>` : ''}
+    <p class="executive-data-note">Paid rentals link automatically when one request matches the pickup date, vehicle and contact details. Each request counts once.</p></section>` : ''}
     ${owner ? renderOwnedFleet(model, range, {error:ownershipError,readOnly:model.profile?.role === "viewer"}) : ""}
     ${secondaryAnalytics}`;
   root.querySelector("[data-dashboard-range]").value = rangeKey;

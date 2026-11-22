@@ -1,3 +1,4 @@
+import { linkPaidBooking } from "./request-match.js";
 import { singleFlight, registerSection } from "./crm-navigation.js";
 const app = document.querySelector("[data-booking-app]");
 const sectionButton = document.querySelector('[data-crm-section="bookings"]');
@@ -66,6 +67,7 @@ function records() {
         kind: "agreement",
         id: agreement.id,
         shadowId: shadow?.id || "",
+        quote_request_id: shadow?.quote_request_id,
         agreement,
         customer_name: agreement.customer_name,
         customer_email: agreement.customer_email,
@@ -263,6 +265,7 @@ async function save(event, item) {
       ? await supabase.from("booking_sales").update(payload).eq("id", existingId).select().single()
       : await supabase.from("booking_sales").insert(payload).select().single();
     if (result.error) throw result.error;
+    if (!meta.cancelled) result.data = await linkPaidBooking(supabase, result.data, meta.customer_email);
     const index = ledgerRows.findIndex((row) => row.id === result.data.id);
     if (index >= 0) ledgerRows.splice(index, 1, result.data); else ledgerRows.unshift(result.data);
     app.querySelector("[data-booking-dialog]")?.close();

@@ -1,3 +1,4 @@
+import { linkPaymentRequest } from "./_request-link.js";
 import { addEvent, clean, db, json, normalizeInvoice, readBody, requireEmployee, setCors } from "./_invoice-core.js";
 
 function invoiceId(value) {
@@ -62,6 +63,7 @@ export default async function handler(req, res) {
           headers: { Prefer: "return=representation" },
           body: JSON.stringify(payload),
         }, token);
+        if (rows[0].amount_paid > 0 && !["void", "refunded", "draft"].includes(rows[0].status)) rows[0] = await linkPaymentRequest(rows[0], token);
         await addEvent(rows[0].id, "created", `Draft created by ${profile.display_name || user.email || profile.role}.`, user.id, { source_type: payload.source_type }, token);
         return json(res, 201, { invoice: rows[0] });
       }
@@ -76,6 +78,7 @@ export default async function handler(req, res) {
           headers: { Prefer: "return=representation" },
           body: JSON.stringify({ status: "finalized", finalized_at: new Date().toISOString(), finalized_by: user.id, locked_at: new Date().toISOString() }),
         }, token);
+        if (rows[0].amount_paid > 0) rows[0] = await linkPaymentRequest(rows[0], token);
         await addEvent(id, "finalized", "Invoice finalized and locked.", user.id, {}, token);
         return json(res, 200, { invoice: rows[0] });
       }
@@ -108,6 +111,7 @@ export default async function handler(req, res) {
             paid_at: paid >= rentalTotal && rentalTotal > 0 ? paidAt : null,
           }),
         }, token);
+        rows[0] = await linkPaymentRequest(rows[0], token);
         await addEvent(id, "payment_recorded", `Payment recorded: $${applied.toFixed(2)}.`, user.id, { method: clean(body.payment_method, 40), reference: clean(body.payment_reference, 240), payment_date: paidAt }, token);
         return json(res, 200, { invoice: rows[0] });
       }
@@ -151,6 +155,7 @@ export default async function handler(req, res) {
         headers: { Prefer: "return=representation" },
         body: JSON.stringify(payload),
       }, token);
+      if (rows[0].amount_paid > 0 && !["void", "refunded", "draft"].includes(rows[0].status)) rows[0] = await linkPaymentRequest(rows[0], token);
       await addEvent(id, "updated", "Invoice updated.", user.id, {}, token);
       return json(res, 200, { invoice: rows[0] });
     }

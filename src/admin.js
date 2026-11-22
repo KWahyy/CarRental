@@ -1,3 +1,4 @@
+import { linkPaidBooking } from "./request-match.js";
 import { installViewerGuard } from "./crm-viewer.js";
 import { prepareWorkspace } from "./crm-navigation.js";
 import { initAdminLogin } from "./admin-login.js";
@@ -2601,12 +2602,13 @@ bookingForm?.addEventListener("submit", async (event) => {
   try {
     setStatus(bookingStatus, "Saving booking...");
     const id = data.get("id");
-    const saved = id
+    let saved = id
       ? await runQuery(supabase.from("booking_sales").update(payload).eq("id", id).select().single())
       : await runQuery(supabase.from("booking_sales").insert(payload).select().single());
-    if (quoteId) {
-      await runQuery(supabase.from("quote_requests").update({ status: "booked", updated_at: new Date().toISOString() }).eq("id", quoteId));
-      requests = requests.map((request) => String(request.id) === String(quoteId) ? { ...request, status: "booked" } : request);
+    saved = await linkPaidBooking(supabase, saved);
+    if (saved.quote_request_id) {
+      await runQuery(supabase.from("quote_requests").update({ status: "booked", updated_at: new Date().toISOString() }).eq("id", saved.quote_request_id));
+      requests = requests.map((request) => String(request.id) === String(saved.quote_request_id) ? { ...request, status: "booked" } : request);
       writeJson(REQUESTS_KEY, requests);
     }
     const existingIndex = salesBookings.findIndex((booking) => String(booking.id) === String(saved.id));
